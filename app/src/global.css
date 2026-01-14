@@ -28,6 +28,13 @@
     background-color: var(--background);
   }
 
+  button:focus-visible,
+  [type="button"]:focus-visible,
+  [role="button"]:focus-visible {
+    outline: none;
+    box-shadow: none;
+  }
+
 }
 
 @theme  {

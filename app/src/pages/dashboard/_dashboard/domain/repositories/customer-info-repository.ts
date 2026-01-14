@@ -1,0 +1,23 @@
+import dashboardService, { CustomerSummaryItem } from "@/api/services/dashboardService";
+
+/**
+ * Repository interface for Customer Info data
+ */
+export type CustomerInfoRepository = {
+  getCustomerInfo(): Promise<CustomerSummaryItem[]>;
+};
+
+/**
+ * Repository implementation using dashboardService
+ */
+class CustomerInfoRepositoryImpl implements CustomerInfoRepository {
+  async getCustomerInfo(): Promise<CustomerSummaryItem[]> {
+    return dashboardService.getCustomerInfo();
+  }
+}
+
+// Export singleton instance
+const customerInfoRepository = new CustomerInfoRepositoryImpl();
+
+export default customerInfoRepository;
+export { CustomerInfoRepositoryImpl };

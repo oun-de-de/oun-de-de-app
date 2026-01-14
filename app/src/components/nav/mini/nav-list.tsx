@@ -62,7 +62,9 @@ export function NavList({ data, depth = 0 }: NavListProps) {
 	const renderRootItemWithHoverCard = () => {
 		return (
 			<HoverCard openDelay={100}>
-				<HoverCardTrigger>{renderNavItem()}</HoverCardTrigger>
+				<HoverCardTrigger asChild>
+					<div>{renderNavItem()}</div>
+				</HoverCardTrigger>
 				<HoverCardContent side="right" sideOffset={10} className="p-1">
 					<StyledPopoverList>
 						{data.children?.map((child) => (
@@ -83,7 +85,7 @@ export function NavList({ data, depth = 0 }: NavListProps) {
 
 		return (
 			<HoverCard openDelay={100}>
-				<HoverCardTrigger>
+				<HoverCardTrigger asChild>
 					<div>{navItem}</div>
 				</HoverCardTrigger>
 				<HoverCardContent side="right" align="start" sideOffset={10} className="p-1">
