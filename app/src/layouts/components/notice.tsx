@@ -9,7 +9,7 @@ export default function NoticeButton() {
 	return (
 		<div className="relative">
 			<StyledButton variant="ghost" size="icon" className="rounded-full">
-				<Icon icon="solar:bell-bing-bold-duotone" size={24} />
+				<Icon icon="solar:bell-outline" size={24} />
 			</StyledButton>
 			<Badge variant="destructive" shape="circle" className="absolute -right-2 -top-2">
 				{count}
@@ -20,7 +20,7 @@ export default function NoticeButton() {
 
 //#region Styled Components
 const StyledButton = styled(Button)`
-	color: ${({ theme }) => theme.colors.palette.gray[500]};
+	color: ${({ theme }) => theme.colors.common.black};
 	svg {
 		fill: ${({ theme }) => theme.colors.palette.gray[500]};
 	}

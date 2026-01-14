@@ -10,6 +10,12 @@ export type NavItemStateProps = {
 	hidden?: boolean;
 };
 
+export type NavAction = {
+	title: string;
+	path?: string;
+	onClick?: () => void;
+};
+
 export type NavItemDataProps = {
 	path: string;
 	title: string;
@@ -18,6 +24,7 @@ export type NavItemDataProps = {
 	caption?: string;
 	auth?: string[];
 	children?: NavItemDataProps[];
+	actions?: NavAction[];
 } & NavItemStateProps;
 
 /**

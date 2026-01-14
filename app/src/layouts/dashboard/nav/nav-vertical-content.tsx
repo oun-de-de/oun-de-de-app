@@ -14,15 +14,15 @@ type Props = {
 export function NavVerticalContent({ data }: Props) {
 	const { themeLayout } = useSettings();
 
+	const isMini = themeLayout === ThemeLayout.Mini;
+
 	return (
 		<StyledScrollArea>
-			{themeLayout === ThemeLayout.Vertical && (
-				<StyledButton variant="outline" size="sm">
-					<Icon icon="lucide:plus" size={16} />
-					New
-				</StyledButton>
-			)}
-			{themeLayout === ThemeLayout.Mini ? <NavMini data={data} /> : <NavVertical data={data} />}
+			<StyledButton variant="outline" size="sm" $isMini={isMini}>
+				<Icon icon="lucide:plus" size={16} />
+				{!isMini && "New"}
+			</StyledButton>
+			{isMini ? <NavMini data={data} /> : <NavVertical data={data} />}
 		</StyledScrollArea>
 	);
 }
@@ -35,7 +35,7 @@ const StyledScrollArea = styled(ScrollArea)`
 	padding-top: 8px;
 `;
 
-const StyledButton = styled(Button)`
+const StyledButton = styled(Button)<{ $isMini: boolean }>`
 	width: 100%;
 	height: 42px;
 	margin-bottom: 8px;
@@ -43,6 +43,7 @@ const StyledButton = styled(Button)`
 	color: ${({ theme }) => theme.colors.common.white};
 	font-size: 0.875rem;
 	font-weight: 500;
+	justify-content: center;
 
 	&:hover {
 		background-color: ${({ theme }) => theme.colors.common.white};
