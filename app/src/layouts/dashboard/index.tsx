@@ -1,7 +1,10 @@
+import { Icon } from "@/components/icon";
 import Logo from "@/components/logo";
 import { down, useMediaQuery } from "@/hooks";
-import { useSettings } from "@/store/settingStore";
+import { useSettings, useSettingActions } from "@/store/settingStore";
 import { ThemeLayout } from "#/enum";
+import { Button } from "@/ui/button";
+import styled from "styled-components";
 import Header from "./header";
 import Main from "./main";
 import { NavHorizontalLayout, NavMobileLayout, NavVerticalLayout, useFilteredNavData } from "./nav";
@@ -10,7 +13,7 @@ export default function DashboardLayout() {
 	const isMobile = useMediaQuery(down("md"));
 
 	return (
-		<div data-slot="slash-layout-root" className="w-full min-h-screen bg-background">
+		<div data-slot="slash-layout-root" className="w-full min-h-screen bg-white">
 			{isMobile ? <MobileLayout /> : <PcLayout />}
 		</div>
 	);
@@ -51,10 +54,18 @@ function PcHorizontalLayout() {
 function PcVerticalLayout() {
 	const settings = useSettings();
 	const { themeLayout } = settings;
+	const { setSettings } = useSettingActions();
 	const navData = useFilteredNavData();
 
 	const mainPaddingLeft =
 		themeLayout === ThemeLayout.Vertical ? "var(--layout-nav-width)" : "var(--layout-nav-width-mini)";
+
+	const handleToggle = () => {
+		setSettings({
+			...settings,
+			themeLayout: themeLayout === ThemeLayout.Mini ? ThemeLayout.Vertical : ThemeLayout.Mini,
+		});
+	};
 
 	return (
 		<>
@@ -67,9 +78,32 @@ function PcVerticalLayout() {
 					paddingLeft: mainPaddingLeft,
 				}}
 			>
-				<Header />
+				<Header
+					leftSlot={
+						<StyledToggleButton variant="ghost" size="icon" onClick={handleToggle}>
+							<Icon icon="lucide:menu" size={20} />
+						</StyledToggleButton>
+					}
+				/>
 				<Main />
 			</div>
 		</>
 	);
 }
+
+//#region Styled Components
+const StyledToggleButton = styled(Button)`
+	background-color: ${({ theme }) => theme.colors.common.white};
+	color: ${({ theme }) => theme.colors.common.black};
+
+	&:hover {
+		background-color: ${({ theme }) => theme.colors.common.white};
+		color: ${({ theme }) => theme.colors.common.black};
+	}
+
+	svg {
+		fill: ${({ theme }) => theme.colors.common.black};
+		color: ${({ theme }) => theme.colors.common.black};
+	}
+`;
+//#endregion

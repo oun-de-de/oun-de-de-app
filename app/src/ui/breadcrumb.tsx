@@ -1,6 +1,7 @@
 import * as React from "react"
 import { Slot as SlotPrimitive } from "radix-ui"
 import { ChevronRight, MoreHorizontal } from "lucide-react"
+import styled from "styled-components"
 
 import { cn } from "@/utils"
 
@@ -10,12 +11,9 @@ function Breadcrumb({ ...props }: React.ComponentProps<"nav">) {
 
 function BreadcrumbList({ className, ...props }: React.ComponentProps<"ol">) {
   return (
-    <ol
+    <StyledBreadcrumbList
       data-slot="breadcrumb-list"
-      className={cn(
-        "text-muted-foreground flex flex-wrap items-center gap-1.5 text-sm break-words sm:gap-2.5",
-        className
-      )}
+      className={className}
       {...props}
     />
   )
@@ -38,12 +36,12 @@ function BreadcrumbLink({
 }: React.ComponentProps<"a"> & {
   asChild?: boolean
 }) {
-  const Comp = asChild ? SlotPrimitive.Slot : "a"
+  const Comp = asChild ? SlotPrimitive.Slot : StyledBreadcrumbLink
 
   return (
     <Comp
       data-slot="breadcrumb-link"
-      className={cn("hover:text-foreground transition-colors", className)}
+      className={className}
       {...props}
     />
   )
@@ -51,12 +49,12 @@ function BreadcrumbLink({
 
 function BreadcrumbPage({ className, ...props }: React.ComponentProps<"span">) {
   return (
-    <span
+    <StyledBreadcrumbPage
       data-slot="breadcrumb-page"
       role="link"
       aria-disabled="true"
       aria-current="page"
-      className={cn("text-foreground font-normal", className)}
+      className={className}
       {...props}
     />
   )
@@ -75,7 +73,7 @@ function BreadcrumbSeparator({
       className={cn("[&>svg]:size-3.5", className)}
       {...props}
     >
-      {children ?? <ChevronRight />}
+      {children ?? "/"}
     </li>
   )
 }
@@ -107,3 +105,34 @@ export {
   BreadcrumbSeparator,
   BreadcrumbEllipsis,
 }
+
+//#region Styled Components
+const StyledBreadcrumbList = styled.ol`
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.375rem;
+  word-break: break-word;
+  color: ${({ theme }) => theme.colors.common.black};
+  font-weight: ${({ theme }) => theme.typography.fontWeight.semibold};
+
+  @media (min-width: 640px) {
+    gap: 0.625rem;
+  }
+`;
+
+const StyledBreadcrumbLink = styled.a`
+  color: ${({ theme }) => theme.colors.common.black};
+  font-weight: ${({ theme }) => theme.typography.fontWeight.semibold};
+  transition: color 0.2s;
+
+  &:hover {
+    color: ${({ theme }) => theme.colors.common.black};
+  }
+`;
+
+const StyledBreadcrumbPage = styled.span`
+  color: ${({ theme }) => theme.colors.common.black};
+  font-weight: ${({ theme }) => theme.typography.fontWeight.semibold};
+`;
+//#endregion

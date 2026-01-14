@@ -29,19 +29,19 @@ type SettingStore = {
 const useSettingStore = create<SettingStore>()(
 	persist(
 		(set) => ({
-			settings: {
-				themeColorPresets: ThemeColorPresets.Default,
-				themeMode: ThemeMode.Light,
-				themeLayout: ThemeLayout.Vertical,
-				themeStretch: false,
-				breadCrumb: true,
-				accordion: false,
-				multiTab: false,
-				darkSidebar: false,
-				fontFamily: FontFamilyPreset.openSans,
-				fontSize: Number(typographyTokens.fontSize.sm),
-				direction: "ltr",
-			},
+		settings: {
+			themeColorPresets: ThemeColorPresets.Default,
+			themeMode: ThemeMode.Dark,
+			themeLayout: ThemeLayout.Vertical,
+			themeStretch: false,
+			breadCrumb: true,
+			accordion: false,
+			multiTab: false,
+			darkSidebar: false,
+			fontFamily: FontFamilyPreset.openSans,
+			fontSize: Number(typographyTokens.fontSize.sm),
+			direction: "ltr",
+		},
 			actions: {
 				setSettings: (settings) => {
 					set({ settings });

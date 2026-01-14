@@ -7,6 +7,7 @@ import { ChevronDown } from "lucide-react";
 import * as React from "react";
 import { useCallback, useMemo } from "react";
 import { Link, useMatches } from "react-router";
+import styled from "styled-components";
 
 interface BreadCrumbProps {
 	maxItems?: number;
@@ -46,9 +47,15 @@ export default function BreadCrumb({ maxItems = 3 }: BreadCrumbProps) {
 	}, []);
 
 	const breadCrumbs = useMemo(() => {
+		const dashboardItem: BreadcrumbItemData = {
+			key: "/",
+			label: t("Dashboard"),
+			items: [],
+		};
+
 		const paths = matches.filter((item) => item.pathname !== "/").map((item) => item.pathname);
 
-		return paths
+		const otherBreadcrumbs = paths
 			.map((path) => {
 				const navItems = navData.flatMap((section) => section.items);
 				const pathItems = findPathInNavData(path, navItems);
@@ -69,10 +76,13 @@ export default function BreadCrumb({ maxItems = 3 }: BreadCrumbProps) {
 				};
 			})
 			.filter((item): item is BreadcrumbItemData => item !== null);
+
+		return [dashboardItem, ...otherBreadcrumbs];
 	}, [matches, t, findPathInNavData, navData]);
 
 	const renderBreadcrumbItem = (item: BreadcrumbItemData, isLast: boolean) => {
 		const hasItems = item.items && item.items.length > 0;
+		const isDashboard = item.key === "/";
 
 		if (hasItems) {
 			return (
@@ -96,12 +106,12 @@ export default function BreadCrumb({ maxItems = 3 }: BreadCrumbProps) {
 
 		return (
 			<BreadcrumbItem>
-				{isLast ? (
-					<BreadcrumbPage>{item.label}</BreadcrumbPage>
+				{isLast && !isDashboard ? (
+					<StyledBreadcrumbPage>{item.label}</StyledBreadcrumbPage>
 				) : (
-					<BreadcrumbLink asChild>
+					<StyledBreadcrumbLink asChild>
 						<Link to={item.key}>{item.label}</Link>
-					</BreadcrumbLink>
+					</StyledBreadcrumbLink>
 				)}
 			</BreadcrumbItem>
 		);
@@ -152,8 +162,28 @@ export default function BreadCrumb({ maxItems = 3 }: BreadCrumbProps) {
 	};
 
 	return (
-		<Breadcrumb>
+		<StyledBreadcrumb>
 			<BreadcrumbList>{renderBreadcrumbs()}</BreadcrumbList>
-		</Breadcrumb>
+		</StyledBreadcrumb>
 	);
 }
+
+//#region Styled Components
+const StyledBreadcrumb = styled(Breadcrumb)`
+	color: ${({ theme }) => theme.colors.common.black};
+`;
+
+const StyledBreadcrumbLink = styled(BreadcrumbLink)`
+	color: ${({ theme }) => theme.colors.common.black} !important;
+	text-decoration: none;
+
+	&:hover {
+		text-decoration: underline;
+		color: ${({ theme }) => theme.colors.common.black} !important;
+	}
+`;
+
+const StyledBreadcrumbPage = styled(BreadcrumbPage)`
+	color: ${({ theme }) => theme.colors.palette.gray[500]} !important;
+`;
+//#endregion

@@ -1,9 +1,8 @@
 import Icon from "@/components/icon/icon";
 import useLocale from "@/locales/use-locale";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/ui/tooltip";
-import { cn } from "@/utils";
 import { NavItemRenderer } from "../components";
-import { navItemClasses, navItemStyles } from "../styles";
+import { navItemStyles } from "../styles";
 import type { NavItemProps } from "../types";
 
 export const NavRootItem = (item: NavItemProps) => {
@@ -39,17 +38,8 @@ export const NavRootItem = (item: NavItemProps) => {
 		</>
 	);
 
-	const itemClassName = cn(
-		navItemClasses.base,
-		navItemClasses.hover,
-		"relative flex-col min-h-12 px-1 pt-2 pb-1.5",
-		item.active && item.depth === 1 && navItemClasses.active,
-		item.active && item.depth !== 1 && "bg-action-hover!",
-		item.disabled && navItemClasses.disabled,
-	);
-
 	return (
-		<NavItemRenderer item={item} className={itemClassName}>
+		<NavItemRenderer item={item} className="relative flex-col min-h-12 px-1 pt-2 pb-1.5">
 			{content}
 		</NavItemRenderer>
 	);
