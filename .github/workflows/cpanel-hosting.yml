@@ -7,9 +7,9 @@ jobs:
   web-deploy:
     name: 🎉 Deploy
     runs-on: ubuntu-latest
-    steps:
-      - name: 🚚 Get latest code
-        uses: actions/checkout@v4
+    # steps:
+    #   - name: 🚚 Get latest code
+    #     uses: actions/checkout@v4
       # - name: Make envfile
       #   uses: SpicyPizza/create-envfile@v1
       #   with:
@@ -32,12 +32,12 @@ jobs:
       # - name: Build
       #   run: |
       #     pnpm build
-      - name: 📂 Sync files
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.6
-        with:
-          server: ${{ secrets.FTP_SERVER }}
-          port: ${{ secrets.FTP_SERVER_PORT }}
-          username: ${{ secrets.FTP_USRNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          local-dir: ./test/
-          server-dir: ./domains/cdtphuhoi.com/public_html/
+      # - name: 📂 Sync files
+      #   uses: SamKirkland/FTP-Deploy-Action@v4.3.6
+      #   with:
+      #     server: ${{ secrets.FTP_SERVER }}
+      #     port: ${{ secrets.FTP_SERVER_PORT }}
+      #     username: ${{ secrets.FTP_USRNAME }}
+      #     password: ${{ secrets.FTP_PASSWORD }}
+      #     local-dir: ./test/
+      #     server-dir: ./domains/cdtphuhoi.com/public_html/
