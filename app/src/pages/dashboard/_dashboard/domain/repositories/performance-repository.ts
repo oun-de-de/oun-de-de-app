@@ -1,4 +1,4 @@
-import dashboardService from "@/api/services/dashboardService";
+import { DashboardApi, DashboardApiImpl } from "@/api/services/dashboardService";
 import { PerformanceItem } from "../entities/performance";
 
 /**
@@ -12,13 +12,15 @@ export type PerformanceRepository = {
  * Repository implementation using dashboardService
  */
 class PerformanceRepositoryImpl implements PerformanceRepository {
+  constructor(private api: DashboardApi) {}
+
   async getPerformance(): Promise<PerformanceItem[]> {
-    return dashboardService.getPerformance();
+    return this.api.getPerformance();
   }
 }
 
 // Export singleton instance
-const performanceRepository = new PerformanceRepositoryImpl();
+const performanceRepository = new PerformanceRepositoryImpl(new DashboardApiImpl());
 
 export default performanceRepository;
 export { PerformanceRepositoryImpl };

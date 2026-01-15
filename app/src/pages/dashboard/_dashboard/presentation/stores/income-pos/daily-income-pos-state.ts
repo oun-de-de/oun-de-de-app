@@ -1,6 +1,6 @@
 
 import type { BaseState } from "@/types/state";
-import { DailyIncomePoint } from "../../../domain/entities/daily-income-point";
+import { DailyIncomePos } from "../../../domain/entities/daily-income";
 import { FilterData } from "../../../domain/entities/filter";
 
 type DailyIncomePosType =
@@ -10,7 +10,7 @@ type DailyIncomePosType =
   | "GetListErrorState";
 
 export type DailyIncomePosState = BaseState<DailyIncomePosType> & {
-  list: DailyIncomePoint[];
+  list: DailyIncomePos[];
   id?: FilterData;
 };
 export const DailyIncomePosInitialState = (
@@ -29,7 +29,7 @@ export const _DailyIncomePostState = ({
 }: {
   state: DailyIncomePosState;
   type: DailyIncomePosType;
-  list?: DailyIncomePoint[];
+  list?: DailyIncomePos[];
   id?: FilterData;
 }): DailyIncomePosState => ({
   id: id ?? state.id,

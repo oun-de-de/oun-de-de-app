@@ -12,7 +12,7 @@ import { DashboardRepository } from "../../domain/repositories/dashboard-reposit
 import { useObservable } from "react-use";
 
 export default function DashboardIncomePos() {
-  const repo = useProvider<DashboardRepository>();
+  const repo = useProvider<DashboardRepository>("Income-Pos");
 
   const filter = useObservable(
     repo.selectedFilter$,
@@ -25,7 +25,6 @@ export default function DashboardIncomePos() {
   useEffect(() => {
     if (!filter) return;
     fetch(filter);
-    console.log(filter);
   }, [fetch, filter]);
 
   const categories = useMemo(
@@ -65,6 +64,7 @@ export default function DashboardIncomePos() {
     },
     legend: {
       show: true,
+      showForSingleSeries: true,
       position: "top",
       horizontalAlign: "center",
       fontSize: "12px",
@@ -140,19 +140,7 @@ export default function DashboardIncomePos() {
 
   return (
     <StyledChartWrapper className="-mx-3 -mb-3">
-      <div className="flex items-center justify-center gap-2 pt-2">
-        <div
-          className="
-            h-4 w-15 rounded-sm
-            bg-gradient-to-r
-            from-red-300
-            to-red-100
-            ring-1 ring-red-400/60
-          "
-        />
-        <span className="text-sm font-medium text-gray-600">Amount</span>
-      </div>
-      <ReactApexChart
+      <StyledReactApexChart
         options={options}
         series={series}
         type="bar"
@@ -166,5 +154,41 @@ export default function DashboardIncomePos() {
 //#region Styled Components
 const StyledChartWrapper = styled.div`
   border-top: 1px solid ${({ theme }) => rgbAlpha(theme.colors.palette.gray[400], 0.4)};
+`;
+const StyledReactApexChart = styled(ReactApexChart)`
+  .apexcharts-legend {
+    display: flex;
+    justify-content: center;
+    padding-top: 8px;
+  }
+
+  .apexcharts-legend-series {
+    display: flex !important;
+    align-items: center;
+    gap: 8px;
+    margin: 0 8px !important;
+  }
+
+  .apexcharts-legend-marker svg {
+    display: none;
+  }
+
+  .apexcharts-legend-marker {
+    width: 60px !important;
+    height: 16px !important;
+    border-radius: 4px;
+    position: relative;
+  }
+
+  .apexcharts-legend-text {
+    font-size: 14px;
+    font-weight: 500;
+    color: #4b5563 !important; /* gray-600 */
+  }
+
+  .apexcharts-legend-series[rel="1"] .apexcharts-legend-marker {
+    background: linear-gradient(to right, #fca5a5, #fee2e2);
+    box-shadow: 0 0 0 1px rgba(248, 113, 113, 0.6);
+  }
 `;
 //#endregion

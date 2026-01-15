@@ -1,42 +1,66 @@
-import { DailyIncomePoint } from "@/pages/dashboard/_dashboard/domain/entities/daily-income-point";
+import { DailyIncomeAccounting, DailyIncomePos } from "@/pages/dashboard/_dashboard/domain/entities/daily-income";
 import apiClient from "../apiClient";
 import { CustomerSummaryItem } from "@/pages/dashboard/_dashboard/domain/entities/customer-info";
 import { PerformanceItem } from "@/pages/dashboard/_dashboard/domain/entities/performance";
 import { FilterData } from "@/pages/dashboard/_dashboard/domain/entities/filter";
 
-export enum DashboardApi {
+enum DashboardApiPath {
   DailyIncomePos = "/dashboard/daily-income-pos",
+  DailyIncomeAccounting = "/dashboard/daily-income-accounting",
   CustomerInfo = "/dashboard/customer-info",
   Performance = "/dashboard/performance",
   Filters = "/dashboard/filters",
 }
 
-const getDailyIncomePos = (range: string) =>
-  apiClient.get<DailyIncomePoint[]>({
-    url: DashboardApi.DailyIncomePos,
-    params: { range },
-  });
+export interface DailyIncomePosApi {
+  getDailyIncomesPos(range: string): Promise<DailyIncomePos[]>;
+}
 
-const getCustomerInfo = () =>
-  apiClient.get<CustomerSummaryItem[]>({
-    url: DashboardApi.CustomerInfo,
-  });
+export interface DailyIncomeAccountingApi {
+  getDailyIncomesAccounting(range: string): Promise<DailyIncomeAccounting[]>;
+}
 
-const getPerformance = () =>
-  apiClient.get<PerformanceItem[]>({
-    url: DashboardApi.Performance,
-  });
+export interface DashboardApi {
+  getCustomerInfo(): Promise<CustomerSummaryItem[]>;
+  getPerformance(): Promise<PerformanceItem[]>;
+  getFiltersByType(type: string): Promise<FilterData[]>;
+}
 
-const getFiltersByType = (type: string) =>
-  apiClient.get<FilterData[]>({
-    url: DashboardApi.Filters,
-    params: { type },
-  });
+export class DashboardApiImpl implements DashboardApi {
+  getCustomerInfo() {
+    return apiClient.get<CustomerSummaryItem[]>({
+      url: DashboardApiPath.CustomerInfo,
+    });
+  }
 
-export default {
-  getDailyIncomePos,
-  getCustomerInfo,
-  getPerformance,
-  getFiltersByType,
-};
+  getPerformance() {
+    return apiClient.get<PerformanceItem[]>({
+      url: DashboardApiPath.Performance,
+    });
+  }
 
+  getFiltersByType(type: string) {
+    return apiClient.get<FilterData[]>({
+      url: DashboardApiPath.Filters,
+      params: { type },
+    });
+  }
+}
+
+export class DailyIncomePosApiImpl implements DailyIncomePosApi {
+  getDailyIncomesPos(range: string) {
+    return apiClient.get<DailyIncomePos[]>({
+      url: DashboardApiPath.DailyIncomePos,
+      params: { range },
+    });
+  }
+}
+
+export class DailyIncomeAccountingApiImpl implements DailyIncomeAccountingApi {
+  getDailyIncomesAccounting(range: string) {
+    return apiClient.get<DailyIncomeAccounting[]>({
+      url: DashboardApiPath.DailyIncomeAccounting,
+      params: { range },
+    }); 
+  }
+}

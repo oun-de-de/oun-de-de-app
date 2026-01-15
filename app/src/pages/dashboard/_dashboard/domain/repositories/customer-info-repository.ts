@@ -1,4 +1,5 @@
-import dashboardService from "@/api/services/dashboardService";
+
+import { DashboardApi, DashboardApiImpl } from "@/api/services/dashboardService";
 import { CustomerSummaryItem } from "../entities/customer-info";
 
 /**
@@ -12,13 +13,15 @@ export type CustomerInfoRepository = {
  * Repository implementation using dashboardService
  */
 class CustomerInfoRepositoryImpl implements CustomerInfoRepository {
+  constructor(private api: DashboardApi) {}
+
   async getCustomerInfo(): Promise<CustomerSummaryItem[]> {
-    return dashboardService.getCustomerInfo();
+    return this.api.getCustomerInfo();
   }
 }
 
 // Export singleton instance
-const customerInfoRepository = new CustomerInfoRepositoryImpl();
+const customerInfoRepository = new CustomerInfoRepositoryImpl(new DashboardApiImpl());
 
 export default customerInfoRepository;
 export { CustomerInfoRepositoryImpl };

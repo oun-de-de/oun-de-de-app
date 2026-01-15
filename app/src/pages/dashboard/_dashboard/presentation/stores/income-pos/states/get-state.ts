@@ -1,7 +1,7 @@
 import { FailureType } from "@/types/failure";
 import { ErrorState, LoadingState } from "@/types/state";
 import { DailyIncomePosState, _DailyIncomePostState } from "../daily-income-pos-state";
-import { DailyIncomePoint } from "@/pages/dashboard/_dashboard/domain/entities/daily-income-point";
+import { DailyIncomePos } from "@/pages/dashboard/_dashboard/domain/entities/daily-income";
 import { FilterData } from "@/pages/dashboard/_dashboard/domain/entities/filter";
 
 export const DailyIncomePosLoadFirstLoadingState = (
@@ -16,7 +16,7 @@ export const DailyIncomePosLoadFirstLoadingState = (
 
 export const DailyIncomePosLoadFirstSuccessState = (
   state: DailyIncomePosState,
-  list: DailyIncomePoint[],
+  list: DailyIncomePos[],
 ): DailyIncomePosState =>
   _DailyIncomePostState({
     state,

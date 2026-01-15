@@ -2,7 +2,7 @@ import { Left, Right, type Either } from "@/types/either";
 import { Failure, type FailureType } from "@/types/failure";
 import execute from "@/utils/execute";
 import dailyIncomePosRepository, { DailyIncomePosRepository } from "../repositories/daily-income-pos-repository";
-import { DailyIncomePoint } from "../entities/daily-income-point";
+import { DailyIncomePos } from "../entities/daily-income";
 import { FilterData } from "../entities/filter";
 
 /**
@@ -13,7 +13,7 @@ class GetIncomePosListUseCase {
 
   async getIncomePosList(
     filter?: FilterData
-  ): Promise<Either<FailureType, DailyIncomePoint[]>> {
+  ): Promise<Either<FailureType, DailyIncomePos[]>> {
     return execute(
       async () => {
         await new Promise((resolve) => setTimeout(resolve as () => void, 1000));
