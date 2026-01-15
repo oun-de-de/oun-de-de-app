@@ -20,8 +20,7 @@ export function register<T extends AnyRepo>(
 }
 
 type RepoStore = {
-  byName: Map<string, AnyRepo>;
-  byType: Map<Function, Map<string, AnyRepo>>;
+  byType: Map<Function, Map<string, AnyRepo>>; // type -> (name -> instance)
 };
 
 const RepoContext = React.createContext<RepoStore | null>(null);
@@ -35,7 +34,6 @@ export function MultiProvider({ repos, children }: MultiProviderProps) {
   const [store, setStore] = React.useState<RepoStore | null>(null);
 
   React.useEffect(() => {
-    const byName = new Map<string, AnyRepo>();
     const byType = new Map<Function, Map<string, AnyRepo>>();
 
     for (const reg of repos) {
@@ -56,14 +54,10 @@ export function MultiProvider({ repos, children }: MultiProviderProps) {
       }
 
       typeMap.set(name, instance);
-
-      if (name) {
-        byName.set(name, instance);
-      }
     }
 
-    setStore({ byName, byType });
-  }, []);
+    setStore({ byType });
+  }, [repos]);
 
   if (!store) return null;
 
@@ -77,29 +71,28 @@ export function MultiProvider({ repos, children }: MultiProviderProps) {
 export function useProvider<T extends AnyRepo>(instanceName?: string): T {
   const store = React.useContext(RepoContext);
   if (!store) {
-    throw new Error("useRepo must be used inside MultiProvider");
+    throw new Error("useProvider must be used inside MultiProvider");
   }
 
-  // resolve theo name
-  if (instanceName) {
-    const found = store.byName.get(instanceName);
-    if (!found) {
-      throw new Error(`Repo "${instanceName}" not found`);
-    }
-    return found as T;
-  }
-
-  // resolve theo type
   const matches: AnyRepo[] = [];
 
   for (const [, map] of store.byType) {
-    for (const [, inst] of map) {
-      matches.push(inst);
+    if (instanceName != null) {
+      const inst = map.get(instanceName);
+      if (inst) matches.push(inst);
+    } else {
+      for (const [, inst] of map) {
+        matches.push(inst);
+      }
     }
   }
 
   if (matches.length === 0) {
-    throw new Error("No repo registered");
+    throw new Error(
+      instanceName
+        ? `Repo "${instanceName}" not found`
+        : "No repo registered",
+    );
   }
 
   if (matches.length > 1) {
@@ -114,7 +107,7 @@ export function useProvider<T extends AnyRepo>(instanceName?: string): T {
 export function useAllProvider<T extends AnyRepo>(): T[] {
   const store = React.useContext(RepoContext);
   if (!store) {
-    throw new Error("useAllRepo must be used inside MultiProvider");
+    throw new Error("useAllProvider must be used inside MultiProvider");
   }
 
   const result: T[] = [];
