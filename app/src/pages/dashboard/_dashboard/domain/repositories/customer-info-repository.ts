@@ -1,4 +1,5 @@
-import dashboardService, { CustomerSummaryItem } from "@/api/services/dashboardService";
+import dashboardService from "@/api/services/dashboardService";
+import { CustomerSummaryItem } from "../entities/customer-info";
 
 /**
  * Repository interface for Customer Info data

@@ -11,7 +11,7 @@ import {
 } from "./states/get-state";
 
 type PerformanceStore = {
-  state: PerformanceState | PerformanceLoadFirstErrorState;
+  state: PerformanceState;
   actions: {
     fetch: () => Promise<void>;
   };

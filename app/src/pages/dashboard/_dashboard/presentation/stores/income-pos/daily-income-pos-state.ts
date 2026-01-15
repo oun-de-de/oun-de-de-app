@@ -1,34 +1,37 @@
 
 import type { BaseState } from "@/types/state";
-import { FilterRangeId } from "../../../domain/entities/filter";
 import { DailyIncomePoint } from "../../../domain/entities/daily-income-point";
+import { FilterData } from "../../../domain/entities/filter";
 
-export enum DailyIncomePosType {
-  Initial = "Initial",
-  GetListLoading = "GetListLoadingState",
-  GetListSuccess = "GetListSuccessState",
-  GetListError = "GetListErrorState",
-}
+type DailyIncomePosType =
+  | "InitialState"
+  | "GetListLoadingState"
+  | "GetListSuccessState"
+  | "GetListErrorState";
 
-export interface DailyIncomePosState extends BaseState<DailyIncomePosType> {
+export type DailyIncomePosState = BaseState<DailyIncomePosType> & {
   list: DailyIncomePoint[];
-  id?: FilterRangeId;
-}
-
-// --- Initial state ---
-export const DailyIncomePosInitialState = (id?: FilterRangeId): DailyIncomePosState => ({
-  type: DailyIncomePosType.Initial,
+  id?: FilterData;
+};
+export const DailyIncomePosInitialState = (
+  id?: FilterData,
+): DailyIncomePosState => ({
+  type: "InitialState",
   list: [],
   id,
 });
 
-
-export const _DailyIncomePostState = (
-  state: DailyIncomePosState,
-  type: DailyIncomePosType,
-  list?: DailyIncomePoint[],
-  id?: FilterRangeId,
-): DailyIncomePosState => ({
+export const _DailyIncomePostState = ({
+  state,
+  type,
+  list,
+  id,
+}: {
+  state: DailyIncomePosState;
+  type: DailyIncomePosType;
+  list?: DailyIncomePoint[];
+  id?: FilterData;
+}): DailyIncomePosState => ({
   id: id ?? state.id,
   list: list ?? state.list,
   type,

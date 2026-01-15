@@ -5,6 +5,7 @@ import {
   dailyIncomePos,
   customerInfo,
   performance,
+  dashboardFilters
 } from './handlers/_dashboard';
 import { menuList } from './handlers/_menu';
 import { signIn, userList } from './handlers/_user';
@@ -19,6 +20,7 @@ const handlers = [
   dailyIncomePos,
   customerInfo,
   performance,
+  dashboardFilters
 ];
 
 const worker = setupWorker(...handlers);

@@ -6,30 +6,39 @@ import {
   useDashboardIncomePosActions,
   useDailyIncomePosState,
 } from "@/pages/dashboard/_dashboard/presentation/stores/income-pos/daily-income-pos-store";
-import { DailyIncomePosType } from "../stores/income-pos/daily-income-pos-state";
-import { Skeleton } from "@/ui/skeleton";
-import { DailyIncomePosLoadFirstErrorState } from "../stores/income-pos/states/get-state";
+import { ErrorState, isErrorState } from "@/types/state";
+import { useProvider } from "@/ui/multi-provider";
+import { DashboardRepository } from "../../domain/repositories/dashboard-repository";
+import { useObservable } from "react-use";
 
-export default function DashboardIncomePos({ filterRange }: { filterRange: "7" | "15" | "30" }) {
+export default function DashboardIncomePos() {
+  const repo = useProvider<DashboardRepository>();
+
+  const filter = useObservable(
+    repo.selectedFilter$,
+    repo.getSelectedFilter(),
+  );
+
   const state = useDailyIncomePosState();
-  const { fetch, init } = useDashboardIncomePosActions();
+  const { fetch } = useDashboardIncomePosActions();
 
   useEffect(() => {
-    init(filterRange);
-  }, []);
+    if (!filter) return;
+    fetch(filter);
+    console.log(filter);
+  }, [fetch, filter]);
 
-  useEffect(() => {
-    fetch(filterRange);
-  }, [fetch, filterRange]);
-
-  const categories = useMemo(() => state.list.map((d) => d.date), [state.list]);
+  const categories = useMemo(
+    () => state.list.map((d) => d.date),
+    [state.list],
+  );
 
   const series = useMemo(
     () => [
-    {
-      name: "Amount",
+      {
+        name: "Amount",
         data: state.list.map((d) => d.amount),
-    },
+      },
     ],
     [state.list],
   );
@@ -121,17 +130,10 @@ export default function DashboardIncomePos({ filterRange }: { filterRange: "7" |
     },
   };
 
-  if (state.type == DailyIncomePosType.GetListLoading && !state.list.length) {
-    return (
-      <Skeleton className="h-[320px] w-full" />
-    );
-  }
-
-  if (state.type == DailyIncomePosType.GetListError) {
-    const errorState = state as DailyIncomePosLoadFirstErrorState;
+  if (isErrorState(state)) {
     return (
       <StyledChartWrapper className="flex h-[320px] items-center justify-center">
-        <span className="text-sm text-red-500">{errorState.error.message}</span>
+        <span className="text-sm text-red-500">{(state as ErrorState).error.message}</span>
       </StyledChartWrapper>
     );
   }

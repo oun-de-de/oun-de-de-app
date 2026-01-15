@@ -2,7 +2,6 @@ import { create } from "zustand";
 import getIncomePosListUseCase from "../../../domain/usecases/get-income-pos-list-use-case";
 import {
   DailyIncomePosInitialState,
-  DailyIncomePosType,
   type DailyIncomePosState,
 } from "./daily-income-pos-state";
 import {
@@ -10,28 +9,19 @@ import {
   DailyIncomePosLoadFirstLoadingState,
   DailyIncomePosLoadFirstSuccessState,
 } from "./states/get-state";
-import { FilterRangeId } from "../../../domain/entities/filter";
+import { FilterData } from "../../../domain/entities/filter";
 
 type DailyIncomePosStore = {
   state: DailyIncomePosState;
   actions: {
-    init: (id: FilterRangeId) => void;
-    fetch: (id: FilterRangeId) => Promise<void>;
+    fetch: (id: FilterData) => Promise<void>;
   };
 };
 
 const createDailyIncomePosStore = create<DailyIncomePosStore>((set, get) => ({
     state: DailyIncomePosInitialState(),
     actions: {
-      init(newId: FilterRangeId) {
-        set((store) => {
-          if (store.state.type === DailyIncomePosType.Initial) {
-            return { state: DailyIncomePosInitialState(newId) };
-          }
-          return store;
-        });
-      },
-      async fetch(id: FilterRangeId) {
+      async fetch(id: FilterData) {
         const currentState = get().state;
 
         set({ state: DailyIncomePosLoadFirstLoadingState(currentState, id)});

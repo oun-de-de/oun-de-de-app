@@ -5,6 +5,7 @@ import { format } from "date-fns";
 import { DailyIncomePoint } from "@/pages/dashboard/_dashboard/domain/entities/daily-income-point";
 import { CustomerSummaryItem } from "@/pages/dashboard/_dashboard/domain/entities/customer-info";
 import { PerformanceItem } from "@/pages/dashboard/_dashboard/domain/entities/performance";
+import { FilterData } from "@/pages/dashboard/_dashboard/domain/entities/filter";
 
 
 /**
@@ -123,5 +124,24 @@ const performance = http.get("/api/dashboard/performance", () => {
   );
 });
 
-export { dailyIncomePos, customerInfo, performance };
+const dashboardFilters = http.get("/api/dashboard/filters", () => {
+  const mock: FilterData[] = [
+    { id: "7", value: "Last 7 Days" },
+    { id: "15", value: "Last 15 Days" },
+    { id: "30", value: "Last 30 Days" },
+  ];
+
+  return HttpResponse.json(
+    {
+      message: "",
+      data: mock,
+      status: ResultStatus.SUCCESS,
+    },
+    {
+      status: 200,
+    },
+  );
+});
+
+export { dailyIncomePos, customerInfo, performance, dashboardFilters };
 

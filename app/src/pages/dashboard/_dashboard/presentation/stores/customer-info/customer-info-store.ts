@@ -11,7 +11,7 @@ import {
 } from "./states/get-state";
 
 type CustomerInfoStore = {
-  state: CustomerInfoState | CustomerInfoLoadFirstErrorState;
+  state: CustomerInfoState;
   actions: {
     fetch: () => Promise<void>;
   };

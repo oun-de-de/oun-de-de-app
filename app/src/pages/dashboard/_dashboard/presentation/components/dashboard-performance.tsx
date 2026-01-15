@@ -4,8 +4,7 @@ import { styled } from "styled-components";
 import { rgbAlpha } from "@/utils/theme";
 import { usePerformanceActions, usePerformanceState } from "../stores/performance/performance-store";
 import PerformanceCard, { PerformanceLoadingCard } from "./card/performance-card";
-import { PerformanceType } from "../stores/performance/performance-state";
-import { PerformanceLoadFirstErrorState } from "../stores/performance/states/get-state";
+import { ErrorState, isErrorState, isLoadingState } from "@/types/state";
 
 export default function DashboardPerformance() {
 	const state = usePerformanceState();
@@ -16,12 +15,12 @@ export default function DashboardPerformance() {
 		void fetch();
 	}, [fetch]);
 
-	if (state.type === PerformanceType.GetListLoading && state.list.length === 0) {
+	if (isLoadingState(state) && state.list.length === 0) {
 		return <PerformanceLoadingCard />;
 	}
 
-	if (state.type === PerformanceType.GetListError) {
-		const errorState = state as PerformanceLoadFirstErrorState;
+	if (isErrorState(state)) {
+		const errorState = state as ErrorState;
 		return (
 			<div className="flex h-[120px] items-center justify-center text-sm text-red-500">
 				{errorState.error.message}

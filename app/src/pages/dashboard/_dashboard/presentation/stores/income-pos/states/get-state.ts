@@ -1,27 +1,36 @@
 import { FailureType } from "@/types/failure";
-import { ErrorState } from "@/types/state";
-import { DailyIncomePosState, DailyIncomePosType, _DailyIncomePostState } from "../daily-income-pos-state";
-import { FilterRangeId } from "@/pages/dashboard/_dashboard/domain/entities/filter";
+import { ErrorState, LoadingState } from "@/types/state";
+import { DailyIncomePosState, _DailyIncomePostState } from "../daily-income-pos-state";
 import { DailyIncomePoint } from "@/pages/dashboard/_dashboard/domain/entities/daily-income-point";
-
-export interface DailyIncomePosLoadFirstErrorState extends DailyIncomePosState, ErrorState {}
+import { FilterData } from "@/pages/dashboard/_dashboard/domain/entities/filter";
 
 export const DailyIncomePosLoadFirstLoadingState = (
   state: DailyIncomePosState,
-  id: FilterRangeId,
-): DailyIncomePosState =>
-    _DailyIncomePostState(state, DailyIncomePosType.GetListLoading, state.list, id);
+  id: FilterData,
+): DailyIncomePosState & LoadingState =>
+  _DailyIncomePostState({
+    state,
+    type: "GetListLoadingState",
+    id,
+  });
 
 export const DailyIncomePosLoadFirstSuccessState = (
   state: DailyIncomePosState,
   list: DailyIncomePoint[],
-) : DailyIncomePosState => _DailyIncomePostState(state, DailyIncomePosType.GetListSuccess
-    , list);
+): DailyIncomePosState =>
+  _DailyIncomePostState({
+    state,
+    type: "GetListSuccessState",
+    list,
+  });
 
 export const DailyIncomePosLoadFirstErrorState = (
   state: DailyIncomePosState,
-  error: FailureType
-): DailyIncomePosLoadFirstErrorState => ({
-  ..._DailyIncomePostState(state, DailyIncomePosType.GetListError),
+  error: FailureType,
+): DailyIncomePosState & ErrorState => ({
+  ..._DailyIncomePostState({
+    state,
+    type: "GetListErrorState",
+  }),
   error,
 });

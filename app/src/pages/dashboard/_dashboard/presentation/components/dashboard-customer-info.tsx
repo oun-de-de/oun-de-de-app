@@ -1,10 +1,7 @@
 import { useEffect } from "react";
 import { useCustomerInfoActions, useCustomerInfoState } from "../stores/customer-info/customer-info-store";
-import { CustomerInfoType } from "../stores/customer-info/customer-info-state";
-import type { ErrorState } from "@/types/state";
+import { isErrorState, isLoadingState, type ErrorState } from "@/types/state";
 import CustomerInfoCard, { CustomerInfoCardLoading } from "./card/customer-info-card";
-
-type CustomerInfoLoadFirstError = ErrorState;
 
 export default function DashboardCustomerInfo() {
 	const state = useCustomerInfoState();
@@ -14,12 +11,12 @@ export default function DashboardCustomerInfo() {
 		void fetch();
 	}, [fetch]);
 
-	if (state.type === CustomerInfoType.GetListLoading && state.list.length === 0) {
+	if (isLoadingState(state) && state.list.length === 0) {
 		return <CustomerInfoCardLoading />;
 	}
 
-	if (state.type === CustomerInfoType.GetListError) {
-		const errorState = state as CustomerInfoLoadFirstError;
+	if (isErrorState(state)) {
+		const errorState = state as ErrorState;
 		return (
 			<div className="flex h-[120px] items-center justify-center text-sm text-red-500">
 				{errorState.error.message}

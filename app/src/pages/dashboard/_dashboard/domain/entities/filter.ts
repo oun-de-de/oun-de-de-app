@@ -1,1 +1,4 @@
-export type FilterRangeId = "7" | "15" | "30";
+export type FilterData = {
+    id: string;
+    value: string;
+};

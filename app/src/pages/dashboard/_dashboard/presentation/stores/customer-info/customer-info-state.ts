@@ -1,29 +1,31 @@
 import type { BaseState } from "@/types/state";
 import { CustomerSummaryItem } from "../../../domain/entities/customer-info";
 
-export enum CustomerInfoType {
-  Initial = "Initial",
-  GetListLoading = "GetListLoadingState",
-  GetListSuccess = "GetListSuccessState",
-  GetListError = "GetListErrorState",
-}
+type CustomerInfoType =
+  | "InitialState"
+  | "GetListLoadingState"
+  | "GetListSuccessState"
+  | "GetListErrorState";
 
-export interface CustomerInfoState extends BaseState<CustomerInfoType> {
+export type CustomerInfoState = BaseState<CustomerInfoType> & {
   list: CustomerSummaryItem[];
-}
+};
 
 // --- Initial state ---
 export const CustomerInfoInitialState = (): CustomerInfoState => ({
-  type: CustomerInfoType.Initial,
+  type: "InitialState",
   list: [],
 });
 
-export const _CustomerInfoState = (
-  state: CustomerInfoState,
-  type: CustomerInfoType,
-  list?: CustomerSummaryItem[],
-): CustomerInfoState => ({
+export const _CustomerInfoState = ({
+  state,
+  type,
+  list,
+}: {
+  state: CustomerInfoState;
+  type: CustomerInfoType;
+  list?: CustomerSummaryItem[];
+}): CustomerInfoState => ({
   list: list ?? state.list,
   type,
 });
-
