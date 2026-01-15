@@ -8,8 +8,8 @@ jobs:
     name: 🎉 Deploy
     runs-on: ubuntu-latest
     steps:
-    #   - name: 🚚 Get latest code
-    #     uses: actions/checkout@v4
+      - name: 🚚 Get latest code
+        uses: actions/checkout@v4
       # - name: Make envfile
       #   uses: SpicyPizza/create-envfile@v1
       #   with:
