@@ -1,0 +1,361 @@
+import type {
+	AccountingRow,
+	AuditLogRow,
+	EntityListItemData,
+	ProductRow,
+	SettingsRow,
+	SummaryStatCardData,
+	TransactionRow,
+	VendorTransactionRow,
+} from "@/types/common";
+
+export const customerSummaryCards: SummaryStatCardData[] = [
+	{ label: "Deposit Balance", value: 0, color: "bg-sky-500", icon: "mdi:cash-plus" },
+	{ label: "Credit Limit (216)", value: 0, color: "bg-emerald-500", icon: "mdi:credit-card-check-outline" },
+	{ label: "Invoice (2,447)", value: 399047000, color: "bg-amber-500", icon: "mdi:file-document-outline" },
+	{ label: "Overdue (0)", value: 0, color: "bg-red-500", icon: "mdi:alert-circle-outline" },
+];
+
+export const customerList: EntityListItemData[] = [
+	{ id: "LC05", name: "Zero", code: "2C-9547" },
+	{ id: "LC06", name: "Bee", code: "2B-2083" },
+	{ id: "LC07", name: "Ice", code: "2M-3072" },
+	{ id: "Z001", name: "Ali", code: "1" },
+	{ id: "Z003", name: "Jon", code: "3" },
+	{ id: "Z005", name: "May", code: "5" },
+	{ id: "Z006", name: "Lia", code: "6" },
+	{ id: "Z007", name: "Fox", code: "7" },
+	{ id: "Z009", name: "Tan", code: "9" },
+	{ id: "Z010", name: "Ray", code: "10" },
+	{ id: "Z012", name: "Eon", code: "12" },
+	{ id: "Z014", name: "Jae", code: "14" },
+	{ id: "Z015", name: "Mia", code: "15" },
+	{ id: "Z018", name: "Neo", code: "18" },
+	{ id: "Z021", name: "Pia", code: "21" },
+];
+
+export const customerTransactions: TransactionRow[] = [
+	{
+		date: "13/10/2025",
+		refNo: "CS25654803352",
+		customer: "Zero",
+		type: "Cash Sale",
+		refType: "None",
+		status: "Closed",
+		amount: 8400,
+		memo: "None",
+	},
+	{
+		date: "13/10/2025",
+		refNo: "CS25654803326",
+		customer: "Bee",
+		type: "Cash Sale",
+		refType: "None",
+		status: "Closed",
+		amount: 26000,
+		memo: "None",
+	},
+	{
+		date: "13/10/2025",
+		refNo: "CS25654803325",
+		customer: "Ice",
+		type: "Cash Sale",
+		refType: "None",
+		status: "Closed",
+		amount: 27500,
+		memo: "None",
+	},
+	{
+		date: "13/10/2025",
+		refNo: "CS25654803324",
+		customer: "Mia (2B-2083)",
+		type: "Cash Sale",
+		refType: "None",
+		status: "Closed",
+		amount: 28000,
+		memo: "None",
+	},
+	{
+		date: "13/10/2025",
+		refNo: "CS25654803323",
+		customer: "Ari",
+		type: "Cash Sale",
+		refType: "None",
+		status: "Closed",
+		amount: 18000,
+		memo: "None",
+	},
+	{
+		date: "12/10/2025",
+		refNo: "CS25654803322",
+		customer: "Lia (2Z-6924)",
+		type: "Cash Sale",
+		refType: "None",
+		status: "Closed",
+		amount: 12000,
+		memo: "None",
+	},
+	{
+		date: "12/10/2025",
+		refNo: "CS25654803317",
+		customer: "Tan (3F-7156)",
+		type: "Cash Sale",
+		refType: "None",
+		status: "Closed",
+		amount: 90000,
+		memo: "None",
+	},
+	{
+		date: "12/10/2025",
+		refNo: "CS25654803315",
+		customer: "Eon (Z-35)",
+		type: "Cash Sale",
+		refType: "None",
+		status: "Closed",
+		amount: 5500,
+		memo: "None",
+	},
+	{
+		date: "12/10/2025",
+		refNo: "CS25654803314",
+		customer: "Neo",
+		type: "Cash Sale",
+		refType: "None",
+		status: "Closed",
+		amount: 28000,
+		memo: "None",
+	},
+	{
+		date: "12/10/2025",
+		refNo: "CS25654803313",
+		customer: "Pia (2B-2083)",
+		type: "Cash Sale",
+		refType: "None",
+		status: "Closed",
+		amount: 19500,
+		memo: "None",
+	},
+];
+
+export const vendorSummaryCards: SummaryStatCardData[] = [
+	{ label: "Deposit Balance", value: 0, color: "bg-sky-500", icon: "mdi:cash-plus" },
+	{ label: "Credit Limit (11)", value: 0, color: "bg-emerald-500", icon: "mdi:credit-card-check-outline" },
+	{ label: "Bill (1)", value: 5075000, color: "bg-amber-500", icon: "mdi:file-document-outline" },
+	{ label: "Overdue (0)", value: 0, color: "bg-red-500", icon: "mdi:alert-circle-outline" },
+];
+
+export const vendorList: EntityListItemData[] = [
+	{ id: "001", name: "Atlas Supplies", code: "" },
+	{ id: "002", name: "Evergreen Goods", code: "" },
+	{ id: "003", name: "Orchid Trading", code: "" },
+	{ id: "004", name: "Nova Wholesale", code: "" },
+	{ id: "005", name: "Prism Stationery", code: "" },
+	{ id: "006", name: "Summit Logistics", code: "" },
+];
+
+export const vendorTransactions: VendorTransactionRow[] = [
+	{
+		date: "13/10/2025",
+		refNo: "PO25654803352",
+		customer: "Atlas Supplies",
+		vendor: "Atlas Supplies",
+		type: "Purchase Order",
+		refType: "None",
+		status: "Open",
+		amount: 12500,
+		memo: "Office supplies",
+	},
+	{
+		date: "13/10/2025",
+		refNo: "BL25654803326",
+		customer: "Evergreen Goods",
+		vendor: "Evergreen Goods",
+		type: "Bill",
+		refType: "None",
+		status: "Closed",
+		amount: 28750,
+		memo: "Packaging materials",
+	},
+	{
+		date: "12/10/2025",
+		refNo: "PM25654803317",
+		customer: "Orchid Trading",
+		vendor: "Orchid Trading",
+		type: "Payment",
+		refType: "None",
+		status: "Closed",
+		amount: 9200,
+		memo: "Partial settlement",
+	},
+];
+
+export const productSummaryCards: SummaryStatCardData[] = [
+	{ label: "On Hand", value: 0, color: "bg-sky-500", icon: "mdi:package-variant" },
+	{ label: "Avg Cost", value: 0, color: "bg-emerald-500", icon: "mdi:scale-balance" },
+	{ label: "Amount", value: 0, color: "bg-amber-500", icon: "mdi:cash" },
+];
+
+export const productList: EntityListItemData[] = [
+	{ id: "SVA014", name: "Stapler", code: "" },
+	{ id: "SVA012", name: "Notebook", code: "" },
+	{ id: "SV002", name: "Pencil", code: "" },
+	{ id: "SV001", name: "Marker", code: "" },
+	{ id: "INV010", name: "Paper A4", code: "" },
+	{ id: "INV009", name: "Eraser", code: "" },
+	{ id: "INV003", name: "Glue", code: "" },
+	{ id: "INV002", name: "Ruler", code: "" },
+	{ id: "INV001", name: "Tape", code: "" },
+];
+
+export const productRows: ProductRow[] = [
+	{
+		date: "13/10/2025",
+		refNo: "CS25654803352",
+		type: "Cash Sale",
+		status: "Closed",
+		qty: 1,
+		cost: 6000,
+		price: 6500,
+	},
+	{
+		date: "13/10/2025",
+		refNo: "CS25654803326",
+		type: "Cash Sale",
+		status: "Closed",
+		qty: 2,
+		cost: 2100,
+		price: 2600,
+	},
+];
+
+export const accountingAccountList: EntityListItemData[] = [
+	{ id: "00001", name: "Cash on Hand", code: "" },
+	{ id: "10110", name: "Cash in Bank", code: "" },
+	{ id: "10115", name: "ABA Bank", code: "" },
+	{ id: "10120", name: "Cash Deposit", code: "" },
+	{ id: "12110", name: "Accounts Receivable", code: "" },
+	{ id: "12125", name: "Other Receivable", code: "" },
+];
+
+export const accountingRows: AccountingRow[] = [
+	{
+		date: "14/10/2025",
+		refNo: "IN256554803445",
+		type: "Invoice",
+		currency: "KHR",
+		memo: "Sale Discount",
+		dr: "",
+		cr: "99,000",
+	},
+	{
+		date: "14/10/2025",
+		refNo: "IN256554803444",
+		type: "Invoice",
+		currency: "KHR",
+		memo: "",
+		dr: "170,000",
+		cr: "",
+	},
+	{
+		date: "13/10/2025",
+		refNo: "IN256554803356",
+		type: "Invoice",
+		currency: "KHR",
+		memo: "Sale Discount",
+		dr: "",
+		cr: "77,900",
+	},
+];
+
+export const reportTabs = ["Customer", "Vendor", "Inventory", "Accounting"];
+
+export const reportSections = [
+	{
+		title: "Favorite",
+		icon: "mdi:star-outline",
+		items: [
+			{ label: "Open Invoice Detail By Customer", favorite: false },
+			{ label: "Customer Transaction Detail By Type", favorite: false },
+		],
+	},
+	{
+		title: "Cash Sale/Invoice",
+		icon: "mdi:cash",
+		items: [
+			{ label: "Sale Detail By Customer", favorite: false },
+			{ label: "Open Invoice Detail By Customer", favorite: true },
+			{ label: "Open Invoice On Period By Group", favorite: false },
+			{ label: "Customer Balance Detail", favorite: false },
+			{ label: "Sale Transaction List", favorite: false },
+			{ label: "Collection Invoice By Customer", favorite: false },
+		],
+	},
+	{
+		title: "Receipt",
+		icon: "mdi:receipt-text-outline",
+		items: [{ label: "Receipt Detail By Customer", favorite: false }],
+	},
+	{
+		title: "List",
+		icon: "mdi:format-list-bulleted",
+		items: [
+			{ label: "Customer List", favorite: false },
+			{ label: "Customer QR Codes", favorite: false },
+			{ label: "Customer Transaction", favorite: false },
+			{ label: "Customer Transaction Detail", favorite: false },
+			{ label: "Customer Transaction Detail By Type", favorite: true },
+			{ label: "Customer Transaction Summary By Type", favorite: false },
+		],
+	},
+];
+
+export const settingsTopTabs = [
+	"Items",
+	"Vendors",
+	"Customers",
+	"Accounting",
+	"Template",
+	"Company",
+];
+
+export const settingsLeftMenu = [
+	"Unit",
+	"UOM",
+	"Category",
+	"Group",
+	"Brand",
+	"Rank",
+	"Price Rule",
+	"Warehouse",
+	"Advances",
+	"Invoice Template",
+	"Import Data",
+];
+
+export const settingsRows: SettingsRow[] = [
+	{ name: "NA", type: "Count" },
+	{ name: "Box", type: "Count" },
+	{ name: "Piece", type: "Count" },
+	{ name: "Set", type: "Count" },
+	{ name: "Kg", type: "Count" },
+	{ name: "Package", type: "Count" },
+	{ name: "Bag", type: "Count" },
+];
+
+export const auditLogRows: AuditLogRow[] = [
+	{
+		date: "14/10/2025 12:24:10 pm",
+		user: "lc1988",
+		event: "ADD Sale-Invoice : IN256554803445",
+	},
+	{
+		date: "14/10/2025 11:32:43 am",
+		user: "lc1988",
+		event: "ADD Journal Entry : IN256554803444",
+	},
+	{
+		date: "14/10/2025 10:03:06 am",
+		user: "lmchann",
+		event: "ADD Sale-Invoice : IN256554803441",
+	},
+];

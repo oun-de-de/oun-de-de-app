@@ -75,7 +75,7 @@ importers:
         specifier: ^5.22.1
         version: 5.24.8(date-fns@4.1.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       apexcharts:
-        specifier: ^4.5.0
+        specifier: ^4.6.0
         version: 4.6.0
       axios:
         specifier: ^1.7.7
@@ -132,7 +132,7 @@ importers:
         specifier: ^19.1.0
         version: 19.1.0
       react-apexcharts:
-        specifier: ^1.5.0
+        specifier: ^1.7.0
         version: 1.7.0(apexcharts@4.6.0)(react@19.1.0)
       react-day-picker:
         specifier: 8.10.1
