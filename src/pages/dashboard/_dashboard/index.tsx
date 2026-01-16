@@ -5,14 +5,8 @@ import DashboardPerformance from "./components/dashboard-performance";
 import DashboardDropdownMenu from "./components/dropdown-menu/dashboard-dropdown-menu";
 import DashboardIncomeAccounting from "./components/dashboard-income-accounting";
 import DropdownMenuPromise from "./components/promise/drop-down-menu-promise";
-import { useEffect } from "react";
-import Repository from "@/service-locator";
 
 export default function Dashboard() {
-	useEffect(() => {
-		const stats = Repository.getStats();
-		console.log("stats", stats);
-	}, []);
 	return (
 		<div className="grid grid-cols-1 xl:grid-cols-2 gap-2 lg:gap-2">
 			<DashboardCard title="Customer Info">
