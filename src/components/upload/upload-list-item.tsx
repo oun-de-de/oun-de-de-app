@@ -7,7 +7,7 @@ import { fBytes } from "@/core/utils/format-number";
 import type { ItemRender } from "antd/es/upload/interface";
 import { m } from "motion/react";
 import { useEffect, useState } from "react";
-import { getBlobUrl, getFileFormat, getFileThumb } from "./core/utils";
+import { getBlobUrl, getFileFormat, getFileThumb } from "./utils";
 
 type Props = {
 	file: Parameters<ItemRender>["1"];

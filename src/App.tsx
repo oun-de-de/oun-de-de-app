@@ -9,8 +9,6 @@ import Toast from "./components/toast";
 import { GLOBAL_CONFIG } from "./global-config";
 import { AntdAdapter } from "./core/theme/adapter/antd.adapter";
 import { ThemeProvider } from "./core/theme/theme-provider";
-import { providers } from "./providers";
-import { MultiProvider } from "./core/ui/multi-provider";
 
 if (import.meta.env.DEV) {
 	import("react-scan").then(({ scan }) => {
@@ -27,18 +25,16 @@ function App({ children }: { children: React.ReactNode }) {
 	return (
 		<HelmetProvider>
 			<QueryClientProvider client={new QueryClient()}>
-				<MultiProvider providers={providers()}>
-					<ThemeProvider adapters={[AntdAdapter]}>
-						<VercelAnalytics debug={import.meta.env.PROD} />
-						<Helmet>
-							<title>{GLOBAL_CONFIG.appName}</title>
-							<link rel="icon" href={Logo} />
-						</Helmet>
-						<Toast />
-						<RouteLoadingProgress />
-						<MotionLazy>{children}</MotionLazy>
-					</ThemeProvider>
-				</MultiProvider>
+				<ThemeProvider adapters={[AntdAdapter]}>
+					<VercelAnalytics debug={import.meta.env.PROD} />
+					<Helmet>
+						<title>{GLOBAL_CONFIG.appName}</title>
+						<link rel="icon" href={Logo} />
+					</Helmet>
+					<Toast />
+					<RouteLoadingProgress />
+					<MotionLazy>{children}</MotionLazy>
+				</ThemeProvider>
 			</QueryClientProvider>
 		</HelmetProvider>
 	);

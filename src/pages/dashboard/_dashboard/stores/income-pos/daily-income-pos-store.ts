@@ -1,52 +1,68 @@
 import { create } from "zustand";
-import getIncomePosListUseCase from "../../../../../core/domain/dashboard/usecases/get-income-pos-list-use-case";
+import { GetIncomePosListUseCase } from "../../../../../core/domain/dashboard/usecases/get-income-pos-list-use-case";
+import { DailyIncomePosInitialState, type DailyIncomePosState } from "./daily-income-pos-state";
 import {
-  DailyIncomePosInitialState,
-  type DailyIncomePosState,
-} from "./daily-income-pos-state";
-import {
-  DailyIncomePosLoadFirstErrorState,
-  DailyIncomePosLoadFirstLoadingState,
-  DailyIncomePosLoadFirstSuccessState,
+	DailyIncomePosLoadFirstErrorState,
+	DailyIncomePosLoadFirstLoadingState,
+	DailyIncomePosLoadFirstSuccessState,
 } from "./states/get-state";
 import { FilterData } from "../../../../../core/domain/dashboard/entities/filter";
+import { BaseStore } from "@/core/types/base-store";
+import { DailyIncomePosRepository } from "@/core/domain/dashboard/repositories/daily-income-pos-repository";
+import { createBoundStore } from "@/core/utils/create-bound-store";
+import Repository from "@/service-locator";
 
-type DailyIncomePosStore = {
-  state: DailyIncomePosState;
-  actions: {
-    fetch: (id: FilterData) => Promise<void>;
-  };
+export type DailyIncomePosStore = BaseStore<
+	DailyIncomePosState,
+	{
+		fetch: (id: FilterData) => Promise<void>;
+	}
+>;
+
+type Deps = {
+	posRepo: DailyIncomePosRepository;
 };
 
-const createDailyIncomePosStore = create<DailyIncomePosStore>((set, get) => ({
-    state: DailyIncomePosInitialState(),
-    actions: {
-      async fetch(id: FilterData) {
-        const currentState = get().state;
+const depsValue: Deps = {
+	posRepo: Repository.get<DailyIncomePosRepository>("Daily-Income-Pos"),
+};
 
-        set({ state: DailyIncomePosLoadFirstLoadingState(currentState, id)});
+const { useState, useAction } = createBoundStore<
+	DailyIncomePosStore["state"],
+	DailyIncomePosStore["actions"],
+	DailyIncomePosStore,
+	Deps
+>({
+	deps: depsValue,
+	createStore: ({ posRepo }) =>
+		create<DailyIncomePosStore>((set, get) => ({
+			state: DailyIncomePosInitialState(),
+			actions: {
+				async fetch(id: FilterData) {
+					const currentState = get().state;
 
-        const result = await getIncomePosListUseCase.getIncomePosList(id);
+					set({
+						state: DailyIncomePosLoadFirstLoadingState(currentState, id),
+					});
 
-        result.fold(
-          (failure) => {
-            set({
-              state: DailyIncomePosLoadFirstErrorState(currentState, failure),
-            });
-          },
-          (list) => {
-            set({
-              state: DailyIncomePosLoadFirstSuccessState(currentState, list),
-            });
-          },
-        );
-      },
-    },
-  }));
+					const result = await new GetIncomePosListUseCase(posRepo).getIncomePosList(id);
 
-export const useDailyIncomePosState = () => createDailyIncomePosStore((store) => store.state);
+					result.fold(
+						(failure) => {
+							set({
+								state: DailyIncomePosLoadFirstErrorState(currentState, failure),
+							});
+						},
+						(list) => {
+							set({
+								state: DailyIncomePosLoadFirstSuccessState(currentState, list),
+							});
+						},
+					);
+				},
+			},
+		})),
+});
 
-export const useDashboardIncomePosActions = () => createDailyIncomePosStore((state) => state.actions);
-
-export { createDailyIncomePosStore };
-
+export const useDailyIncomePosState = useState;
+export const useDailyIncomePosActions = useAction;

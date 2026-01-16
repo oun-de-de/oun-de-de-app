@@ -2,125 +2,107 @@ import React from "react";
 
 type AnyRepo = object;
 
-type RepoRegistration<T extends AnyRepo = AnyRepo> = {
-  type: Function;
-  name?: string;
-  factory: () => T;
+type RepoRegistration = {
+	name?: string;
+	factory: () => AnyRepo;
 };
 
-export function registerProvider<T extends AnyRepo>(
-  factory: () => T,
-  instanceName?: string,
-): RepoRegistration<T> {
-  return {
-    type: null as unknown as Function,
-    name: instanceName,
-    factory,
-  };
+export function registerProvider(factory: () => AnyRepo, instanceName?: string): RepoRegistration {
+	return {
+		name: instanceName,
+		factory,
+	};
 }
 
 type RepoStore = {
-  byType: Map<Function, Map<string, AnyRepo>>; // type -> (name -> instance)
+	byType: Map<string, Map<string, AnyRepo>>; // type -> (name -> instance)
 };
 
 const RepoContext = React.createContext<RepoStore | null>(null);
 
 type MultiProviderProps = {
-  providers: RepoRegistration[];
-  children: React.ReactNode;
+	providers: RepoRegistration[];
+	children: React.ReactNode;
 };
 
-export function MultiProvider({ providers: repos, children }: MultiProviderProps) {
-  const [store, setStore] = React.useState<RepoStore | null>(null);
+export function MultiProvider({ providers, children }: MultiProviderProps) {
+	const [store, setStore] = React.useState<RepoStore | null>(null);
 
-  React.useEffect(() => {
-    const byType = new Map<Function, Map<string, AnyRepo>>();
+	React.useEffect(() => {
+		const byType = new Map<string, Map<string, AnyRepo>>();
 
-    for (const reg of repos) {
-      const instance = reg.factory();
-      const type = instance.constructor;
-      const name = reg.name ?? "";
+		for (const reg of providers) {
+			const instance = reg.factory();
+			const typeKey = instance.constructor.name; // 👈 lấy từ constructor.name
+			const name = reg.name ?? "";
 
-      if (!name && byType.has(type)) {
-        throw new Error(
-          `Multiple instances of ${type.name} detected. Please provide instanceName.`,
-        );
-      }
+			if (!byType.has(typeKey)) {
+				byType.set(typeKey, new Map());
+			}
 
-      if (!byType.has(type)) {
-        byType.set(type, new Map());
-      }
+			const typeMap = byType.get(typeKey)!;
 
-      const typeMap = byType.get(type)!;
+			if (!name && typeMap.size > 0) {
+				throw new Error(`Multiple instances of ${typeKey} detected. Please provide instanceName.`);
+			}
 
-      if (typeMap.has(name)) {
-        throw new Error(
-          `Repo of type ${type.name} with name "${name}" already registered`,
-        );
-      }
+			if (typeMap.has(name)) {
+				throw new Error(`Repo of type ${typeKey} with name "${name}" already registered`);
+			}
 
-      typeMap.set(name, instance);
-    }
+			typeMap.set(name, instance);
+		}
 
-    setStore({ byType });
-  }, [repos]);
+		setStore({ byType });
+	}, [providers]);
 
-  if (!store) return null;
+	if (!store) return null;
 
-  return (
-    <RepoContext.Provider value={store}>
-      {children}
-    </RepoContext.Provider>
-  );
+	return <RepoContext.Provider value={store}>{children}</RepoContext.Provider>;
 }
 
-export function useProvider<T extends AnyRepo>(instanceName?: string): T {
-  const store = React.useContext(RepoContext);
-  if (!store) {
-    throw new Error("useProvider must be used inside MultiProvider");
-  }
+type Ctor<T = AnyRepo> = new (...args: any[]) => T;
 
-  const matches: AnyRepo[] = [];
+export function useProvider<T extends AnyRepo>(ctor: Ctor<T>, instanceName?: string): T {
+	const store = React.useContext(RepoContext);
+	if (!store) {
+		throw new Error("useProvider must be used inside MultiProvider");
+	}
 
-  for (const [, map] of store.byType) {
-    if (instanceName != null) {
-      const inst = map.get(instanceName);
-      if (inst) matches.push(inst);
-    } else {
-      for (const [, inst] of map) {
-        matches.push(inst);
-      }
-    }
-  }
+	const typeKey = ctor.name;
+	const typeMap = store.byType.get(typeKey);
 
-  if (matches.length === 0) {
-    throw new Error(
-      instanceName
-        ? `Repo "${instanceName}" not found`
-        : "No repo registered",
-    );
-  }
+	if (!typeMap) {
+		throw new Error(`Repo type "${typeKey}" not registered`);
+	}
 
-  if (matches.length > 1) {
-    throw new Error(
-      "Multiple repo instances exist. Please specify instanceName.",
-    );
-  }
+	if (instanceName != null) {
+		const inst = typeMap.get(instanceName);
+		if (!inst) {
+			throw new Error(`Repo "${typeKey}" with name "${instanceName}" not found`);
+		}
+		return inst as T;
+	}
 
-  return matches[0] as T;
+	if (typeMap.size > 1) {
+		throw new Error(`Multiple instances of ${typeKey} exist. Please specify instanceName.`);
+	}
+
+	return Array.from(typeMap.values())[0] as T;
 }
 
-export function useAllProvider<T extends AnyRepo>(): T[] {
-  const store = React.useContext(RepoContext);
-  if (!store) {
-    throw new Error("useAllProvider must be used inside MultiProvider");
-  }
+export function useAllProvider<T extends AnyRepo>(ctor: Ctor<T>): T[] {
+	const store = React.useContext(RepoContext);
+	if (!store) {
+		throw new Error("useAllProvider must be used inside MultiProvider");
+	}
 
-  const result: T[] = [];
-  for (const [, map] of store.byType) {
-    for (const [, inst] of map) {
-      result.push(inst as T);
-    }
-  }
-  return result;
+	const typeKey = ctor.name;
+	const typeMap = store.byType.get(typeKey);
+
+	if (!typeMap) {
+		throw new Error(`Repo type "${typeKey}" not registered`);
+	}
+
+	return Array.from(typeMap.values()) as T[];
 }

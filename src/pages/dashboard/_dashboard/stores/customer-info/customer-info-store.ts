@@ -1,52 +1,67 @@
 import { create } from "zustand";
-import getCustomerInfoUseCase from "../../../../../core/domain/dashboard/usecases/get-customer-info-use-case";
+import { CustomerInfoInitialState, type CustomerInfoState } from "./customer-info-state";
 import {
-  CustomerInfoInitialState,
-  type CustomerInfoState,
-} from "./customer-info-state";
-import {
-  CustomerInfoLoadFirstErrorState,
-  CustomerInfoLoadFirstLoadingState,
-  CustomerInfoLoadFirstSuccessState,
+	CustomerInfoLoadFirstErrorState,
+	CustomerInfoLoadFirstLoadingState,
+	CustomerInfoLoadFirstSuccessState,
 } from "./states/get-state";
+import { createBoundStore } from "@/core/utils/create-bound-store";
+import { BaseStore } from "@/core/types/base-store";
+import { GetCustomerInfoUseCase } from "@/core/domain/dashboard/usecases/get-customer-info-use-case";
+import { CustomerInfoRepository } from "@/core/domain/dashboard/repositories/customer-info-repository";
+import Repository from "@/service-locator";
 
-type CustomerInfoStore = {
-  state: CustomerInfoState;
-  actions: {
-    fetch: () => Promise<void>;
-  };
+type Deps = {
+	customerRepo: CustomerInfoRepository;
 };
 
-const useCustomerInfoStore = create<CustomerInfoStore>((set, get) => ({
-  state: CustomerInfoInitialState(),
-  actions: {
-    async fetch() {
-      const currentState = get().state;
+const depsValue: Deps = {
+	customerRepo: Repository.get<CustomerInfoRepository>("Customer-Info"),
+};
 
-      // loading state
-      set({ state: CustomerInfoLoadFirstLoadingState(currentState) });
+export type CustomerInfoStore = BaseStore<
+	CustomerInfoState,
+	{
+		fetch: () => Promise<void>;
+	}
+>;
 
-      const result = await getCustomerInfoUseCase.getCustomerInfo();
+export const { useState, useAction } = createBoundStore<
+	CustomerInfoStore["state"],
+	CustomerInfoStore["actions"],
+	CustomerInfoStore,
+	Deps
+>({
+	deps: depsValue,
+	createStore: ({ customerRepo }) =>
+		create<CustomerInfoStore>((set, get) => ({
+			state: CustomerInfoInitialState(),
+			actions: {
+				async fetch() {
+					const currentState = get().state;
 
-      result.fold(
-        (failure) => {
-          set({
-            state: CustomerInfoLoadFirstErrorState(currentState, failure),
-          });
-        },
-        (list) => {
-          set({
-            state: CustomerInfoLoadFirstSuccessState(currentState, list),
-          });
-        },
-      );
-    },
-  },
-}));
+					set({
+						state: CustomerInfoLoadFirstLoadingState(currentState),
+					});
 
-export const useCustomerInfoState = () =>
-  useCustomerInfoStore((store) => store.state);
+					const result = await new GetCustomerInfoUseCase(customerRepo).getCustomerInfo();
 
-export const useCustomerInfoActions = () =>
-  useCustomerInfoStore((store) => store.actions);
+					result.fold(
+						(failure) => {
+							set({
+								state: CustomerInfoLoadFirstErrorState(currentState, failure),
+							});
+						},
+						(list) => {
+							set({
+								state: CustomerInfoLoadFirstSuccessState(currentState, list),
+							});
+						},
+					);
+				},
+			},
+		})),
+});
 
+export const useCustomerInfoState = useState;
+export const useCustomerInfoActions = useAction;
