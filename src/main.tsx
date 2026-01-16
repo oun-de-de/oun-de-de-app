@@ -10,8 +10,9 @@ import { registerLocalIcons } from "./components/icon";
 import { GLOBAL_CONFIG } from "./global-config";
 import ErrorBoundary from "./routes/components/error-boundary";
 import { routesSection } from "./routes/sections";
-import { repositoryRegister } from "./service-locator";
+
 import { urlJoin } from "./core/utils";
+import Repository from "./service-locator";
 
 await registerLocalIcons();
 await worker.start({
@@ -22,7 +23,7 @@ if (GLOBAL_CONFIG.routerMode === "backend") {
 	await menuService.getMenuList();
 }
 
-repositoryRegister();
+Repository.initialize();
 
 const router = createBrowserRouter(
 	[

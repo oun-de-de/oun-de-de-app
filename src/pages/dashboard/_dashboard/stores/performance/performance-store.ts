@@ -7,7 +7,10 @@ import {
 } from "./states/get-state";
 import { createBoundStore } from "@/core/utils/create-bound-store";
 import { GetPerformanceUseCase } from "@/core/domain/dashboard/usecases/get-performance-use-case";
-import { PerformanceRepository } from "@/core/domain/dashboard/repositories/performance-repository";
+import {
+	PerformanceRepository,
+	PerformanceRepositoryImpl,
+} from "@/core/domain/dashboard/repositories/performance-repository";
 import Repository from "@/service-locator";
 
 type PerformanceStore = {
@@ -22,7 +25,7 @@ type Deps = {
 };
 
 const depsValue: Deps = {
-	performanceRepo: Repository.get<PerformanceRepository>("Performance"),
+	performanceRepo: Repository.get<PerformanceRepository>(PerformanceRepositoryImpl),
 };
 
 const { useState, useAction } = createBoundStore<

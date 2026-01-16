@@ -9,7 +9,10 @@ import { FilterData } from "../../../../../core/domain/dashboard/entities/filter
 import { GetIncomeAccountingListUseCase } from "../../../../../core/domain/dashboard/usecases/get-income-account-list-use-case";
 import { BaseStore } from "@/core/types/base-store";
 import { createBoundStore } from "@/core/utils/create-bound-store";
-import { DailyIncomeAccountingRepository } from "@/core/domain/dashboard/repositories/daily-income-accounting-repository";
+import {
+	DailyIncomeAccountingRepository,
+	DailyIncomeAccountingRepositoryImpl,
+} from "@/core/domain/dashboard/repositories/daily-income-accounting-repository";
 import Repository from "@/service-locator";
 
 export type DailyIncomeAccountingStore = BaseStore<
@@ -24,7 +27,7 @@ type Deps = {
 };
 
 const depsValue: Deps = {
-	accountingRepo: Repository.get<DailyIncomeAccountingRepository>("Daily-Income-Accounting"),
+	accountingRepo: Repository.get<DailyIncomeAccountingRepository>(DailyIncomeAccountingRepositoryImpl),
 };
 
 const { useState, useAction } = createBoundStore<

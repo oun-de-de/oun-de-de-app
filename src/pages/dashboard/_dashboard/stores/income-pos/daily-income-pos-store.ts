@@ -8,7 +8,10 @@ import {
 } from "./states/get-state";
 import { FilterData } from "../../../../../core/domain/dashboard/entities/filter";
 import { BaseStore } from "@/core/types/base-store";
-import { DailyIncomePosRepository } from "@/core/domain/dashboard/repositories/daily-income-pos-repository";
+import {
+	DailyIncomePosRepository,
+	DailyIncomePosRepositoryImpl,
+} from "@/core/domain/dashboard/repositories/daily-income-pos-repository";
 import { createBoundStore } from "@/core/utils/create-bound-store";
 import Repository from "@/service-locator";
 
@@ -24,7 +27,7 @@ type Deps = {
 };
 
 const depsValue: Deps = {
-	posRepo: Repository.get<DailyIncomePosRepository>("Daily-Income-Pos"),
+	posRepo: Repository.get<DailyIncomePosRepository>(DailyIncomePosRepositoryImpl),
 };
 
 const { useState, useAction } = createBoundStore<
