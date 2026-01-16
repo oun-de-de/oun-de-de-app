@@ -15,12 +15,12 @@ import {
 import { createBoundStore } from "@/core/utils/create-bound-store";
 import Repository from "@/service-locator";
 
-export type DailyIncomePosStore = BaseStore<
-	DailyIncomePosState,
-	{
+export interface DailyIncomePosStore extends BaseStore {
+	state: DailyIncomePosState;
+	actions: {
 		fetch: (id: FilterData) => Promise<void>;
-	}
->;
+	};
+}
 
 type Deps = {
 	posRepo: DailyIncomePosRepository;
@@ -30,12 +30,7 @@ const depsValue: Deps = {
 	posRepo: Repository.get<DailyIncomePosRepository>(DailyIncomePosRepositoryImpl),
 };
 
-const { useState, useAction } = createBoundStore<
-	DailyIncomePosStore["state"],
-	DailyIncomePosStore["actions"],
-	DailyIncomePosStore,
-	Deps
->({
+const { useState, useAction } = createBoundStore<DailyIncomePosStore, Deps>({
 	deps: depsValue,
 	createStore: ({ posRepo }) =>
 		create<DailyIncomePosStore>((set, get) => ({

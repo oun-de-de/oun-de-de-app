@@ -22,19 +22,14 @@ const depsValue: Deps = {
 	customerRepo: Repository.get<CustomerInfoRepository>(CustomerInfoRepositoryImpl),
 };
 
-export type CustomerInfoStore = BaseStore<
-	CustomerInfoState,
-	{
+export interface CustomerInfoStore extends BaseStore {
+	state: CustomerInfoState;
+	actions: {
 		fetch: () => Promise<void>;
-	}
->;
+	};
+}
 
-export const { useState, useAction } = createBoundStore<
-	CustomerInfoStore["state"],
-	CustomerInfoStore["actions"],
-	CustomerInfoStore,
-	Deps
->({
+export const { useState, useAction } = createBoundStore<CustomerInfoStore, Deps>({
 	deps: depsValue,
 	createStore: ({ customerRepo }) =>
 		create<CustomerInfoStore>((set, get) => ({

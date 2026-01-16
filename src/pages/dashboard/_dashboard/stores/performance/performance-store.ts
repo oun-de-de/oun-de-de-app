@@ -12,13 +12,14 @@ import {
 	PerformanceRepositoryImpl,
 } from "@/core/domain/dashboard/repositories/performance-repository";
 import Repository from "@/service-locator";
+import { BaseStore } from "@/core/types/base-store";
 
-type PerformanceStore = {
+export interface PerformanceStore extends BaseStore {
 	state: PerformanceState;
 	actions: {
 		fetch: () => Promise<void>;
 	};
-};
+}
 
 type Deps = {
 	performanceRepo: PerformanceRepository;
@@ -28,12 +29,7 @@ const depsValue: Deps = {
 	performanceRepo: Repository.get<PerformanceRepository>(PerformanceRepositoryImpl),
 };
 
-const { useState, useAction } = createBoundStore<
-	PerformanceStore["state"],
-	PerformanceStore["actions"],
-	PerformanceStore,
-	Deps
->({
+const { useState, useAction } = createBoundStore<PerformanceStore, Deps>({
 	deps: depsValue,
 	createStore: ({ performanceRepo }) =>
 		create<PerformanceStore>((set, get) => ({

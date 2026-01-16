@@ -1,7 +1,7 @@
 import { StoreApi, UseBoundStore } from "zustand";
 import { BaseStore } from "../types/base-store";
 
-export function createBoundStore<S, A, Store extends BaseStore<S, A>, Deps extends Record<string, object>>({
+export function createBoundStore<Store extends BaseStore, Deps extends Record<string, object>>({
 	deps,
 	createStore,
 }: {
@@ -17,11 +17,11 @@ export function createBoundStore<S, A, Store extends BaseStore<S, A>, Deps exten
 		return store(selector);
 	}
 
-	function useState(): S {
+	function useState(): Store["state"] {
 		return useBoundStore((s) => s.state);
 	}
 
-	function useAction(): A {
+	function useAction(): Store["actions"] {
 		return useBoundStore((s) => s.actions);
 	}
 

@@ -15,12 +15,12 @@ import {
 } from "@/core/domain/dashboard/repositories/daily-income-accounting-repository";
 import Repository from "@/service-locator";
 
-export type DailyIncomeAccountingStore = BaseStore<
-	DailyIncomeAccountingState,
-	{
+export interface DailyIncomeAccountingStore extends BaseStore {
+	state: DailyIncomeAccountingState;
+	actions: {
 		fetch: (id: FilterData) => Promise<void>;
-	}
->;
+	};
+}
 
 type Deps = {
 	accountingRepo: DailyIncomeAccountingRepository;
@@ -30,12 +30,7 @@ const depsValue: Deps = {
 	accountingRepo: Repository.get<DailyIncomeAccountingRepository>(DailyIncomeAccountingRepositoryImpl),
 };
 
-const { useState, useAction } = createBoundStore<
-	DailyIncomeAccountingStore["state"],
-	DailyIncomeAccountingStore["actions"],
-	DailyIncomeAccountingStore,
-	Deps
->({
+const { useState, useAction } = createBoundStore<DailyIncomeAccountingStore, Deps>({
 	deps: depsValue,
 	createStore: ({ accountingRepo }) =>
 		create<DailyIncomeAccountingStore>((set, get) => ({
