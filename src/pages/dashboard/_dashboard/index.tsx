@@ -2,7 +2,7 @@ import DashboardCard from "./components/card/dashboard-card";
 import DashboardCustomerInfo from "./components/dashboard-customer-info";
 import DashboardIncomePos from "./components/dashboard-income-pos";
 import DashboardPerformance from "./components/dashboard-performance";
-import DashboardDropdownMenu from "./components/dropdown-menu/dashboard-dropdown-menu";
+import DashboardSelect from "./components/select/dashboard-select";
 import DashboardIncomeAccounting from "./components/dashboard-income-accounting";
 import DropdownMenuPromise from "./components/promise/drop-down-menu-promise";
 
@@ -20,7 +20,7 @@ export default function Dashboard() {
 				subheader={
 					<DropdownMenuPromise
 						repoName="Dashboard-Income-Pos"
-						builder={(items, repo) => <DashboardDropdownMenu items={items} repo={repo} />}
+						builder={(items, repo) => <DashboardSelect items={items} repo={repo} />}
 					/>
 				}
 			>
@@ -31,7 +31,7 @@ export default function Dashboard() {
 				subheader={
 					<DropdownMenuPromise
 						repoName="Dashboard-Income-Accounting"
-						builder={(items, repo) => <DashboardDropdownMenu items={items} repo={repo} />}
+						builder={(items, repo) => <DashboardSelect items={items} repo={repo} />}
 					/>
 				}
 			>
