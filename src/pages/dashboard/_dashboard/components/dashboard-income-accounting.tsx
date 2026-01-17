@@ -1,8 +1,5 @@
 import { useEffect, useMemo } from "react";
-import {
-	DashboardRepository,
-	DashboardRepositoryImpl,
-} from "../../../../core/domain/dashboard/repositories/dashboard-repository";
+import { DashboardRepository } from "../../../../core/domain/dashboard/repositories/dashboard-repository";
 import { useObservable } from "react-use";
 import {
 	useDailyIncomeAccountingActions,
@@ -15,9 +12,7 @@ import { rgbAlpha } from "@/core/utils/theme";
 import Repository from "@/service-locator";
 
 export default function DashboardIncomeAccounting() {
-	const repo = Repository.get<DashboardRepository>(DashboardRepositoryImpl, {
-		instanceName: "Dashboard-Income-Accounting",
-	});
+	const repo = Repository.get<DashboardRepository>("Dashboard-Income-Accounting");
 
 	const filter = useObservable(repo.selectedFilter$, repo.getSelectedFilter());
 

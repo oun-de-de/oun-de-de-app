@@ -8,10 +8,7 @@ import {
 import { createBoundStore } from "@/core/utils/create-bound-store";
 import { BaseStore } from "@/core/types/base-store";
 import { GetCustomerInfoUseCase } from "@/core/domain/dashboard/usecases/get-customer-info-use-case";
-import {
-	CustomerInfoRepository,
-	CustomerInfoRepositoryImpl,
-} from "@/core/domain/dashboard/repositories/customer-info-repository";
+import { CustomerInfoRepository } from "@/core/domain/dashboard/repositories/customer-info-repository";
 import Repository from "@/service-locator";
 
 type Deps = {
@@ -19,7 +16,7 @@ type Deps = {
 };
 
 const depsValue: Deps = {
-	customerRepo: Repository.get<CustomerInfoRepository>(CustomerInfoRepositoryImpl),
+	customerRepo: Repository.get<CustomerInfoRepository>("Customer-Info"),
 };
 
 export interface CustomerInfoStore extends BaseStore {
