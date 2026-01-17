@@ -42,7 +42,7 @@ export function VendorSidebar({ activeVendorId, onSelect }: VendorSidebarProps) 
 				</Select>
 			</div>
 
-			<div className="mt-4 space-y-2">
+			<div className="mt-4 divide-y divide-border-gray-300">
 				{vendorList.map((vendor) => (
 					<EntityListItem
 						key={vendor.id}

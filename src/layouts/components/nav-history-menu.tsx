@@ -232,7 +232,7 @@ const StyledHistoryItem = styled.div<{ $active: boolean }>`
 	flex-shrink: 0;
 	border-radius: 4px;
 	border: 1px solid ${({ theme }) => theme.colors.palette.gray[300]};
-	background-color: ${({ theme, $active }) => ($active ? "#2065D1" : theme.colors.common.white)};
+	background-color: ${({ theme, $active }) => ($active ? "#60a5fa" : theme.colors.common.white)};
 
 	&:hover {
 		background-color: ${({ theme, $active }) => ($active ? "" : theme.colors.palette.gray[200])};
@@ -248,10 +248,10 @@ const StyledHistoryLink = styled(RouterLink as any)<{ $active: boolean }>`
 	text-decoration: none;
 	transition: all 0.2s ease;
 	white-space: nowrap;
-	background-color: ${({ theme, $active }) => ($active ? "#2065D1" : theme.colors.palette.gray[100])};
+	background-color: ${({ theme, $active }) => ($active ? "#60a5fa" : theme.colors.palette.gray[100])};
 	color: ${({ theme, $active }) => ($active ? theme.colors.common.white : theme.colors.palette.gray[700])};
 	font-size: 0.875rem;
-	font-weight: ${({ $active }) => ($active ? 500 : 400)};
+	font-weight: ${({ $active }) => ($active ? 600 : 400)};
 
 	&:hover {
 		background-color: ${({ theme, $active }) => ($active ? "" : theme.colors.palette.gray[200])};

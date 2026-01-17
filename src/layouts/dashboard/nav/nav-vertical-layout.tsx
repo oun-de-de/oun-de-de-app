@@ -1,4 +1,4 @@
-import type { NavProps } from "@/components/nav/types";
+import type { NavProps } from "@/core/components/nav/types";
 import { useSettings } from "@/core/store/settingStore";
 import { ThemeLayout } from "@/core/types/enum";
 import styled from "styled-components";

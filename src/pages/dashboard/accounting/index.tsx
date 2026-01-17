@@ -52,7 +52,7 @@ export default function AccountingPage() {
 							</Select>
 						</div>
 
-						<div className="mt-4 space-y-2">
+						<div className="mt-4 divide-y divide-border-gray-300">
 							{accountList.map((account) => (
 								<EntityListItem
 									key={account.id}

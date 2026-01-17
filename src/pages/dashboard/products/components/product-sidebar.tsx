@@ -42,7 +42,7 @@ export function ProductSidebar({ activeProductId, onSelect }: ProductSidebarProp
 				</Select>
 			</div>
 
-			<div className="mt-4 space-y-2">
+			<div className="mt-4 divide-y divide-border-gray-300">
 				{productList.map((item) => (
 					<EntityListItem key={item.id} customer={item} isActive={item.id === activeProductId} onSelect={onSelect} />
 				))}

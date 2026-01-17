@@ -1,19 +1,20 @@
 import type { EntityListItemData } from "@/core/types/common";
+import { Button } from "@/core/ui/button";
 import styled from "styled-components";
 
-const ItemButton = styled.button.attrs<{ $active: boolean }>(({ $active }) => ({
-	className: `flex w-full items-center justify-between rounded-md border px-3 py-2 text-left text-sm transition ${
-		$active ? "border-primary/50 bg-primary/5" : "border-transparent hover:border-border hover:bg-muted/40"
-	}`,
+const ItemButton = styled(Button).attrs<{ $active: boolean }>(({ $active }) => ({
+	className: `flex w-full items-center justify-between text-left transition
+		${$active && "bg-blue-400 hover:bg-blue-500 text-white"}
+	`,
 }))``;
 
-const NameText = styled.span.attrs({
-	className: "font-semibold text-slate-900",
-})``;
+const NameText = styled.span.attrs<{ $active: boolean }>(({ $active }) => ({
+	className: `font-semibold ${$active ? "text-white" : "text-black"}`,
+}))``;
 
-const CodeText = styled.span.attrs({
-	className: "text-xs text-slate-400",
-})``;
+const CodeText = styled.span.attrs<{ $active: boolean }>(({ $active }) => ({
+	className: `text-xs ${$active ? "text-white" : "text-slate-400"}`,
+}))``;
 
 type EntityListItemProps = {
 	customer: EntityListItemData;
@@ -23,11 +24,11 @@ type EntityListItemProps = {
 
 export function EntityListItem({ customer, isActive, onSelect }: EntityListItemProps) {
 	return (
-		<ItemButton type="button" $active={isActive} onClick={() => onSelect(customer.id)}>
-			<NameText>
+		<ItemButton variant="ghost" $active={isActive} onClick={() => onSelect(customer.id)}>
+			<NameText $active={isActive}>
 				{customer.id} : {customer.name}
 			</NameText>
-			<CodeText>{customer.code}</CodeText>
+			<CodeText $active={isActive}>{customer.code}</CodeText>
 		</ItemButton>
 	);
 }

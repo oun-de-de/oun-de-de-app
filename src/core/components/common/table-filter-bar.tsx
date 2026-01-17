@@ -45,7 +45,7 @@ export function TableFilterBar({
 }: FilterBarProps) {
 	return (
 		<div className="flex flex-wrap items-center gap-2">
-			<Button variant="outline" size="icon" className="h-9 w-9 text-muted-foreground" onClick={onFilterClick}>
+			<Button variant="outline" size="icon" className="h-9 w-9" onClick={onFilterClick}>
 				<Icon icon="mdi:filter-variant" />
 			</Button>
 
@@ -83,7 +83,7 @@ export function TableFilterBar({
 					defaultValue={defaultSearchValue}
 					onChange={(event) => onSearchChange?.(event.target.value)}
 				/>
-				<span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+				<span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
 					<Icon icon="mdi:magnify" />
 				</span>
 			</div>

@@ -55,6 +55,7 @@ const StyledButton = styled(Button)<{ $isMini: boolean }>`
 	width: 100%;
 	height: 42px;
 	margin-bottom: 8px;
+	background-color: transparent;
 	border-color: ${({ theme }) => theme.colors.common.white};
 	color: ${({ theme }) => theme.colors.common.white};
 	font-size: 0.875rem;

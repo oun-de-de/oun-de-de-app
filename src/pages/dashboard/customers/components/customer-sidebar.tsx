@@ -25,7 +25,7 @@ export function CustomerSidebar({ activeCustomerId, onSelect }: CustomerSidebarP
 					</SelectContent>
 				</Select>
 				<Button variant="outline" size="icon" className="h-9 w-9">
-					<Icon icon="mdi:menu" color="white" />
+					<Icon icon="mdi:menu" />
 				</Button>
 			</div>
 
@@ -42,7 +42,7 @@ export function CustomerSidebar({ activeCustomerId, onSelect }: CustomerSidebarP
 				</Select>
 			</div>
 
-			<div className="mt-4 space-y-2">
+			<div className="mt-4 divide-y divide-border-gray-300">
 				{customerList.map((customer) => (
 					<EntityListItem
 						key={customer.id}

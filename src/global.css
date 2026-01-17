@@ -15,13 +15,14 @@
 
 /* base layer */
 @layer base {
+
   *,
   ::after,
   ::before,
   ::backdrop,
   ::file-selector-button {
     /* https://tailwindcss.com/docs/upgrade-guide#default-border-color */
-    border-color: rgba(var(--colors-palette-gray-500Channel) / var(--opacity-border)) ;
+    border-color: rgba(var(--colors-palette-gray-500Channel) / var(--opacity-border));
   }
 
   body {
@@ -37,13 +38,15 @@
 
 }
 
-@theme  {
+@theme {
   --animate-collapsible-down: collapsible-down 0.2s ease-in-out;
   --animate-collapsible-up: collapsible-up 0.2s ease-in-out;
+
   @keyframes collapsible-down {
     from {
       height: 0;
     }
+
     to {
       height: var(--radix-collapsible-content-height);
     }
@@ -53,16 +56,19 @@
     from {
       height: var(--radix-collapsible-content-height);
     }
+
     to {
       height: 0;
     }
   }
 
   --animate-slow-spin: spin 4s linear infinite;
+
   @keyframes spin {
     from {
-      transform: rotate(0deg);  
+      transform: rotate(0deg);
     }
+
     to {
       transform: rotate(360deg);
     }
@@ -80,7 +86,7 @@
   --popover-foreground: var(--colors-common-black);
   --primary: var(--colors-palette-primary-default);
   --primary-foreground: var(--colors-palette-primary-lighter);
-  --secondary:var(--colors-palette-gray-200);
+  --secondary: var(--colors-palette-gray-200);
   --secondary-foreground: var(--colors-palette-gray-600);
   --muted: var(--colors-palette-gray-200);
   --muted-foreground: var(--colors-palette-gray-500);
@@ -103,6 +109,7 @@
   --sidebar-accent-foreground: var(--colors-palette-gray-800);
   --sidebar-border: var(--colors-palette-gray-200);
   --sidebar-ring: var(--colors-palette-primary-default);
+  --ids-sem-ring-focus: 0 0 0 2px #ffffff, 0 0 0 4px #60a5fa;
 }
 
 /* Shadcn UI Dark Theme */
@@ -141,7 +148,7 @@
 }
 
 /* slash layout */
-:root{
+:root {
   --layout-nav-width: 260px;
   --layout-nav-width-mini: 88px;
   --layout-nav-height-horizontal: 48px;

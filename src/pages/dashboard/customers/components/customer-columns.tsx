@@ -6,12 +6,11 @@ export const columns: ColumnDef<TransactionRow>[] = [
 	{
 		header: "Date",
 		accessorKey: "date",
-		meta: { className: "text-gray-600" },
 	},
 	{
 		header: "Ref No",
 		accessorKey: "refNo",
-		meta: { className: "text-sky-600" },
+		cell: ({ row }) => <span className="text-sky-600">{row.original.refNo}</span>,
 	},
 	{
 		header: "Customer",
@@ -38,11 +37,9 @@ export const columns: ColumnDef<TransactionRow>[] = [
 	{
 		header: "Amount",
 		cell: ({ row }) => <span className="font-semibold">{fNumber(row.original.amount)} KHR</span>,
-		meta: { className: "text-right" },
 	},
 	{
 		header: "Memo",
 		accessorKey: "memo",
-		meta: { className: "text-gray-600" },
 	},
 ];

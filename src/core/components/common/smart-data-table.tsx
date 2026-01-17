@@ -3,7 +3,7 @@ import { TableFilterBar, TablePagination } from "@/core/components/common";
 import styled from "styled-components";
 
 const TableWrap = styled.div.attrs({
-	className: "overflow-x-auto rounded-lg border",
+	className: "overflow-x-auto rounded border border-gray-300",
 })``;
 
 const Table = styled.table.attrs({
@@ -11,12 +11,20 @@ const Table = styled.table.attrs({
 })``;
 
 const TableHead = styled.thead.attrs({
-	className: "bg-[#9e9e9e] text-xs uppercase text-white",
+	className: "bg-gray-100 border-b border-gray-300 text-md text-black",
 })``;
 
 const TableRow = styled.tr.attrs({
-	className: "hover:bg-gray-100 transition-colors",
+	className: "hover:bg-blue-50! transition-colors",
 })``;
+
+const TableBody = styled.tbody.attrs({
+	className: "divide-y divide-gray-300",
+})`
+	tr:nth-child(even) {
+		background-color: rgb(249, 250, 251);
+	}
+`;
 
 /**
  * Configuration for the Table Filter Bar.
@@ -170,27 +178,24 @@ export function SmartDataTable<T extends { id?: string | number } | any>({
 						{table.getHeaderGroups().map((headerGroup) => (
 							<tr key={headerGroup.id}>
 								{headerGroup.headers.map((header) => (
-									<th
-										key={header.id}
-										className={`px-3 py-2 text-left !text-white ${(header.column.columnDef.meta as any)?.className || ""}`}
-									>
+									<th key={header.id} className={`px-3 py-3 text-center border-r border-gray-300 last:border-r-0`}>
 										{header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
 									</th>
 								))}
 							</tr>
 						))}
 					</TableHead>
-					<tbody className="divide-y">
+					<TableBody>
 						{table.getRowModel().rows.map((row) => (
 							<TableRow key={row.id}>
 								{row.getVisibleCells().map((cell) => (
-									<td key={cell.id} className={`px-3 py-2 ${(cell.column.columnDef.meta as any)?.className || ""}`}>
+									<td key={cell.id} className={`px-3 py-2 border-r border-gray-300 last:border-r-0`}>
 										{flexRender(cell.column.columnDef.cell, cell.getContext())}
 									</td>
 								))}
 							</TableRow>
 						))}
-					</tbody>
+					</TableBody>
 				</Table>
 			</TableWrap>
 
