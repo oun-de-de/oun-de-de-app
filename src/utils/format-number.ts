@@ -1,31 +1,30 @@
-// https://numeraljs.com/
 import numeral from "numeral";
 
-type InputValue = string | number | null | undefined;
+// ----------------------------------------------------------------------
 
-export function fNumber(number: InputValue) {
+export function fNumber(number: string | number) {
 	return numeral(number).format();
 }
 
-export function fCurrency(number: InputValue) {
+export function fCurrency(number: string | number) {
 	const format = number ? numeral(number).format("$0,0.00") : "";
 
 	return result(format, ".00");
 }
 
-export function fPercent(number: InputValue) {
+export function fPercent(number: string | number) {
 	const format = number ? numeral(Number(number) / 100).format("0.0%") : "";
 
 	return result(format, ".0");
 }
 
-export function fShortenNumber(number: InputValue) {
+export function fShortenNumber(number: string | number) {
 	const format = number ? numeral(number).format("0.00a") : "";
 
 	return result(format, ".00");
 }
 
-export function fBytes(number: InputValue) {
+export function fData(number: string | number) {
 	const format = number ? numeral(number).format("0.0 b") : "";
 
 	return result(format, ".0");

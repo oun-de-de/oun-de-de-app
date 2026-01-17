@@ -3,13 +3,23 @@ import { Button } from "@/core/ui/button";
 import { Card, CardContent } from "@/core/ui/card";
 import { Input } from "@/core/ui/input";
 import { Text } from "@/core/ui/typography";
-import { TablePagination } from "@/components/common";
+import { SmartDataTable } from "@/components/common";
 import { useState } from "react";
-import {
-	settingsLeftMenu,
-	settingsRows,
-	settingsTopTabs,
-} from "@/_mock/data/dashboard";
+import { settingsLeftMenu, settingsRows, settingsTopTabs } from "@/_mock/data/dashboard";
+import type { ColumnDef } from "@tanstack/react-table";
+
+const columns: ColumnDef<(typeof settingsRows)[0]>[] = [
+	{
+		header: "Name",
+		accessorKey: "name",
+		meta: { className: "text-sky-600" },
+	},
+	{
+		header: "Type",
+		accessorKey: "type",
+		meta: { className: "text-gray-600" },
+	},
+];
 
 export default function SettingsPage() {
 	const [page, setPage] = useState(1);
@@ -31,12 +41,7 @@ export default function SettingsPage() {
 					<CardContent className="p-3">
 						<div className="flex flex-col gap-1">
 							{settingsLeftMenu.map((item, index) => (
-								<Button
-									key={item}
-									variant={index === 0 ? "default" : "ghost"}
-									className="justify-start"
-									size="sm"
-								>
+								<Button key={item} variant={index === 0 ? "default" : "ghost"} className="justify-start" size="sm">
 									<Icon icon="mdi:checkbox-blank-circle-outline" className="mr-2 text-xs" />
 									{item}
 								</Button>
@@ -60,37 +65,18 @@ export default function SettingsPage() {
 							</div>
 						</div>
 
-						<div className="overflow-x-auto rounded-lg border">
-							<table className="min-w-full text-sm">
-								<thead className="bg-muted/40 text-xs uppercase text-muted-foreground">
-									<tr>
-										<th className="px-3 py-2 text-left">Name</th>
-										<th className="px-3 py-2 text-left">Type</th>
-									</tr>
-								</thead>
-								<tbody className="divide-y">
-									{settingsRows.map((row) => (
-										<tr key={row.name} className="hover:bg-muted/30">
-											<td className="px-3 py-2 text-sky-600">{row.name}</td>
-											<td className="px-3 py-2 text-muted-foreground">{row.type}</td>
-										</tr>
-									))}
-								</tbody>
-							</table>
-						</div>
-
-						<TablePagination
-							pages={[1]}
-							currentPage={page}
-							totalItems={7}
-							pageSize={20}
-							pageSizeOptions={[10, 20, 50]}
-							goToValue={String(page)}
-							onPrev={() => setPage(1)}
-							onNext={() => setPage(1)}
-							onPageChange={setPage}
-							onPageSizeChange={() => {}}
-							onGoToChange={(value) => setPage(Number(value) || 1)}
+						<SmartDataTable
+							data={settingsRows}
+							columns={columns}
+							paginationConfig={{
+								page: page,
+								totalItems: settingsRows.length,
+								pageSize: 20,
+								totalPages: 1,
+								paginationItems: [1],
+								onPageChange: setPage,
+								onPageSizeChange: () => {},
+							}}
 						/>
 					</CardContent>
 				</Card>

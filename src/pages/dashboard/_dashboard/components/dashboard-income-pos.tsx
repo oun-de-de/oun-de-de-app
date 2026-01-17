@@ -3,16 +3,13 @@ import { useEffect, useMemo } from "react";
 import ReactApexChart from "react-apexcharts";
 import { styled } from "styled-components";
 import { ErrorState, isErrorState } from "@/core/types/state";
-import {
-	DashboardRepository,
-	DashboardRepositoryImpl,
-} from "../../../../core/domain/dashboard/repositories/dashboard-repository";
+import { DashboardRepository } from "../../../../core/domain/dashboard/repositories/dashboard-repository";
 import { useObservable } from "react-use";
 import { useDailyIncomePosActions, useDailyIncomePosState } from "../stores/income-pos/daily-income-pos-store";
 import Repository from "@/service-locator";
 
 export default function DashboardIncomePos() {
-	const repo = Repository.get<DashboardRepository>(DashboardRepositoryImpl, { instanceName: "Dashboard-Income-Pos" });
+	const repo = Repository.get<DashboardRepository>("Dashboard-Income-Pos");
 
 	const filter = useObservable(repo.selectedFilter$, repo.getSelectedFilter());
 

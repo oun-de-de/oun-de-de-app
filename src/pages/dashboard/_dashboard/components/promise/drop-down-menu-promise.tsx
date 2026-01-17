@@ -1,9 +1,6 @@
 import { PromiseBuilder } from "@/core/ui/promise-builder";
 import { FilterData } from "../../../../../core/domain/dashboard/entities/filter";
-import {
-	DashboardRepository,
-	DashboardRepositoryImpl,
-} from "../../../../../core/domain/dashboard/repositories/dashboard-repository";
+import { DashboardRepository } from "../../../../../core/domain/dashboard/repositories/dashboard-repository";
 import Repository from "@/service-locator";
 import { useCallback } from "react";
 
@@ -13,7 +10,7 @@ type Props = {
 };
 
 export default function DropdownMenuPromise({ repoName, builder }: Props) {
-	const repo = Repository.get<DashboardRepository>(DashboardRepositoryImpl, { instanceName: repoName });
+	const repo = Repository.get<DashboardRepository>(repoName);
 
 	const promise = useCallback(() => repo.getFiltersByType("income-pos"), [repo]);
 
