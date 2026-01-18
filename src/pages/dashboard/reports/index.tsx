@@ -1,8 +1,8 @@
+import { reportSections, reportTabs } from "@/_mock/data/dashboard";
 import Icon from "@/core/components/icon/icon";
 import { Button } from "@/core/ui/button";
 import { Card, CardContent } from "@/core/ui/card";
 import { Text } from "@/core/ui/typography";
-import { reportSections, reportTabs } from "@/_mock/data/dashboard";
 
 export default function ReportsPage() {
 	return (
@@ -24,7 +24,7 @@ export default function ReportsPage() {
 						<div className="flex items-center justify-between">
 							<div className="flex items-center gap-2">
 								<Icon icon={section.icon} className="text-sky-600" />
-								<Text variant="body2" className="font-semibold">
+								<Text variant="body2" className="font-semibold text-slate-500">
 									{section.title}
 								</Text>
 							</div>
@@ -35,10 +35,11 @@ export default function ReportsPage() {
 						<div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
 							{section.items.map((item) => (
 								<div key={item.label} className="flex items-center justify-between rounded-md border px-3 py-2 text-sm">
-									<span className="text-muted-foreground">{item.label}</span>
+									<span className="text-slate-500">{item.label}</span>
 									<Icon
 										icon={item.favorite ? "mdi:star" : "mdi:star-outline"}
-										className={item.favorite ? "text-sky-500" : "text-muted-foreground"}
+										size={"1.2em"}
+										className={item.favorite ? "text-sky-500" : "text-slate-500"}
 									/>
 								</div>
 							))}

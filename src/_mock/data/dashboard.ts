@@ -196,15 +196,15 @@ export const productSummaryCards: SummaryStatCardData[] = [
 ];
 
 export const productList: EntityListItemData[] = [
-	{ id: "SVA014", name: "Stapler", code: "" },
-	{ id: "SVA012", name: "Notebook", code: "" },
-	{ id: "SV002", name: "Pencil", code: "" },
-	{ id: "SV001", name: "Marker", code: "" },
-	{ id: "INV010", name: "Paper A4", code: "" },
-	{ id: "INV009", name: "Eraser", code: "" },
-	{ id: "INV003", name: "Glue", code: "" },
-	{ id: "INV002", name: "Ruler", code: "" },
-	{ id: "INV001", name: "Tape", code: "" },
+	{ id: "SVA014", name: "Stapler", code: "", type: "inventory", status: "active" },
+	{ id: "SVA012", name: "Notebook", code: "", type: "inventory", status: "active" },
+	{ id: "SV002", name: "Pencil", code: "", type: "inventory", status: "active" },
+	{ id: "SV001", name: "Marker", code: "", type: "inventory", status: "active" },
+	{ id: "INV010", name: "Paper A4", code: "", type: "inventory", status: "active" },
+	{ id: "INV009", name: "Eraser", code: "", type: "inventory", status: "inactive" },
+	{ id: "INV003", name: "Glue", code: "", type: "inventory", status: "active" },
+	{ id: "INV002", name: "Ruler", code: "", type: "inventory", status: "inactive" },
+	{ id: "INV001", name: "Tape", code: "", type: "inventory", status: "active" },
 ];
 
 export const productRows: ProductRow[] = [
@@ -309,14 +309,7 @@ export const reportSections = [
 	},
 ];
 
-export const settingsTopTabs = [
-	"Items",
-	"Vendors",
-	"Customers",
-	"Accounting",
-	"Template",
-	"Company",
-];
+export const settingsTopTabs = ["Items", "Vendors", "Customers", "Accounting", "Template", "Company"];
 
 export const settingsLeftMenu = [
 	"Unit",
