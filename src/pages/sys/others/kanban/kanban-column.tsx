@@ -1,14 +1,14 @@
-import { Icon } from "@/core/components/icon";
-import { useSettings } from "@/store/settingStore";
-import { Button } from "@/core/ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/core/ui/dropdown-menu";
-import { Input } from "@/core/ui/input";
 import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { faker } from "@faker-js/faker";
 import { type CSSProperties, useRef, useState } from "react";
 import { useEvent } from "react-use";
 import { ThemeMode } from "#/enum";
+import { Icon } from "@/core/components/icon";
+import { useSettings } from "@/core/store/settingStore";
+import { Button } from "@/core/ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/core/ui/dropdown-menu";
+import { Input } from "@/core/ui/input";
 import KanbanTask from "./kanban-task";
 import { type Column, type Task, TaskPriority } from "./types";
 
@@ -51,55 +51,32 @@ export default function KanbanColumn({
 		{
 			key: "1",
 			label: (
-				<div
-					className="flex items-center text-gray"
-					onClick={() => {
-						setRenamingTask(true);
-					}}
-					onKeyDown={(e) => {
-						if (e.key === "Enter") {
-							setRenamingTask(true);
-						}
-					}}
-				>
+				<div className="flex items-center text-gray">
 					<Icon icon="solar:pen-bold" />
 					<span className="ml-2">rename</span>
 				</div>
 			),
+			onClick: () => setRenamingTask(true),
 		},
 		{
 			key: "2",
 			label: (
-				<div
-					className="flex items-center text-gray"
-					onClick={() => clearColumn(column.id)}
-					onKeyDown={(e) => {
-						if (e.key === "Enter") {
-							clearColumn(column.id);
-						}
-					}}
-				>
+				<div className="flex items-center text-gray">
 					<Icon icon="solar:eraser-bold" />
 					<span className="ml-2">clear</span>
 				</div>
 			),
+			onClick: () => clearColumn(column.id),
 		},
 		{
 			key: "3",
 			label: (
-				<div
-					className="flex items-center text-warning"
-					onClick={() => deleteColumn(column.id)}
-					onKeyDown={(e) => {
-						if (e.key === "Enter") {
-							deleteColumn(column.id);
-						}
-					}}
-				>
+				<div className="flex items-center text-warning">
 					<Icon icon="solar:trash-bin-trash-bold" />
 					<span className="ml-2">delete</span>
 				</div>
 			),
+			onClick: () => deleteColumn(column.id),
 		},
 	];
 
@@ -157,7 +134,13 @@ export default function KanbanColumn({
 						{items?.map((item) => {
 							if (item && "key" in item && "label" in item) {
 								return (
-									<DropdownMenuItem key={item.key} onClick={() => handleMenuItemClick({ key: item.key })}>
+									<DropdownMenuItem
+										key={item.key}
+										onClick={(e) => {
+											handleMenuItemClick({ key: item.key, domEvent: e });
+											item.onClick?.();
+										}}
+									>
 										{item.label}
 									</DropdownMenuItem>
 								);

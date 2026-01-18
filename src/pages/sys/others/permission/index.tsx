@@ -1,13 +1,13 @@
+import { Link } from "react-router";
 import { DB_USER } from "@/_mock/assets_backup";
 import { AuthGuard } from "@/core/components/auth/auth-guard";
 import { useAuthCheck } from "@/core/components/auth/use-auth";
 import { CodeBlock } from "@/core/components/code/code-bock";
-import { useSignIn, useUserInfo } from "@/store/userStore";
+import { useSignIn, useUserInfo } from "@/core/store/userStore";
 import { Button } from "@/core/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/core/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/core/ui/tabs";
 import { Text } from "@/core/ui/typography";
-import { Link } from "react-router";
 
 const Component_Auth_1 = `
 <AuthGuard

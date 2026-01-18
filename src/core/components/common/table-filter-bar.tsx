@@ -14,9 +14,6 @@ type FilterBarProps = {
 	typeValue?: string;
 	fieldValue?: string;
 	searchValue?: string;
-	defaultTypeValue?: string;
-	defaultFieldValue?: string;
-	defaultSearchValue?: string;
 	typePlaceholder?: string;
 	fieldPlaceholder?: string;
 	searchPlaceholder?: string;
@@ -32,11 +29,8 @@ export function TableFilterBar({
 	typeValue,
 	fieldValue,
 	searchValue,
-	defaultTypeValue,
-	defaultFieldValue,
-	defaultSearchValue,
-	typePlaceholder = "Cash Sale",
-	fieldPlaceholder = "Field name",
+	typePlaceholder = "Type",
+	fieldPlaceholder = "Field",
 	searchPlaceholder = "Search...",
 	onTypeChange,
 	onFieldChange,
@@ -45,11 +39,18 @@ export function TableFilterBar({
 }: FilterBarProps) {
 	return (
 		<div className="flex flex-wrap items-center gap-2">
-			<Button variant="outline" size="icon" className="h-9 w-9" onClick={onFilterClick}>
+			<Button
+				variant="outline"
+				size="icon"
+				className="h-9 w-9"
+				onClick={onFilterClick}
+				disabled={!onFilterClick}
+				aria-label="Filter"
+			>
 				<Icon icon="mdi:filter-variant" />
 			</Button>
 
-			<Select value={typeValue} defaultValue={defaultTypeValue} onValueChange={onTypeChange}>
+			<Select value={typeValue ?? ""} onValueChange={onTypeChange}>
 				<SelectTrigger className="w-[160px]">
 					<SelectValue placeholder={typePlaceholder} />
 				</SelectTrigger>
@@ -62,7 +63,7 @@ export function TableFilterBar({
 				</SelectContent>
 			</Select>
 
-			<Select value={fieldValue} defaultValue={defaultFieldValue} onValueChange={onFieldChange}>
+			<Select value={fieldValue ?? ""} onValueChange={onFieldChange}>
 				<SelectTrigger className="w-[160px]">
 					<SelectValue placeholder={fieldPlaceholder} />
 				</SelectTrigger>
@@ -79,8 +80,7 @@ export function TableFilterBar({
 				<Input
 					placeholder={searchPlaceholder}
 					className="pl-9"
-					value={searchValue}
-					defaultValue={defaultSearchValue}
+					value={searchValue ?? ""}
 					onChange={(event) => onSearchChange?.(event.target.value)}
 				/>
 				<span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">

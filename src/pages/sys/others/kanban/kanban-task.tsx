@@ -1,13 +1,13 @@
-import { Icon } from "@/core/components/icon";
-import { themeVars } from "@/theme/theme.css";
-import { Avatar, AvatarImage } from "@/core/ui/avatar";
-import { Button } from "@/core/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/core/ui/select";
-import { Sheet, SheetContent, SheetHeader } from "@/core/ui/sheet";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { type CSSProperties, memo, useState } from "react";
 import styled from "styled-components";
+import { Icon } from "@/core/components/icon";
+import { themeVars } from "@/core/theme/theme.css.ts";
+import { Avatar, AvatarImage } from "@/core/ui/avatar";
+import { Button } from "@/core/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/core/ui/select";
+import { Sheet, SheetContent, SheetHeader } from "@/core/ui/sheet";
 import TaskDetail from "./task-detail";
 import { type Task, TaskPriority } from "./types";
 
@@ -34,7 +34,11 @@ function KanbanTask({ id, task, isDragging }: Props) {
 			<Container ref={setNodeRef} style={style} {...attributes} {...listeners} $isDragging={!!isDragging}>
 				<div>
 					{attachments.length > 0 && <img src={attachments[0]} alt="" className="mb-4 rounded-md" />}
-					<div onClick={() => setDrawerOpen(true)}>
+					<button
+						type="button"
+						className="w-full text-left cursor-pointer bg-transparent border-none p-0"
+						onClick={() => setDrawerOpen(true)}
+					>
 						<div className="flex justify-end">
 							<TaskPrioritySvg taskPriority={priority} />
 						</div>
@@ -58,7 +62,7 @@ function KanbanTask({ id, task, isDragging }: Props) {
 								</div>
 							)}
 						</div>
-					</div>
+					</button>
 				</div>
 			</Container>
 

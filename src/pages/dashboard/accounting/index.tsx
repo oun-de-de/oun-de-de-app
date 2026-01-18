@@ -1,20 +1,37 @@
-import { EntityListItem, TablePagination } from "@/core/components/common";
+import { useState } from "react";
+import { accountingAccountList, accountingRows } from "@/_mock/data/dashboard";
+import { EntityListItem, ListFooter, SmartDataTable, VirtualList } from "@/core/components/common";
 import Icon from "@/core/components/icon/icon";
+import { useAccountingList, useAccountingListActions } from "@/core/store/accountingListStore";
+import type { SelectOption } from "@/core/types/common";
 import { Button } from "@/core/ui/button";
 import { Card, CardContent } from "@/core/ui/card";
 import { Input } from "@/core/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/core/ui/select";
 import { Text } from "@/core/ui/typography";
-import { useAccountingList, useAccountingListActions } from "@/core/store/accountingListStore";
-import { useState } from "react";
-import { accountingAccountList, accountingRows } from "@/_mock/data/dashboard";
+import { getPaginationItems } from "@/core/utils/pagination";
+import { columns } from "./components/accounting-columns";
 
-const accountList = accountingAccountList;
 const rows = accountingRows;
+
+const FILTER_TYPE_OPTIONS: SelectOption[] = [
+	{ value: "journal", label: "Journal Type" },
+	{ value: "invoice", label: "Invoice" },
+	{ value: "receipt", label: "Receipt" },
+];
+
+const FILTER_FIELD_OPTIONS: SelectOption[] = [
+	{ value: "field-name", label: "Field name" },
+	{ value: "ref-no", label: "Ref No" },
+	{ value: "memo", label: "Memo" },
+];
 
 export default function AccountingPage() {
 	const [activeAccountId, setActiveAccountId] = useState<string | null>(null);
-	const activeAccount = accountList.find((account) => account.id === activeAccountId);
+	// Virtual scroll state
+	const [displayedAccounts] = useState(accountingAccountList);
+
+	const activeAccount = displayedAccounts.find((account) => account.id === activeAccountId);
 	const listState = useAccountingList();
 	const { updateState } = useAccountingListActions();
 
@@ -52,27 +69,25 @@ export default function AccountingPage() {
 							</Select>
 						</div>
 
-						<div className="mt-4 divide-y divide-border-gray-300">
-							{accountList.map((account) => (
+						<VirtualList
+							className="mt-4 flex-1 divide-y divide-border-gray-300"
+							data={displayedAccounts}
+							estimateSize={56}
+							height="calc(100vh - 250px)"
+							renderItem={(account, style) => (
 								<EntityListItem
 									key={account.id}
-									customer={account}
+									entity={account}
 									isActive={account.id === activeAccountId}
 									onSelect={setActiveAccountId}
+									style={style}
 								/>
-							))}
-						</div>
+							)}
+						/>
 
-						<div className="mt-4 flex items-center justify-between text-xs text-muted-foreground">
-							<span>Total 382</span>
-							<span className="flex items-center gap-1">
-								<Icon icon="mdi:chevron-left" />
-								<Icon icon="mdi:chevron-right" />
-							</span>
-						</div>
+						<ListFooter total={accountingAccountList.length} />
 					</CardContent>
 				</Card>
-
 				<Card>
 					<CardContent className="flex flex-col gap-4 p-4">
 						<div className="flex flex-wrap items-center justify-between gap-2">
@@ -92,103 +107,28 @@ export default function AccountingPage() {
 							</Button>
 						</div>
 
-						<div className="flex flex-wrap items-center gap-2">
-							<Button variant="outline" size="icon" className="h-9 w-9">
-								<Icon icon="mdi:filter-variant" />
-							</Button>
-							<Select
-								value={listState.typeFilter}
-								onValueChange={(value) => updateState({ typeFilter: value, page: 1 })}
-							>
-								<SelectTrigger className="w-[160px]">
-									<SelectValue placeholder="Journal Type" />
-								</SelectTrigger>
-								<SelectContent>
-									<SelectItem value="journal">Journal Type</SelectItem>
-									<SelectItem value="invoice">Invoice</SelectItem>
-									<SelectItem value="receipt">Receipt</SelectItem>
-								</SelectContent>
-							</Select>
-							<Select
-								value={listState.fieldFilter}
-								onValueChange={(value) => updateState({ fieldFilter: value, page: 1 })}
-							>
-								<SelectTrigger className="w-[160px]">
-									<SelectValue placeholder="Field name" />
-								</SelectTrigger>
-								<SelectContent>
-									<SelectItem value="field-name">Field name</SelectItem>
-									<SelectItem value="ref-no">Ref No</SelectItem>
-									<SelectItem value="memo">Memo</SelectItem>
-								</SelectContent>
-							</Select>
-							<div className="relative flex-1 min-w-[180px]">
-								<Input
-									placeholder="Search..."
-									className="pl-9"
-									value={listState.searchValue}
-									onChange={(event) =>
-										updateState({
-											searchValue: event.target.value,
-											page: 1,
-										})
-									}
-								/>
-								<Icon icon="mdi:magnify" className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-							</div>
-						</div>
-
-						<div className="overflow-x-auto rounded-lg border">
-							<table className="min-w-full text-sm">
-								<thead className="bg-muted/40 text-xs uppercase text-muted-foreground">
-									<tr>
-										<th className="px-3 py-2 text-left">Date</th>
-										<th className="px-3 py-2 text-left">Ref No.</th>
-										<th className="px-3 py-2 text-left">Type</th>
-										<th className="px-3 py-2 text-left">Currency</th>
-										<th className="px-3 py-2 text-left">Memo</th>
-										<th className="px-3 py-2 text-right">DR</th>
-										<th className="px-3 py-2 text-right">CR</th>
-									</tr>
-								</thead>
-								<tbody className="divide-y">
-									{rows.map((row) => (
-										<tr key={`${row.refNo}-${row.date}`} className="hover:bg-muted/30">
-											<td className="px-3 py-2 text-muted-foreground">{row.date}</td>
-											<td className="px-3 py-2 text-sky-600">{row.refNo}</td>
-											<td className="px-3 py-2">
-												<span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs text-amber-700">{row.type}</span>
-											</td>
-											<td className="px-3 py-2">{row.currency}</td>
-											<td className="px-3 py-2 text-muted-foreground">{row.memo || "-"}</td>
-											<td className="px-3 py-2 text-right">{row.dr}</td>
-											<td className="px-3 py-2 text-right font-semibold">{row.cr}</td>
-										</tr>
-									))}
-								</tbody>
-							</table>
-						</div>
-
-						<TablePagination
-							pages={[1, 2, 3, 4, "...", 2309]}
-							currentPage={listState.page}
-							totalItems={46166}
-							pageSize={listState.pageSize}
-							pageSizeOptions={[10, 20, 50]}
-							goToValue={String(listState.page)}
-							onPrev={() =>
-								updateState({
-									page: Math.max(1, listState.page - 1),
-								})
-							}
-							onNext={() =>
-								updateState({
-									page: Math.min(2309, listState.page + 1),
-								})
-							}
-							onPageChange={(nextPage) => updateState({ page: nextPage })}
-							onPageSizeChange={(nextSize) => updateState({ pageSize: nextSize, page: 1 })}
-							onGoToChange={(value) => updateState({ page: Number(value) || 1 })}
+						<SmartDataTable
+							data={rows}
+							columns={columns}
+							filterConfig={{
+								typeOptions: FILTER_TYPE_OPTIONS,
+								fieldOptions: FILTER_FIELD_OPTIONS,
+								typeValue: listState.typeFilter,
+								fieldValue: listState.fieldFilter,
+								searchValue: listState.searchValue,
+								onTypeChange: (value) => updateState({ typeFilter: value, page: 1 }),
+								onFieldChange: (value) => updateState({ fieldFilter: value, page: 1 }),
+								onSearchChange: (value) => updateState({ searchValue: value, page: 1 }),
+							}}
+							paginationConfig={{
+								page: listState.page,
+								pageSize: listState.pageSize,
+								totalItems: 46166,
+								totalPages: 2309,
+								paginationItems: getPaginationItems(listState.page, 2309),
+								onPageChange: (nextPage) => updateState({ page: nextPage }),
+								onPageSizeChange: (nextSize) => updateState({ pageSize: nextSize, page: 1 }),
+							}}
 						/>
 					</CardContent>
 				</Card>

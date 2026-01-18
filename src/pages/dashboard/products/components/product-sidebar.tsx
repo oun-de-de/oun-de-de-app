@@ -1,60 +1,93 @@
-import Icon from "@/core/components/icon/icon";
-import { Button } from "@/core/ui/button";
-import { Input } from "@/core/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/core/ui/select";
-import { EntityListItem } from "@/core/components/common";
-import { productList } from "@/_mock/data/dashboard";
+import { useMemo, useState } from "react";
+
+import * as dashboard from "@/_mock/data/dashboard";
+import { EntityListItem, SidebarList } from "@/core/components/common";
+import type { SelectOption } from "@/core/types/common";
+import { normalizeToken } from "@/core/utils/dashboard-utils";
 
 type ProductSidebarProps = {
 	activeProductId: string | null;
 	onSelect: (id: string | null) => void;
 };
 
+const MAIN_TYPE_OPTIONS: SelectOption[] = [
+	{ value: "all", label: "All Types" },
+	{ value: "inventory", label: "Inventory" },
+	{ value: "service", label: "Service" },
+];
+
+const STATUS_OPTIONS: SelectOption[] = [
+	{ value: "all", label: "All Status" },
+	{ value: "active", label: "Active" },
+	{ value: "inactive", label: "Inactive" },
+];
+
 export function ProductSidebar({ activeProductId, onSelect }: ProductSidebarProps) {
+	const [searchTerm, setSearchTerm] = useState("");
+	const [mainType, setMainType] = useState("all");
+	const [status, setStatus] = useState("all");
+
+	const filteredProducts = useMemo(() => {
+		const normalizedSearch = normalizeToken(searchTerm);
+		const normalizedType = normalizeToken(mainType);
+		const normalizedStatus = normalizeToken(status);
+
+		return dashboard.productList.filter((product) => {
+			// Filter by Type
+			if (normalizedType !== "all") {
+				const productType = normalizeToken(product.type || "");
+				if (productType !== normalizedType) return false;
+			}
+
+			// Filter by Status
+			if (normalizedStatus !== "all") {
+				const productStatus = normalizeToken(product.status || "");
+				if (productStatus !== normalizedStatus) return false;
+			}
+
+			// Filter by Search (Name or Code)
+			if (normalizedSearch) {
+				const name = normalizeToken(product.name || "");
+				const code = normalizeToken(product.code || "");
+				if (!name.includes(normalizedSearch) && !code.includes(normalizedSearch)) {
+					return false;
+				}
+			}
+
+			return true;
+		});
+	}, [searchTerm, mainType, status]);
+
 	return (
-		<>
-			<div className="flex items-center gap-2">
-				<Select defaultValue="type">
-					<SelectTrigger className="w-full">
-						<SelectValue placeholder="Item Type" />
-					</SelectTrigger>
-					<SelectContent>
-						<SelectItem value="type">Item Type</SelectItem>
-						<SelectItem value="inventory">Inventory</SelectItem>
-						<SelectItem value="service">Service</SelectItem>
-					</SelectContent>
-				</Select>
-				<Button variant="outline" size="icon" className="h-9 w-9">
-					<Icon icon="mdi:menu" />
-				</Button>
-			</div>
+		<SidebarList>
+			<SidebarList.Header
+				mainTypeOptions={MAIN_TYPE_OPTIONS}
+				mainTypePlaceholder="Item Type"
+				onMainTypeChange={setMainType}
+				onMenuClick={() => {}}
+				searchPlaceholder="Search..."
+				onSearchChange={setSearchTerm}
+				statusOptions={STATUS_OPTIONS}
+				onStatusChange={setStatus}
+			/>
 
-			<div className="mt-3 flex gap-2">
-				<Input placeholder="Search..." />
-				<Select defaultValue="active">
-					<SelectTrigger className="w-[110px]">
-						<SelectValue placeholder="Active" />
-					</SelectTrigger>
-					<SelectContent>
-						<SelectItem value="active">Active</SelectItem>
-						<SelectItem value="inactive">Inactive</SelectItem>
-					</SelectContent>
-				</Select>
-			</div>
+			<SidebarList.Body
+				className="mt-4 divide-y divide-border-gray-300"
+				data={filteredProducts}
+				estimateSize={56}
+				height="calc(100vh - 250px)"
+				renderItem={(item, style) => (
+					<EntityListItem
+						key={item.id}
+						entity={item}
+						isActive={item.id === activeProductId}
+						onSelect={onSelect}
+						style={style}
+					/>
+				)}
+			/>
 
-			<div className="mt-4 divide-y divide-border-gray-300">
-				{productList.map((item) => (
-					<EntityListItem key={item.id} customer={item} isActive={item.id === activeProductId} onSelect={onSelect} />
-				))}
-			</div>
-
-			<div className="mt-4 flex items-center justify-between text-xs text-muted-foreground">
-				<span>Total 10</span>
-				<span className="flex items-center gap-1">
-					<Icon icon="mdi:chevron-left" />
-					<Icon icon="mdi:chevron-right" />
-				</span>
-			</div>
-		</>
+			<SidebarList.Footer total={filteredProducts.length} />
+		</SidebarList>
 	);
 }
