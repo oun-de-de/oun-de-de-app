@@ -8,6 +8,7 @@ import {
 	useReactTable,
 } from "@tanstack/react-table";
 import { useEffect, useState } from "react";
+import styled from "styled-components";
 import { TableFilterBar } from "./table-filter-bar";
 import { TablePagination } from "./table-pagination";
 
@@ -179,8 +180,6 @@ export function SmartDataTable<T extends object>({
 		getRowId: (row: any, index) => String(row?.id ?? index),
 	});
 
-	const getColClass = (colDef: any) => colDef?.meta?.className ?? "";
-
 	// Manage "Go to" input state locally to allow typing without immediate page jump
 	const [goToPageValue, setGoToPageValue] = useState(paginationConfig ? String(paginationConfig.page) : "");
 
@@ -211,17 +210,16 @@ export function SmartDataTable<T extends object>({
 				/>
 			)}
 
-			<div className="overflow-x-auto rounded border border-gray-300">
-				<table className="min-w-full text-sm">
-					<thead className="bg-gray-100 border-b border-gray-300 text-md text-black">
+			<TableWrap>
+				<Table>
+					<TableHead>
 						{table.getHeaderGroups().map((headerGroup) => (
 							<tr key={headerGroup.id}>
 								{headerGroup.headers.map((header) => {
-									const colClass = getColClass(header.column.columnDef);
 									return (
 										<th
 											key={header.id}
-											className={`px-3 py-3 text-center border-r border-gray-300 last:border-r-0 ${colClass}`}
+											className={`px-3 py-3 text-center border-r border-gray-300 last:border-r-0`}
 											onClick={header.column.getToggleSortingHandler()}
 										>
 											{header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
@@ -230,8 +228,8 @@ export function SmartDataTable<T extends object>({
 								})}
 							</tr>
 						))}
-					</thead>
-					<tbody className="divide-y divide-gray-300">
+					</TableHead>
+					<TableBody>
 						{table.getRowModel().rows.length === 0 ? (
 							<tr>
 								<td colSpan={table.getAllLeafColumns().length} className="px-3 py-6 text-center text-gray-500">
@@ -240,21 +238,20 @@ export function SmartDataTable<T extends object>({
 							</tr>
 						) : (
 							table.getRowModel().rows.map((row) => (
-								<tr key={row.id} className="hover:bg-blue-50! transition-colors">
+								<TableRow key={row.id}>
 									{row.getVisibleCells().map((cell) => {
-										const colClass = getColClass(cell.column.columnDef);
 										return (
-											<td key={cell.id} className={`px-3 py-2 border-r border-gray-300 last:border-r-0 ${colClass}`}>
+											<td key={cell.id} className={`px-3 py-2 border-r border-gray-300 last:border-r-0`}>
 												{flexRender(cell.column.columnDef.cell, cell.getContext())}
 											</td>
 										);
 									})}
-								</tr>
+								</TableRow>
 							))
 						)}
-					</tbody>
-				</table>
-			</div>
+					</TableBody>
+				</Table>
+			</TableWrap>
 
 			{paginationConfig && (
 				<TablePagination
@@ -276,3 +273,29 @@ export function SmartDataTable<T extends object>({
 		</div>
 	);
 }
+
+//#region Styled Components
+const TableWrap = styled.div.attrs({
+	className: "overflow-x-auto rounded border border-gray-300",
+})``;
+
+const Table = styled.table.attrs({
+	className: "min-w-full text-sm",
+})``;
+
+const TableHead = styled.thead.attrs({
+	className: "bg-gray-100 border-b border-gray-300 text-md text-black",
+})``;
+
+const TableBody = styled.tbody.attrs({
+	className: "divide-y divide-gray-300",
+})`
+	tr:nth-child(even) {
+		background-color: rgb(249, 250, 251);
+	}
+`;
+
+const TableRow = styled.tr.attrs({
+	className: "hover:bg-blue-50! transition-colors",
+})``;
+//#endregion

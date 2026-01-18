@@ -6,7 +6,7 @@ const columnHelper = createColumnHelper<AccountingRow>();
 export const columns = [
 	columnHelper.accessor("date", {
 		header: "Date",
-		cell: (info) => <span className="text-slate-500">{info.getValue()}</span>,
+		cell: (info) => <span>{info.getValue()}</span>,
 	}),
 	columnHelper.accessor("refNo", {
 		header: "Ref No.",

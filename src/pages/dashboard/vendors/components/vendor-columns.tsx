@@ -6,12 +6,11 @@ export const columns: ColumnDef<VendorTransactionRow>[] = [
 	{
 		header: "Date",
 		accessorKey: "date",
-		meta: { className: "text-gray-600" },
 	},
 	{
 		header: "Ref No",
 		accessorKey: "refNo",
-		meta: { className: "text-sky-600" },
+		cell: ({ row }) => <span className="text-sky-600">{row.original.refNo}</span>,
 	},
 	{
 		header: "Vendor",
@@ -43,6 +42,5 @@ export const columns: ColumnDef<VendorTransactionRow>[] = [
 	{
 		header: "Memo",
 		accessorKey: "memo",
-		meta: { className: "text-gray-600" },
 	},
 ];

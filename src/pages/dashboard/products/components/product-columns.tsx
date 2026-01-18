@@ -5,12 +5,11 @@ export const columns: ColumnDef<ProductRow>[] = [
 	{
 		header: "Date",
 		accessorKey: "date",
-		meta: { className: "text-gray-600" },
 	},
 	{
 		header: "Ref No",
 		accessorKey: "refNo",
-		meta: { className: "text-sky-600" },
+		cell: ({ row }) => <span className="text-sky-600">{row.original.refNo}</span>,
 	},
 	{
 		header: "Type",
@@ -27,16 +26,13 @@ export const columns: ColumnDef<ProductRow>[] = [
 	{
 		header: "Qty",
 		accessorKey: "qty",
-		meta: { className: "text-right" },
 	},
 	{
 		header: "Cost",
 		cell: ({ row }) => row.original.cost.toLocaleString(),
-		meta: { className: "text-right" },
 	},
 	{
 		header: "Price",
 		cell: ({ row }) => <span className="font-semibold">{row.original.price.toLocaleString()}</span>,
-		meta: { className: "text-right" },
 	},
 ];
