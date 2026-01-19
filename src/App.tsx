@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import Logo from "@/assets/icons/ic-logo-badge.svg";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { QueryClient } from "@tanstack/react-query";
@@ -9,6 +10,7 @@ import Toast from "./core/components/toast";
 import { GLOBAL_CONFIG } from "./global-config";
 import { AntdAdapter } from "./core/theme/adapter/antd.adapter";
 import { ThemeProvider } from "./core/theme/theme-provider";
+import Repository from "./service-locator";
 
 if (import.meta.env.DEV) {
 	import("react-scan").then(({ scan }) => {
@@ -22,6 +24,9 @@ if (import.meta.env.DEV) {
 }
 
 function App({ children }: { children: React.ReactNode }) {
+	useEffect(() => {
+		Repository.initialize();
+	}, []);
 	return (
 		<HelmetProvider>
 			<QueryClientProvider client={new QueryClient()}>

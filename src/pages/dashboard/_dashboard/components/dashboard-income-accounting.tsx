@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useEffect } from "react";
 import {
 	DashboardRepository,
 	DashboardRepositoryImpl,
@@ -9,8 +9,9 @@ import ReactApexChart from "react-apexcharts";
 import { styled } from "styled-components";
 import { rgbAlpha } from "@/core/utils/theme";
 import Repository from "@/service-locator";
-import { useStore } from "@/core/ui/multi-store-provider";
+import { useStore } from "@/core/ui/store/multi-store-provider";
 import { DailyIncomeAccountingStore } from "../stores/income-accounting/daily-income-accounting-store";
+import { StoreBuilder } from "@/core/ui/store/store-builder";
 
 export default function DashboardIncomeAccounting() {
 	const repo = Repository.get<DashboardRepository>(DashboardRepositoryImpl, {
@@ -19,130 +20,132 @@ export default function DashboardIncomeAccounting() {
 
 	const filter = useObservable(repo.selectedFilter$, repo.getSelectedFilter());
 
-	const { useState, useAction } = useStore<DailyIncomeAccountingStore>("dailyIncomeAccounting");
-	const state = useState();
-	const { fetch } = useAction();
+	const store = useStore<DailyIncomeAccountingStore>("dailyIncomeAccounting");
+	const { fetch } = store.useAction();
 
 	useEffect(() => {
 		if (!filter) return;
 		fetch(filter);
 	}, [fetch, filter]);
 
-	const categories = useMemo(() => state.list.map((d) => d.date), [state.list]);
-
-	const series = useMemo(
-		() => [
-			{
-				name: "Income",
-				data: state.list.map((d) => d.income),
-			},
-			{
-				name: "Expense",
-				data: state.list.map((d) => d.expense),
-			},
-		],
-		[state.list],
-	);
-
-	const options: ApexCharts.ApexOptions = {
-		chart: {
-			type: "area",
-			height: 350,
-			toolbar: { show: false },
-			fontFamily: "inherit",
-		},
-
-		stroke: {
-			curve: "smooth",
-			width: 2,
-		},
-
-		markers: {
-			size: 4,
-			strokeWidth: 0,
-			hover: { size: 6 },
-		},
-
-		colors: ["#22d3ee", "#ff4d4f"], // Income - Expense
-
-		fill: {
-			type: "gradient",
-			gradient: {
-				shade: "light",
-				type: "vertical",
-				shadeIntensity: 0.2,
-				opacityFrom: 0.45,
-				opacityTo: 0.05,
-				stops: [0, 100],
-			},
-		},
-
-		dataLabels: {
-			enabled: false,
-		},
-
-		legend: {
-			show: true,
-			position: "top",
-			horizontalAlign: "center",
-			fontSize: "12px",
-			labels: {
-				colors: "#666",
-			},
-		},
-
-		grid: {
-			show: true,
-			borderColor: "#e5e7eb",
-			xaxis: { lines: { show: true } },
-			yaxis: { lines: { show: true } },
-		},
-
-		xaxis: {
-			categories,
-			labels: {
-				rotate: -45,
-				style: {
-					fontSize: "10px",
-					colors: Array(Math.max(categories.length, 1)).fill("#999"),
-				},
-			},
-			axisTicks: { show: false },
-			axisBorder: { show: false },
-		},
-
-		yaxis: {
-			labels: {
-				style: { colors: "#999", fontSize: "10px" },
-				formatter: (val) =>
-					new Intl.NumberFormat("en-US", {
-						maximumFractionDigits: 0,
-					}).format(val),
-			},
-		},
-
-		tooltip: {
-			y: {
-				formatter: (val) =>
-					`${new Intl.NumberFormat("en-US", {
-						maximumFractionDigits: 0,
-					}).format(val)} ₺`,
-			},
-		},
-	};
-
-	if (isErrorState(state)) {
-		return (
-			<StyledChartWrapper className="flex h-[320px] items-center justify-center">
-				<span className="text-sm text-red-500">{(state as ErrorState).error.message}</span>
-			</StyledChartWrapper>
-		);
-	}
-
 	return (
-		<StyledChartWrapper className="-mx-3 -mb-3">
-			<StyledReactApexChart options={options} series={series} type="area" height={320} width="100%" />
-		</StyledChartWrapper>
+		<StoreBuilder<DailyIncomeAccountingStore>
+			store={store}
+			builder={(state) => {
+				if (isErrorState(state)) {
+					return (
+						<StyledChartWrapper className="flex h-[320px] items-center justify-center">
+							<span className="text-sm text-red-500">{(state as ErrorState).error.message}</span>
+						</StyledChartWrapper>
+					);
+				}
+
+				const categories = state.list.map((d) => d.date);
+				const series = [
+					{
+						name: "Income",
+						data: state.list.map((d) => d.income),
+					},
+					{
+						name: "Expense",
+						data: state.list.map((d) => d.expense),
+					},
+				];
+
+				const options: ApexCharts.ApexOptions = {
+					chart: {
+						type: "area",
+						height: 350,
+						toolbar: { show: false },
+						fontFamily: "inherit",
+					},
+
+					stroke: {
+						curve: "smooth",
+						width: 2,
+					},
+
+					markers: {
+						size: 4,
+						strokeWidth: 0,
+						hover: { size: 6 },
+					},
+
+					colors: ["#22d3ee", "#ff4d4f"],
+
+					fill: {
+						type: "gradient",
+						gradient: {
+							shade: "light",
+							type: "vertical",
+							shadeIntensity: 0.2,
+							opacityFrom: 0.45,
+							opacityTo: 0.05,
+							stops: [0, 100],
+						},
+					},
+
+					dataLabels: {
+						enabled: false,
+					},
+
+					legend: {
+						show: true,
+						position: "top",
+						horizontalAlign: "center",
+						fontSize: "12px",
+						labels: {
+							colors: "#666",
+						},
+					},
+
+					grid: {
+						show: true,
+						borderColor: "#e5e7eb",
+						xaxis: { lines: { show: true } },
+						yaxis: { lines: { show: true } },
+					},
+
+					xaxis: {
+						categories,
+						labels: {
+							rotate: -45,
+							style: {
+								fontSize: "10px",
+								colors: Array(Math.max(categories.length, 1)).fill("#999"),
+							},
+						},
+						axisTicks: { show: false },
+						axisBorder: { show: false },
+					},
+
+					yaxis: {
+						labels: {
+							style: { colors: "#999", fontSize: "10px" },
+							formatter: (val) =>
+								new Intl.NumberFormat("en-US", {
+									maximumFractionDigits: 0,
+								}).format(val),
+						},
+					},
+
+					tooltip: {
+						y: {
+							formatter: (val) =>
+								`${new Intl.NumberFormat("en-US", {
+									maximumFractionDigits: 0,
+								}).format(val)} ₺`,
+						},
+					},
+				};
+
+				return (
+					<StyledChartWrapper className="-mx-3 -mb-3">
+						<StyledReactApexChart options={options} series={series} type="area" height={320} width="100%" />
+					</StyledChartWrapper>
+				);
+			}}
+		/>
 	);
 }
 
@@ -195,4 +198,4 @@ const StyledReactApexChart = styled(ReactApexChart)`
     box-shadow: 0 0 0 1px rgba(248, 113, 113, 0.6);
   }
 `;
-//#endregion
+////#endregion

@@ -12,7 +12,6 @@ import ErrorBoundary from "./routes/components/error-boundary";
 import { routesSection } from "./routes/sections";
 
 import { urlJoin } from "./core/utils";
-import Repository from "./service-locator";
 
 await registerLocalIcons();
 await worker.start({
@@ -22,8 +21,6 @@ await worker.start({
 if (GLOBAL_CONFIG.routerMode === "backend") {
 	await menuService.getMenuList();
 }
-
-Repository.initialize();
 
 const router = createBrowserRouter(
 	[

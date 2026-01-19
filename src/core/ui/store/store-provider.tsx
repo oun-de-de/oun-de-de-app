@@ -1,14 +1,10 @@
-import { ReactNode, createContext, useContext, useEffect, useRef } from "react";
-import type { createBoundStore } from "../utils/create-bound-store";
-import { createTaggedLogger } from "../utils/logger";
-import { isInitAble } from "../types/init-able";
+import { ReactNode, useContext, useEffect, useRef } from "react";
+import type { createBoundStore } from "../../utils/create-bound-store";
+import { createTaggedLogger } from "../../utils/logger";
+import { isInitAble } from "../../types/init-able";
+import { useStore as useStoreFromMulti, SingleStoreContext } from "./multi-store-provider";
 
 const logger = createTaggedLogger("StoreProvider");
-
-/**
- * Context for single store provider
- */
-const SingleStoreContext = createContext<ReturnType<typeof createBoundStore> | null>(null);
 
 interface StoreProviderProps<T extends ReturnType<typeof createBoundStore> = ReturnType<typeof createBoundStore>> {
 	/** Bound store instance from createBoundStore() */
@@ -78,6 +74,7 @@ export function StoreProvider<T extends ReturnType<typeof createBoundStore>>({
 
 /**
  * Hook to get the store from StoreProvider
+ * @deprecated Use `useStore()` without parameters instead
  *
  * @returns Bound store instance
  * @throws Error if not wrapped with StoreProvider
@@ -85,7 +82,9 @@ export function StoreProvider<T extends ReturnType<typeof createBoundStore>>({
  * @example
  * ```tsx
  * function MyComponent() {
- *   const store = useStoreContext();
+ *   const store = useStore<MyStore>(); // Preferred
+ *   // or
+ *   const store = useStoreContext(); // Deprecated
  *   const state = store.useState();
  *   const actions = store.useAction();
  * }
@@ -102,3 +101,18 @@ export function useStoreContext<T = ReturnType<typeof createBoundStore>>(): T {
 
 	return store as T;
 }
+
+/**
+ * Unified hook to get store - works with both StoreProvider and MultiStoreProvider
+ * Re-exported from multi-store-provider for convenience
+ *
+ * @example
+ * ```tsx
+ * // With StoreProvider (no params)
+ * const store = useStore<MyStore>();
+ *
+ * // With MultiStoreProvider (with name)
+ * const store = useStore<MyStore>('myStore');
+ * ```
+ */
+export const useStore = useStoreFromMulti;

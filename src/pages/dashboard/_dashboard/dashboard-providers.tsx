@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { MultiStoreProvider, StoreConfig } from "@/core/ui/multi-store-provider";
+import { MultiStoreProvider, StoreConfig } from "@/core/ui/store/multi-store-provider";
 import { createBoundStore } from "@/core/utils/create-bound-store";
 import { type CustomerInfoStore, createCustomerInfoStore } from "./stores/customer-info/customer-info-store";
 import { type PerformanceStore, createPerformanceStore } from "./stores/performance/performance-store";
