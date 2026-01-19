@@ -1,7 +1,6 @@
 import { createConsola } from "consola";
 
 /**
- * Debug logger - similar to Flutter's debugTalker
  * Only logs in development mode
  *
  * @example
@@ -55,7 +54,13 @@ export const debugLogger = createConsola({
 						const prefix = `${color}[${time}] ${levelName}${reset}`;
 						const tagStr = tag ? ` ${color}[${tag}]${reset}` : "";
 
-						console.log(prefix + tagStr, ...args);
+						// Handle objects separately to format them properly
+						if (args.length > 1 && typeof args[1] === "object") {
+							console.log(prefix + tagStr, args[0]);
+							console.log(args[1]);
+						} else {
+							console.log(prefix + tagStr, ...args);
+						}
 					},
 				},
 			]
