@@ -73,7 +73,6 @@ export default function ProductsPage() {
 					paginationItems={paginationItems}
 				/>
 			}
-			className="lg:grid-cols-[320px_1fr]"
 		/>
 	);
 }

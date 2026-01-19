@@ -72,10 +72,10 @@ export function ProductSidebar({ activeProductId, onSelect }: ProductSidebarProp
 			/>
 
 			<SidebarList.Body
-				className="mt-4 divide-y divide-border-gray-300"
+				className="mt-4 divide-y divide-border-gray-300 flex-1 min-h-0"
 				data={filteredProducts}
 				estimateSize={56}
-				height="calc(100vh - 250px)"
+				height="auto"
 				renderItem={(item, style) => (
 					<EntityListItem
 						key={item.id}

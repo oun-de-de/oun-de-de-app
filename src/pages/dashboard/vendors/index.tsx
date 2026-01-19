@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
+import { vendorTransactions } from "@/_mock/data/dashboard";
 import { DashboardSplitView } from "@/core/components/common/dashboard-split-view";
 import { useVendorsList, useVendorsListActions } from "@/core/store/vendorsListStore";
-import { vendorTransactions } from "@/_mock/data/dashboard";
-import { normalizeToken, buildPagination } from "@/core/utils/dashboard-utils";
-import { VendorSidebar } from "./components/vendor-sidebar";
+import { buildPagination, normalizeToken } from "@/core/utils/dashboard-utils";
 import { VendorContent } from "./components/vendor-content";
+import { VendorSidebar } from "./components/vendor-sidebar";
 
 const transactions = vendorTransactions;
 
@@ -76,7 +76,6 @@ export default function VendorsPage() {
 					paginationItems={paginationItems}
 				/>
 			}
-			className="lg:grid-cols-[320px_1fr]"
 		/>
 	);
 }

@@ -13,14 +13,14 @@ export function DashboardSplitView({
 	className = "lg:grid-cols-[280px_1fr]",
 }: DashboardSplitViewProps) {
 	return (
-		<div className="flex w-full flex-col gap-4">
-			<div className={`grid grid-cols-1 gap-4 ${className}`}>
+		<div className="flex w-full flex-col gap-4 h-full">
+			<div className={`grid grid-cols-1 gap-4 h-full ${className}`}>
 				<Card className="h-full">
-					<CardContent className="p-4">{sidebar}</CardContent>
+					<CardContent className="h-full flex flex-col p-4">{sidebar}</CardContent>
 				</Card>
 
 				<Card className="h-full">
-					<CardContent className="flex flex-col gap-4 p-4">{content}</CardContent>
+					<CardContent className="h-full flex flex-col gap-4 p-4">{content}</CardContent>
 				</Card>
 			</div>
 		</div>
