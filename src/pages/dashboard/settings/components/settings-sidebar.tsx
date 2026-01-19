@@ -12,7 +12,7 @@ type SettingsSidebarProps = {
 export function SettingsSidebar({ activeItem, onSelect }: SettingsSidebarProps) {
 	return (
 		<SidebarList>
-			<div className="flex flex-col gap-1">
+			<div className="flex flex-col gap-1 flex-1 overflow-y-auto min-h-0 p-1">
 				{settingsLeftMenu.map((item) => (
 					<Button
 						key={item}

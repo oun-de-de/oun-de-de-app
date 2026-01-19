@@ -1,5 +1,5 @@
 import { customerList } from "@/_mock/data/dashboard";
-import { EntityListItem, ListFooter, SidebarListHeader, VirtualList } from "@/core/components/common";
+import { EntityListItem, SidebarList } from "@/core/components/common";
 import type { SelectOption } from "@/core/types/common";
 
 type CustomerSidebarProps = {
@@ -19,8 +19,8 @@ const STATUS_OPTIONS: SelectOption[] = [
 
 export function CustomerSidebar({ activeCustomerId, onSelect }: CustomerSidebarProps) {
 	return (
-		<>
-			<SidebarListHeader
+		<SidebarList>
+			<SidebarList.Header
 				mainTypeOptions={MAIN_TYPE_OPTIONS}
 				mainTypePlaceholder="Customer Type"
 				onMainTypeChange={() => {}}
@@ -31,11 +31,11 @@ export function CustomerSidebar({ activeCustomerId, onSelect }: CustomerSidebarP
 				onStatusChange={() => {}}
 			/>
 
-			<VirtualList
-				className="mt-4 divide-y divide-border-gray-300"
+			<SidebarList.Body
+				className="mt-4 divide-y divide-border-gray-300 flex-1 min-h-0"
 				data={customerList}
 				estimateSize={56}
-				height="calc(100vh - 250px)"
+				height="auto"
 				renderItem={(customer, style) => (
 					<EntityListItem
 						key={customer.id}
@@ -47,7 +47,7 @@ export function CustomerSidebar({ activeCustomerId, onSelect }: CustomerSidebarP
 				)}
 			/>
 
-			<ListFooter total={200} />
-		</>
+			<SidebarList.Footer total={200} />
+		</SidebarList>
 	);
 }

@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
+import { customerTransactions } from "@/_mock/data/dashboard";
 import { DashboardSplitView } from "@/core/components/common/dashboard-split-view";
 import { useCustomersList, useCustomersListActions } from "@/core/store/customersListStore";
-import { customerTransactions } from "@/_mock/data/dashboard";
-import { normalizeToken, buildPagination } from "@/core/utils/dashboard-utils";
-import { CustomerSidebar } from "./components/customer-sidebar";
+import { buildPagination, normalizeToken } from "@/core/utils/dashboard-utils";
 import { CustomerContent } from "./components/customer-content";
+import { CustomerSidebar } from "./components/customer-sidebar";
 
 const transactions = customerTransactions;
 

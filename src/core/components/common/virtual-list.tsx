@@ -29,11 +29,46 @@ const VirtualListContainer = styled.div<{ $height: string | number }>`
 	height: ${({ $height }) => (typeof $height === "number" ? `${$height}px` : $height)};
 	overflow-y: auto;
 	contain: strict;
+	padding-right: 12px;
+
+	/* Custom Scrollbar */
+	&::-webkit-scrollbar {
+		width: 6px;
+		height: 6px;
+	}
+
+	&::-webkit-scrollbar-track {
+		background: transparent;
+	}
+
+	&::-webkit-scrollbar-thumb {
+		background-color: ${({ theme }) => theme.colors.palette.gray[300]};
+		border-radius: 9px;
+		border: 1px solid transparent;
+		background-clip: content-box;
+	}
+
+	&::-webkit-scrollbar-thumb:hover,
+	&::-webkit-scrollbar-thumb:active {
+		background-color: ${({ theme }) => theme.colors.palette.gray[300]};
+	}
+
+	/* Dark mode support depends on how theme is handled. 
+	   If theme prop changes based on mode, this updates automatically.
+	   If leveraging data-theme-mode attribute: */
+	[data-theme-mode="dark"] &::-webkit-scrollbar-thumb {
+		background-color: ${({ theme }) => theme.colors.palette.gray[600]};
+	}
+	
+	[data-theme-mode="dark"] &::-webkit-scrollbar-thumb:hover,
+	[data-theme-mode="dark"] &::-webkit-scrollbar-thumb:active {
+		background-color: ${({ theme }) => theme.colors.palette.gray[600]};
+	}
 `;
 
 const InnerContainer = styled.div<{ $height: number }>`
 	height: ${({ $height }) => $height}px;
-	width: 100%;
+	width: calc(100% - 12px);
 	position: relative;
 `;
 

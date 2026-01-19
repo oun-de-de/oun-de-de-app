@@ -1,5 +1,5 @@
 import { vendorList } from "@/_mock/data/dashboard";
-import { EntityListItem, ListFooter, SidebarListHeader, VirtualList } from "@/core/components/common";
+import { EntityListItem, SidebarList } from "@/core/components/common";
 
 import type { SelectOption } from "@/core/types/common";
 
@@ -20,8 +20,8 @@ const STATUS_OPTIONS: SelectOption[] = [
 
 export function VendorSidebar({ activeVendorId, onSelect }: VendorSidebarProps) {
 	return (
-		<>
-			<SidebarListHeader
+		<SidebarList>
+			<SidebarList.Header
 				mainTypeOptions={MAIN_TYPE_OPTIONS}
 				mainTypePlaceholder="Vendor Type"
 				onMainTypeChange={() => {}}
@@ -32,11 +32,11 @@ export function VendorSidebar({ activeVendorId, onSelect }: VendorSidebarProps) 
 				onStatusChange={() => {}}
 			/>
 
-			<VirtualList
-				className="mt-4 divide-y divide-border-gray-300"
+			<SidebarList.Body
+				className="mt-4 divide-y divide-border-gray-300 flex-1 min-h-0"
 				data={vendorList}
 				estimateSize={56}
-				height="calc(100vh - 250px)"
+				height="auto"
 				renderItem={(vendor, style) => (
 					<EntityListItem
 						key={vendor.id}
@@ -48,7 +48,7 @@ export function VendorSidebar({ activeVendorId, onSelect }: VendorSidebarProps) 
 				)}
 			/>
 
-			<ListFooter total={150} />
-		</>
+			<SidebarList.Footer total={200} />
+		</SidebarList>
 	);
 }

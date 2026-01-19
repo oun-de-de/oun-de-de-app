@@ -3,8 +3,6 @@ import { Button } from "@/core/ui/button";
 import { Input } from "@/core/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/core/ui/select";
 
-// Removed styled-components import
-
 type PaginationProps = {
 	pages: Array<number | "...">;
 	currentPage: number;
@@ -74,8 +72,7 @@ export function TablePagination({
 						if (page === "...") {
 							return (
 								<div
-									// biome-ignore lint/suspicious/noArrayIndexKey: Index is stable for static pagination gaps
-									key={`gap-${index}`}
+									key={`gap-after-${pages[index - 1]}`}
 									className="flex h-8 w-8 items-center justify-center select-none text-gray-500"
 									aria-hidden="true"
 								>
