@@ -1,6 +1,6 @@
-import type { AuthAccountMapper, AuthLoginDTO, AuthProvider, AuthCredential } from "packages/auth-service";
+import type { AuthAccountMapper, AuthLoginDTO, AuthProvider, AuthCredential } from "@auth-service";
 import { AppAuthAccount } from "../models/app-auth-account";
-import { AuthenticationStatus, AccountStatus, AuthAccountData, JWTToken, RefreshToken } from "packages/auth-service";
+import { AuthenticationStatus, AccountStatus, AuthAccountData, JWTToken, RefreshToken } from "@auth-service";
 
 /**
  * Mapper for converting AuthLoginDTO to AppAuthAccount

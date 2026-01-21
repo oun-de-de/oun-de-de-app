@@ -1,5 +1,5 @@
-import type { AuthLocalStoragePlatform } from "packages/auth-service";
-import { JWTToken, RefreshToken, AuthenticationStatus, AccountStatus, AuthAccountData } from "packages/auth-service";
+import type { AuthLocalStoragePlatform } from "@auth-service";
+import { JWTToken, RefreshToken, AuthenticationStatus, AccountStatus, AuthAccountData } from "@auth-service";
 import { AppAuthAccount } from "../models/app-auth-account";
 import { LocalStorageService } from "@/core/services/storages/local-storage";
 

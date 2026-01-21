@@ -1,5 +1,5 @@
-import { AuthService } from "packages/auth-service";
-import type { AuthProviderManagerPlatform, AuthLocalStoragePlatform, AuthAccountMapper } from "packages/auth-service";
+import { AuthService } from "@auth-service";
+import type { AuthProviderManagerPlatform, AuthLocalStoragePlatform, AuthAccountMapper } from "@auth-service";
 import { AppAuthAccount } from "./models/app-auth-account";
 import { AppAuthProviderManager } from "./providers/provider-manager";
 import { AppAuthAccountMapper } from "./mappers/account-mapper";

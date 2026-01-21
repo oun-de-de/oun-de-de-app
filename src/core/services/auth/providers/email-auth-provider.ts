@@ -1,4 +1,4 @@
-import { EmailAuthProvider, type EmailAuthCredential, type AuthLoginDTO, type AuthToken } from "packages/auth-service";
+import { EmailAuthProvider, type EmailAuthCredential, type AuthLoginDTO, type AuthToken } from "@auth-service";
 import apiClient from "@/core/api/apiClient";
 import { UserApi, type SignInRes } from "@/core/api/services/userService";
 import { createTaggedLogger } from "@/core/utils/logger";

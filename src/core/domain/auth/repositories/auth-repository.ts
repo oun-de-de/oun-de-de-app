@@ -1,4 +1,4 @@
-import type { AuthCredential, AuthAccount } from "packages/auth-service";
+import type { AuthCredential, AuthAccount } from "@auth-service";
 
 /**
  * Events emitted by AuthRepository

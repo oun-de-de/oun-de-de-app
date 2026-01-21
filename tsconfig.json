@@ -29,7 +29,9 @@
 		"baseUrl": ".",
 		"paths": {
 			"@/*": ["src/*"],
-			"#/*": ["src/core/types/*"]
+			"#/*": ["src/core/types/*"],
+			"@service-locator": ["packages/service-locator/src/index.ts"],
+			"@auth-service": ["packages/auth-service/src/index.ts"]
 		}
 	},
 	"include": ["src", "src/core/types", "tailwind.config.ts"],

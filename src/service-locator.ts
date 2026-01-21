@@ -1,4 +1,4 @@
-import { GetIt } from "packages/service-locator/src/index";
+import { GetIt } from "@service-locator";
 import { DisposeAble, isDisposeAble } from "./core/types/dispose-able";
 import { InitAble, isInitAble } from "./core/types/init-able";
 import {

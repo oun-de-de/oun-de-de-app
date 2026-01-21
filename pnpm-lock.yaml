@@ -11,6 +11,9 @@ importers:
       '@ant-design/cssinjs':
         specifier: ^1.22.0
         version: 1.23.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@auth-service':
+        specifier: file:./packages/auth-service
+        version: '@auth/service@file:packages/auth-service'
       '@dnd-kit/core':
         specifier: ^6.3.1
         version: 6.3.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -53,6 +56,9 @@ importers:
       '@iconify/utils':
         specifier: ^3.1.0
         version: 3.1.0
+      '@service-locator':
+        specifier: file:./packages/service-locator
+        version: service-locator@file:packages/service-locator
       '@tailwindcss/vite':
         specifier: ^4.1.3
         version: 4.1.4(vite@6.3.3(@types/node@25.0.9)(jiti@2.4.2)(lightningcss@1.29.2)(tsx@4.19.4))
@@ -83,9 +89,6 @@ importers:
       apexcharts:
         specifier: ^4.6.0
         version: 4.6.0
-      auth-service:
-        specifier: file:./packages/auth-service
-        version: '@auth/service@file:packages/auth-service'
       axios:
         specifier: ^1.7.7
         version: 1.8.4
@@ -176,9 +179,6 @@ importers:
       screenfull:
         specifier: ^6.0.2
         version: 6.0.2
-      service-locator:
-        specifier: file:./packages/service-locator
-        version: file:packages/service-locator
       sonner:
         specifier: ^1.7.0
         version: 1.7.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -4731,7 +4731,7 @@ snapshots:
       '@types/node': 20.5.1
       chalk: 4.1.2
       cosmiconfig: 8.3.6(typescript@5.8.3)
-      cosmiconfig-typescript-loader: 4.4.0(@types/node@20.5.1)(cosmiconfig@8.3.6(typescript@5.8.3))(ts-node@10.9.2(@types/node@20.5.1)(typescript@5.8.3))(typescript@5.8.3)
+      cosmiconfig-typescript-loader: 4.4.0(@types/node@20.5.1)(cosmiconfig@8.3.6(typescript@5.8.3))(ts-node@10.9.2(@types/node@25.0.9)(typescript@5.8.3))(typescript@5.8.3)
       lodash.isplainobject: 4.0.6
       lodash.merge: 4.6.2
       lodash.uniq: 4.5.0
@@ -6671,7 +6671,7 @@ snapshots:
     dependencies:
       toggle-selection: 1.0.6
 
-  cosmiconfig-typescript-loader@4.4.0(@types/node@20.5.1)(cosmiconfig@8.3.6(typescript@5.8.3))(ts-node@10.9.2(@types/node@20.5.1)(typescript@5.8.3))(typescript@5.8.3):
+  cosmiconfig-typescript-loader@4.4.0(@types/node@20.5.1)(cosmiconfig@8.3.6(typescript@5.8.3))(ts-node@10.9.2(@types/node@25.0.9)(typescript@5.8.3))(typescript@5.8.3):
     dependencies:
       '@types/node': 20.5.1
       cosmiconfig: 8.3.6(typescript@5.8.3)

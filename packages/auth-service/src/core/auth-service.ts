@@ -1,9 +1,9 @@
-import { BehaviorSubject, Observable, filter, map } from "rxjs";
+import { BehaviorSubject, Observable, filter } from "rxjs";
 import { AuthAccount, AuthAccountMapper, AuthLoginDTO, AuthenticationStatus, PhoneOtpMapper } from "./models";
 import { AuthProviderManagerPlatform } from "./interfaces/auth-provider-manager";
 import { AuthLocalStoragePlatform } from "./interfaces/auth-local-storage";
 import { AuthCredential, AuthProvider, PhoneAuthCredential, PhoneAuthProvider } from "./providers";
-import { AuthToken, RefreshToken } from "./tokens";
+import { AuthToken } from "./tokens";
 import {
 	EmptyAuthProviderException,
 	UnsupportedAuthProviderException,

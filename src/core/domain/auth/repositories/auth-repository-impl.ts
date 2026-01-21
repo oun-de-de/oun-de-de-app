@@ -1,4 +1,4 @@
-import type { AuthCredential, AuthAccount } from "packages/auth-service";
+import type { AuthCredential, AuthAccount } from "@auth-service";
 import { AuthRepository, AuthRepositoryEvent } from "./auth-repository";
 import passwordService from "@/core/api/services/passwordService";
 import { AppAuthService } from "@/core/services/auth";
