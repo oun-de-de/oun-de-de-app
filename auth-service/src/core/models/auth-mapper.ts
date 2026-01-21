@@ -1,6 +1,7 @@
-import { AuthLoginDTO } from "./auth-dto";
+import { AuthLoginDTO, AuthOtpDTO } from "./auth-dto";
 import { AuthAccount } from "./auth-account";
 import { AuthProvider, AuthCredential } from "../providers";
+import type { PhoneAuthOtp } from "./phone-auth-otp";
 
 /**
  * Mapper interface for converting DTOs to AuthAccount
@@ -15,14 +16,9 @@ export interface AuthAccountMapper<T extends AuthAccount> {
 /**
  * Mapper interface for phone OTP
  */
-export interface PhoneOtpMapper<T = any> {
+export interface PhoneOtpMapper {
 	/**
-	 * Convert OTP DTO to custom type
+	 * Get phone auth OTP from request OTP DTO
 	 */
-	fromDTO(dto: any): T;
-
-	/**
-	 * Convert custom type to DTO
-	 */
-	toDTO(data: T): any;
+	fromRequestOtp(dto: AuthOtpDTO, provider?: AuthProvider, credential?: AuthCredential): PhoneAuthOtp;
 }

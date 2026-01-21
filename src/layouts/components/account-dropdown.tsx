@@ -1,28 +1,38 @@
 import { useLoginStateContext } from "@/pages/sys/login/providers/login-provider";
 import { useRouter } from "@/routes/hooks";
-import { useUserActions, useUserInfo } from "@/core/store/userStore";
+import { useUserInfo, useSignOut } from "@/core/services/auth/hooks/use-auth";
+import { createTaggedLogger } from "@/core/utils/logger";
 import { Button } from "@/core/ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/core/ui/dropdown-menu";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger,
+} from "@/core/ui/dropdown-menu";
 import { useTranslation } from "react-i18next";
 import { NavLink } from "react-router";
 import styled from "styled-components";
+
+const logger = createTaggedLogger("AccountDropdown");
 
 /**
  * Account Dropdown
  */
 export default function AccountDropdown() {
 	const { replace } = useRouter();
-	const { username, email, avatar } = useUserInfo();
-	const { clearUserInfoAndToken } = useUserActions();
+	const userInfo = useUserInfo();
+	const signOut = useSignOut();
 	const { backToLogin } = useLoginStateContext();
 	const { t } = useTranslation();
-	const logout = () => {
+
+	const logout = async () => {
 		try {
-			clearUserInfoAndToken();
+			await signOut();
 			backToLogin();
+			replace("/auth/login");
 		} catch (error) {
-			console.log(error);
-		} finally {
+			logger.error("Logout failed:", error);
 			replace("/auth/login");
 		}
 	};
@@ -31,15 +41,15 @@ export default function AccountDropdown() {
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>
 				<StyledTriggerButton variant="ghost" size="icon" className="rounded-full">
-					<img className="h-6 w-6 rounded-full" src={avatar} alt="" />
+					<img className="h-6 w-6 rounded-full" src={userInfo?.avatar} alt="" />
 				</StyledTriggerButton>
 			</DropdownMenuTrigger>
 			<StyledDropdownMenuContent className="w-56">
 				<StyledUserInfo>
-					<img className="h-10 w-10 rounded-full" src={avatar} alt="" />
+					<img className="h-10 w-10 rounded-full" src={userInfo?.avatar} alt="" />
 					<div className="flex flex-col items-start">
-						<StyledUsername>{username}</StyledUsername>
-						<StyledEmail>{email}</StyledEmail>
+						<StyledUsername>{userInfo?.username}</StyledUsername>
+						<StyledEmail>{userInfo?.email}</StyledEmail>
 					</div>
 				</StyledUserInfo>
 				<DropdownMenuSeparator />

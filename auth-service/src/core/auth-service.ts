@@ -279,7 +279,7 @@ export abstract class AuthService<T extends AuthAccount> {
 		const otpDTO = await provider.requestOtp(credential);
 
 		if (this.phoneOtpMapper) {
-			return this.phoneOtpMapper.fromDTO(otpDTO.data);
+			return this.phoneOtpMapper.fromRequestOtp(otpDTO.data);
 		}
 
 		return otpDTO.data;

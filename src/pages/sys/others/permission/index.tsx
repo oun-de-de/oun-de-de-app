@@ -3,7 +3,7 @@ import { DB_USER } from "@/_mock/assets_backup";
 import { AuthGuard } from "@/core/components/auth/auth-guard";
 import { useAuthCheck } from "@/core/components/auth/use-auth";
 import { CodeBlock } from "@/core/components/code/code-bock";
-import { useSignIn, useUserInfo } from "@/core/store/userStore";
+import { useSignIn, useUserInfo, useUserPermissions, useUserRoles } from "@/core/services/auth/hooks/use-auth";
 import { Button } from "@/core/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/core/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/core/ui/tabs";
@@ -81,22 +81,24 @@ checkAll(["permission:read", "permission:create"]) ? (
 `;
 
 export default function PermissionPage() {
-	const { permissions, roles, username } = useUserInfo();
+	const userInfo = useUserInfo();
+	const permissions = useUserPermissions();
+	const roles = useUserRoles();
 	const signIn = useSignIn();
 	const { check, checkAny, checkAll } = useAuthCheck();
 
-	const handleSwitch = (_username: string) => {
-		if (_username === username) return;
+	const handleSwitch = async (_username: string) => {
+		if (_username === userInfo?.username) return;
 		const user = DB_USER.find((user) => user.username === _username);
 		if (user) {
-			signIn({ username: user.username, password: user.password });
+			await signIn(user.username, user.password);
 		}
 	};
 	return (
 		<div className="flex flex-col gap-4">
 			<div className="w-full flex  items-center justify-center">
 				<Text variant="subTitle1">当前用户：</Text>
-				<Tabs defaultValue={username} onValueChange={handleSwitch}>
+				<Tabs defaultValue={userInfo?.username} onValueChange={handleSwitch}>
 					<TabsList>
 						{DB_USER.map((user) => (
 							<TabsTrigger key={user.username} value={user.username}>
@@ -110,8 +112,8 @@ export default function PermissionPage() {
 				<CardContent>
 					<div className="flex items-center gap-2">
 						<Text variant="body1">当前用户角色：</Text>
-						{permissions && permissions.length > 0 ? (
-							<Text variant="body1">[{roles?.map((role) => role.name).join(", ")}]</Text>
+						{roles && roles.length > 0 ? (
+							<Text variant="body1">[{roles.join(", ")}]</Text>
 						) : (
 							<Text variant="body1">[]</Text>
 						)}
@@ -119,7 +121,7 @@ export default function PermissionPage() {
 					<div className="flex items-center gap-2">
 						<Text variant="body1">当前用户权限：</Text>
 						{permissions && permissions.length > 0 ? (
-							<Text variant="body1">[{permissions?.map((permission) => permission.code).join(", ")}]</Text>
+							<Text variant="body1">[{permissions.join(", ")}]</Text>
 						) : (
 							<Text variant="body1">[]</Text>
 						)}

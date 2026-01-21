@@ -9,6 +9,17 @@ export class AppAuthAccountMapper implements AuthAccountMapper<AppAuthAccount> {
 	fromLogin(dto: AuthLoginDTO, provider: AuthProvider, credential: AuthCredential | null): AppAuthAccount {
 		const data = dto.data;
 
+		// Validate required fields
+		if (!data.accessToken) {
+			throw new Error("AccessToken is required in login response");
+		}
+		if (!data.refreshToken) {
+			throw new Error("RefreshToken is required in login response");
+		}
+		if (!data.user) {
+			throw new Error("User data is required in login response");
+		}
+
 		return new AppAuthAccount(
 			AuthenticationStatus.Authenticated,
 			AccountStatus.Registered,

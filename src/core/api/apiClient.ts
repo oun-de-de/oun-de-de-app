@@ -1,10 +1,10 @@
 import { GLOBAL_CONFIG } from "@/global-config";
 import { t } from "@/core/locales/i18n";
-import userStore from "@/core/store/userStore";
 import axios, { type AxiosRequestConfig, type AxiosError, type AxiosResponse } from "axios";
 import { toast } from "sonner";
 import type { Result } from "@/core/types/api";
 import { ResultStatus } from "@/core/types/enum";
+import { AppAuthService } from "../services/auth";
 
 const axiosInstance = axios.create({
 	baseURL: GLOBAL_CONFIG.apiBaseUrl,
@@ -14,7 +14,11 @@ const axiosInstance = axios.create({
 
 axiosInstance.interceptors.request.use(
 	(config) => {
-		config.headers.Authorization = "Bearer Token";
+		const authService = AppAuthService.getInstance();
+		const accessToken = authService.getAccessToken();
+		if (accessToken) {
+			config.headers.Authorization = `Bearer ${accessToken}`;
+		}
 		return config;
 	},
 	(error) => Promise.reject(error),
@@ -34,7 +38,7 @@ axiosInstance.interceptors.response.use(
 		const errMsg = response?.data?.message || message || t("sys.api.errorMessage");
 		toast.error(errMsg, { position: "top-center" });
 		if (response?.status === 401) {
-			userStore.getState().actions.clearUserInfoAndToken();
+			AppAuthService.getInstance().logout();
 		}
 		return Promise.reject(error);
 	},

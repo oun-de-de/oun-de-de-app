@@ -1,21 +1,23 @@
+import type { PhoneAuthProvider, PhoneAuthCredential } from "../providers";
+
 /**
  * Phone authentication OTP model
  */
 export class PhoneAuthOtp {
 	constructor(
-		public readonly phoneNumber: string,
+		public readonly provider: PhoneAuthProvider | null = null,
+		public readonly credential: PhoneAuthCredential | null = null,
 		public readonly otp: string | null = null,
-		public readonly sessionId: string | null = null,
-		public readonly expiresAt: Date | null = null,
-		public readonly data: any = null,
+		public readonly sendDate: Date | null = null,
+		public readonly expirationOtp: Date | null = null,
 	) {}
 
 	/**
 	 * Check if OTP is expired
 	 */
 	get isExpired(): boolean {
-		if (!this.expiresAt) return false;
-		return this.expiresAt < new Date();
+		if (!this.expirationOtp) return false;
+		return this.expirationOtp < new Date();
 	}
 
 	/**
@@ -29,18 +31,18 @@ export class PhoneAuthOtp {
 	 * Copy with changes
 	 */
 	copyWith(changes: {
-		phoneNumber?: string;
+		provider?: PhoneAuthProvider | null;
+		credential?: PhoneAuthCredential | null;
 		otp?: string | null;
-		sessionId?: string | null;
-		expiresAt?: Date | null;
-		data?: any;
+		sendDate?: Date | null;
+		expirationOtp?: Date | null;
 	}): PhoneAuthOtp {
 		return new PhoneAuthOtp(
-			changes.phoneNumber ?? this.phoneNumber,
+			changes.provider ?? this.provider,
+			changes.credential ?? this.credential,
 			changes.otp ?? this.otp,
-			changes.sessionId ?? this.sessionId,
-			changes.expiresAt ?? this.expiresAt,
-			changes.data ?? this.data,
+			changes.sendDate ?? this.sendDate,
+			changes.expirationOtp ?? this.expirationOtp,
 		);
 	}
 }

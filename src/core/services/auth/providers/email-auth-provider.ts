@@ -1,6 +1,9 @@
 import { EmailAuthProvider, type EmailAuthCredential, type AuthLoginDTO, type AuthToken } from "auth-service";
 import apiClient from "@/core/api/apiClient";
 import { UserApi, type SignInRes } from "@/core/api/services/userService";
+import { createTaggedLogger } from "@/core/utils/logger";
+
+const logger = createTaggedLogger("EmailAuthProvider");
 
 /**
  * Email authentication provider for the application
@@ -40,7 +43,7 @@ export class AppEmailAuthProvider extends EmailAuthProvider {
 			await apiClient.get({ url: UserApi.Logout });
 		} catch (error) {
 			// Ignore logout errors
-			console.warn("Logout API call failed:", error);
+			logger.warn("Logout API call failed:", error);
 		}
 	}
 

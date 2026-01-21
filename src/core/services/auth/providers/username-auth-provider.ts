@@ -1,6 +1,9 @@
 import { UsernameAuthCredential, UsernameAuthProvider, type AuthLoginDTO, type AuthToken } from "auth-service";
 import apiClient from "@/core/api/apiClient";
 import { UserApi, type SignInRes } from "@/core/api/services/userService";
+import { createTaggedLogger } from "@/core/utils/logger";
+
+const logger = createTaggedLogger("UsernameAuthProvider");
 
 /**
  * Username/password authentication provider for the application
@@ -21,6 +24,7 @@ export class AppUsernameAuthProvider extends UsernameAuthProvider {
 		});
 
 		// Transform API response to AuthLoginDTO
+		logger.debug("login response", response);
 		return {
 			data: {
 				accessToken: response.accessToken,
@@ -31,9 +35,22 @@ export class AppUsernameAuthProvider extends UsernameAuthProvider {
 		};
 	}
 
-	async loginWithAuthToken(_token: AuthToken): Promise<AuthLoginDTO> {
-		// Not implemented yet
-		throw new Error("loginWithAuthToken not implemented");
+	async loginWithAuthToken(token: AuthToken): Promise<AuthLoginDTO> {
+		// Use refresh token to get new access token
+		const response = await apiClient.post<SignInRes>({
+			url: UserApi.Refresh,
+			data: { refreshToken: token.value },
+		});
+
+		logger.debug("loginWithAuthToken response", response);
+		return {
+			data: {
+				accessToken: response.accessToken,
+				refreshToken: response.refreshToken,
+				user: response.user,
+			},
+			credential: null,
+		};
 	}
 
 	async logout(): Promise<void> {
@@ -41,7 +58,7 @@ export class AppUsernameAuthProvider extends UsernameAuthProvider {
 			await apiClient.get({ url: UserApi.Logout });
 		} catch (error) {
 			// Ignore logout errors
-			console.warn("Logout API call failed:", error);
+			logger.warn("Logout API call failed:", error);
 		}
 	}
 

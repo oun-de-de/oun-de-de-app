@@ -1,5 +1,6 @@
 import type { AuthLocalStoragePlatform } from "auth-service";
-import type { AppAuthAccount } from "../models/app-auth-account";
+import { JWTToken, RefreshToken, AuthenticationStatus, AccountStatus, AuthAccountData } from "auth-service";
+import { AppAuthAccount } from "../models/app-auth-account";
 import { LocalStorageService } from "@/core/services/storages/local-storage";
 
 /**
@@ -32,13 +33,32 @@ export class AuthLocalStorageAdapter implements AuthLocalStoragePlatform<AppAuth
 	}
 
 	async loadLocalAuthentication(): Promise<AppAuthAccount | null> {
-		const data = LocalStorageService.loadOrNull<AppAuthAccount>(AuthLocalStorageAdapter.AUTH_KEY);
+		const data = LocalStorageService.loadOrNull<any>(AuthLocalStorageAdapter.AUTH_KEY);
 
 		if (!data) {
 			return null;
 		}
 
-		return data;
+		// Reconstruct token instances from plain objects
+		const accessToken = data.accessToken?.value ? JWTToken.fromValue(data.accessToken.value) : null;
+
+		const refreshToken = data.refreshToken?.value
+			? new RefreshToken(
+					data.refreshToken.value,
+					data.refreshToken.expiration ? new Date(data.refreshToken.expiration) : null,
+				)
+			: null;
+
+		// Reconstruct AppAuthAccount instance
+		return new AppAuthAccount(
+			data.authStatus ?? AuthenticationStatus.Unauthenticated,
+			data.accountStatus ?? AccountStatus.Unregistered,
+			data.providerId ?? "",
+			data.identity ?? null,
+			accessToken,
+			refreshToken,
+			data.data ? new AuthAccountData(data.data.data) : null,
+		);
 	}
 
 	async clearLocalAuthentication(): Promise<void> {

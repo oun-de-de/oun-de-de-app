@@ -8,24 +8,24 @@ The Auth Service follows a clean architecture pattern with clear separation of c
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    Application Layer                         │
+│                    Application Layer                        │
 │         (Your app - React, Vue, Angular, etc.)              │
 └─────────────────────────────────────────────────────────────┘
                            │
                            ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                 Implementation Layer                         │
-│         (Example Auth Service, Custom Services)              │
-│  - ExampleAuthService                                        │
-│  - ExampleAuthAccount                                        │
-│  - ExampleLocalStorage                                       │
-│  - Example Providers                                         │
+│                 Implementation Layer                        │
+│         (Example Auth Service, Custom Services)             │
+│  - ExampleAuthService                                       │
+│  - ExampleAuthAccount                                       │
+│  - ExampleLocalStorage                                      │
+│  - Example Providers                                        │
 └─────────────────────────────────────────────────────────────┘
                            │
                            ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                     Core Layer                               │
-│              (Abstract classes & interfaces)                 │
+│                     Core Layer                              │
+│              (Abstract classes & interfaces)                │
 │  - AuthService<T>                                           │
 │  - AuthProvider                                             │
 │  - AuthAccount                                              │

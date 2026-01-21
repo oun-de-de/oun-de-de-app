@@ -1,4 +1,4 @@
-import { useUserToken } from "@/core/store/userStore";
+import { useIsAuthenticated } from "@/core/services/auth/hooks/use-auth";
 import { useCallback, useEffect } from "react";
 import { useRouter } from "../hooks";
 
@@ -7,13 +7,13 @@ type Props = {
 };
 export default function LoginAuthGuard({ children }: Props) {
 	const router = useRouter();
-	const { accessToken } = useUserToken();
+	const isAuthenticated = useIsAuthenticated();
 
 	const check = useCallback(() => {
-		if (!accessToken) {
+		if (!isAuthenticated) {
 			router.replace("/auth/login");
 		}
-	}, [router, accessToken]);
+	}, [router, isAuthenticated]);
 
 	useEffect(() => {
 		check();

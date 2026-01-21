@@ -2,7 +2,7 @@ import { DB_USER } from "@/_mock/assets_backup";
 import type { SignInReq } from "@/core/api/services/userService";
 import { Icon } from "@/core/components/icon";
 import { GLOBAL_CONFIG } from "@/global-config";
-import { useSignIn } from "@/core/store/userStore";
+import { useSignIn } from "@/core/services/auth/hooks/use-auth";
 import { Button } from "@/core/ui/button";
 import { Checkbox } from "@/core/ui/checkbox";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/core/ui/form";
@@ -13,7 +13,6 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
-import { toast } from "sonner";
 import { LoginStateEnum, useLoginStateContext } from "./providers/login-provider";
 
 export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRef<"form">) {
@@ -37,11 +36,8 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
 	const handleFinish = async (values: SignInReq) => {
 		setLoading(true);
 		try {
-			await signIn(values);
+			await signIn(values.username, values.password);
 			navigatge(GLOBAL_CONFIG.defaultRoute, { replace: true });
-			toast.success(t("sys.login.loginSuccessTitle"), {
-				closeButton: true,
-			});
 		} finally {
 			setLoading(false);
 		}

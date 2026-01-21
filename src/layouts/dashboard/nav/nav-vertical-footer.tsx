@@ -1,30 +1,37 @@
 import { Icon } from "@/core/components/icon";
 import { useSettings } from "@/core/store/settingStore";
-import { useUserActions, useUserInfo } from "@/core/store/userStore";
+import { useUserInfo, useUserRoles, useSignOut } from "@/core/services/auth/hooks/use-auth";
 import { ThemeLayout } from "@/core/types/enum";
 import { rgbAlpha } from "@/core/utils/theme";
+import { createTaggedLogger } from "@/core/utils/logger";
 import { Button } from "@/core/ui/button";
 import { useRouter } from "@/routes/hooks";
 import styled from "styled-components";
 import AccountDropdown from "../../components/account-dropdown";
 
+const logger = createTaggedLogger("NavVerticalFooter");
+
 export function NavVerticalFooter() {
 	const { themeLayout } = useSettings();
-	const { username, avatar, roles } = useUserInfo();
-	const { clearUserInfoAndToken } = useUserActions();
+	const userInfo = useUserInfo();
+	const roles = useUserRoles();
+	const signOut = useSignOut();
 	const { replace } = useRouter();
 
-	const handleLogout = () => {
+	const handleLogout = async () => {
 		try {
-			clearUserInfoAndToken();
+			await signOut();
+			replace("/auth/login");
 		} catch (error) {
-			console.log(error);
-		} finally {
+			logger.error("Logout failed:", error);
+			// Still redirect on error
 			replace("/auth/login");
 		}
 	};
 
-	const userRole = roles?.[0]?.name || "Sale";
+	const username = userInfo?.username;
+	const avatar = userInfo?.avatar;
+	const userRole = roles?.[0] ?? "User";
 	const isMini = themeLayout === ThemeLayout.Mini;
 
 	return (
