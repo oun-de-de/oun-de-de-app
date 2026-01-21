@@ -10,14 +10,18 @@ import { registerLocalIcons } from "./core/components/icon";
 import { GLOBAL_CONFIG } from "./global-config";
 import ErrorBoundary from "./routes/components/error-boundary";
 import { routesSection } from "./routes/sections";
-
 import { urlJoin } from "./core/utils";
+import { AppAuthService } from "./core/services/auth";
 
 await registerLocalIcons();
 await worker.start({
 	onUnhandledRequest: "bypass",
 	serviceWorker: { url: urlJoin(GLOBAL_CONFIG.publicPath, "mockServiceWorker.js") },
 });
+
+// Initialize auth service to restore session
+await AppAuthService.getInstance().initialize();
+
 if (GLOBAL_CONFIG.routerMode === "backend") {
 	await menuService.getMenuList();
 }

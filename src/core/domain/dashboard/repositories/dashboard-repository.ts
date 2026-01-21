@@ -1,6 +1,6 @@
 import { DashboardApi } from "@/core/api/services/dashboardService";
 import { FilterData } from "../entities/filter";
-import LocalStorageService from "@/core/services/local-storage";
+import LocalStorageService from "@/core/services/storages/local-storage";
 import { BehaviorSubject, Observable } from "rxjs";
 
 /**

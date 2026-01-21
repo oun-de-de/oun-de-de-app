@@ -83,6 +83,9 @@ importers:
       apexcharts:
         specifier: ^4.6.0
         version: 4.6.0
+      auth-service:
+        specifier: file:./auth-service
+        version: '@auth/service@file:auth-service'
       axios:
         specifier: ^1.7.7
         version: 1.8.4
@@ -298,6 +301,9 @@ packages:
 
   '@antfu/install-pkg@1.1.0':
     resolution: {integrity: sha512-MGQsmw10ZyI+EJo45CdSER4zEb+p31LpDAFp2Z3gkSd1yqVZGi0Ebx++YTEMonJy4oChEMLsxZ64j8FH6sSqtQ==}
+
+  '@auth/service@file:auth-service':
+    resolution: {directory: auth-service, type: directory}
 
   '@babel/code-frame@7.26.2':
     resolution: {integrity: sha512-RJlIHRueQgwWitWgF8OdFYGZX328Ax5BCemNGlqHfplnRT9ESi8JkFlvaVYbS+UubVY6dpv87Fs2u5M29iNFVQ==}
@@ -4474,6 +4480,10 @@ snapshots:
     dependencies:
       package-manager-detector: 1.6.0
       tinyexec: 1.0.2
+
+  '@auth/service@file:auth-service':
+    dependencies:
+      rxjs: 7.8.2
 
   '@babel/code-frame@7.26.2':
     dependencies:

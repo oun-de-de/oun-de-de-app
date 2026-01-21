@@ -1,4 +1,4 @@
-import { createTaggedLogger } from "../utils/logger";
+import { createTaggedLogger } from "@/core/utils/logger";
 
 const logger = createTaggedLogger("ZustandObserver");
 

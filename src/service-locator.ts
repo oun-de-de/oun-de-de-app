@@ -26,6 +26,8 @@ import {
 	PerformanceRepository,
 	PerformanceRepositoryImpl,
 } from "./core/domain/dashboard/repositories/performance-repository";
+import { AuthRepository, AuthRepositoryImpl } from "./core/domain/auth/repositories";
+import { AppAuthService } from "./core/services/auth";
 
 class Repository {
 	private constructor() {}
@@ -110,6 +112,9 @@ class Repository {
 	}
 
 	repositoryRegister(): void {
+		// Auth Repository
+		Repository.register<AuthRepository>(new AuthRepositoryImpl(AppAuthService.getInstance()));
+
 		// Dashboard - Income POS
 		Repository.register<DashboardRepository>(
 			new DashboardRepositoryImpl(new DashboardApiImpl(), "dashboard:selectedFilter:income-pos"),
