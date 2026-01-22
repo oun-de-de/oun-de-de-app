@@ -1,33 +1,33 @@
 import { GetIt } from "@service-locator";
-import { DisposeAble, isDisposeAble } from "./core/types/dispose-able";
-import { InitAble, isInitAble } from "./core/types/init-able";
 import {
 	DailyIncomeAccountingApiImpl,
 	DailyIncomePosApiImpl,
 	DashboardApiImpl,
 } from "./core/api/services/dashboardService";
+import { type AuthRepository, AuthRepositoryImpl } from "./core/domain/auth/repositories";
 import {
-	CustomerInfoRepository,
+	type CustomerInfoRepository,
 	CustomerInfoRepositoryImpl,
 } from "./core/domain/dashboard/repositories/customer-info-repository";
 import {
-	DailyIncomeAccountingRepository,
+	type DailyIncomeAccountingRepository,
 	DailyIncomeAccountingRepositoryImpl,
 } from "./core/domain/dashboard/repositories/daily-income-accounting-repository";
 import {
-	DailyIncomePosRepository,
+	type DailyIncomePosRepository,
 	DailyIncomePosRepositoryImpl,
 } from "./core/domain/dashboard/repositories/daily-income-pos-repository";
 import {
-	DashboardRepository,
+	type DashboardRepository,
 	DashboardRepositoryImpl,
 } from "./core/domain/dashboard/repositories/dashboard-repository";
 import {
-	PerformanceRepository,
+	type PerformanceRepository,
 	PerformanceRepositoryImpl,
 } from "./core/domain/dashboard/repositories/performance-repository";
-import { AuthRepository, AuthRepositoryImpl } from "./core/domain/auth/repositories";
-import { AppAuthService } from "./core/services/auth";
+import * as auth from "./core/services/auth";
+import { type DisposeAble, isDisposeAble } from "./core/types/dispose-able";
+import { type InitAble, isInitAble } from "./core/types/init-able";
 
 class Repository {
 	private constructor() {}
@@ -113,7 +113,7 @@ class Repository {
 
 	repositoryRegister(): void {
 		// Auth Repository
-		Repository.register<AuthRepository>(new AuthRepositoryImpl(AppAuthService.getInstance()));
+		Repository.register<AuthRepository>(new AuthRepositoryImpl(auth.AppAuthService.getInstance()));
 
 		// Dashboard - Income POS
 		Repository.register<DashboardRepository>(

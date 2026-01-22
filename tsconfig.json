@@ -34,6 +34,6 @@
 			"@auth-service": ["packages/auth-service/src/index.ts"]
 		}
 	},
-	"include": ["src", "src/core/types", "tailwind.config.ts"],
+	"include": ["src", "src/core/types", "tailwind.config.ts", "packages"],
 	"exclude": ["node_modules", "dist"]
 }

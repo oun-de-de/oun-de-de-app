@@ -1,10 +1,10 @@
+import styled from "styled-components";
 import { Icon } from "@/core/components/icon";
 import Logo from "@/core/components/logo";
 import { down, useMediaQuery } from "@/core/hooks";
-import { useSettings, useSettingActions } from "@/core/store/settingStore";
+import { useSettingActions, useSettings } from "@/core/store/settingStore";
 import { ThemeLayout } from "@/core/types/enum";
 import { Button } from "@/core/ui/button";
-import styled from "styled-components";
 import Header from "./header";
 import Main from "./main";
 import { NavHorizontalLayout, NavMobileLayout, NavVerticalLayout, useFilteredNavData } from "./nav";
@@ -73,7 +73,7 @@ function PcVerticalLayout() {
 			<NavVerticalLayout data={navData} />
 
 			<div
-				className="relative w-full min-h-screen flex flex-col transition-[padding] duration-300 ease-in-out"
+				className="relative w-full h-screen overflow-hidden flex flex-col transition-[padding] duration-300 ease-in-out"
 				style={{
 					paddingLeft: mainPaddingLeft,
 				}}

@@ -1,6 +1,6 @@
-import { UsernameAuthCredential, UsernameAuthProvider, type AuthLoginDTO, type AuthToken } from "@auth-service";
+import { type AuthLoginDTO, type AuthToken, type UsernameAuthCredential, UsernameAuthProvider } from "@auth-service";
 import apiClient from "@/core/api/apiClient";
-import { UserApi, type SignInRes } from "@/core/api/services/userService";
+import { type SignInRes, UserApi } from "@/core/api/services/userService";
 import { createTaggedLogger } from "@/core/utils/logger";
 
 const logger = createTaggedLogger("UsernameAuthProvider");

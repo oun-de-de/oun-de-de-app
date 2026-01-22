@@ -7,22 +7,16 @@ type DashboardSplitViewProps = {
 	className?: string;
 };
 
-export function DashboardSplitView({
-	sidebar,
-	content,
-	className = "lg:grid-cols-[280px_1fr]",
-}: DashboardSplitViewProps) {
+export function DashboardSplitView({ sidebar, content, className = "" }: DashboardSplitViewProps) {
 	return (
-		<div className="flex w-full flex-col gap-4 h-full">
-			<div className={`grid grid-cols-1 gap-4 h-full ${className}`}>
-				<Card className="h-full">
-					<CardContent className="h-full flex flex-col p-4">{sidebar}</CardContent>
-				</Card>
+		<div className={`flex flex-col lg:flex-row gap-4 w-full h-full ${className}`}>
+			<Card className="w-full lg:w-1/4 lg:h-full shrink-0">
+				<CardContent className="h-full flex flex-col p-4">{sidebar}</CardContent>
+			</Card>
 
-				<Card className="h-full">
-					<CardContent className="h-full flex flex-col gap-4 p-4">{content}</CardContent>
-				</Card>
-			</div>
+			<Card className="w-full lg:flex-1 lg:h-full min-w-0">
+				<CardContent className="h-full flex flex-col gap-4 p-4">{content}</CardContent>
+			</Card>
 		</div>
 	);
 }

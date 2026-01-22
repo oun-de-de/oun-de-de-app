@@ -1,23 +1,23 @@
-import { BehaviorSubject, Observable, filter } from "rxjs";
-import {
-	AuthAccount,
-	AuthenticationStatus,
-	AuthLoginDTO,
-	AuthAccountMapper,
-	PhoneOtpMapper,
-	PhoneAuthOtp,
-	createPhoneAuthOtp,
-} from "./models";
-import { AuthProviderManagerPlatform } from "./interfaces/auth-provider-manager";
-import { AuthLocalStoragePlatform } from "./interfaces/auth-local-storage";
-import { AuthCredential, AuthProvider, PhoneAuthCredential, PhoneAuthProvider } from "./providers";
-import { AuthToken } from "./tokens";
+import { BehaviorSubject, filter, type Observable } from "rxjs";
 import {
 	EmptyAuthProviderException,
+	RefreshTokenFailedException,
 	UnsupportedAuthProviderException,
 	UnsupportedValueForAuthenticateException,
-	RefreshTokenFailedException,
 } from "./exceptions";
+import type { AuthLocalStoragePlatform } from "./interfaces/auth-local-storage";
+import type { AuthProviderManagerPlatform } from "./interfaces/auth-provider-manager";
+import {
+	type AuthAccount,
+	type AuthAccountMapper,
+	AuthenticationStatus,
+	type AuthLoginDTO,
+	createPhoneAuthOtp,
+	type PhoneAuthOtp,
+	type PhoneOtpMapper,
+} from "./models";
+import { AuthCredential, type AuthProvider, type PhoneAuthCredential, PhoneAuthProvider } from "./providers";
+import type { AuthToken } from "./tokens";
 
 /**
  * Abstract authentication service

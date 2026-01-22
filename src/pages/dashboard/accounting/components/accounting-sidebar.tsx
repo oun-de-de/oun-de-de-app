@@ -61,7 +61,7 @@ export function AccountingSidebar({ activeAccountId, onSelect }: AccountingSideb
 				className="flex-1 divide-y divide-border-gray-300 min-h-0"
 				data={filteredAccounts}
 				estimateSize={56}
-				height="auto"
+				height="100%"
 				renderItem={(account: AccountingAccount, style) => (
 					<EntityListItem
 						key={account.id}

@@ -2,16 +2,16 @@ import "./global.css";
 import "./core/theme/theme.css";
 import "./core/locales/i18n";
 import ReactDOM from "react-dom/client";
-import { Outlet, RouterProvider, createBrowserRouter } from "react-router";
-import App from "./App";
+import { createBrowserRouter, Outlet, RouterProvider } from "react-router";
 import { worker } from "./_mock";
+import App from "./App";
 import menuService from "./core/api/services/menuService";
 import { registerLocalIcons } from "./core/components/icon";
+import { AppAuthService } from "./core/services/auth";
+import { urlJoin } from "./core/utils";
 import { GLOBAL_CONFIG } from "./global-config";
 import ErrorBoundary from "./routes/components/error-boundary";
 import { routesSection } from "./routes/sections";
-import { urlJoin } from "./core/utils";
-import { AppAuthService } from "./core/services/auth";
 
 await registerLocalIcons();
 await worker.start({

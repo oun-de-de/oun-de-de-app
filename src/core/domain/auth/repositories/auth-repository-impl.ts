@@ -1,7 +1,7 @@
-import type { AuthCredential, AuthAccount } from "@auth-service";
-import { AuthRepository, AuthRepositoryEvent } from "./auth-repository";
+import type { AuthAccount, AuthCredential } from "@auth-service";
 import passwordService from "@/core/api/services/passwordService";
-import { AppAuthService } from "@/core/services/auth";
+import type { AppAuthService } from "@/core/services/auth";
+import type { AuthRepository, AuthRepositoryEvent } from "./auth-repository";
 
 /**
  * Event callback type for repository events

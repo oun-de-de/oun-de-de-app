@@ -35,7 +35,7 @@ export function CustomerSidebar({ activeCustomerId, onSelect }: CustomerSidebarP
 				className="mt-4 divide-y divide-border-gray-300 flex-1 min-h-0"
 				data={customerList}
 				estimateSize={56}
-				height="auto"
+				height="100%"
 				renderItem={(customer, style) => (
 					<EntityListItem
 						key={customer.id}

@@ -36,7 +36,7 @@ export function VendorSidebar({ activeVendorId, onSelect }: VendorSidebarProps) 
 				className="mt-4 divide-y divide-border-gray-300 flex-1 min-h-0"
 				data={vendorList}
 				estimateSize={56}
-				height="auto"
+				height="100%"
 				renderItem={(vendor, style) => (
 					<EntityListItem
 						key={vendor.id}

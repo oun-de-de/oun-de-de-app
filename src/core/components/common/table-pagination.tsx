@@ -53,8 +53,37 @@ export function TablePagination({
 		onGoToSubmit?.(clamped);
 	};
 
+	let lastPage: number | null = null;
+	const pageLinks = pages.map((page) => {
+		if (page === "...") {
+			return (
+				<div
+					key={`gap-after-${lastPage}`}
+					className="flex h-8 w-8 items-center justify-center select-none text-gray-500"
+					aria-hidden="true"
+				>
+					...
+				</div>
+			);
+		}
+		lastPage = page;
+		return (
+			<Button
+				key={page}
+				size="icon"
+				className="h-8 w-8"
+				variant={page === currentPage ? "default" : "ghost"}
+				disabled={!onPageChange || page === currentPage}
+				aria-current={page === currentPage ? "page" : undefined}
+				onClick={() => onPageChange?.(page)}
+			>
+				{page}
+			</Button>
+		);
+	});
+
 	return (
-		<div className="flex flex-wrap items-center justify-between gap-3 text-xs text-gray-700">
+		<div className="flex shrink flex-wrap items-center justify-between gap-3 text-xs text-gray-700">
 			<div className="flex items-center gap-2">
 				<Button
 					variant="outline"
@@ -67,34 +96,7 @@ export function TablePagination({
 					<Icon icon="mdi:chevron-left" />
 				</Button>
 
-				<div className="flex items-center gap-1">
-					{pages.map((page, index) => {
-						if (page === "...") {
-							return (
-								<div
-									key={`gap-after-${pages[index - 1]}`}
-									className="flex h-8 w-8 items-center justify-center select-none text-gray-500"
-									aria-hidden="true"
-								>
-									...
-								</div>
-							);
-						}
-						return (
-							<Button
-								key={page}
-								size="icon"
-								className="h-8 w-8"
-								variant={page === currentPage ? "default" : "ghost"}
-								disabled={!onPageChange || page === currentPage}
-								aria-current={page === currentPage ? "page" : undefined}
-								onClick={() => onPageChange?.(page)}
-							>
-								{page}
-							</Button>
-						);
-					})}
-				</div>
+				<div className="flex items-center gap-1">{pageLinks}</div>
 
 				<Button
 					variant="outline"

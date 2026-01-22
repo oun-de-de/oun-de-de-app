@@ -1,5 +1,4 @@
-import type { AuthProviderManagerPlatform } from "@auth-service";
-import type { AuthProvider } from "@auth-service";
+import type { AuthProvider, AuthProviderManagerPlatform } from "@auth-service";
 import { AppEmailAuthProvider } from "./email-auth-provider";
 import { AppUsernameAuthProvider } from "./username-auth-provider";
 

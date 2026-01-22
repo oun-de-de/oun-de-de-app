@@ -75,7 +75,7 @@ export function ProductSidebar({ activeProductId, onSelect }: ProductSidebarProp
 				className="mt-4 divide-y divide-border-gray-300 flex-1 min-h-0"
 				data={filteredProducts}
 				estimateSize={56}
-				height="auto"
+				height="100%"
 				renderItem={(item, style) => (
 					<EntityListItem
 						key={item.id}

@@ -1,5 +1,5 @@
-import type { AuthAccountMapper, AuthLoginDTO, AuthProvider, AuthCredential, AuthAccount } from "@auth-service";
-import { AuthenticationStatus, AccountStatus, JWTToken, RefreshToken, createAuthAccount } from "@auth-service";
+import type { AuthAccount, AuthAccountMapper, AuthCredential, AuthLoginDTO, AuthProvider } from "@auth-service";
+import { AccountStatus, AuthenticationStatus, createAuthAccount, JWTToken, RefreshToken } from "@auth-service";
 import type { AppUserData } from "../models/app-auth-account";
 
 /**

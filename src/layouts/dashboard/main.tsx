@@ -1,15 +1,16 @@
-import { AuthGuard } from "@/core/components/auth/auth-guard";
-import { LineLoading } from "@/core/components/loading";
-import { GLOBAL_CONFIG } from "@/global-config";
-import Page403 from "@/pages/sys/error/Page403";
-import { useSettings } from "@/core/store/settingStore";
-import { cn } from "@/core/utils";
-import { flattenTrees } from "@/core/utils/tree";
 import { clone, concat } from "ramda";
 import { Suspense } from "react";
 import { Outlet, ScrollRestoration, useLocation } from "react-router";
+import { AuthGuard } from "@/core/components/auth/auth-guard";
+import { LineLoading } from "@/core/components/loading";
+import { useSettings } from "@/core/store/settingStore";
+import { cn } from "@/core/utils";
+import { flattenTrees } from "@/core/utils/tree";
+import { GLOBAL_CONFIG } from "@/global-config";
+import Page403 from "@/pages/sys/error/Page403";
 import { backendNavData } from "./nav/nav-data/nav-data-backend";
 import { frontendNavData } from "./nav/nav-data/nav-data-frontend";
+
 /**
  * find auth by path
  * @param path
@@ -36,10 +37,15 @@ const Main = () => {
 		<AuthGuard checkAny={currentNavAuth} fallback={<Page403 />}>
 			<main
 				data-slot="slash-layout-main"
-				className={cn("flex-auto w-full flex flex-col", "transition-[max-width] duration-300 ease-in-out", "mx-auto", {
-					"max-w-full": themeStretch,
-					"4xl:max-w-screen-4xl": !themeStretch,
-				})}
+				className={cn(
+					"flex-auto w-full h-full overflow-hidden flex flex-col",
+					"transition-[max-width] duration-300 ease-in-out",
+					"mx-auto",
+					{
+						"max-w-full": themeStretch,
+						"4xl:max-w-screen-4xl": !themeStretch,
+					},
+				)}
 				style={{
 					willChange: "max-width",
 					padding: "14px",

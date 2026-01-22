@@ -1,7 +1,7 @@
 import type { AuthLocalStoragePlatform } from "@auth-service";
-import { JWTToken, RefreshToken, AuthenticationStatus, AccountStatus } from "@auth-service";
-import type { AppAuthAccount, AppUserData } from "../models/app-auth-account";
+import { AccountStatus, AuthenticationStatus, JWTToken, RefreshToken } from "@auth-service";
 import { LocalStorageService } from "@/core/services/storages/local-storage";
+import type { AppAuthAccount, AppUserData } from "../models/app-auth-account";
 
 /**
  * Local storage adapter for auth-service

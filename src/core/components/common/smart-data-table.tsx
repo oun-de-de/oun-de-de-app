@@ -192,7 +192,7 @@ export function SmartDataTable<T extends object>({
 	}, [currentPage]);
 
 	return (
-		<div className={`space-y-4 ${className || ""}`}>
+		<div className={`flex flex-col h-full space-y-4 ${className || ""}`}>
 			{filterConfig && (
 				<TableFilterBar
 					typeOptions={filterConfig.typeOptions || []}
@@ -210,48 +210,50 @@ export function SmartDataTable<T extends object>({
 				/>
 			)}
 
-			<TableWrap>
-				<Table>
-					<TableHead>
-						{table.getHeaderGroups().map((headerGroup) => (
-							<tr key={headerGroup.id}>
-								{headerGroup.headers.map((header) => {
-									return (
-										<th
-											key={header.id}
-											className={`px-3 py-3 text-center border-r border-gray-300 last:border-r-0`}
-											onClick={header.column.getToggleSortingHandler()}
-										>
-											{header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-										</th>
-									);
-								})}
-							</tr>
-						))}
-					</TableHead>
-					<TableBody>
-						{table.getRowModel().rows.length === 0 ? (
-							<tr>
-								<td colSpan={table.getAllLeafColumns().length} className="px-3 py-6 text-center text-gray-500">
-									No data
-								</td>
-							</tr>
-						) : (
-							table.getRowModel().rows.map((row) => (
-								<TableRow key={row.id}>
-									{row.getVisibleCells().map((cell) => {
+			<div className="flex-1 min-h-0 overflow-auto">
+				<TableWrap>
+					<Table>
+						<TableHead>
+							{table.getHeaderGroups().map((headerGroup) => (
+								<tr key={headerGroup.id}>
+									{headerGroup.headers.map((header) => {
 										return (
-											<td key={cell.id} className={`px-3 py-2 border-r border-gray-300 last:border-r-0`}>
-												{flexRender(cell.column.columnDef.cell, cell.getContext())}
-											</td>
+											<th
+												key={header.id}
+												className={`px-3 py-3 text-center border-r border-gray-300 last:border-r-0`}
+												onClick={header.column.getToggleSortingHandler()}
+											>
+												{header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+											</th>
 										);
 									})}
-								</TableRow>
-							))
-						)}
-					</TableBody>
-				</Table>
-			</TableWrap>
+								</tr>
+							))}
+						</TableHead>
+						<TableBody>
+							{table.getRowModel().rows.length === 0 ? (
+								<tr>
+									<td colSpan={table.getAllLeafColumns().length} className="px-3 py-6 text-center text-gray-500">
+										No data
+									</td>
+								</tr>
+							) : (
+								table.getRowModel().rows.map((row) => (
+									<TableRow key={row.id}>
+										{row.getVisibleCells().map((cell) => {
+											return (
+												<td key={cell.id} className={`px-3 py-2 border-r border-gray-300 last:border-r-0`}>
+													{flexRender(cell.column.columnDef.cell, cell.getContext())}
+												</td>
+											);
+										})}
+									</TableRow>
+								))
+							)}
+						</TableBody>
+					</Table>
+				</TableWrap>
+			</div>
 
 			{paginationConfig && (
 				<TablePagination

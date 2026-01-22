@@ -1,10 +1,10 @@
+import type { AuthAccountMapper, AuthLocalStoragePlatform, AuthProviderManagerPlatform } from "@auth-service";
 import { AuthService } from "@auth-service";
-import type { AuthProviderManagerPlatform, AuthLocalStoragePlatform, AuthAccountMapper } from "@auth-service";
+import { AuthLocalStorageAdapter } from "./adapters/local-storage-adapter";
+import { AppAuthAccountMapper } from "./mappers/account-mapper";
 import type { AppAuthAccount, AppUserData } from "./models/app-auth-account";
 import { AppAuthAccountHelpers } from "./models/app-auth-account";
 import { AppAuthProviderManager } from "./providers/provider-manager";
-import { AppAuthAccountMapper } from "./mappers/account-mapper";
-import { AuthLocalStorageAdapter } from "./adapters/local-storage-adapter";
 
 /**
  * Application authentication service
