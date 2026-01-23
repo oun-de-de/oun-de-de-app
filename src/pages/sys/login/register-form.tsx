@@ -47,7 +47,12 @@ function RegisterForm() {
 					render={({ field }) => (
 						<FormItem>
 							<FormControl>
-								<Input placeholder={t("sys.login.userName")} {...field} />
+								<Input
+									id="register-username"
+									autoComplete="username"
+									placeholder={t("sys.login.userName")}
+									{...field}
+								/>
 							</FormControl>
 							<FormMessage />
 						</FormItem>
@@ -61,7 +66,13 @@ function RegisterForm() {
 					render={({ field }) => (
 						<FormItem>
 							<FormControl>
-								<Input placeholder={t("sys.login.email")} {...field} />
+								<Input
+									id="register-email"
+									type="email"
+									autoComplete="email"
+									placeholder={t("sys.login.email")}
+									{...field}
+								/>
 							</FormControl>
 							<FormMessage />
 						</FormItem>
@@ -75,7 +86,13 @@ function RegisterForm() {
 					render={({ field }) => (
 						<FormItem>
 							<FormControl>
-								<Input type="password" placeholder={t("sys.login.password")} {...field} />
+								<Input
+									id="register-password"
+									type="password"
+									autoComplete="new-password"
+									placeholder={t("sys.login.password")}
+									{...field}
+								/>
 							</FormControl>
 							<FormMessage />
 						</FormItem>
@@ -92,7 +109,13 @@ function RegisterForm() {
 					render={({ field }) => (
 						<FormItem>
 							<FormControl>
-								<Input type="password" placeholder={t("sys.login.confirmPassword")} {...field} />
+								<Input
+									id="register-confirm-password"
+									type="password"
+									autoComplete="new-password"
+									placeholder={t("sys.login.confirmPassword")}
+									{...field}
+								/>
 							</FormControl>
 							<FormMessage />
 						</FormItem>

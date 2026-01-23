@@ -450,6 +450,9 @@ export const DB_PERMISSION: Permission[] = [
 	{ id: "permission_read", name: "permission-read", code: "permission:read" },
 	{ id: "permission_update", name: "permission-update", code: "permission:update" },
 	{ id: "permission_delete", name: "permission-delete", code: "permission:delete" },
+	{ id: "sale_create", name: "sale-create", code: "sale:create" },
+	{ id: "sale_cash_sale", name: "sale-cash-sale", code: "sale:cash-sale" },
+	{ id: "sale_invoice", name: "sale-invoice", code: "sale:invoice" },
 ];
 
 export const DB_USER_ROLE = [
@@ -462,7 +465,12 @@ export const DB_ROLE_PERMISSION = [
 	{ id: faker.string.uuid(), roleId: "role_admin_id", permissionId: "permission_read" },
 	{ id: faker.string.uuid(), roleId: "role_admin_id", permissionId: "permission_update" },
 	{ id: faker.string.uuid(), roleId: "role_admin_id", permissionId: "permission_delete" },
+	{ id: faker.string.uuid(), roleId: "role_admin_id", permissionId: "sale_create" },
+	{ id: faker.string.uuid(), roleId: "role_admin_id", permissionId: "sale_cash_sale" },
+	{ id: faker.string.uuid(), roleId: "role_admin_id", permissionId: "sale_invoice" },
 
 	{ id: faker.string.uuid(), roleId: "role_test_id", permissionId: "permission_read" },
 	{ id: faker.string.uuid(), roleId: "role_test_id", permissionId: "permission_update" },
+	{ id: faker.string.uuid(), roleId: "role_test_id", permissionId: "sale_create" },
+	{ id: faker.string.uuid(), roleId: "role_test_id", permissionId: "sale_cash_sale" },
 ];

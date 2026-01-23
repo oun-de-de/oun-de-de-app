@@ -60,7 +60,12 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
 							<FormItem>
 								<FormLabel>{t("sys.login.userName")}</FormLabel>
 								<FormControl>
-									<Input placeholder={DB_USER.map((user) => user.username).join("/")} {...field} />
+									<Input
+										id="username"
+										autoComplete="username"
+										placeholder={DB_USER.map((user) => user.username).join("/")}
+										{...field}
+									/>
 								</FormControl>
 								<FormMessage />
 							</FormItem>
@@ -75,7 +80,14 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
 							<FormItem>
 								<FormLabel>{t("sys.login.password")}</FormLabel>
 								<FormControl>
-									<Input type="password" placeholder={DB_USER[0].password} {...field} suppressHydrationWarning />
+									<Input
+										id="password"
+										type="password"
+										autoComplete="current-password"
+										placeholder={DB_USER[0].password}
+										{...field}
+										suppressHydrationWarning
+									/>
 								</FormControl>
 								<FormMessage />
 							</FormItem>

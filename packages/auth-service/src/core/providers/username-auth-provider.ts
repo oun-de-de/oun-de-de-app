@@ -37,7 +37,7 @@ export class UsernameAuthCredential extends AuthCredential {
 /**
  * Username authentication provider
  */
-export abstract class UsernameAuthProvider<D = unknown> extends AuthProvider<D> {
+export abstract class UsernameAuthProvider<D> extends AuthProvider<D> {
 	constructor(config: { providerId: string }) {
 		super(config.providerId);
 	}

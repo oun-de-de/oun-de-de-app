@@ -1,15 +1,6 @@
 import type { AuthAccount, AuthCredential } from "@auth-service";
 
 /**
- * Events emitted by AuthRepository
- */
-export enum AuthRepositoryEvent {
-	Login = "login",
-	Logout = "logout",
-	ChangePassword = "changePassword",
-}
-
-/**
  * Authentication repository interface
  * Handles authentication operations and business logic
  */

@@ -25,9 +25,18 @@ import {
 	type PerformanceRepository,
 	PerformanceRepositoryImpl,
 } from "./core/domain/dashboard/repositories/performance-repository";
-import * as auth from "./core/services/auth";
-import { type DisposeAble, isDisposeAble } from "./core/types/dispose-able";
-import { type InitAble, isInitAble } from "./core/types/init-able";
+import { AppAuthService } from "./core/services/auth";
+import {
+	SaleFilterRepository,
+	SaleFilterRepositoryImpl,
+} from "./core/domain/sales/repositories/sale-filter-repository";
+import {
+	SaleProductRepository,
+	SaleProductRepositoryImpl,
+} from "./core/domain/sales/repositories/sale-product-repository";
+import { SaleApiImpl } from "./core/api/services/saleService";
+import { InitAble, isInitAble } from "./core/types/init-able";
+import { DisposeAble, isDisposeAble } from "./core/types/dispose-able";
 
 class Repository {
 	private constructor() {}
@@ -113,7 +122,7 @@ class Repository {
 
 	repositoryRegister(): void {
 		// Auth Repository
-		Repository.register<AuthRepository>(new AuthRepositoryImpl(auth.AppAuthService.getInstance()));
+		Repository.register<AuthRepository>(new AuthRepositoryImpl(AppAuthService.getInstance()));
 
 		// Dashboard - Income POS
 		Repository.register<DashboardRepository>(
@@ -140,6 +149,14 @@ class Repository {
 
 		// Performance
 		Repository.register<PerformanceRepository>(new PerformanceRepositoryImpl(new DashboardApiImpl()));
+
+		// Sale Filter
+		Repository.register<SaleFilterRepository>(
+			new SaleFilterRepositoryImpl(new SaleApiImpl(), "sale:selectedFilter", "sale:selectedCategories"),
+		);
+
+		// Sale Product
+		Repository.register<SaleProductRepository>(new SaleProductRepositoryImpl(new SaleApiImpl()));
 	}
 }
 

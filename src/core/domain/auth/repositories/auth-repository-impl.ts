@@ -1,12 +1,7 @@
 import type { AuthAccount, AuthCredential } from "@auth-service";
 import passwordService from "@/core/api/services/passwordService";
 import type { AppAuthService } from "@/core/services/auth";
-import type { AuthRepository, AuthRepositoryEvent } from "./auth-repository";
-
-/**
- * Event callback type for repository events
- */
-export type AuthRepositoryEventCallback = (event: AuthRepositoryEvent, data?: any) => void;
+import type { AuthRepository } from "./auth-repository";
 
 /**
  * Authentication repository implementation

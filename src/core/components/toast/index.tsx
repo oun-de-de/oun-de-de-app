@@ -1,6 +1,5 @@
 import { Icon } from "@/core/components/icon";
-import { useSettings } from "@/core/store/settingStore";
-import { themeVars } from "@/core/theme/theme.css";
+import { useTheme } from "@/core/theme/hooks/use-theme";
 import { rgbAlpha } from "@/core/utils/theme";
 import { Toaster } from "sonner";
 import styled from "styled-components";
@@ -9,18 +8,17 @@ import styled from "styled-components";
  * https://sonner.emilkowal.ski/getting-started
  */
 export default function Toast() {
-	const { themeMode } = useSettings();
+	const { mode, themeTokens } = useTheme();
 
 	return (
-		<ToasterStyleWrapper>
-			<Toaster
+		<>
+			<ToasterStyleWrapper
+				themeTokens={themeTokens}
 				position="top-right"
-				theme={themeMode}
+				theme={mode}
+				closeButton
 				toastOptions={{
 					duration: 3000,
-					style: {
-						backgroundColor: themeVars.colors.background.paper,
-					},
 					classNames: {
 						toast: "rounded-lg border-0",
 						description: "text-xs text-current/45",
@@ -35,22 +33,22 @@ export default function Toast() {
 				icons={{
 					success: (
 						<div className="p-2 bg-success/10 rounded-lg">
-							<Icon icon="carbon:checkmark-filled" size={24} color={themeVars.colors.palette.success.default} />
+							<Icon icon="carbon:checkmark-filled" size={24} color={themeTokens.color.palette.success.default} />
 						</div>
 					),
 					error: (
 						<div className="p-2 bg-error/10 rounded-lg">
-							<Icon icon="carbon:warning-hex-filled" size={24} color={themeVars.colors.palette.error.default} />
+							<Icon icon="carbon:warning-hex-filled" size={24} color={themeTokens.color.palette.error.default} />
 						</div>
 					),
 					warning: (
 						<div className="p-2 bg-warning/10 rounded-lg">
-							<Icon icon="carbon:warning-alt-filled" size={24} color={themeVars.colors.palette.warning.default} />
+							<Icon icon="carbon:warning-alt-filled" size={24} color={themeTokens.color.palette.warning.default} />
 						</div>
 					),
 					info: (
 						<div className="p-2 bg-info/10 rounded-lg">
-							<Icon icon="carbon:information-filled" size={24} color={themeVars.colors.palette.info.default} />
+							<Icon icon="carbon:information-filled" size={24} color={themeTokens.color.palette.info.default} />
 						</div>
 					),
 					loading: (
@@ -61,65 +59,67 @@ export default function Toast() {
 				}}
 				expand
 			/>
-		</ToasterStyleWrapper>
+		</>
 	);
 }
 
-const ToasterStyleWrapper = styled.div`
-  [data-sonner-toast] {
+const ToasterStyleWrapper = styled(Toaster)<{ themeTokens: any }>`
+  &[data-sonner-toast] {
+    background-color: ${(p) => p.themeTokens.color.background.paper} !important;
+    color: ${(p) => p.themeTokens.color.text.primary};
     font-weight: 600;
     font-size: 14px;
 
     [data-cancel] {
-      color: ${themeVars.colors.text.primary};
+      color: ${(p) => p.themeTokens.color.text.primary};
       background-color: transparent;
       &:hover {
-        background-color: ${rgbAlpha(themeVars.colors.text.primaryChannel, 0.08)};
+        background-color: ${(p) => rgbAlpha(p.themeTokens.color.text.primary, 0.08)};
       }
     }
 
     /* Default */
     [data-action] {
-      color: ${themeVars.colors.palette.primary.default};
+      color: ${(p) => p.themeTokens.color.palette.primary.default};
       background-color: transparent;
       &:hover {
-        background-color: ${rgbAlpha(themeVars.colors.palette.primary.defaultChannel, 0.08)};
+        background-color: ${(p) => rgbAlpha(p.themeTokens.color.palette.primary.default, 0.08)};
       }
     }
 
     /* Info */
     &[data-type="info"] [data-action] {
-      color: ${themeVars.colors.palette.info.default};
+      color: ${(p) => p.themeTokens.color.palette.info.default};
       background-color: transparent;
       &:hover {
-        background-color: ${rgbAlpha(themeVars.colors.palette.info.defaultChannel, 0.08)};
+        background-color: ${(p) => rgbAlpha(p.themeTokens.color.palette.info.default, 0.08)};
       }
     }
 
     /* Error */
     &[data-type="error"] [data-action] {
-      color: ${themeVars.colors.palette.error.default};
+      color: ${(p) => p.themeTokens.color.palette.error.default};
       background-color: transparent;
       &:hover {
-        background-color: ${rgbAlpha(themeVars.colors.palette.error.defaultChannel, 0.08)};
+        background-color: ${(p) => rgbAlpha(p.themeTokens.color.palette.error.default, 0.08)};
       }
     }
 
     /* Success */
     &[data-type="success"] [data-action] {
-      color: ${themeVars.colors.palette.success.default};
+      color: ${(p) => p.themeTokens.color.palette.success.default};
       background-color: transparent;
       &:hover {
-        background-color: ${rgbAlpha(themeVars.colors.palette.success.defaultChannel, 0.08)};
+        background-color: ${(p) => rgbAlpha(p.themeTokens.color.palette.success.default, 0.08)};
       }
     }
 
     /* Warning */
     &[data-type="warning"] [data-action] {
-      color: ${themeVars.colors.palette.warning.default};
+      color: ${(p) => p.themeTokens.color.palette.warning.default};
       background-color: transparent;
       &:hover {
-        background-color: ${rgbAlpha(themeVars.colors.palette.warning.defaultChannel, 0.08)};
+        background-color: ${(p) => rgbAlpha(p.themeTokens.color.palette.warning.default, 0.08)};
       }
     }
 
@@ -135,8 +135,8 @@ const ToasterStyleWrapper = styled.div`
       left: auto;
       border-width: 1px;
       border-style: dashed;
-      background-color: ${themeVars.colors.background.paper};
-      border: 1px solid ${rgbAlpha(themeVars.colors.palette.gray[200], 0.2)};
+      background-color: ${(p) => p.themeTokens.color.background.paper};
+      border: 1px solid ${(p) => rgbAlpha(p.themeTokens.color.palette.gray[200], 0.2)};
     }
   }
 `;

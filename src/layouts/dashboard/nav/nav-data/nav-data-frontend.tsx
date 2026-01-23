@@ -12,7 +12,7 @@ export const frontendNavData: NavProps["data"] = [
 			},
 			{
 				title: "New Sale",
-				path: "/dashboard/sale/new",
+				path: "/sale/new/cash-sale",
 				icon: <Icon icon="lucide:shopping-cart" size="24" />,
 				roles: ["SUPER_ADMIN"],
 			},

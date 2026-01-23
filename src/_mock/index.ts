@@ -10,6 +10,15 @@ import {
 import { menuList } from "./handlers/_menu";
 import { signIn, refresh, userList } from "./handlers/_user";
 import { customerList } from "./handlers/_customer";
+import {
+	saleCustomers,
+	saleEmployees,
+	saleWarehouses,
+	saleCategoryFilter,
+	saleCategories,
+	saleGetProduct,
+	saleGetProducts,
+} from "./handlers/_sale";
 
 const handlers = [
 	signIn,
@@ -23,6 +32,13 @@ const handlers = [
 	performance,
 	dashboardFilters,
 	dailyIncomeAccounting,
+	saleCustomers,
+	saleEmployees,
+	saleWarehouses,
+	saleCategoryFilter,
+	saleCategories,
+	saleGetProduct,
+	saleGetProducts,
 ];
 
 const worker = setupWorker(...handlers);

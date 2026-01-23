@@ -34,7 +34,7 @@ const StyledNav = styled.nav<{ $width: string }>`
 	flex-direction: column;
 	height: 100%;
 	width: ${({ $width }) => $width};
-	background-color: ${({ theme }) => theme.colors.background.default};
+	background-color: ${({ theme }) => theme.colors.common.black};
 	z-index: 20;
 	transition: width 0.3s ease-in-out;
 `;

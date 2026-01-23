@@ -1,7 +1,7 @@
 import { type AuthLoginDTO, type AuthToken, type UsernameAuthCredential, UsernameAuthProvider } from "@auth-service";
-import apiClient from "@/core/api/apiClient";
 import { type SignInRes, UserApi } from "@/core/api/services/userService";
 import { createTaggedLogger } from "@/core/utils/logger";
+import { MainApi } from "@/core/api";
 
 const logger = createTaggedLogger("UsernameAuthProvider");
 
@@ -17,20 +17,21 @@ interface LoginResponseData {
 /**
  * Username/password authentication provider for the application
  */
-export class AppUsernameAuthProvider extends UsernameAuthProvider<LoginResponseData> {
-	constructor() {
-		super({ providerId: "username" });
-	}
+export class AppUsernameAuthProvider extends MainApi implements UsernameAuthProvider<LoginResponseData> {
+	readonly providerId = "username";
 
 	async login(credential: UsernameAuthCredential): Promise<AuthLoginDTO<LoginResponseData>> {
-		// Call API to authenticate
-		const response = await apiClient.post<SignInRes>({
-			url: UserApi.SignIn,
+		// Call API to authenticate (no auth token required)
+		const { body: response } = await this.noAuthClient.post<SignInRes>(UserApi.SignIn, {
 			data: {
 				username: credential.username,
 				password: credential.password,
 			},
 		});
+
+		if (!response) {
+			throw new Error("Empty response from sign in API");
+		}
 
 		// Transform API response to AuthLoginDTO
 		logger.debug("login response", response);
@@ -45,11 +46,14 @@ export class AppUsernameAuthProvider extends UsernameAuthProvider<LoginResponseD
 	}
 
 	async loginWithAuthToken(token: AuthToken): Promise<AuthLoginDTO<LoginResponseData>> {
-		// Use refresh token to get new access token
-		const response = await apiClient.post<SignInRes>({
-			url: UserApi.Refresh,
+		// Use refresh token to get new access token (no auth header)
+		const { body: response } = await this.noAuthClient.post<SignInRes>(UserApi.Refresh, {
 			data: { refreshToken: token.value },
 		});
+
+		if (!response) {
+			throw new Error("Empty response from refresh API");
+		}
 
 		logger.debug("loginWithAuthToken response", response);
 		return {
@@ -64,7 +68,8 @@ export class AppUsernameAuthProvider extends UsernameAuthProvider<LoginResponseD
 
 	async logout(): Promise<void> {
 		try {
-			await apiClient.get({ url: UserApi.Logout });
+			// Logout requires auth token
+			await this.client.get(UserApi.Logout);
 		} catch (error) {
 			// Ignore logout errors
 			logger.warn("Logout API call failed:", error);
@@ -72,10 +77,13 @@ export class AppUsernameAuthProvider extends UsernameAuthProvider<LoginResponseD
 	}
 
 	async refreshToken(refreshToken: string): Promise<AuthLoginDTO<LoginResponseData>> {
-		const response = await apiClient.post<SignInRes>({
-			url: UserApi.Refresh,
+		const { body: response } = await this.noAuthClient.post<SignInRes>(UserApi.Refresh, {
 			data: { refreshToken },
 		});
+
+		if (!response) {
+			throw new Error("Empty response from refresh API");
+		}
 
 		return {
 			data: {

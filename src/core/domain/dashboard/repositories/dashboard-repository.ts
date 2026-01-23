@@ -1,12 +1,13 @@
 import { DashboardApi } from "@/core/api/services/dashboardService";
-import { FilterData } from "../entities/filter";
 import LocalStorageService from "@/core/services/storages/local-storage";
+import type { DisposeAble } from "@/core/types/dispose-able";
 import { BehaviorSubject, Observable } from "rxjs";
+import { FilterData } from "../entities/filter";
 
 /**
  * Repository interface for Dashboard
  */
-export type DashboardRepository = {
+export interface DashboardRepository extends DisposeAble {
 	selectedFilter?: FilterData;
 	listFilterData: Record<string, FilterData>;
 
@@ -15,7 +16,7 @@ export type DashboardRepository = {
 	getSelectedFilter(): FilterData | undefined;
 
 	readonly selectedFilter$: Observable<FilterData | undefined>;
-};
+}
 
 class DashboardRepositoryImpl implements DashboardRepository {
 	listFilterData: Record<string, FilterData> = {};
@@ -70,6 +71,11 @@ class DashboardRepositoryImpl implements DashboardRepository {
 
 	getSelectedFilter(): FilterData | undefined {
 		return this._selectedFilter$.value;
+	}
+
+	dispose(): void {
+		this.listFilterData = {};
+		this._selectedFilter$.complete();
 	}
 }
 export { DashboardRepositoryImpl };

@@ -58,9 +58,7 @@ export function useSignIn() {
 			const credential = new UsernameAuthCredential("username", username, password);
 			const account = await authService.login(credential);
 
-			toast.success("Sign in successful!", {
-				closeButton: true,
-			});
+			toast.success("Sign in successful!");
 
 			return account;
 		} catch (error: any) {
@@ -84,9 +82,7 @@ export function useSignOut() {
 		try {
 			await authService.logout();
 
-			toast.success("Signed out successfully", {
-				closeButton: true,
-			});
+			toast.success("Signed out successfully");
 		} catch (error: any) {
 			toast.error(error.message || "Sign out failed", {
 				position: "top-center",

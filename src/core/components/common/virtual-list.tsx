@@ -1,5 +1,5 @@
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { useRef } from "react";
+import { useRef, isValidElement, cloneElement } from "react";
 import styled from "styled-components";
 
 /**
@@ -14,7 +14,7 @@ type VirtualListProps<T> = {
 	 * @param item The data item.
 	 * @param style The style object containing positioning for virtualization (must be applied to the item).
 	 */
-	renderItem: (item: T, style: React.CSSProperties) => React.ReactNode;
+	renderItem: (item: T, style: React.CSSProperties, index: number) => React.ReactNode;
 	/** Estimated height of a single item in pixels. Defaults to 50. */
 	estimateSize?: number;
 	/** Optional CSS class name for the container. */
@@ -30,9 +30,19 @@ const VirtualListContainer = styled.div<{ $height: string | number }>`
 	overflow-y: auto;
 	contain: strict;
 	padding-right: 12px;
+	scrollbar-width: none;
+
+	&:hover {
+		scrollbar-width: thin;
+	}
 
 	/* Custom Scrollbar */
 	&::-webkit-scrollbar {
+		width: 0;
+		height: 0;
+	}
+
+	&:hover::-webkit-scrollbar {
 		width: 6px;
 		height: 6px;
 	}
@@ -113,8 +123,18 @@ export function VirtualList<T>({
 						transform: `translateY(${virtualItem.start}px)`,
 					};
 
-					// Render item
-					return renderItem(item, style);
+					// Render item and ensure a stable key to satisfy React list requirements
+					const rendered = renderItem(item, style, virtualItem.index);
+					if (isValidElement(rendered)) {
+						return cloneElement(rendered, {
+							key: rendered.key ?? virtualItem.key ?? virtualItem.index,
+						});
+					}
+					return (
+						<div key={virtualItem.key ?? virtualItem.index} style={style}>
+							{rendered}
+						</div>
+					);
 				})}
 			</InnerContainer>
 		</VirtualListContainer>

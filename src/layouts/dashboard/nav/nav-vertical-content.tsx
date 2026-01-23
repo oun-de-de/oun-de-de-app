@@ -30,7 +30,7 @@ export function NavVerticalContent({ data }: Props) {
 //#region Styled Components
 const StyledScrollArea = styled(ScrollArea)`
 	flex: 1;
-	background-color: ${({ theme }) => theme.colors.background.default};
+	background-color: ${({ theme }) => theme.colors.common.black};
 	padding: 0 0.5rem;
 	padding-top: 8px;
 `;

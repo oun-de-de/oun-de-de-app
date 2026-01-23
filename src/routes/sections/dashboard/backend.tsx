@@ -4,7 +4,7 @@ import { PermissionType } from "@/core/types/enum";
 import { convertFlatToTree } from "@/core/utils/tree";
 import type { RouteObject } from "react-router";
 import { Navigate } from "react-router";
-import { Component } from "./utils";
+import { Component } from "../../utils/utils";
 
 /**
  * get route path from menu path and parent path

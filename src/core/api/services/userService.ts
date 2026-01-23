@@ -1,5 +1,4 @@
-import apiClient from "../apiClient";
-
+import { MainApi } from "../index";
 import type { UserInfo, UserToken } from "@/core/types/entity";
 
 export interface SignInReq {
@@ -20,14 +19,26 @@ export enum UserApi {
 	User = "/user",
 }
 
-const signin = (data: SignInReq) => apiClient.post<SignInRes>({ url: UserApi.SignIn, data });
-const signup = (data: SignUpReq) => apiClient.post<SignInRes>({ url: UserApi.SignUp, data });
-const logout = () => apiClient.get({ url: UserApi.Logout });
-const findById = (id: string) => apiClient.get<UserInfo[]>({ url: `${UserApi.User}/${id}` });
+class UserService extends MainApi {
+	async signin(data: SignInReq) {
+		const response = await this.noAuthClient.post<SignInRes>(UserApi.SignIn, { data });
+		return response.body;
+	}
 
-export default {
-	signin,
-	signup,
-	findById,
-	logout,
-};
+	async signup(data: SignUpReq) {
+		const response = await this.noAuthClient.post<SignInRes>(UserApi.SignUp, { data });
+		return response.body;
+	}
+
+	async logout() {
+		const response = await this.client.get(UserApi.Logout);
+		return response.body;
+	}
+
+	async findById(id: string) {
+		const response = await this.client.get<UserInfo[]>(`${UserApi.User}/${id}`);
+		return response.body;
+	}
+}
+
+export default new UserService();
