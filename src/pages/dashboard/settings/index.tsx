@@ -30,7 +30,6 @@ export default function SettingsPage() {
 			<DashboardSplitView
 				sidebar={<SettingsSidebar activeItem={activeItem} onSelect={setActiveItem} />}
 				content={<SettingsContent activeItem={activeItem} />}
-				className="lg:grid-cols-[260px_1fr]"
 			/>
 		</div>
 	);
