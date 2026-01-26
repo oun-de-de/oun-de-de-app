@@ -1,6 +1,6 @@
 import { PaginationStatus, usePagination, UsePaginationOptions } from "@/core/hooks/use-pagination";
 import { Pagination } from "@/core/types/pagination";
-import { VirtualList } from "@/core/components/common/virtual-list";
+import { VirtualList } from "@/core/components/common/virtual-list/virtual-list";
 import React, { forwardRef, useImperativeHandle } from "react";
 
 type EmptyBuilder = () => React.ReactNode;
@@ -33,6 +33,7 @@ type PagedListProps<T> = {
 	onLoadMore: UsePaginationOptions<T>["onLoadMore"];
 	invisibleItemsThreshold?: number;
 	height?: string | number;
+	itemSize?: number | ((item: T, index: number) => number);
 };
 
 function InnerPagedList<T>(props: PagedListProps<T>, ref: React.ForwardedRef<PagedListRef<T>>) {
@@ -51,7 +52,7 @@ function InnerPagedList<T>(props: PagedListProps<T>, ref: React.ForwardedRef<Pag
 		onRefresh,
 		onLoadMore,
 		pagination,
-		invisibleItemsThreshold,
+		invisibleItemsThreshold = 5,
 		height = "100%",
 	} = props;
 
@@ -107,9 +108,14 @@ function InnerPagedList<T>(props: PagedListProps<T>, ref: React.ForwardedRef<Pag
 		<VirtualList<T>
 			data={statePagination.list}
 			height={height}
-			estimateSize={50}
-			overscan={4}
+			overscan={invisibleItemsThreshold}
 			className={className}
+			{...(typeof props.itemSize === "function"
+				? {
+						getItemHeight: (item: T, index: number) =>
+							(props.itemSize as (item: T, index: number) => number)(item, index),
+					}
+				: { estimateSize: typeof props.itemSize === "number" ? props.itemSize : 50 })}
 			renderItem={(item, style) => {
 				const index = statePagination.list.indexOf(item);
 				return (

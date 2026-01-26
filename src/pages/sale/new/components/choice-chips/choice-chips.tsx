@@ -1,17 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import styled from "styled-components";
 import { Icon } from "@/core/components/icon";
-
-export type ChoiceChipOption = {
-	label: string;
-	value: string;
-	disabled?: boolean;
-};
+import { cn } from "@/core/utils";
+import { SaleCategory } from "@/core/domain/sales/entities/sale-category";
 
 interface ChoiceChipsProps {
-	options: ChoiceChipOption[];
-	value: string[];
-	onChange: (next: string[]) => void;
+	options: SaleCategory[];
+	value: SaleCategory[];
+	onChange: (next: SaleCategory[]) => void;
 	className?: string;
 }
 
@@ -19,17 +15,6 @@ export function ChoiceChips({ options, value, onChange, className }: ChoiceChips
 	const scrollRef = useRef<HTMLDivElement>(null);
 	const [canScrollLeft, setCanScrollLeft] = useState(false);
 	const [canScrollRight, setCanScrollRight] = useState(false);
-
-	const orderedValue = useMemo(() => {
-		const set = new Set(value);
-		return options.filter((opt) => set.has(opt.value)).map((opt) => opt.value);
-	}, [options, value]);
-
-	const toggleValue = (v: string) => {
-		const exists = orderedValue.includes(v);
-		const next = exists ? orderedValue.filter((x) => x !== v) : [...orderedValue, v];
-		onChange(next);
-	};
 
 	const updateScrollState = () => {
 		const el = scrollRef.current;
@@ -39,20 +24,37 @@ export function ChoiceChips({ options, value, onChange, className }: ChoiceChips
 		setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 1);
 	};
 
-	useEffect(() => {
-		updateScrollState();
-	}, [options, value]);
-
-	const handleScroll = () => updateScrollState();
-
 	const scrollByAmount = (delta: number) => {
 		const el = scrollRef.current;
 		if (!el) return;
 		el.scrollBy({ left: delta, behavior: "smooth" });
 	};
 
+	const orderedValue = useMemo(() => {
+		const set = new Set(value.map((v) => v.id));
+		return options.filter((opt) => set.has(opt.id)).map((opt) => opt.id);
+	}, [options, value]);
+
+	const toggleValue = (id: string) => {
+		const exists = orderedValue.includes(id);
+		let next: SaleCategory[];
+		if (exists) {
+			next = value.filter((cat) => cat.id !== id);
+		} else {
+			const found = options.find((cat) => cat.id === id);
+			next = found ? [...value, found] : value;
+		}
+		onChange(next);
+	};
+
+	useEffect(() => {
+		updateScrollState();
+	}, [options, value]);
+
+	const handleScroll = () => updateScrollState();
+
 	return (
-		<Wrapper className={className}>
+		<Wrapper className={cn(className, "px-2")}>
 			{canScrollLeft && (
 				<ArrowButton $side="left" type="button" onClick={() => scrollByAmount(-160)}>
 					<Icon icon="mdi:chevron-left" size={16} />
@@ -60,15 +62,9 @@ export function ChoiceChips({ options, value, onChange, className }: ChoiceChips
 			)}
 
 			<ScrollArea ref={scrollRef} onScroll={handleScroll}>
-				{options.map(({ label, value: v, disabled }) => (
-					<Chip
-						key={v}
-						type="button"
-						$active={orderedValue.includes(v)}
-						disabled={disabled}
-						onClick={() => toggleValue(v)}
-					>
-						{label}
+				{options.map(({ id, name }) => (
+					<Chip key={id} type="button" $active={orderedValue.includes(id)} onClick={() => toggleValue(id)}>
+						{name}
 					</Chip>
 				))}
 			</ScrollArea>

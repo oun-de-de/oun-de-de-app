@@ -1,11 +1,14 @@
 import type { SaleProduct } from "@/core/domain/sales/entities/sale-product";
 import type { FailureType } from "@/core/types/failure";
-import type { Pagination } from "@/core/types/pagination";
-import type { ErrorState } from "@/core/types/state";
+import { copyWithPagination, type Pagination } from "@/core/types/pagination";
+import type { ErrorState, LoadingState } from "@/core/types/state";
 
 import { _SaleProductState, type SaleProductState } from "../sale-product-state";
 
-export const SaleProductSearchLoadingState = (state: SaleProductState, search: string): SaleProductState =>
+export const SaleProductSearchLoadingState = (
+	state: SaleProductState,
+	search: string,
+): SaleProductState & LoadingState =>
 	_SaleProductState({
 		state,
 		type: "SearchLoadingState",
@@ -31,4 +34,5 @@ export const SaleProductSearchErrorState = (
 		type: "SearchErrorState",
 	}),
 	error,
+	pagination: copyWithPagination(state.pagination, { error: error.message }),
 });

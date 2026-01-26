@@ -8,4 +8,4 @@ export { SmartDataTable } from "./smart-data-table";
 export { SummaryStatCard } from "./summary-stat-card";
 export { TableFilterBar } from "./table-filter-bar";
 export { TablePagination } from "./table-pagination";
-export { VirtualList } from "./virtual-list";
+export { VirtualList } from "./virtual-list/virtual-list";

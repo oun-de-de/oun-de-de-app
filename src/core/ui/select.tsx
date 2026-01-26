@@ -20,9 +20,11 @@ function SelectTrigger({
 	className,
 	size = "default",
 	children,
+	hideIcon = false,
 	...props
 }: React.ComponentProps<typeof SelectPrimitive.Trigger> & {
 	size?: "sm" | "default";
+	hideIcon?: boolean;
 }) {
 	return (
 		<SelectPrimitive.Trigger
@@ -30,14 +32,17 @@ function SelectTrigger({
 			data-size={size}
 			className={cn(
 				"group inline-flex items-center justify-between gap-1 rounded border border-gray-300 bg-white px-3 text-sm font-medium whitespace-nowrap outline-none disabled:cursor-not-allowed disabled:opacity-50 data-[size=default]:h-9 data-[size=sm]:h-8 data-[placeholder]:text-gray-500 focus:[box-shadow:var(--ids-sem-ring-focus)] focus-visible:[box-shadow:var(--ids-sem-ring-focus)] *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-1 *:data-[slot=select-value]:text-gray-500 *:data-[slot=select-value]:overflow-hidden *:data-[slot=select-value]:text-ellipsis [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+				hideIcon ? "select-trigger-hide-icon" : "",
 				className,
 			)}
 			{...props}
 		>
 			{children}
-			<SelectPrimitive.Icon asChild>
-				<ChevronDownIcon className="size-4 text-gray-500 transition-transform group-data-[state=open]:rotate-180" />
-			</SelectPrimitive.Icon>
+			{!hideIcon && (
+				<SelectPrimitive.Icon asChild>
+					<ChevronDownIcon className="size-4 text-gray-500 transition-transform group-data-[state=open]:rotate-180" />
+				</SelectPrimitive.Icon>
+			)}
 		</SelectPrimitive.Trigger>
 	);
 }

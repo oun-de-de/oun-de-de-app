@@ -27,6 +27,7 @@ export interface SaleProductApi {
 		limit?: number;
 		search?: string;
 		filters?: SaleFilters;
+		categoryIds?: (string | number)[];
 	}): Promise<Pagination<SaleProduct>>;
 }
 
@@ -74,12 +75,14 @@ export class SaleApiImpl extends MainApi implements SaleApi {
 		limit?: number;
 		search?: string;
 		filters?: SaleFilters;
+		categoryIds?: (string | number)[];
 	}): Promise<Pagination<SaleProduct>> {
 		const response = await this.client.get<Pagination<SaleProduct>>(SaleApiPath.Products, {
 			queryParameters: {
 				page: params.page,
-				limit: params.limit,
+				limit: params.limit ?? 20,
 				search: params.search,
+				categoryIds: params.categoryIds,
 				...params.filters,
 			},
 		});

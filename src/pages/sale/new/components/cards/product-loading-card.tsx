@@ -1,36 +1,20 @@
 import styled from "styled-components";
+import { Skeleton } from "@/core/ui/skeleton";
 
-export type ProductCardData = {
-	id: string | number;
-	name: string;
-	price: number;
-	currency?: string;
-	imageUrl?: string;
-};
-
-interface ProductCardProps {
-	item: ProductCardData;
+export interface ProductLoadingCardProps {
 	height?: number;
-	onClick?: (item: ProductCardData) => void;
 }
 
-function formatPrice(value: number, currency?: string) {
-	const suffix = currency ?? "៛";
-	return `${value.toLocaleString()} ${suffix}`;
-}
-
-export function ProductCard({ item, height = 240, onClick }: ProductCardProps) {
+export function ProductLoadingCard({ height = 240 }: ProductLoadingCardProps) {
 	return (
-		<Card style={{ height }} onClick={() => onClick?.(item)}>
-			<PriceTag>{formatPrice(item.price, item.currency)}</PriceTag>
+		<Card style={{ height }}>
+			<PriceTag />
 			<ImagePlaceholder>
-				{item.imageUrl ? (
-					<img src={item.imageUrl} alt={item.name} style={{ maxHeight: "100%", maxWidth: "100%" }} />
-				) : (
-					"No image available"
-				)}
+				<Skeleton style={{ width: 100, height: 100, borderRadius: 10 }} />
 			</ImagePlaceholder>
-			<Name>{item.name}</Name>
+			<Name>
+				<Skeleton style={{ width: 100, height: 18 }} />
+			</Name>
 		</Card>
 	);
 }
@@ -41,30 +25,25 @@ const Card = styled.div`
   border: 1px solid ${({ theme }) => theme.colors.palette.gray[200]};
   border-radius: 12px;
   background: ${({ theme }) => theme.colors.common.white};
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
   padding: 12px;
   min-height: 200px;
   display: flex;
   flex-direction: column;
   gap: 12px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-
-  &:active {
-    transform: scale(0.98);
-  }
 `;
 
-const PriceTag = styled.div`
+const PriceTag = styled(Skeleton)`
   position: absolute;
   top: 10px;
   left: 10px;
-  background: ${({ theme }) => theme.colors.palette.gray[900]};
-  color: ${({ theme }) => theme.colors.common.white};
   border-radius: 10px;
   padding: 4px 8px;
   font-size: 13px;
   font-weight: 700;
+  min-width: 60px;
+  min-height: 20px;
+  display: flex;
+  align-items: center;
 `;
 
 const ImagePlaceholder = styled.div`
@@ -83,5 +62,8 @@ const Name = styled.div`
   font-size: 15px;
   font-weight: 600;
   color: ${({ theme }) => theme.colors.palette.gray[800]};
+  min-height: 18px;
+  display: flex;
+  align-items: center;
 `;
 //#endregion

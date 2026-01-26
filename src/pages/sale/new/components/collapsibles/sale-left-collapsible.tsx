@@ -1,42 +1,33 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import styled from "styled-components";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/core/ui/collapsible";
 import { DateFilter, CustomerFilter, EmployeeFilter, WarehouseFilter, SaleCategoryFilter } from "../filters";
 import { Icon } from "@/core/components/icon";
-import dayjs from "dayjs";
+import { SaleFilters } from "@/core/domain/sales/entities/sale-filter";
 
-type DateRangeValue = { from?: string; to?: string };
-type FormState = {
-	date: DateRangeValue;
-	customer: string;
-	employee: string;
-	warehouse: string;
-	saleCategory: string;
+type SaleLeftCollapsibleProps = {
+	formSaleFilters: SaleFilters;
+	onChange: (filters: SaleFilters) => void;
 };
 
-export default function SaleLeftCollapsible() {
-	const [formData, setFormData] = useState<FormState>({
-		date: { from: dayjs().format("DD/MM/YYYY"), to: dayjs().format("DD/MM/YYYY") },
-		customer: "",
-		employee: "",
-		warehouse: "",
-		saleCategory: "",
-	});
+export default function SaleLeftCollapsible({ formSaleFilters, onChange }: SaleLeftCollapsibleProps) {
+	const [formData, setFormData] = useState<SaleFilters>(formSaleFilters);
+
+	useEffect(() => {
+		setFormData(formSaleFilters);
+	}, [formSaleFilters]);
 
 	return (
-		<Collapsible>
-			<TopRow>
+		<Collapsible className="pt-2">
+			<TopRow className="px-2">
 				<FilterRow>
 					<DateFilter
-						mode="range"
+						mode="single"
 						value={formData.date}
 						format="DD/MM/YYYY"
-						onChange={(value) => setFormData((prev) => ({ ...prev, date: value as DateRangeValue }))}
+						onChange={(value) => onChange({ ...formData, date: value?.toString() })}
 					/>
-					<CustomerFilter
-						value={formData.customer}
-						onChange={(value) => setFormData((prev) => ({ ...prev, customer: value }))}
-					/>
+					<CustomerFilter value={formData.customer} onChange={(value) => onChange({ ...formData, customer: value })} />
 				</FilterRow>
 
 				<MoreButton>
@@ -45,20 +36,14 @@ export default function SaleLeftCollapsible() {
 				</MoreButton>
 			</TopRow>
 
-			<ExpandedFilters>
-				<EmployeeFilter
-					value={formData.employee}
-					onChange={(value) => setFormData((prev) => ({ ...prev, employee: value }))}
-				/>
+			<ExpandedFilters className="px-2">
+				<EmployeeFilter value={formData.employee} onChange={(value) => onChange({ ...formData, employee: value })} />
 
-				<WarehouseFilter
-					value={formData.warehouse}
-					onChange={(value) => setFormData((prev) => ({ ...prev, warehouse: value }))}
-				/>
+				<WarehouseFilter value={formData.warehouse} onChange={(value) => onChange({ ...formData, warehouse: value })} />
 
 				<SaleCategoryFilter
 					value={formData.saleCategory}
-					onChange={(value) => setFormData((prev) => ({ ...prev, saleCategory: value }))}
+					onChange={(value) => onChange({ ...formData, saleCategory: value })}
 				/>
 			</ExpandedFilters>
 		</Collapsible>

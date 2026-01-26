@@ -151,9 +151,7 @@ class Repository {
 		Repository.register<PerformanceRepository>(new PerformanceRepositoryImpl(new DashboardApiImpl()));
 
 		// Sale Filter
-		Repository.register<SaleFilterRepository>(
-			new SaleFilterRepositoryImpl(new SaleApiImpl(), "sale:selectedFilter", "sale:selectedCategories"),
-		);
+		Repository.register<SaleFilterRepository>(new SaleFilterRepositoryImpl(new SaleApiImpl()));
 
 		// Sale Product
 		Repository.register<SaleProductRepository>(new SaleProductRepositoryImpl(new SaleApiImpl()));

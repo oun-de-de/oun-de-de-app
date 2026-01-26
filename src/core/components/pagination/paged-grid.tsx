@@ -1,6 +1,6 @@
 import { PaginationStatus, usePagination, UsePaginationOptions } from "@/core/hooks/use-pagination";
 import { Pagination } from "@/core/types/pagination";
-import { VirtualList } from "@/core/components/common/virtual-list";
+import { VirtualList } from "@/core/components/common/virtual-list/virtual-list";
 import React, { forwardRef, useImperativeHandle, useMemo } from "react";
 import styled from "styled-components";
 
@@ -56,7 +56,7 @@ function InnerPagedGrid<T>(props: PagedGridProps<T>, ref: React.ForwardedRef<Pag
 		onRefresh,
 		onLoadMore,
 		pagination,
-		invisibleItemsThreshold,
+		invisibleItemsThreshold = 5,
 		columns = 4,
 		gap = 12,
 		itemHeight = 240,
@@ -67,7 +67,7 @@ function InnerPagedGrid<T>(props: PagedGridProps<T>, ref: React.ForwardedRef<Pag
 		pagination: statePagination,
 		status,
 		handleInitial,
-		renderPagedItem,
+		renderItemWithoutStatus,
 		updatePagination,
 		renderPagedStatus,
 	} = usePagination<T>({
@@ -110,21 +110,15 @@ function InnerPagedGrid<T>(props: PagedGridProps<T>, ref: React.ForwardedRef<Pag
 	);
 
 	if (status === PaginationStatus.LOADING_FIRST_PAGE) {
-		return loadingFirstPageBuilder?.() || <div>Loading...</div>;
+		return loadingFirstPageBuilder?.();
 	}
 
 	if (status === PaginationStatus.FIRST_PAGE_ERROR) {
-		return (
-			firstPageErrorBuilder?.(statePagination.error ?? null, handleInitial) || (
-				<div>
-					Error! <button onClick={handleInitial}>Retry</button>
-				</div>
-			)
-		);
+		return firstPageErrorBuilder?.(statePagination.error ?? null, handleInitial);
 	}
 
 	if (status === PaginationStatus.NO_ITEMS_FOUND || statePagination.list.length === 0) {
-		return emptyBuilder?.() || <div>Empty</div>;
+		return emptyBuilder?.();
 	}
 
 	return (
@@ -132,24 +126,24 @@ function InnerPagedGrid<T>(props: PagedGridProps<T>, ref: React.ForwardedRef<Pag
 			data={rows}
 			height={height}
 			estimateSize={rowHeight}
-			overscan={4}
+			overscan={invisibleItemsThreshold}
 			className={className}
 			renderItem={(rowItems, style) => {
 				const firstItemIndex = rows.indexOf(rowItems) * columns;
-				const isLastRow = rows.indexOf(rowItems) === rows.length - 1;
+				// const isLastRow = rows.indexOf(rowItems) === rows.length - 1;
 
 				return (
 					<GridRow key={firstItemIndex} $columns={columns} $gap={gap} style={style}>
 						{rowItems.map((item, colIndex) => {
 							const itemIndex = firstItemIndex + colIndex;
-							return <div key={itemKey(item)}>{renderPagedItem(itemIndex)}</div>;
+							return <div key={itemKey(item)}>{renderItemWithoutStatus(itemIndex)}</div>;
 						})}
-						{isLastRow && (
-							<StatusWrapper $columns={columns}>{renderPagedStatus(statePagination.list.length - 1)}</StatusWrapper>
-						)}
 					</GridRow>
 				);
 			}}
+			renderEndBuilder={() => (
+				<StatusWrapper className={`pt-${gap}`}>{renderPagedStatus(statePagination.list.length - 1)}</StatusWrapper>
+			)}
 		/>
 	);
 }
@@ -167,8 +161,11 @@ const GridRow = styled.div<{ $columns: number; $gap: number }>`
     padding: 6px 0;
 `;
 
-const StatusWrapper = styled.div<{ $columns: number }>`
+const StatusWrapper = styled.div`
     grid-column: 1 / -1;
+		align-items: center;
+		justify-content: center;
+		display: flex;
     width: 100%;
 `;
 //#endregion

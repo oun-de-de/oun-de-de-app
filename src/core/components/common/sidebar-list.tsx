@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { cn } from "@/core/utils";
 import { ListFooter } from "./list-footer";
 import { SidebarListHeader } from "./sidebar-list-header";
-import { VirtualList } from "./virtual-list";
+import { VirtualList } from "./virtual-list/virtual-list";
 
 type SidebarListProps = {
 	children: ReactNode;

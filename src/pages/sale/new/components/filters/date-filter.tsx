@@ -1,4 +1,5 @@
 import styled from "styled-components";
+import { ClearIconButton } from "../button/clear-button";
 import dayjs from "dayjs";
 import type { DateRange } from "react-day-picker";
 import { Calendar } from "@/core/ui/calendar";
@@ -7,84 +8,19 @@ import { Icon } from "@/core/components/icon";
 import { FilterField } from "./filter-field";
 import { Button } from "@/core/ui/button";
 
-const DateInputContainer = styled.div`
-  position: relative;  
-`;
-
-const DateTrigger = styled(Button)`
-  width: 100%;
-  height: 36px;
-  padding: 6px 12px;
-  padding-right: 80px;
-  font-size: 14px;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  cursor: pointer;
-
-  &:hover {
-    background-color: ${({ theme }) => theme.colors.common.white};
-  }
-
-  &:focus-visible, &:focus-within {
-    box-shadow: var(--ids-sem-ring-focus);
-  }
-`;
-
-const DateValue = styled.span`
-  color: ${({ theme }) => theme.colors.palette.gray[500]};
-`;
-
-const IconWrapper = styled.span`
-  color: ${({ theme }) => theme.colors.palette.gray[500]};
-  font-size: 18px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-`;
-
-const ClearButton = styled.span`
-  position: absolute;
-  right: 36px;
-  top: 50%;
-  transform: translateY(-50%);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  border: none;
-  background: transparent;
-  color: ${({ theme }) => theme.colors.palette.gray[400]};
-  cursor: pointer;
-  padding: 0;
-
-  &:hover {
-    color: ${({ theme }) => theme.colors.palette.gray[600]};
-  }
-`;
-
-const CalendarIcon = styled(IconWrapper)`
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-`;
-
 type DateLike = string | Date | ReturnType<typeof dayjs>;
 type DateRangeValue = { from?: DateLike; to?: DateLike };
 
 type SingleProps = {
 	mode?: "single";
-	value: DateLike;
-	onChange: (value: DateLike) => void;
+	value?: DateLike;
+	onChange: (value?: DateLike) => void;
 };
 
 type RangeProps = {
 	mode: "range";
-	value: DateRangeValue;
-	onChange: (value: DateRangeValue) => void;
+	value?: DateRangeValue;
+	onChange: (value?: DateRangeValue) => void;
 };
 
 type DateFilterProps = (SingleProps | RangeProps) & {
@@ -124,8 +60,8 @@ export function DateFilter(props: DateFilterProps) {
 		if (!isRangeMode) return undefined;
 		const { value } = props as RangeProps;
 		return {
-			from: toDate(value.from),
-			to: toDate(value.to),
+			from: toDate(value?.from),
+			to: toDate(value?.to),
 		};
 	};
 
@@ -134,8 +70,8 @@ export function DateFilter(props: DateFilterProps) {
 			return formatDate((props as SingleProps).value);
 		}
 		const { value } = props as RangeProps;
-		const from = formatDate(value.from);
-		const to = formatDate(value.to);
+		const from = formatDate(value?.from);
+		const to = formatDate(value?.to);
 		if (from && to) return `${from} - ${to}`;
 		return from || to || "";
 	};
@@ -182,26 +118,22 @@ export function DateFilter(props: DateFilterProps) {
 	};
 
 	return (
-		<FilterField label="Date" required>
+		<FilterField label="Date" required htmlFor="date-trigger">
 			<Popover>
 				<PopoverTrigger asChild>
 					<DateInputContainer>
-						<DateTrigger variant="outline">
+						<DateTrigger id="date-trigger" variant="outline">
 							<DateValue>{displayValue || "Select date"}</DateValue>
 							{displayValue ? (
-								<ClearButton
-									role="button"
-									aria-label="Clear date"
+								<ClearIconButton
+									ariaLabel="Clear date"
 									onClick={(e) => {
 										e.preventDefault();
 										e.stopPropagation();
 										clearValue();
 									}}
-								>
-									<IconWrapper>
-										<Icon icon="mdi:close-circle" size={18} />
-									</IconWrapper>
-								</ClearButton>
+									style={{ right: 36 }}
+								/>
 							) : null}
 							<CalendarIcon>
 								<Icon icon="mdi:calendar" size={18} />
@@ -215,7 +147,7 @@ export function DateFilter(props: DateFilterProps) {
 							mode="range"
 							selected={getSelectedRange()}
 							onSelect={handleRangeSelect}
-							captionLayout="dropdown"
+							captionLayout="dropdown-buttons"
 							fromYear={2000}
 							toYear={currentYear + 10}
 							initialFocus
@@ -225,7 +157,7 @@ export function DateFilter(props: DateFilterProps) {
 							mode="single"
 							selected={getSelectedDate()}
 							onSelect={handleSingleSelect}
-							captionLayout="dropdown"
+							captionLayout="dropdown-buttons"
 							fromYear={2000}
 							toYear={currentYear + 10}
 							initialFocus
@@ -236,3 +168,49 @@ export function DateFilter(props: DateFilterProps) {
 		</FilterField>
 	);
 }
+
+//#region Styled Components
+const DateInputContainer = styled.div`
+  position: relative;  
+`;
+
+const DateTrigger = styled(Button)`
+  width: 100%;
+  height: 36px;
+  padding: 6px 12px;
+  padding-right: 80px;
+  font-size: 14px;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+
+  &:hover {
+    background-color: ${({ theme }) => theme.colors.common.white};
+  }
+
+  &:focus-visible, &:focus-within {
+    box-shadow: var(--ids-sem-ring-focus);
+  }
+`;
+
+const DateValue = styled.span`
+  color: ${({ theme }) => theme.colors.palette.gray[500]};
+`;
+
+const IconWrapper = styled.span`
+  color: ${({ theme }) => theme.colors.palette.gray[500]};
+  font-size: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+`;
+
+const CalendarIcon = styled(IconWrapper)`
+	position: absolute;
+	right: 10px;
+	top: 50%;
+	transform: translateY(-50%);
+`;
+//#endregion

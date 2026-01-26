@@ -149,14 +149,7 @@ export function usePagination<T>({
 		if (status === PaginationStatus.INITIAL) {
 			handleInitial();
 		}
-		// eslint-disable-next-line
 	}, []);
-
-	// useUpdateEffect(() => {
-	//     if (initialPagination) {
-	//         updatePagination(initialPagination);
-	//     }
-	// }, [initialPagination]);
 
 	function updatePagination(newPagination: Pagination<T>) {
 		dispatch({ type: "SET_PAGINATION", payload: newPagination });
@@ -213,56 +206,24 @@ export function usePagination<T>({
 	);
 
 	// -------------------
-	// BUILDER: render item theo trạng thái (giống paged_widget.dart)
+	// BUILDER: render item with pagination logic
 	// -------------------
 	const renderPagedItem = useCallback(
-		(index: number): React.ReactNode => {
-			// Check if should load more before rendering
-			checkLoadMore(index);
-
-			const itemData = pagination.list[index];
-			const isLastItem = index === pagination.list.length - 1;
-
-			// Render the main item
-			let item = renderItem({
-				index,
-				data: itemData,
-				key: itemKey(itemData),
-			});
-
-			// If it's the last item, append loading/error/end states
-			if (isLastItem) {
-				const statusElement = (() => {
-					switch (status) {
-						case PaginationStatus.LOADING_MORE:
-							return (
-								<React.Fragment>
-									{renderSeparator?.({ index, data: itemData })}
-									{renderLoadingMore?.()}
-								</React.Fragment>
-							);
-						case PaginationStatus.SUBSEQUENT_PAGE_ERROR:
-							return renderSubsequentPageError?.({
-								error: pagination.error ?? null,
-								onRetry: handleLoadMore,
-							});
-						case PaginationStatus.COMPLETED:
-							return renderEnd?.();
-						default:
-							return null;
-					}
-				})();
-
-				item = (
-					<React.Fragment>
-						{item}
-						{statusElement}
-					</React.Fragment>
-				);
-			}
-
-			return <div key={itemKey(itemData)}>{item}</div>;
-		},
+		(index: number): React.ReactNode => (
+			<PagedItem<T>
+				index={index}
+				pagination={pagination}
+				status={status}
+				itemKey={itemKey}
+				renderItem={renderItem}
+				renderSeparator={renderSeparator}
+				renderLoadingMore={renderLoadingMore}
+				renderSubsequentPageError={renderSubsequentPageError}
+				renderEnd={renderEnd}
+				onLoadMore={handleLoadMore}
+				invisibleItemsThreshold={invisibleItemsThreshold}
+			/>
+		),
 		[
 			pagination,
 			status,
@@ -272,9 +233,34 @@ export function usePagination<T>({
 			renderLoadingMore,
 			renderSubsequentPageError,
 			renderEnd,
-			checkLoadMore,
 			handleLoadMore,
+			invisibleItemsThreshold,
 		],
+	);
+
+	// -------------------
+	// BUILDER: render item only, no status
+	// -------------------
+	const renderItemWithoutStatus = useCallback(
+		(index: number): React.ReactNode => {
+			const itemData = pagination.list[index];
+			return (
+				<PagedItemWithoutStatus
+					index={index}
+					pagination={pagination}
+					status={status}
+					invisibleItemsThreshold={invisibleItemsThreshold}
+					onLoadMore={handleLoadMore}
+				>
+					{renderItem({
+						index,
+						data: itemData,
+						key: itemKey(itemData),
+					})}
+				</PagedItemWithoutStatus>
+			);
+		},
+		[pagination, renderItem, itemKey, status, invisibleItemsThreshold, handleLoadMore],
 	);
 
 	const renderPagedStatus = useCallback(
@@ -325,5 +311,110 @@ export function usePagination<T>({
 		renderPagedStatus,
 		updatePagination,
 		updateStatus,
+		checkLoadMore,
+		renderItemWithoutStatus,
 	};
+}
+
+type PagedItemProps<T> = {
+	index: number;
+	pagination: Pagination<T>;
+	status: PaginationStatus;
+	itemKey: ItemKeyFn<T>;
+	renderItem: RenderItemFn<T>;
+	renderSeparator?: RenderSeparatorFn<T>;
+	renderLoadingMore?: RenderLoadingMoreFn;
+	renderSubsequentPageError?: RenderSubsequentPageErrorFn;
+	renderEnd?: RenderEndFn;
+	onLoadMore: () => void;
+	invisibleItemsThreshold: number;
+};
+
+export function PagedItem<T>({
+	index,
+	pagination,
+	status,
+	itemKey,
+	renderItem,
+	renderSeparator,
+	renderLoadingMore,
+	renderSubsequentPageError,
+	renderEnd,
+	onLoadMore,
+	invisibleItemsThreshold,
+}: PagedItemProps<T>) {
+	const itemData = pagination.list[index];
+	const isLastItem = index === pagination.list.length - 1;
+
+	useEffect(() => {
+		if (status !== PaginationStatus.ONGOING) return;
+
+		const triggerIndex = Math.max(0, pagination.list.length - invisibleItemsThreshold);
+		if (!isLastPage(pagination) && index === triggerIndex) {
+			onLoadMore();
+		}
+	}, [index, pagination, status, invisibleItemsThreshold, onLoadMore]);
+
+	let content = renderItem({
+		index,
+		data: itemData,
+		key: itemKey(itemData),
+	});
+
+	if (isLastItem) {
+		const statusNode = (() => {
+			switch (status) {
+				case PaginationStatus.LOADING_MORE:
+					return (
+						<>
+							{renderSeparator?.({ index, data: itemData })}
+							{renderLoadingMore?.()}
+						</>
+					);
+				case PaginationStatus.SUBSEQUENT_PAGE_ERROR:
+					return renderSubsequentPageError?.({
+						error: pagination.error ?? null,
+						onRetry: onLoadMore,
+					});
+				case PaginationStatus.COMPLETED:
+					return renderEnd?.();
+				default:
+					return null;
+			}
+		})();
+
+		content = (
+			<>
+				{content}
+				{statusNode}
+			</>
+		);
+	}
+
+	return <div key={itemKey(itemData)}>{content}</div>;
+}
+
+function PagedItemWithoutStatus<T>({
+	index,
+	pagination,
+	status,
+	invisibleItemsThreshold,
+	onLoadMore,
+	children,
+}: {
+	index: number;
+	pagination: Pagination<T>;
+	status: PaginationStatus;
+	invisibleItemsThreshold: number;
+	onLoadMore: () => void;
+	children: React.ReactNode;
+}) {
+	React.useEffect(() => {
+		if (status !== PaginationStatus.ONGOING) return;
+		const triggerIndex = Math.max(0, pagination.list.length - invisibleItemsThreshold);
+		if (!isLastPage(pagination) && index === triggerIndex) {
+			onLoadMore();
+		}
+	}, [index, pagination, status, invisibleItemsThreshold, onLoadMore]);
+	return <>{children}</>;
 }

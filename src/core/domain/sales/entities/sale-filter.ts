@@ -1,12 +1,14 @@
+import dayjs from "dayjs";
+
 type SaleFilters = {
-	date: DateRangeValue;
-	customer: CustomerFilter;
-	employee: EmployeeFilter;
-	warehouse: WarehouseFilter;
-	saleCategory: SaleCategoryFilter;
+	date?: DateFilter;
+	customer?: CustomerFilter;
+	employee?: EmployeeFilter;
+	warehouse?: WarehouseFilter;
+	saleCategory?: SaleCategoryFilter;
 };
 
-type DateRangeValue = { from?: string; to?: string };
+type DateFilter = string;
 
 type CustomerFilter = {
 	id: string;
@@ -28,4 +30,12 @@ type SaleCategoryFilter = {
 	name: string;
 };
 
-export type { DateRangeValue, SaleFilters, CustomerFilter, EmployeeFilter, WarehouseFilter, SaleCategoryFilter };
+export const defaultSaleFilters: SaleFilters = {
+	date: dayjs().format("DD/MM/YYYY"),
+	customer: undefined,
+	employee: undefined,
+	warehouse: undefined,
+	saleCategory: undefined,
+};
+
+export type { DateFilter, SaleFilters, CustomerFilter, EmployeeFilter, WarehouseFilter, SaleCategoryFilter };

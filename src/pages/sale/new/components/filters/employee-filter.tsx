@@ -1,28 +1,98 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/core/ui/select";
+import { ClearIconButton } from "../button/clear-button";
+import { styled } from "styled-components";
 import { FilterField } from "./filter-field";
+import type { EmployeeFilter } from "@/core/domain/sales/entities/sale-filter";
+import { useCallback } from "react";
+import { PromiseBuilder } from "@/core/ui/promise-builder";
 
-const EMPLOYEES = ["Employee 1", "Employee 2", "Employee 3"];
+import Repository from "@/service-locator";
+import {
+	SaleFilterRepository,
+	SaleFilterRepositoryImpl,
+} from "@/core/domain/sales/repositories/sale-filter-repository";
 
 interface EmployeeFilterProps {
-	value: string;
-	onChange: (value: string) => void;
+	value?: EmployeeFilter;
+	onChange: (value?: EmployeeFilter) => void;
 }
 
 export function EmployeeFilter({ value, onChange }: EmployeeFilterProps) {
+	const repo = Repository.get<SaleFilterRepository>(SaleFilterRepositoryImpl);
+	const promise = useCallback(() => repo.getEmployeeFilters(), [repo]);
 	return (
-		<FilterField label="Employee" required>
-			<Select value={value} onValueChange={onChange}>
-				<SelectTrigger>
-					<SelectValue placeholder="Select" />
-				</SelectTrigger>
-				<SelectContent>
-					{EMPLOYEES.map((employee) => (
-						<SelectItem key={employee} value={employee}>
-							{employee}
-						</SelectItem>
-					))}
-				</SelectContent>
-			</Select>
-		</FilterField>
+		<PromiseBuilder
+			promise={promise}
+			builder={(snapshot) => {
+				if (snapshot.connectionState === "none" || snapshot.connectionState === "waiting") {
+					return (
+						<Select disabled value="">
+							<SelectTrigger>
+								<SelectValue placeholder="Loading..." />
+							</SelectTrigger>
+						</Select>
+					);
+				}
+				if (snapshot.connectionState === "done" && snapshot.error) {
+					return (
+						<Select disabled value="">
+							<SelectTrigger>
+								<SelectValue placeholder="Error" />
+							</SelectTrigger>
+						</Select>
+					);
+				}
+				const items = snapshot.data ?? [];
+				return (
+					<FilterField label="Employee" required htmlFor="employee-select">
+						<SelectContainer>
+							<StyledSelect
+								value={value?.id ?? ""}
+								onValueChange={(id) => {
+									const found = items.find((e) => e.id === id);
+									if (found) onChange(found);
+								}}
+							>
+								<SelectTrigger style={{ width: "100%" }} hideIcon={!!value?.id}>
+									<SelectValue placeholder="Select" />
+								</SelectTrigger>
+								<SelectContent>
+									{items.map((employee) => (
+										<SelectItem key={employee.id} value={employee.id}>
+											{employee.name}
+										</SelectItem>
+									))}
+								</SelectContent>
+							</StyledSelect>
+							{value?.id && (
+								<ClearIconButton
+									onClick={(e) => {
+										e.preventDefault();
+										e.stopPropagation();
+										onChange(undefined);
+									}}
+									ariaLabel="Clear employee"
+									style={{ right: 8 }}
+								/>
+							)}
+						</SelectContainer>
+					</FilterField>
+				);
+			}}
+		/>
 	);
 }
+
+//#region Styled Components
+const SelectContainer = styled.div`
+	position: relative;
+	width: 100%;
+`;
+
+const StyledSelect = styled(Select)`
+	width: 100%;
+	& > [data-slot='select-trigger'] {
+		width: 100%;
+	}
+`;
+//#endregion

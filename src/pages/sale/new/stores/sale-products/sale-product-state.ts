@@ -1,5 +1,12 @@
+// Re-export all state modules for convenience
+export * from "./states/filter-state";
+export * from "./states/load-first-state";
+export * from "./states/load-more-state";
+export * from "./states/reload-state";
+export * from "./states/search-state";
+export * from "./states/select-categories-state";
 import { SaleCategory } from "@/core/domain/sales/entities/sale-category";
-import { SaleFilters } from "@/core/domain/sales/entities/sale-filter";
+import { defaultSaleFilters, SaleFilters } from "@/core/domain/sales/entities/sale-filter";
 import { SaleProduct } from "@/core/domain/sales/entities/sale-product";
 import { emptyPagination, Pagination } from "@/core/types/pagination";
 import { BaseState } from "@/core/types/state";
@@ -35,21 +42,17 @@ export type SaleProductState = BaseState<SaleProductType> & {
 
 export const SaleProductInitialState = ({
 	variant,
-	filters,
 	search,
-	selectedCategories,
 }: {
 	variant: string;
-	filters: SaleFilters;
 	search?: string;
-	selectedCategories: SaleCategory[];
 }): SaleProductState => ({
 	variant,
 	type: "InitialState",
-	pagination: emptyPagination(),
-	filters,
+	pagination: emptyPagination<SaleProduct>(),
+	filters: defaultSaleFilters,
 	search,
-	selectedCategories,
+	selectedCategories: [],
 });
 
 export const _SaleProductState = ({

@@ -1,3 +1,6 @@
+import { copyWithPagination, Pagination } from "../types/pagination";
+import isEqual from "fast-deep-equal";
+
 /**
  * Generates an array of pagination items (page numbers and ellipses) based on the current page and total pages.
  *
@@ -53,3 +56,25 @@ export const getPaginationItems = (currentPage: number, totalPages: number, sibl
 
 	return [];
 };
+
+export function updatePage<T>(pagination: Pagination<T>, newPagination: Pagination<T>): Pagination<T> {
+	const updatedList = [...pagination.list];
+
+	newPagination.list.forEach((item) => {
+		const index = updatedList.findIndex((e) => isEqual(e, item));
+		if (index >= 0) {
+			updatedList[index] = item; // update
+		} else {
+			updatedList.push(item); // add mới
+		}
+	});
+
+	return copyWithPagination(pagination, {
+		list: updatedList,
+		page: newPagination.page,
+		pageSize: newPagination.pageSize,
+		pageCount: newPagination.pageCount,
+		total: newPagination.total,
+		error: newPagination.error,
+	});
+}

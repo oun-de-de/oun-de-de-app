@@ -5,12 +5,14 @@ interface FilterFieldProps {
 	label: string;
 	required?: boolean;
 	children: ReactNode;
+	htmlFor?: string;
+	id?: string;
 }
 
-export function FilterField({ label, required = false, children }: FilterFieldProps) {
+export function FilterField({ label, required = false, children, htmlFor }: FilterFieldProps) {
 	return (
 		<FieldContainer>
-			<FieldLabel>
+			<FieldLabel htmlFor={htmlFor}>
 				{required && <RequiredAsterisk>*</RequiredAsterisk>}
 				{label}
 			</FieldLabel>

@@ -1,7 +1,7 @@
 import type { SaleFilters } from "@/core/domain/sales/entities/sale-filter";
 import type { SaleProduct } from "@/core/domain/sales/entities/sale-product";
 import type { FailureType } from "@/core/types/failure";
-import type { Pagination } from "@/core/types/pagination";
+import { copyWithPagination, type Pagination } from "@/core/types/pagination";
 import type { ErrorState } from "@/core/types/state";
 
 import { _SaleProductState, type SaleProductState } from "../sale-product-state";
@@ -32,4 +32,5 @@ export const SaleProductFilterErrorState = (
 		type: "FilterErrorState",
 	}),
 	error,
+	pagination: copyWithPagination(state.pagination, { error: error.message }),
 });

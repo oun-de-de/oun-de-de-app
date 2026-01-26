@@ -25,6 +25,7 @@ export interface SaleProductRepository extends DisposeAble {
 		limit?: number;
 		search?: string;
 		filters?: SaleFilters;
+		categoryIds?: (string | number)[];
 	}): Promise<Pagination<SaleProduct>>;
 
 	// Actions
@@ -89,7 +90,6 @@ export class SaleProductRepositoryImpl implements SaleProductRepository {
 		const item = this._items.get(id);
 
 		if (!item) {
-			// Trigger async fetch in background
 			this.getItem(id);
 		}
 
@@ -121,6 +121,7 @@ export class SaleProductRepositoryImpl implements SaleProductRepository {
 		limit?: number;
 		search?: string;
 		filters?: SaleFilters;
+		categoryIds?: (string | number)[];
 	}): Promise<Pagination<SaleProduct>> {
 		const pagination = await this.api.getProducts(params);
 		this._cacheItems(pagination.list);
