@@ -1,23 +1,62 @@
 import styled from "styled-components";
-import { ChangeEvent } from "react";
+import { ChangeEvent, useDeferredValue, useEffect, useRef, useState } from "react";
 import { Icon } from "@/core/components/icon";
 import { Input as BaseInput } from "@/core/ui/input";
 import { cn } from "@/core/utils";
 import { ClearIconButton } from "../button/clear-button";
+import { useUpdateEffect } from "react-use";
 
 interface SearchInputProps {
-	value: string;
-	onChange: (val: string) => void;
+	defaultValue?: string;
+	onSearchChange?: (val: string) => void;
+	onDeferredSearchChange?: (val: string) => void;
 	placeholder?: string;
 	className?: string;
 }
 
-export function SearchInput({ value, onChange, placeholder = "Search...", className }: SearchInputProps) {
-	const handleChange = (e: ChangeEvent<HTMLInputElement>) => onChange(e.target.value);
-	const handleClear = () => onChange("");
+export function SearchInput({
+	defaultValue = "",
+	onSearchChange,
+	onDeferredSearchChange,
+	placeholder = "Search...",
+	className,
+}: SearchInputProps) {
+	const [value, setValue] = useState(defaultValue);
+	const deferredValue = useDeferredValue(value);
+	const timerRef = useRef<number | null>(null);
+
+	useEffect(() => {
+		onSearchChange?.(value);
+	}, [value, onSearchChange]);
+
+	useUpdateEffect(() => {
+		if (!onDeferredSearchChange) return;
+
+		if (timerRef.current) {
+			clearTimeout(timerRef.current);
+		}
+
+		timerRef.current = window.setTimeout(() => {
+			onDeferredSearchChange(deferredValue);
+		}, 300);
+
+		return () => {
+			if (timerRef.current) {
+				clearTimeout(timerRef.current);
+			}
+		};
+	}, [deferredValue, onDeferredSearchChange]);
+
+	const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+		setValue(e.target.value);
+	};
+
+	const handleClear = () => {
+		setValue("");
+	};
 
 	return (
-		<Wrapper className={cn(className, "px-1")} style={{ position: "relative" }}>
+		<Wrapper className={cn(className, "px-1")}>
 			<Input
 				id="search-input"
 				name="search"
@@ -26,13 +65,20 @@ export function SearchInput({ value, onChange, placeholder = "Search...", classN
 				onChange={handleChange}
 				placeholder={placeholder}
 			/>
+
 			{value && (
 				<ClearIconButton
 					onClick={handleClear}
 					ariaLabel="Clear search"
-					style={{ position: "absolute", right: 72, top: "50%", transform: "translateY(-50%)" }}
+					style={{
+						position: "absolute",
+						right: 72,
+						top: "50%",
+						transform: "translateY(-50%)",
+					}}
 				/>
 			)}
+
 			<IconButton type="button">
 				<IconStack>
 					<Icon icon="mdi:account" size={18} />

@@ -58,7 +58,7 @@ export default function SaleLeftContent() {
 					<Container className="py-3">
 						<SaleLeftCollapsible formSaleFilters={state.filters} onChange={filterProducts} />
 						<ChoiceChipsPromise value={state.selectedCategories} onChange={selectCategories} />
-						<SearchInput value={state.search ?? ""} onChange={searchProducts} />
+						<SearchInput onDeferredSearchChange={searchProducts} />
 						<GridSection className="pl-1">
 							<SaleProductList
 								ref={saleProductListRef}
