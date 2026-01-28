@@ -9,9 +9,9 @@ import {
 } from "@tanstack/react-table";
 import { useEffect, useState } from "react";
 import styled from "styled-components";
+import { cn } from "@/core/utils";
 import { TableFilterBar } from "./table-filter-bar";
 import { TablePagination } from "./table-pagination";
-import { cn } from "@/core/utils";
 
 /**
  * Configuration for the Table Filter Bar.
@@ -214,12 +214,13 @@ export function SmartDataTable<T extends object>({
 							{table.getHeaderGroups().map((headerGroup) => (
 								<tr key={headerGroup.id}>
 									{headerGroup.headers.map((header) => {
+										const meta = header.column.columnDef.meta as { className?: string } | undefined;
 										return (
 											<th
 												key={header.id}
 												className={cn(
-													`px-3 py-3 text-center border-r border-gray-300 last:border-r-0`,
-													header.column.columnDef.meta?.headerClassName,
+													"px-3 py-3 text-center border-r border-gray-300 last:border-r-0",
+													meta?.className,
 												)}
 												onClick={header.column.getToggleSortingHandler()}
 											>
@@ -241,8 +242,12 @@ export function SmartDataTable<T extends object>({
 								table.getRowModel().rows.map((row) => (
 									<TableRow key={row.id}>
 										{row.getVisibleCells().map((cell) => {
+											const meta = cell.column.columnDef.meta as { className?: string } | undefined;
 											return (
-												<td key={cell.id} className={`px-3 py-2 border-r border-gray-300 last:border-r-0`}>
+												<td
+													key={cell.id}
+													className={cn("px-3 py-2 border-r border-gray-300 last:border-r-0", meta?.className)}
+												>
 													{flexRender(cell.column.columnDef.cell, cell.getContext())}
 												</td>
 											);

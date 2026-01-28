@@ -7,9 +7,17 @@ type SettingsFormProps = {
 	onCancel?: () => void;
 	defaultValues?: DefaultFormData;
 	mode?: "create" | "edit";
+	showTitle?: boolean;
 };
 
-export function SettingsForm({ activeItem, onSubmit, onCancel, defaultValues, mode = "create" }: SettingsFormProps) {
+export function SettingsForm({
+	activeItem,
+	onSubmit,
+	onCancel,
+	defaultValues,
+	mode = "create",
+	showTitle = true,
+}: SettingsFormProps) {
 	const fields = SETTINGS_FIELDS[activeItem] || DEFAULT_FIELDS;
 	const title = mode === "create" ? `Add ${activeItem}` : `Edit ${activeItem}`;
 
@@ -25,6 +33,7 @@ export function SettingsForm({ activeItem, onSubmit, onCancel, defaultValues, mo
 			inputVariant="default"
 			inputSize="md"
 			columns={2}
+			showTitle={showTitle}
 		/>
 	);
 }

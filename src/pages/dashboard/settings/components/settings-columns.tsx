@@ -2,13 +2,22 @@ import type { ColumnDef } from "@tanstack/react-table";
 import Icon from "@/core/components/icon/icon";
 import type { SettingsRow } from "@/core/types/common";
 import { Button } from "@/core/ui/button";
-import { settingsSidebarBoundStore } from "../stores/settings-sidebar";
+import { getSettingsSidebarActions } from "../stores";
 
 export const columns: ColumnDef<SettingsRow>[] = [
 	{
 		header: "Name",
 		accessorKey: "name",
 		meta: { className: "text-sky-600" },
+		cell: ({ row }) => (
+			<Button
+				variant="linkSecondary"
+				className="h-auto p-0 font-normal text-sky-600"
+				onClick={() => getSettingsSidebarActions().openEditForm(row.original)}
+			>
+				{row.original.name}
+			</Button>
+		),
 	},
 	{
 		header: "Type",
@@ -23,7 +32,8 @@ export const columns: ColumnDef<SettingsRow>[] = [
 			<Button
 				variant="ghost"
 				size="sm"
-				onClick={() => settingsSidebarBoundStore.useAction().openEditForm(row.original)}
+				className="cursor-pointer"
+				onClick={() => getSettingsSidebarActions().openEditForm(row.original)}
 			>
 				<Icon icon="mdi:pencil" className="h-4 w-4" />
 			</Button>
