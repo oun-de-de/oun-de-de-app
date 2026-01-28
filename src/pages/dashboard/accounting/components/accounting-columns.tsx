@@ -28,13 +28,15 @@ export const columns = [
 	columnHelper.accessor("dr", {
 		header: "DR",
 		meta: {
-			className: "text-right",
+			headerClassName: "text-right",
+			bodyClassName: "text-right",
 		},
 	}),
 	columnHelper.accessor("cr", {
 		header: "CR",
 		meta: {
-			className: "text-right font-semibold",
+			headerClassName: "text-right",
+			bodyClassName: "text-right font-semibold",
 		},
 	}),
 ];

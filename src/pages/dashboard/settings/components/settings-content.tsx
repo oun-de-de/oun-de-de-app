@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/core/ui/dial
 import { Input } from "@/core/ui/input";
 import { Text } from "@/core/ui/typography";
 
-import { useFormState, useSettingsSidebarActions } from "../stores/settings-sidebar";
+import { useFormState, useSettingsSidebarActions } from "../stores";
 import { columns } from "./settings-columns";
 import { SettingsForm } from "./settings-form/settings-form";
 
@@ -28,13 +28,12 @@ export function SettingsContent({ activeItem }: SettingsContentProps) {
 	// Filter based on active item (mock logic)
 	const filteredRows = settingsRows.filter((row) => row.name.toLowerCase().includes(search.toLowerCase()));
 
-	const handleSave = async (data: Record<string, unknown>) => {
+	const handleSave = async (_data: Record<string, unknown>) => {
+		// Simulate API call
 		if (formMode === "create") {
-			console.log("Creating:", data);
-			toast.success(`${activeItem} created successfully`);
+			toast.success(`${activeItem} has been created`);
 		} else {
-			console.log("Updating:", data);
-			toast.success(`${activeItem} updated successfully`);
+			toast.success(`${activeItem} has been updated`);
 		}
 		closeForm();
 	};
@@ -76,7 +75,7 @@ export function SettingsContent({ activeItem }: SettingsContentProps) {
 			<Dialog open={showForm} onOpenChange={(open) => !open && closeForm()}>
 				<DialogContent className="max-w-lg">
 					<DialogHeader>
-						<DialogTitle className="sr-only">
+						<DialogTitle className="text-sky-600">
 							{formMode === "create" ? `Add ${activeItem}` : `Edit ${activeItem}`}
 						</DialogTitle>
 					</DialogHeader>
@@ -86,6 +85,7 @@ export function SettingsContent({ activeItem }: SettingsContentProps) {
 						onCancel={closeForm}
 						mode={formMode}
 						defaultValues={editItem ? { name: editItem.name, type: editItem.type } : undefined}
+						showTitle={false}
 					/>
 				</DialogContent>
 			</Dialog>

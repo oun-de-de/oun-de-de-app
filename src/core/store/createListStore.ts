@@ -8,15 +8,15 @@ export type ListState = {
 	pageSize: number;
 };
 
-type ListStore = {
-	state: ListState;
+type ListStore<T extends ListState> = {
+	state: T;
 	actions: {
-		updateState: (next: Partial<ListState>) => void;
+		updateState: (next: Partial<T>) => void;
 	};
 };
 
-export const createListStore = (initialState: ListState) =>
-	create<ListStore>((set) => ({
+export const createListStore = <T extends ListState>(initialState: T) =>
+	create<ListStore<T>>((set) => ({
 		state: initialState,
 		actions: {
 			updateState: (next) =>

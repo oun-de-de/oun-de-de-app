@@ -37,7 +37,7 @@ export const columns: ColumnDef<VendorTransactionRow>[] = [
 	{
 		header: "Amount",
 		cell: ({ row }) => <span className="font-semibold">{fNumber(row.original.amount)} KHR</span>,
-		meta: { className: "text-right" },
+		meta: { headerClassName: "text-right", bodyClassName: "text-right" },
 	},
 	{
 		header: "Memo",

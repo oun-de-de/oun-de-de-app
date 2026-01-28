@@ -11,6 +11,9 @@ export function getFrontendDashboardRoutes(): RouteObject[] {
 		{ path: "dashboard/reports", element: Component("/pages/dashboard/reports") },
 		{ path: "dashboard/settings", element: Component("/pages/dashboard/settings") },
 		{ path: "dashboard/audit-log", element: Component("/pages/dashboard/audit-log") },
+		{ path: "dashboard/borrow", element: Component("/pages/dashboard/borrow") },
+		{ path: "dashboard/borrow/new", element: Component("/pages/dashboard/borrow/create") },
+		{ path: "dashboard/borrow/payment", element: Component("/pages/dashboard/borrow/payment") },
 	];
 	return frontendDashboardRoutes;
 }
