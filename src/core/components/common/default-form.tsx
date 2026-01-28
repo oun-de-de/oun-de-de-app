@@ -1,4 +1,5 @@
 import { cva, type VariantProps } from "class-variance-authority";
+import type { ComponentProps } from "react";
 import { useForm } from "react-hook-form";
 import { FormActions, FormProvider, FormSelect, FormSwitch, FormTextarea, FormTextField } from "@/core/components/form";
 import { Text } from "@/core/ui/typography";
@@ -7,10 +8,10 @@ import { cn } from "@/core/utils";
 const defaultFormVariants = cva("flex flex-col bg-white rounded-lg", {
 	variants: {
 		variant: {
-			default: "gap-4 p-4 border space-y-4",
-			compact: "gap-2 p-2 space-y-2",
-			inline: "flex-row items-end gap-4",
-			card: "gap-4 p-6 shadow-md border space-y-4",
+			default: "p-4 border space-y-4 gap-4",
+			compact: "space-y-2 gap-2",
+			inline: "flex-row items-end",
+			card: "p-6 shadow-md border space-y-4 gap-4",
 		},
 		size: {
 			default: "",
@@ -24,12 +25,12 @@ const defaultFormVariants = cva("flex flex-col bg-white rounded-lg", {
 	},
 });
 
-const formGridVariants = cva("", {
+const formGridVariants = cva("gap-6", {
 	variants: {
 		columns: {
-			1: "grid grid-cols-1 gap-4",
-			2: "grid grid-cols-1 md:grid-cols-2 gap-4",
-			3: "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4",
+			1: "grid grid-cols-1",
+			2: "grid grid-cols-1 md:grid-cols-2",
+			3: "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3",
 		},
 	},
 	defaultVariants: {
@@ -64,6 +65,7 @@ export type DefaultFormProps = VariantProps<typeof defaultFormVariants> & {
 	inputVariant?: "default" | "filled" | "ghost";
 	inputSize?: "sm" | "md" | "lg";
 	disableWhenClean?: boolean;
+	actionsVariant?: ComponentProps<typeof FormActions>["variant"];
 };
 
 export function DefaultForm({
@@ -82,6 +84,7 @@ export function DefaultForm({
 	inputVariant = "default",
 	inputSize = "md",
 	disableWhenClean = false,
+	actionsVariant,
 }: DefaultFormProps) {
 	const buildDefaultValues = () => {
 		const values: DefaultFormData = {};
@@ -147,6 +150,7 @@ export function DefaultForm({
 					cancelLabel={cancelLabel}
 					onCancel={onCancel}
 					disableWhenClean={disableWhenClean}
+					variant={actionsVariant}
 				/>
 			</FormProvider>
 		</div>

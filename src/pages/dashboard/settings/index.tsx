@@ -5,8 +5,17 @@ import { Button } from "@/core/ui/button";
 import { Card, CardContent } from "@/core/ui/card";
 import { SettingsContent } from "./components/settings-content";
 import { SettingsSidebar } from "./components/settings-sidebar";
+import { SettingsProvider } from "./settings-provider";
 
 export default function SettingsPage() {
+	return (
+		<SettingsProvider>
+			<SettingsView />
+		</SettingsProvider>
+	);
+}
+
+function SettingsView() {
 	const [activeTab, setActiveTab] = useState(settingsTopTabs[0]);
 	const [activeItem, setActiveItem] = useState(settingsLeftMenu[0]);
 

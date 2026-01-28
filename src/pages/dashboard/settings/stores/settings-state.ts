@@ -1,15 +1,11 @@
 import type { SettingsRow } from "@/core/types/common";
 import type { BaseState } from "@/core/types/state";
 
-type SettingsSidebarType =
-	| "InitialState"
-	| "SelectItemLoadingState"
-	| "SelectItemSuccessState"
-	| "SelectItemErrorState";
+type SettingsType = "InitialState" | "SelectItemLoadingState" | "SelectItemSuccessState" | "SelectItemErrorState";
 
 type FormMode = "create" | "edit";
 
-export type SettingsSidebarState = BaseState<SettingsSidebarType> & {
+export type SettingsState = BaseState<SettingsType> & {
 	activeItem: string;
 	items: string[];
 	// Form state
@@ -18,7 +14,7 @@ export type SettingsSidebarState = BaseState<SettingsSidebarType> & {
 	formMode: FormMode;
 };
 
-export const SettingsSidebarInitialState = (items: string[]): SettingsSidebarState => ({
+export const SettingsInitialState = (items: string[]): SettingsState => ({
 	type: "InitialState",
 	activeItem: items[0] ?? "",
 	items,
@@ -27,7 +23,7 @@ export const SettingsSidebarInitialState = (items: string[]): SettingsSidebarSta
 	formMode: "create",
 });
 
-export const _SettingsSidebarState = ({
+export const _SettingsState = ({
 	state,
 	type,
 	activeItem,
@@ -36,14 +32,14 @@ export const _SettingsSidebarState = ({
 	editItem,
 	formMode,
 }: {
-	state: SettingsSidebarState;
-	type: SettingsSidebarType;
+	state: SettingsState;
+	type: SettingsType;
 	activeItem?: string;
 	items?: string[];
 	showForm?: boolean;
 	editItem?: SettingsRow | null;
 	formMode?: FormMode;
-}): SettingsSidebarState => ({
+}): SettingsState => ({
 	type,
 	activeItem: activeItem ?? state.activeItem,
 	items: items ?? state.items,
