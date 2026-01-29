@@ -1,4 +1,4 @@
-import { Left, Right, type Either } from "@/core/types/either";
+import { Left, Right, type Either } from "@/core/interfaces/either";
 import { Failure, type FailureType } from "@/core/types/failure";
 import execute from "@/core/utils/execute";
 import { DailyIncomeAccounting } from "../entities/daily-income";

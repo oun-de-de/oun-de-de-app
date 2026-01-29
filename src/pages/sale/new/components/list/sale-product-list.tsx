@@ -1,13 +1,12 @@
 import { forwardRef } from "react";
 import styled from "styled-components";
-import { ProductCard, ProductCardData } from "../cards/product-card";
+import { ProductCard } from "../cards/product-card";
 import { UsePaginationOptions } from "@/core/hooks/use-pagination";
 import { PagedGrid, PagedGridRef } from "@/core/components/pagination/paged-grid";
 import SaleProductListEmpty from "./sale-product-list-empty";
 import { SaleProductListLoading } from "./sale-product-list-loading";
 import { Spinner } from "@/core/components/common/spinner";
-
-export type SaleProduct = ProductCardData;
+import { SaleProduct } from "@/core/domain/sales/entities/sale-product";
 
 interface SaleProductListProps {
 	pagination?: UsePaginationOptions<SaleProduct>["initialPagination"];

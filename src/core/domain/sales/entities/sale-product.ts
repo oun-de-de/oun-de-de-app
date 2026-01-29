@@ -4,6 +4,7 @@ export type SaleProduct = {
 	id: string | number;
 	name: string;
 	price: number;
+	amount: number;
 	currency?: string;
 	imageUrl?: string;
 

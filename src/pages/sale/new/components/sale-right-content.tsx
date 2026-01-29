@@ -2,12 +2,18 @@ import { styled } from "styled-components";
 import { RefNoInput } from "./inputs/ref-no-input";
 import { CartTable } from "./table/cart-table";
 import { CartActions } from "./actions/cart-actions";
+import Repository from "@/service-locator";
+import { SaleCartRepository, SaleCartRepositoryImpl } from "@/core/domain/sales/repositories/sale-cart-repository";
+import { useObservable } from "@/core/theme/hooks/use-observable";
 
 export default function SaleRightContent() {
+	const cartRepo = Repository.get<SaleCartRepository>(SaleCartRepositoryImpl);
+	const itemsStream = useObservable(cartRepo.itemsStream$, cartRepo.items());
+
 	return (
 		<Container>
 			<RefNoInput />
-			<CartTable />
+			<CartTable data={itemsStream} />
 			<Separator />
 			<CartActions />
 		</Container>

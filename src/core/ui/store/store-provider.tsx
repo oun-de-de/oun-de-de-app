@@ -1,7 +1,7 @@
 import { ReactNode, useContext, useEffect, useRef } from "react";
 import type { createBoundStore } from "../../utils/create-bound-store";
 import { createTaggedLogger } from "../../utils/logger";
-import { isInitAble } from "../../types/init-able";
+import { isInitAble } from "../../interfaces/init-able";
 import { useStore as useStoreFromMulti, SingleStoreContext } from "./multi-store-provider";
 
 const logger = createTaggedLogger("StoreProvider");

@@ -4,13 +4,16 @@ import { SearchInput } from "./filters";
 import ChoiceChipsPromise from "./promise/choice-chips-promise";
 import { SaleProductStore } from "../stores/sale-products/sale-products-store";
 import { useStore } from "@/core/ui/store/multi-store-provider";
-import { SaleProduct, SaleProductList } from "./list/sale-product-list";
+import { SaleProductList } from "./list/sale-product-list";
 import { StoreConsumer } from "@/core/ui/store/store-consumer";
 import { useRef } from "react";
 import { PagedGridRef } from "@/core/components/pagination/paged-grid";
 import { SaleProductState } from "../stores/sale-products/sale-product-state";
 import { isLoadingState } from "@/core/types/state";
 import { loadingOverlay } from "@/core/components/loading";
+import Repository from "@/service-locator";
+import { SaleCartRepository, SaleCartRepositoryImpl } from "@/core/domain/sales/repositories/sale-cart-repository";
+import { SaleProduct } from "@/core/domain/sales/entities/sale-product";
 
 export default function SaleLeftContent() {
 	const store = useStore<SaleProductStore>("saleProductsStore");
@@ -49,6 +52,12 @@ export default function SaleLeftContent() {
 		}
 	};
 
+	const cartRepo = Repository.get<SaleCartRepository>(SaleCartRepositoryImpl);
+
+	const onProductClick = (product: SaleProduct) => {
+		cartRepo.addItem(product);
+	};
+
 	return (
 		<StoreConsumer<SaleProductStore>
 			store={store}
@@ -69,7 +78,7 @@ export default function SaleLeftContent() {
 								onInitial={loadFirstPage}
 								onRefresh={reloadPage}
 								onLoadMore={loadMorePage}
-								// onProductClick={state.onProductClick}
+								onProductClick={onProductClick}
 							/>
 						</GridSection>
 					</Container>

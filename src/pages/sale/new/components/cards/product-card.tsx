@@ -1,17 +1,9 @@
+import { SaleProduct } from "@/core/domain/sales/entities/sale-product";
 import styled from "styled-components";
-
-export type ProductCardData = {
-	id: string | number;
-	name: string;
-	price: number;
-	currency?: string;
-	imageUrl?: string;
-};
-
 interface ProductCardProps {
-	item: ProductCardData;
+	item: SaleProduct;
 	height?: number;
-	onClick?: (item: ProductCardData) => void;
+	onClick?: (item: SaleProduct) => void;
 }
 
 function formatPrice(value: number, currency?: string) {

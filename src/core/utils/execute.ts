@@ -1,4 +1,4 @@
-import { Left, type Either } from "@/core/types/either";
+import { Left, type Either } from "@/core/interfaces/either";
 import { type FailureType, Failure } from "@/core/types/failure";
 import axios, { type AxiosError } from "axios";
 import { debugLogger } from "@/core/utils/logger";

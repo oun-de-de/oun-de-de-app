@@ -1,4 +1,4 @@
-import { BaseStore } from "@/core/types/base-store";
+import { BaseStore } from "@/core/interfaces/base-store";
 import { StateListener, StateSelector, StoreListener } from "./store-listener";
 import { createBoundStore } from "@/core/utils/create-bound-store";
 import { ReactNode } from "react";

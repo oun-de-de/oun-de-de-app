@@ -7,7 +7,7 @@ import {
 } from "./states/get-state";
 import { FilterData } from "../../../../../core/domain/dashboard/entities/filter";
 import { GetIncomeAccountingListUseCase } from "../../../../../core/domain/dashboard/usecases/get-income-account-list-use-case";
-import { BaseStore } from "@/core/types/base-store";
+import { BaseStore } from "@/core/interfaces/base-store";
 import {
 	DailyIncomeAccountingRepository,
 	DailyIncomeAccountingRepositoryImpl,

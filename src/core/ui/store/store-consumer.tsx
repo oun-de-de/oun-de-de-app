@@ -1,6 +1,6 @@
 import { useRef, useMemo, ReactNode } from "react";
 import type { createBoundStore } from "../../utils/create-bound-store";
-import { BaseStore } from "../../types/base-store";
+import { BaseStore } from "../../interfaces/base-store";
 
 /**
  * Builder callback that receives state and returns ReactNode

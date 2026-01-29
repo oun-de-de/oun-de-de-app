@@ -158,6 +158,7 @@ const saleGetProducts = http.get("/api/v1/sale/products", ({ request }) => {
 			id,
 			name,
 			price: Number(faker.commerce.price({ min: 50, max: 500 })),
+			amount: Number(faker.commerce.price({ min: 50, max: 500 })),
 			currency: "USD",
 			imageUrl: faker.image.urlPicsumPhotos({ width: 200, height: 200, grayscale: false }),
 			date: date || faker.date.recent({ days: 30 }).toLocaleDateString("en-GB"),

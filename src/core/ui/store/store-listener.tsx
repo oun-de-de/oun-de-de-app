@@ -1,6 +1,6 @@
 import { ReactNode, useEffect, useRef } from "react";
 import type { createBoundStore } from "../../utils/create-bound-store";
-import { BaseStore } from "../../types/base-store";
+import { BaseStore } from "../../interfaces/base-store";
 
 /**
  * Listener callback that receives state changes

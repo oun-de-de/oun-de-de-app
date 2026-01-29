@@ -1,7 +1,7 @@
 import { SaleCategory } from "@/core/domain/sales/entities/sale-category";
 import { SaleFilters } from "@/core/domain/sales/entities/sale-filter";
 import { SaleProduct } from "@/core/domain/sales/entities/sale-product";
-import { BaseStore } from "@/core/types/base-store";
+import { BaseStore } from "@/core/interfaces/base-store";
 import { copyWithPagination, Pagination } from "@/core/types/pagination";
 import {
 	SaleProductFilterErrorState,

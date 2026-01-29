@@ -1,15 +1,16 @@
 import { BehaviorSubject, Subject, Observable } from "rxjs";
 import type { SaleProduct } from "../entities/sale-product";
 import type { Pagination } from "@/core/types/pagination";
-import type { DisposeAble } from "@/core/types/dispose-able";
+import type { DisposeAble } from "@/core/interfaces/dispose-able";
 import type { SaleFilters } from "../entities/sale-filter";
 import { SaleProductApi } from "@/core/api/services/saleService";
 import { AsyncDeduplicator } from "@/core/types/async-deduplicator";
+import { ClearAble } from "@/core/interfaces/clear-able";
 
 /**
  * Sale Product Repository interface
  */
-export interface SaleProductRepository extends DisposeAble {
+export interface SaleProductRepository extends ClearAble, DisposeAble {
 	// Streams
 	readonly itemStream$: Observable<SaleProduct>;
 	readonly clearStream$: Observable<void>;
@@ -30,7 +31,6 @@ export interface SaleProductRepository extends DisposeAble {
 
 	// Actions
 	refresh(identity?: unknown): void;
-	clear(): void;
 }
 
 /**

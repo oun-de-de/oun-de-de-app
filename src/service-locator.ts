@@ -35,8 +35,9 @@ import {
 	SaleProductRepositoryImpl,
 } from "./core/domain/sales/repositories/sale-product-repository";
 import { SaleApiImpl } from "./core/api/services/saleService";
-import { InitAble, isInitAble } from "./core/types/init-able";
-import { DisposeAble, isDisposeAble } from "./core/types/dispose-able";
+import { InitAble, isInitAble } from "./core/interfaces/init-able";
+import { DisposeAble, isDisposeAble } from "./core/interfaces/dispose-able";
+import { SaleCartRepository, SaleCartRepositoryImpl } from "./core/domain/sales/repositories/sale-cart-repository";
 
 class Repository {
 	private constructor() {}
@@ -155,6 +156,9 @@ class Repository {
 
 		// Sale Product
 		Repository.register<SaleProductRepository>(new SaleProductRepositoryImpl(new SaleApiImpl()));
+
+		// Sale Cart
+		Repository.register<SaleCartRepository>(new SaleCartRepositoryImpl());
 	}
 }
 

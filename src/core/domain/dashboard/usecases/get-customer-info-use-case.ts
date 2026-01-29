@@ -1,4 +1,4 @@
-import { Right, type Either } from "@/core/types/either";
+import { Right, type Either } from "@/core/interfaces/either";
 import { type FailureType } from "@/core/types/failure";
 import execute from "@/core/utils/execute";
 import { type CustomerInfoRepository } from "../repositories/customer-info-repository";

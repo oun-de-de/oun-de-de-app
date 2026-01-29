@@ -7,7 +7,7 @@ import {
 	DailyIncomePosLoadFirstSuccessState,
 } from "./states/get-state";
 import { FilterData } from "../../../../../core/domain/dashboard/entities/filter";
-import { BaseStore } from "@/core/types/base-store";
+import { BaseStore } from "@/core/interfaces/base-store";
 import {
 	DailyIncomePosRepository,
 	DailyIncomePosRepositoryImpl,

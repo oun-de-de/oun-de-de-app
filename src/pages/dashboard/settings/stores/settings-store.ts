@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { settingsLeftMenu } from "@/_mock/data/dashboard";
-import type { BaseStore } from "@/core/types/base-store";
+import type { BaseStore } from "@/core/interfaces/base-store";
 import type { SettingsRow } from "@/core/types/common";
 import { StorageEnum } from "@/core/types/enum";
 import { createBoundStore } from "@/core/utils/create-bound-store";

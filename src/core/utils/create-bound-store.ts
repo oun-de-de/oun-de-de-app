@@ -1,5 +1,5 @@
 import { StoreApi, UseBoundStore } from "zustand";
-import { BaseStore } from "../types/base-store";
+import { BaseStore } from "../interfaces/base-store";
 
 export function createBoundStore<Store extends BaseStore<Store["state"], Store["actions"]>>({
 	createStore,

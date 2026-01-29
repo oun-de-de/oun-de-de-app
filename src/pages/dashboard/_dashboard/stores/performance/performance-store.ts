@@ -10,7 +10,7 @@ import {
 	PerformanceRepository,
 	PerformanceRepositoryImpl,
 } from "@/core/domain/dashboard/repositories/performance-repository";
-import { BaseStore } from "@/core/types/base-store";
+import { BaseStore } from "@/core/interfaces/base-store";
 import { Repository } from "@/service-locator";
 import { createBoundStore } from "@/core/utils/create-bound-store";
 

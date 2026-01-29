@@ -1,6 +1,6 @@
 import { DashboardApi } from "@/core/api/services/dashboardService";
 import LocalStorageService from "@/core/services/storages/local-storage";
-import type { DisposeAble } from "@/core/types/dispose-able";
+import type { DisposeAble } from "@/core/interfaces/dispose-able";
 import { BehaviorSubject, Observable } from "rxjs";
 import { FilterData } from "../entities/filter";
 

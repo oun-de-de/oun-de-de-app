@@ -3,7 +3,7 @@ import { SaleProductRepository } from "../repositories/sale-product-repository";
 import { SaleProduct } from "../entities/sale-product";
 import execute from "@/core/utils/execute";
 import { SaleFilters } from "../entities/sale-filter";
-import { Either, Right } from "@/core/types/either";
+import { Either, Right } from "@/core/interfaces/either";
 import { FailureType } from "@/core/types/failure";
 import { updatePage } from "@/core/utils/pagination";
 

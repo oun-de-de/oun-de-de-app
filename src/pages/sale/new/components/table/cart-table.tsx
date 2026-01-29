@@ -3,18 +3,10 @@ import { useMemo } from "react";
 import { CellContext } from "@tanstack/react-table";
 import { Icon } from "@/core/components/icon";
 import { cn } from "@/core/utils";
-
-export interface CartTableItem {
-	id: string | number;
-	no: number;
-	item: string;
-	qty: number;
-	price: number;
-	amount: number;
-}
+import { SaleProduct } from "@/core/domain/sales/entities/sale-product";
 
 export interface CartTableProps {
-	data?: CartTableItem[];
+	data?: SaleProduct[];
 	className?: string;
 }
 
@@ -23,12 +15,13 @@ export function CartTable({ data = [], className }: CartTableProps) {
 		() => [
 			{
 				header: "NO",
-				accessorKey: "no",
-				meta: { headerClassName: "w-12" },
+				id: "no",
+				meta: { headerClassName: "w-12", bodyClassName: "text-center" },
+				cell: ({ row }: CellContext<SaleProduct, unknown>) => row.index + 1,
 			},
 			{
 				header: "ITEM",
-				accessorKey: "item",
+				accessorKey: "name",
 				meta: { headerClassName: "w-100" },
 			},
 			{
@@ -38,22 +31,22 @@ export function CartTable({ data = [], className }: CartTableProps) {
 			{
 				header: "PRICE",
 				accessorKey: "price",
-				cell: (ctx: CellContext<CartTableItem, number>) => ctx.getValue()?.toLocaleString(),
+				cell: (ctx: CellContext<SaleProduct, number>) => ctx.getValue()?.toLocaleString(),
 			},
 			{
 				header: "AMOUNT",
 				accessorKey: "amount",
-				cell: (ctx: CellContext<CartTableItem, number>) => ctx.getValue()?.toLocaleString(),
+				cell: (ctx: CellContext<SaleProduct, number>) => ctx.getValue()?.toLocaleString(),
 				meta: { headerClassName: "w-60" },
 			},
 			{
-				header: () => <Icon icon="mdi:dots-vertical" size={20} />, // dùng icon dots
+				header: () => <Icon icon="mdi:dots-vertical" size={20} />,
 				id: "actions",
 				cell: () => null,
 				meta: { headerClassName: "w-12" },
 			},
 		],
-		[],
+		[data],
 	);
 
 	return <SmartDataTable data={data} columns={columns} className={cn("px-1", className)} />;

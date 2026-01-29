@@ -5,7 +5,7 @@ import {
 	CustomerInfoLoadFirstLoadingState,
 	CustomerInfoLoadFirstSuccessState,
 } from "./states/get-state";
-import { BaseStore } from "@/core/types/base-store";
+import { BaseStore } from "@/core/interfaces/base-store";
 import { GetCustomerInfoUseCase } from "@/core/domain/dashboard/usecases/get-customer-info-use-case";
 import {
 	CustomerInfoRepository,

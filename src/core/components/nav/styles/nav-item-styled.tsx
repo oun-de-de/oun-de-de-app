@@ -71,8 +71,8 @@ export const StyledNavItemLink = styled(RouterLink as any).withConfig({
 		}} !important;
 		background-color: ${({ theme, $disabled, $active, $depth }) => {
 			if ($disabled) return "transparent";
-			if ($active && $depth === 1) return theme.colors.common.black;
-			if ($active && $depth !== 1) return theme.colors.action.hover;
+			if ($active && $depth === 1) return theme.colors.common.white;
+			if ($active && $depth !== 1) return theme.colors.common.white;
 			return theme.colors.action.hover;
 		}} !important;
 		text-decoration: none !important;
