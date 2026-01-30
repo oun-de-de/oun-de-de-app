@@ -57,7 +57,7 @@
 			"sendSmsButton": "Send SMS code",
 			"sendSmsText": "Reacquire in {{second}}s",
 			"signInDesc": "Enter your personal details and get started!",
-			"signInFormTitle": "Login to your account",
+			"signInFormTitle": "Login",
 			"signInPrimaryTitle": "Hi, Welcome Back",
 			"signInSecondTitle": "Backstage management system",
 			"signInTitle": "",
