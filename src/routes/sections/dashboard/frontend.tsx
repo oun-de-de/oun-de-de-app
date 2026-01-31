@@ -5,6 +5,7 @@ export function getFrontendDashboardRoutes(): RouteObject[] {
 	const frontendDashboardRoutes: RouteObject[] = [
 		{ index: true, element: Component("/pages/dashboard/_dashboard") },
 		{ path: "dashboard/customers", element: Component("/pages/dashboard/customers") },
+		{ path: "dashboard/customers/create", element: Component("/pages/dashboard/customers/create") },
 		{ path: "dashboard/vendors", element: Component("/pages/dashboard/vendors") },
 		{ path: "dashboard/products", element: Component("/pages/dashboard/products") },
 		{ path: "dashboard/accounting", element: Component("/pages/dashboard/accounting") },

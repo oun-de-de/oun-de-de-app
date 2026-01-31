@@ -41,7 +41,7 @@ const formGridVariants = cva("gap-6", {
 export type FormFieldConfig = {
 	name: string;
 	label: string;
-	type: "text" | "number" | "select" | "switch" | "textarea";
+	type: "text" | "number" | "select" | "switch" | "textarea" | "date";
 	placeholder?: string;
 	required?: boolean;
 	options?: { label: string; value: string }[];
@@ -121,6 +121,9 @@ export function DefaultForm({
 
 			case "textarea":
 				return <FormTextarea {...commonProps} variant={inputVariant} size={inputSize} />;
+
+			case "date":
+				return <FormTextField {...commonProps} type="date" variant={inputVariant} size={inputSize} />;
 
 			default:
 				return (

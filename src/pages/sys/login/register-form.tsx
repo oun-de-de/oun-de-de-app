@@ -7,6 +7,7 @@ import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { ReturnButton } from "./components/ReturnButton";
 import { LoginStateEnum, useLoginStateContext } from "./providers/login-provider";
+import { toast } from "sonner";
 
 function RegisterForm() {
 	const { t } = useTranslation();
@@ -21,12 +22,15 @@ function RegisterForm() {
 			username: "",
 			// email: "",
 			password: "",
-			confirmPassword: "",
+			reEnteredPassword: "",
 		},
 	});
 
 	const onFinish = async (values: any) => {
-		await signUpMutation.mutateAsync(values);
+		const res = await signUpMutation.mutateAsync(values);
+		if (res) {
+			toast.success("Signed up successfully");
+		}
 		backToLogin();
 	};
 
@@ -92,14 +96,14 @@ function RegisterForm() {
 					rules={{
 						required: t("sys.login.passwordPlaceholder"),
 						validate: {
-							minLength: (value) => value.length >= 8 || "Password must be at least 8 characters long",
-							hasUppercase: (value) => /[A-Z]/.test(value) || "Password must include at least one uppercase letter",
-							hasLowercase: (value) => /[a-z]/.test(value) || "Password must include at least one lowercase letter",
-							hasNumber: (value) => /[0-9]/.test(value) || "Password must include at least one number",
-							hasSpecialChar: (value) =>
-								/[@#$!%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(value) ||
-								"Password must include at least one special character (e.g. @, #, $, !)",
-							noSpaces: (value) => !/\s/.test(value) || "Spaces are not allowed in password",
+							// minLength: (value) => value.length >= 8 || "Password must be at least 8 characters long",
+							// hasUppercase: (value) => /[A-Z]/.test(value) || "Password must include at least one uppercase letter",
+							// hasLowercase: (value) => /[a-z]/.test(value) || "Password must include at least one lowercase letter",
+							// hasNumber: (value) => /[0-9]/.test(value) || "Password must include at least one number",
+							// hasSpecialChar: (value) =>
+							// 	/[@#$!%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(value) ||
+							// 	"Password must include at least one special character (e.g. @, #, $, !)",
+							// noSpaces: (value) => !/\s/.test(value) || "Spaces are not allowed in password",
 						},
 					}}
 					render={({ field }) => (
@@ -120,7 +124,7 @@ function RegisterForm() {
 
 				<FormField
 					control={form.control}
-					name="confirmPassword"
+					name="reEnteredPassword"
 					rules={{
 						required: t("sys.login.confirmPasswordPlaceholder"),
 						validate: (value) => value === form.getValues("password") || t("sys.login.diffPwd"),

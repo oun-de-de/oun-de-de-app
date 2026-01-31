@@ -188,11 +188,11 @@ export class AuthNetworkService extends AxiosNetworkService {
 		this.axios.interceptors.response.use(
 			(res: AxiosResponse) => {
 				if (!res.data) throw new Error(t("sys.api.apiRequestFailed"));
-				const { status, data, message } = res.data;
+				const { status, data } = res;
 				if (status === ResultStatus.SUCCESS) {
 					return { ...res, data };
 				}
-				throw new Error(message || t("sys.api.apiRequestFailed"));
+				throw new Error(t("sys.api.apiRequestFailed"));
 			},
 			(error: AxiosError) => {
 				// Don't show error toast for 401 (handled by auth interceptor)
@@ -233,16 +233,33 @@ export class NoAuthNetworkService extends AxiosNetworkService {
 		this.axios.interceptors.response.use(
 			(res: AxiosResponse) => {
 				if (!res.data) throw new Error(t("sys.api.apiRequestFailed"));
+
 				const { status, data } = res;
-				if (status === ResultStatus.SUCCESS) {
+				if (status >= 200 && status < 300) {
 					return { ...res, data };
 				}
-				throw new Error(data?.message || t("sys.api.apiRequestFailed"));
+				throw new Error(t("sys.api.apiRequestFailed"));
 			},
 			(error: AxiosError) => {
-				const { message } = error || {};
-				const errMsg = message || t("sys.api.errorMessage");
-				toast.error(errMsg, { position: "top-center" });
+				if (error.response?.data) {
+					const errorData = error.response.data as any;
+
+					// Handle validation errors with fieldErrors
+					if (errorData.fieldErrors && Array.isArray(errorData.fieldErrors)) {
+						const fieldMessages = errorData.fieldErrors.map((fe: any) => `${fe.field}: ${fe.message}`).join("\n");
+						toast.error(fieldMessages, { position: "top-center" });
+						return Promise.reject(error);
+					}
+
+					// Handle general error with detail or title
+					const errMsg = errorData.detail || errorData.title || errorData.message || t("sys.api.errorMessage");
+					toast.error(errMsg, { position: "top-center" });
+				} else {
+					// Fallback for network errors
+					const errMsg = error.message || t("sys.api.errorMessage");
+					toast.error(errMsg, { position: "top-center" });
+				}
+
 				return Promise.reject(error);
 			},
 		);

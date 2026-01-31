@@ -1,7 +1,7 @@
 import type { NavItemDataProps } from "@/core/components/nav/types";
 import { GLOBAL_CONFIG } from "@/global-config";
 import { useUserRoles } from "@/core/services/auth/hooks/use-auth";
-import { checkAny } from "@/core/utils";
+// import { checkAny } from "@/core/utils";
 import { useMemo } from "react";
 import { backendNavData } from "./nav-data-backend";
 import { frontendNavData } from "./nav-data-frontend";
@@ -18,7 +18,7 @@ const navData = GLOBAL_CONFIG.routerMode === "backend" ? backendNavData : fronte
 const filterItems = (items: NavItemDataProps[], permissions: string[], roles: string[]) => {
 	return items.filter((item) => {
 		// Check if current item has required roles
-		const hasRole = item.roles ? checkAny(item.roles, roles) : true;
+		const hasRole = true; //item.roles ? checkAny(item.roles, roles) : true;
 
 		// If there are child items, process recursively
 		if (item.children?.length) {

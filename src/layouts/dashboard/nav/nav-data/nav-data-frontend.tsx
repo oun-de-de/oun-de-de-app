@@ -24,6 +24,7 @@ export const frontendNavData: NavProps["data"] = [
 				actions: [
 					{
 						title: "Create Customer",
+						path: "/dashboard/customers/create",
 					},
 					{
 						title: "Create Cash Sale",

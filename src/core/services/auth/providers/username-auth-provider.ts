@@ -45,7 +45,7 @@ export class AppUsernameAuthProvider implements UsernameAuthProvider<AppAuthAcco
 			throw new Error("Empty response from refresh API");
 		}
 
-		logger.debug("loginWithAuthToken response", response);
+		// logger.debug("loginWithAuthToken response", response);
 		return {
 			data: response,
 			credential: null,

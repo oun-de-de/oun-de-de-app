@@ -14,6 +14,10 @@ export const ROUTE_TITLE_MAPPINGS = [
 		title: "Customer Center",
 	},
 	{
+		path: "/dashboard/customers/create",
+		title: "Create Customer",
+	},
+	{
 		path: "/dashboard/vendors",
 		title: "Vendor Center",
 	},
