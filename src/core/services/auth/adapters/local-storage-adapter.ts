@@ -34,7 +34,7 @@ export class AuthLocalStorageAdapter implements AuthLocalStoragePlatform<AppAuth
 
 	async loadLocalAuthentication(): Promise<AppAuthAccount | null> {
 		const data = LocalStorageService.loadOrNull<AppAuthAccount>(AuthLocalStorageAdapter.AUTH_KEY);
-		debugger;
+
 		if (!data) {
 			return null;
 		}
