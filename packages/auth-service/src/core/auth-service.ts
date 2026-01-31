@@ -194,6 +194,7 @@ export abstract class AuthService<T extends AuthAccount<TData>, TData> {
 		}
 
 		const account = this.accountMapper.fromLogin(authLoginDTO, provider, credential);
+		debugger;
 
 		if (!options.updateUser) {
 			return account;
@@ -210,6 +211,7 @@ export abstract class AuthService<T extends AuthAccount<TData>, TData> {
 	 */
 	protected async updateCurrentUser(account: T, options: { saveLocal: boolean; notify: boolean }): Promise<T> {
 		this.currentUser = account;
+		debugger;
 
 		if (options.saveLocal && this.localStorage) {
 			try {
@@ -231,13 +233,14 @@ export abstract class AuthService<T extends AuthAccount<TData>, TData> {
 	 */
 	public async refreshAccessToken(account: T | null = null): Promise<T | null> {
 		const targetAccount = account ?? this.currentUser;
+		debugger;
 
-		if (!targetAccount?.refreshToken?.isValid) {
+		if (!targetAccount?.refresh_token?.isValid) {
 			throw new RefreshTokenFailedException("No valid refresh token available");
 		}
 
 		try {
-			const refreshedAccount = await this.authenticate(targetAccount.refreshToken, {
+			const refreshedAccount = await this.authenticate(targetAccount.refresh_token, {
 				updateUser: true,
 				saveLocal: true,
 				notify: true,

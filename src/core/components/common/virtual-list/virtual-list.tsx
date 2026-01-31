@@ -62,7 +62,7 @@ export function VirtualList<T>({
 const VirtualListContainer = styled.div<{ $height: string | number }>`
 	height: ${({ $height }) => (typeof $height === "number" ? `${$height}px` : $height)};
 	overflow-y: auto;
-	contain: layout;
+	contain: strict;
 	padding-right: 2px;
 	scrollbar-width: none;
 

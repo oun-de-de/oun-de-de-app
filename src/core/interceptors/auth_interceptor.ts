@@ -48,7 +48,7 @@ export class AuthInterceptor {
 		const refreshToken = authService.getRefreshToken();
 		const currentUser = authService.getCurrentUser();
 
-		if (refreshToken && currentUser?.refreshToken && !currentUser.refreshToken.isValid) {
+		if (refreshToken && currentUser?.refresh_token && !currentUser.refresh_token.isValid) {
 			await authService.logout();
 			this.showEndSessionDialog();
 			throw new Error("Refresh token is invalid");

@@ -16,15 +16,15 @@ export class AuthLocalStorageAdapter implements AuthLocalStoragePlatform<AppAuth
 			accountStatus: account.accountStatus,
 			providerId: account.providerId,
 			identity: account.identity,
-			accessToken: {
-				type: account.accessToken?.type,
-				value: account.accessToken?.value,
-				expiration: account.accessToken?.expiration,
+			access_token: {
+				type: account.access_token?.type,
+				value: account.access_token?.value,
+				expiration: account.access_token?.expiration,
 			},
-			refreshToken: {
-				type: account.refreshToken?.type,
-				value: account.refreshToken?.value,
-				expiration: account.refreshToken?.expiration,
+			refresh_token: {
+				type: account.refresh_token?.type,
+				value: account.refresh_token?.value,
+				expiration: account.refresh_token?.expiration,
 			},
 			data: account.data,
 		};
@@ -34,18 +34,18 @@ export class AuthLocalStorageAdapter implements AuthLocalStoragePlatform<AppAuth
 
 	async loadLocalAuthentication(): Promise<AppAuthAccount | null> {
 		const data = LocalStorageService.loadOrNull<AppAuthAccount>(AuthLocalStorageAdapter.AUTH_KEY);
-
+		debugger;
 		if (!data) {
 			return null;
 		}
 
 		// Reconstruct token instances from plain objects
-		const accessToken = data.accessToken?.value ? JWTToken.fromValue(data.accessToken.value) : null;
+		const access_token = data.access_token?.value ? JWTToken.fromValue(data.access_token.value) : null;
 
-		const refreshToken = data.refreshToken?.value
+		const refresh_token = data.refresh_token?.value
 			? new RefreshToken(
-					data.refreshToken.value,
-					data.refreshToken.expiration ? new Date(data.refreshToken.expiration) : null,
+					data.refresh_token.value,
+					data.refresh_token.expiration ? new Date(data.refresh_token.expiration) : null,
 				)
 			: null;
 
@@ -55,12 +55,12 @@ export class AuthLocalStorageAdapter implements AuthLocalStoragePlatform<AppAuth
 			accountStatus: data.accountStatus ?? AccountStatus.Unregistered,
 			providerId: data.providerId ?? "",
 			identity: data.identity ?? null,
-			accessToken,
-			refreshToken,
+			access_token: access_token,
+			refresh_token: refresh_token,
 			data: data.data,
 			isAuthenticated: data.authStatus === AuthenticationStatus.Authenticated,
-			hasValidAccessToken: accessToken?.isValid ?? false,
-			hasValidRefreshToken: refreshToken?.isValid ?? false,
+			hasValidAccessToken: access_token?.isValid ?? false,
+			hasValidRefreshToken: refresh_token?.isValid ?? false,
 		};
 	}
 

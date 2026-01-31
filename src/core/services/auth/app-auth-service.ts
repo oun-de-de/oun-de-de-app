@@ -57,14 +57,14 @@ export class AppAuthService extends AuthService<AppAuthAccount, AppUserData> {
 	 * Get access token for API requests
 	 */
 	getAccessToken(): string | null {
-		return this.getCurrentUser()?.accessToken?.value ?? null;
+		return this.getCurrentUser()?.access_token?.value ?? null;
 	}
 
 	/**
 	 * Get refresh token
 	 */
 	getRefreshToken(): string | null {
-		return this.getCurrentUser()?.refreshToken?.value ?? null;
+		return this.getCurrentUser()?.refresh_token?.value ?? null;
 	}
 
 	/**

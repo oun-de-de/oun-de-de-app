@@ -10,7 +10,7 @@ import axios, {
 } from "axios";
 import { NetworkResponse } from "../types/network-response";
 import { GLOBAL_CONFIG } from "@/global-config";
-import { Result } from "../types/api";
+// server-side `Result` wrapper is handled at runtime; keep typings generic here
 import { toast } from "sonner";
 import { ResultStatus } from "../types/enum";
 import { t } from "i18next";
@@ -186,7 +186,7 @@ export class AuthNetworkService extends AxiosNetworkService {
 
 		// Response interceptor for result handling
 		this.axios.interceptors.response.use(
-			(res: AxiosResponse<Result>) => {
+			(res: AxiosResponse) => {
 				if (!res.data) throw new Error(t("sys.api.apiRequestFailed"));
 				const { status, data, message } = res.data;
 				if (status === ResultStatus.SUCCESS) {
@@ -194,11 +194,11 @@ export class AuthNetworkService extends AxiosNetworkService {
 				}
 				throw new Error(message || t("sys.api.apiRequestFailed"));
 			},
-			(error: AxiosError<Result>) => {
+			(error: AxiosError) => {
 				// Don't show error toast for 401 (handled by auth interceptor)
 				if (error.response?.status !== 401) {
-					const { response, message } = error || {};
-					const errMsg = response?.data?.message || message || t("sys.api.errorMessage");
+					const { message } = error || {};
+					const errMsg = message || t("sys.api.errorMessage");
 					toast.error(errMsg, { position: "top-center" });
 				}
 				return Promise.reject(error);
@@ -231,17 +231,17 @@ export class NoAuthNetworkService extends AxiosNetworkService {
 	private setupInterceptors(): void {
 		// Response interceptor without auth handling
 		this.axios.interceptors.response.use(
-			(res: AxiosResponse<Result>) => {
+			(res: AxiosResponse) => {
 				if (!res.data) throw new Error(t("sys.api.apiRequestFailed"));
-				const { status, data, message } = res.data;
+				const { status, data } = res;
 				if (status === ResultStatus.SUCCESS) {
 					return { ...res, data };
 				}
-				throw new Error(message || t("sys.api.apiRequestFailed"));
+				throw new Error(data?.message || t("sys.api.apiRequestFailed"));
 			},
-			(error: AxiosError<Result>) => {
-				const { response, message } = error || {};
-				const errMsg = response?.data?.message || message || t("sys.api.errorMessage");
+			(error: AxiosError) => {
+				const { message } = error || {};
+				const errMsg = message || t("sys.api.errorMessage");
 				toast.error(errMsg, { position: "top-center" });
 				return Promise.reject(error);
 			},
