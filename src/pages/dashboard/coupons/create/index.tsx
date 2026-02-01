@@ -3,6 +3,7 @@ import { useNavigate } from "react-router";
 import { toast } from "sonner";
 import couponService from "@/core/api/services/couponService";
 import employeeService from "@/core/api/services/employeeService";
+import vehicleService from "@/core/api/services/vehicleService";
 import type { DefaultFormData } from "@/core/components/common";
 import type { CreateCouponRequest } from "@/core/types/coupon";
 import { Text } from "@/core/ui/typography";
@@ -22,10 +23,15 @@ export default function CreateCouponPage() {
 		value: emp.id,
 	}));
 
-	const vehicleOptions = [
-		{ label: "Truck - ABC123", value: "vehicle-1" },
-		{ label: "Car - XYZ789", value: "vehicle-2" },
-	];
+	const { data: vehicles } = useQuery({
+		queryKey: ["vehicles", "all"],
+		queryFn: () => vehicleService.getVehicleList(),
+	});
+
+	const vehicleOptions = (vehicles ?? []).map((v) => ({
+		label: `${v.vehicleType} - ${v.licensePlate}`,
+		value: v.id,
+	}));
 
 	const handleSubmit = async (data: DefaultFormData) => {
 		try {

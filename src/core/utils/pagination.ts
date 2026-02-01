@@ -80,7 +80,16 @@ export function updatePage<T>(pagination: Pagination<T>, newPagination: Paginati
 	});
 }
 
-export function mapPaginatedResponseToPagination<T>(response: PaginatedResponse<T>): Pagination<T> {
+export function mapPaginatedResponseToPagination<T>(response: PaginatedResponse<T> | T[]): Pagination<T> {
+	if (Array.isArray(response)) {
+		return {
+			list: response,
+			page: 1,
+			pageSize: response.length,
+			pageCount: 1,
+			total: response.length,
+		};
+	}
 	return {
 		list: response.content,
 		page: response.number + 1,

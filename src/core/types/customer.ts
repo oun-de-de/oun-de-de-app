@@ -1,7 +1,4 @@
-export interface Vehicle {
-	vehicleType: string;
-	licensePlate: string;
-}
+import type { CreateVehicle, Vehicle } from "./vehicle";
 
 export interface Customer {
 	id: string;
@@ -47,5 +44,5 @@ export interface CreateCustomer {
 	map: string;
 	billingAddress: string;
 	deliveryAddress: string;
-	vehicles: Vehicle[];
+	vehicles: CreateVehicle[];
 }

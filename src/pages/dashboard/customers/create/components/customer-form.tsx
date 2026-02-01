@@ -1,11 +1,15 @@
 import { useMemo } from "react";
 import { DefaultForm, type DefaultFormData, type FormFieldConfig } from "@/core/components/common";
+import type { CreateCustomer } from "@/core/types/customer";
 import { CUSTOMER_FIELDS } from "../constants/customer-fields";
+import { VehicleListField } from "./vehicle-list-field";
+
+export type CustomerFormData = DefaultFormData & { vehicles?: CreateCustomer["vehicles"] };
 
 type CustomerFormProps = {
-	onSubmit?: (data: DefaultFormData) => Promise<void> | void;
+	onSubmit?: (data: CustomerFormData) => Promise<void> | void;
 	onCancel?: () => void;
-	defaultValues?: DefaultFormData;
+	defaultValues?: CustomerFormData;
 	mode?: "create" | "edit";
 	showTitle?: boolean;
 	employeeOptions?: { label: string; value: string }[];
@@ -27,11 +31,18 @@ export function CustomerForm({
 				return { ...field, options: employeeOptions };
 			}
 			return field;
-		});
+		}).concat([
+			{
+				name: "vehicles",
+				label: "Vehicles",
+				type: "custom",
+				component: <VehicleListField />,
+			},
+		]);
 	}, [employeeOptions]);
 
 	return (
-		<DefaultForm
+		<DefaultForm<CustomerFormData>
 			title={title}
 			fields={fields}
 			onSubmit={onSubmit}
