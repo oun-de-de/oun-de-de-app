@@ -1,17 +1,11 @@
+import type { Vehicle } from "./vehicle";
+
 export interface WeightRecord {
 	id?: string;
 	price: number;
 	weight: number;
 	outTime: string;
 	manual: boolean;
-}
-
-export type VehicleType = "TRUCK" | "CAR" | "MOTORCYCLE";
-
-export interface Vehicle {
-	id: string;
-	vehicleType: VehicleType;
-	licensePlate: string;
 }
 
 export interface CouponEmployee {

@@ -1,6 +1,6 @@
 import { cva, type VariantProps } from "class-variance-authority";
-import type { ComponentProps } from "react";
-import { useForm } from "react-hook-form";
+import type { ComponentProps, ReactNode } from "react";
+import { type DefaultValues, useForm } from "react-hook-form";
 import { FormActions, FormProvider, FormSelect, FormSwitch, FormTextarea, FormTextField } from "@/core/components/form";
 import { Text } from "@/core/ui/typography";
 import { cn } from "@/core/utils";
@@ -38,25 +38,33 @@ const formGridVariants = cva("gap-6", {
 	},
 });
 
+export type FormPrimitive = string | number | boolean | null | undefined;
+export type FormObject = Record<string, FormPrimitive>;
+export type FormValue = FormPrimitive | FormObject | FormObject[];
+export type FormType = "text" | "number" | "select" | "switch" | "textarea" | "date" | "custom";
+
 export type FormFieldConfig = {
 	name: string;
 	label: string;
-	type: "text" | "number" | "select" | "switch" | "textarea" | "date";
+	type: FormType;
 	placeholder?: string;
 	required?: boolean;
 	options?: { label: string; value: string }[];
-	defaultValue?: string | number | boolean;
+	defaultValue?: FormValue;
 	helperText?: string;
+	component?: ReactNode;
 };
 
-export type DefaultFormData = Record<string, string | number | boolean>;
+export type DefaultFormData = Record<string, FormValue>;
 
-export type DefaultFormProps = VariantProps<typeof defaultFormVariants> & {
+export type DefaultFormProps<TFormData extends DefaultFormData = DefaultFormData> = VariantProps<
+	typeof defaultFormVariants
+> & {
 	title: string;
 	fields: FormFieldConfig[];
-	onSubmit?: (data: DefaultFormData) => Promise<void> | void;
+	onSubmit?: (data: TFormData) => Promise<void> | void;
 	onCancel?: () => void;
-	defaultValues?: DefaultFormData;
+	defaultValues?: TFormData;
 	submitLabel?: string;
 	cancelLabel?: string;
 	className?: string;
@@ -68,12 +76,12 @@ export type DefaultFormProps = VariantProps<typeof defaultFormVariants> & {
 	actionsVariant?: ComponentProps<typeof FormActions>["variant"];
 };
 
-export function DefaultForm({
+export function DefaultForm<TFormData extends DefaultFormData = DefaultFormData>({
 	title,
 	fields,
 	onSubmit,
 	onCancel,
-	defaultValues = {},
+	defaultValues = {} as TFormData,
 	submitLabel = "Save",
 	cancelLabel = "Cancel",
 	className,
@@ -85,21 +93,22 @@ export function DefaultForm({
 	inputSize = "md",
 	disableWhenClean = false,
 	actionsVariant,
-}: DefaultFormProps) {
-	const buildDefaultValues = () => {
-		const values: DefaultFormData = {};
+}: DefaultFormProps<TFormData>) {
+	const buildDefaultValues = (): DefaultValues<TFormData> => {
+		const values: Record<string, any> = {};
 		for (const field of fields) {
-			values[field.name] = defaultValues[field.name] ?? field.defaultValue ?? "";
+			const fallback = field.type === "custom" ? undefined : "";
+			values[field.name] = defaultValues[field.name] ?? field.defaultValue ?? fallback;
 		}
-		return values;
+		return values as DefaultValues<TFormData>;
 	};
 
-	const methods = useForm<DefaultFormData>({
+	const methods = useForm<TFormData>({
 		defaultValues: buildDefaultValues(),
 		mode: "onBlur",
 	});
 
-	const handleFormSubmit = async (data: DefaultFormData) => {
+	const handleFormSubmit = async (data: TFormData) => {
 		await onSubmit?.(data);
 	};
 
@@ -127,6 +136,9 @@ export function DefaultForm({
 
 			case "date":
 				return <FormTextField {...commonProps} type="date" variant={inputVariant} size={inputSize} />;
+
+			case "custom":
+				return <div key={field.name}>{field.component}</div>;
 
 			default:
 				return (

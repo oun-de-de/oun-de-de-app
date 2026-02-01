@@ -63,13 +63,6 @@ export const CUSTOMER_FIELDS: FormFieldConfig[] = [
 		],
 	},
 	{
-		name: "status",
-		label: "Status",
-		type: "switch",
-		defaultValue: true,
-		helperText: "Active/Inactive customer status",
-	},
-	{
 		name: "telephone",
 		label: "Telephone",
 		type: "text",
@@ -92,6 +85,13 @@ export const CUSTOMER_FIELDS: FormFieldConfig[] = [
 		label: "Address",
 		type: "textarea",
 		placeholder: "Enter full address",
+	},
+	{
+		name: "status",
+		label: "Status",
+		type: "switch",
+		defaultValue: true,
+		helperText: "Active/Inactive customer status",
 	},
 	{
 		name: "location",

@@ -2,10 +2,9 @@ import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import customerService from "@/core/api/services/customerService";
 import employeeService from "@/core/api/services/employeeService";
-import type { DefaultFormData } from "@/core/components/common";
 import type { CreateCustomer } from "@/core/types/customer";
 import { Text } from "@/core/ui/typography";
-import { CustomerForm } from "./components/customer-form";
+import { CustomerForm, type CustomerFormData } from "./components/customer-form";
 
 export default function CreateCustomerPage() {
 	const { data: employees = [] } = useQuery({
@@ -18,7 +17,7 @@ export default function CreateCustomerPage() {
 		value: emp.id,
 	}));
 
-	const handleSubmit = async (data: DefaultFormData) => {
+	const handleSubmit = async (data: CustomerFormData) => {
 		try {
 			// Transform data to match API schema
 			const customerData: CreateCustomer = {
@@ -41,7 +40,7 @@ export default function CreateCustomerPage() {
 				map: data.map as string,
 				billingAddress: data.billingAddress as string,
 				deliveryAddress: data.deliveryAddress as string,
-				vehicles: [],
+				vehicles: data.vehicles ?? [],
 			};
 
 			await customerService.createCustomer(customerData);

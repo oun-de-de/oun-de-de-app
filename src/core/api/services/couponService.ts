@@ -16,7 +16,7 @@ const getCouponList = (params?: {
 	status?: string;
 }): Promise<Pagination<Coupon>> =>
 	apiClient
-		.get<PaginatedResponse<Coupon>>({
+		.get<PaginatedResponse<Coupon> | Coupon[]>({
 			url: CouponApi.List,
 			params: {
 				page: params?.page ? params.page - 1 : 0,
