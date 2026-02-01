@@ -35,7 +35,8 @@ export function VirtualList<T>({
 	const autoScrollbarGap = useScrollbarGap(6);
 	const scrollbarGap = scrollbarGapProp ?? autoScrollbarGap;
 
-	const displayData = maxItems !== undefined ? data.slice(0, maxItems) : data;
+	const safeData = data ?? [];
+	const displayData = maxItems !== undefined ? safeData.slice(0, maxItems) : safeData;
 	const rowVirtualizer = useVirtualizer({
 		count: displayData.length,
 		getScrollElement: () => parentRef.current,

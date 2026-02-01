@@ -1,18 +1,31 @@
-import { Text } from "@/core/ui/typography";
+import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
-
+import customerService from "@/core/api/services/customerService";
+import employeeService from "@/core/api/services/employeeService";
 import type { DefaultFormData } from "@/core/components/common";
+import type { CreateCustomer } from "@/core/types/customer";
+import { Text } from "@/core/ui/typography";
 import { CustomerForm } from "./components/customer-form";
 
 export default function CreateCustomerPage() {
+	const { data: employees = [] } = useQuery({
+		queryKey: ["employees", "all"],
+		queryFn: () => employeeService.getEmployeeList(),
+	});
+
+	const employeeOptions = employees.map((emp) => ({
+		label: emp.firstName && emp.lastName ? `${emp.firstName} ${emp.lastName}` : emp.username,
+		value: emp.id,
+	}));
+
 	const handleSubmit = async (data: DefaultFormData) => {
 		try {
 			// Transform data to match API schema
-			const customerData = {
+			const customerData: CreateCustomer = {
 				registerDate: data.registerDate as string,
 				code: data.code as string,
 				name: data.name as string,
-				status: data.status as boolean,
+				status: !!data.status,
 				customerType: data.customerType as string,
 				defaultPrice: data.defaultPrice as string,
 				warehouse: data.warehouse as string,
@@ -28,11 +41,10 @@ export default function CreateCustomerPage() {
 				map: data.map as string,
 				billingAddress: data.billingAddress as string,
 				deliveryAddress: data.deliveryAddress as string,
+				vehicles: [],
 			};
 
-			// TODO: Replace with actual API call
-			console.log("Customer data:", customerData);
-			// await createCustomer(customerData);
+			await customerService.createCustomer(customerData);
 
 			toast.success("Customer has been created successfully");
 		} catch (error) {
@@ -52,8 +64,14 @@ export default function CreateCustomerPage() {
 
 			{/* Form */}
 			<div className="flex-1 overflow-y-auto">
-				<div className="max-w-5xl">
-					<CustomerForm onSubmit={handleSubmit} onCancel={handleCancel} mode="create" showTitle={false} />
+				<div className="w-full">
+					<CustomerForm
+						onSubmit={handleSubmit}
+						onCancel={handleCancel}
+						mode="create"
+						showTitle={false}
+						employeeOptions={employeeOptions}
+					/>
 				</div>
 			</div>
 		</div>

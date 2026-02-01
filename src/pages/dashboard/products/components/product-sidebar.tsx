@@ -46,7 +46,7 @@ export function ProductSidebar({ activeProductId, onSelect, onToggle, isCollapse
 
 			// Filter by Status
 			if (normalizedStatus !== "all") {
-				const productStatus = normalizeToken(product.status || "");
+				const productStatus = normalizeToken(String(product.status ?? ""));
 				if (productStatus !== normalizedStatus) return false;
 			}
 

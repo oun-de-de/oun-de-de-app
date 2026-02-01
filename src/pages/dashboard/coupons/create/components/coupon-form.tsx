@@ -1,34 +1,39 @@
 import { useMemo } from "react";
 import { DefaultForm, type DefaultFormData, type FormFieldConfig } from "@/core/components/common";
-import { CUSTOMER_FIELDS } from "../constants/customer-fields";
+import { COUPON_FIELDS } from "../constants/coupon-fields";
 
-type CustomerFormProps = {
+type CouponFormProps = {
 	onSubmit?: (data: DefaultFormData) => Promise<void> | void;
 	onCancel?: () => void;
 	defaultValues?: DefaultFormData;
 	mode?: "create" | "edit";
 	showTitle?: boolean;
 	employeeOptions?: { label: string; value: string }[];
+	vehicleOptions?: { label: string; value: string }[];
 };
 
-export function CustomerForm({
+export function CouponForm({
 	onSubmit,
 	onCancel,
 	defaultValues,
 	mode = "create",
 	showTitle = true,
 	employeeOptions = [],
-}: CustomerFormProps) {
-	const title = mode === "create" ? "Add Customer" : "Edit Customer";
+	vehicleOptions = [],
+}: CouponFormProps) {
+	const title = mode === "create" ? "Add Coupon" : "Edit Coupon";
 
 	const fields = useMemo<FormFieldConfig[]>(() => {
-		return CUSTOMER_FIELDS.map((field) => {
+		return COUPON_FIELDS.map((field) => {
 			if (field.name === "employeeId") {
 				return { ...field, options: employeeOptions };
 			}
+			if (field.name === "vehicleId") {
+				return { ...field, options: vehicleOptions };
+			}
 			return field;
 		});
-	}, [employeeOptions]);
+	}, [employeeOptions, vehicleOptions]);
 
 	return (
 		<DefaultForm

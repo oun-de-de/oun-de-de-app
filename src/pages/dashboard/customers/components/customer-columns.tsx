@@ -1,45 +1,40 @@
-import type { TransactionRow } from "@/core/types/common";
-import { fNumber } from "@/core/utils/format-number";
 import type { ColumnDef } from "@tanstack/react-table";
+import type { Customer } from "@/core/types/customer";
+import { Badge } from "@/core/ui/badge";
+import { getStatusVariant } from "@/core/utils/get-status-variant";
 
-export const columns: ColumnDef<TransactionRow>[] = [
+export const columns: ColumnDef<Customer>[] = [
 	{
-		header: "Date",
-		accessorKey: "date",
+		header: "Code",
+		accessorKey: "code",
+		cell: ({ row }) => <span className="font-medium text-sky-600">{row.original.code}</span>,
 	},
 	{
-		header: "Ref No",
-		accessorKey: "refNo",
-		cell: ({ row }) => <span className="text-sky-600">{row.original.refNo}</span>,
+		header: "Name",
+		accessorKey: "name",
 	},
 	{
-		header: "Customer",
-		accessorKey: "customer",
+		header: "Phone",
+		accessorKey: "telephone",
 	},
 	{
 		header: "Type",
+		accessorKey: "customerType",
 		cell: ({ row }) => (
-			<span className="rounded-full bg-sky-100 px-2 py-0.5 text-xs text-sky-700">{row.original.type}</span>
+			<span className="rounded-full bg-sky-100 px-2 py-0.5 text-xs text-sky-700">{row.original.customerType}</span>
 		),
 	},
 	{
-		header: "Ref Type",
-		cell: ({ row }) => (
-			<span className="rounded-md border px-2 py-0.5 text-xs text-gray-600">{row.original.refType}</span>
-		),
+		header: "Price Level",
+		accessorKey: "defaultPrice",
 	},
 	{
 		header: "Status",
-		cell: ({ row }) => (
-			<span className="rounded-md bg-amber-100 px-2 py-0.5 text-xs text-amber-700">{row.original.status}</span>
-		),
-	},
-	{
-		header: "Amount",
-		cell: ({ row }) => <span className="font-semibold">{fNumber(row.original.amount)} KHR</span>,
-	},
-	{
-		header: "Memo",
-		accessorKey: "memo",
+		accessorKey: "status",
+		cell: ({ row }) => {
+			const status = row.original.status ? "Active" : "Inactive";
+			const variant = getStatusVariant(status);
+			return <Badge variant={variant}>{status}</Badge>;
+		},
 	},
 ];

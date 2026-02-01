@@ -1,12 +1,13 @@
-import { customerList } from "@/_mock/data/dashboard";
+import { useInfiniteQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import customerService from "@/core/api/services/customerService";
 import { EntityListItem, SidebarList } from "@/core/components/common";
-import { up, useMediaQuery } from "@/core/hooks/use-media-query";
-import { useSidebarPagination } from "@/core/hooks/use-sidebar-pagination";
 import type { SelectOption } from "@/core/types/common";
+import type { Customer } from "@/core/types/customer";
 
 type CustomerSidebarProps = {
 	activeCustomerId: string | null;
-	onSelect: (id: string | null) => void;
+	onSelect: (customer: Customer | null) => void;
 	onToggle?: () => void;
 	isCollapsed?: boolean;
 };
@@ -22,38 +23,54 @@ const STATUS_OPTIONS: SelectOption[] = [
 ];
 
 export function CustomerSidebar({ activeCustomerId, onSelect, onToggle, isCollapsed }: CustomerSidebarProps) {
-	const isLgUp = useMediaQuery(up("lg"));
+	const [searchTerm, setSearchTerm] = useState("");
+	const [status, setStatus] = useState("active");
+	const [customerType, setCustomerType] = useState("all");
 
-	const pagination = useSidebarPagination({
-		data: customerList,
-		enabled: !isLgUp,
+	const { data, fetchNextPage, hasNextPage } = useInfiniteQuery({
+		queryKey: ["customers", "sidebar", { name: searchTerm, status, customerType }],
+		queryFn: ({ pageParam = 1 }) =>
+			customerService.getCustomerList({
+				page: pageParam,
+				limit: 20,
+				name: searchTerm || undefined,
+			}),
+		initialPageParam: 1,
+		getNextPageParam: (lastPage) => (lastPage.page < lastPage.pageCount ? lastPage.page + 1 : undefined),
 	});
+
+	const customers = data?.pages.flatMap((page) => page.list) ?? [];
+	const total = data?.pages[0]?.total ?? 0;
 
 	return (
 		<SidebarList>
 			<SidebarList.Header
 				mainTypeOptions={MAIN_TYPE_OPTIONS}
 				mainTypePlaceholder="Customer Type"
-				onMainTypeChange={() => {}}
+				onMainTypeChange={setCustomerType}
 				onMenuClick={onToggle}
 				searchPlaceholder="Search..."
-				onSearchChange={() => {}}
+				onSearchChange={setSearchTerm}
 				statusOptions={STATUS_OPTIONS}
-				onStatusChange={() => {}}
+				onStatusChange={setStatus}
 				isCollapsed={isCollapsed}
 			/>
 
 			<SidebarList.Body
 				className="mt-4 divide-y divide-border-gray-300 flex-1 min-h-0"
-				data={pagination.pagedData}
+				data={customers}
 				estimateSize={56}
 				height="100%"
-				renderItem={(customer, style) => (
+				renderItem={(customer: Customer, style) => (
 					<EntityListItem
 						key={customer.id}
-						entity={customer}
+						entity={{
+							id: customer.id,
+							name: customer.name,
+							code: customer.code,
+						}}
 						isActive={customer.id === activeCustomerId}
-						onSelect={onSelect}
+						onSelect={() => onSelect(customer.id === activeCustomerId ? null : customer)}
 						style={style}
 						isCollapsed={isCollapsed}
 					/>
@@ -61,13 +78,13 @@ export function CustomerSidebar({ activeCustomerId, onSelect, onToggle, isCollap
 			/>
 
 			<SidebarList.Footer
-				total={pagination.total}
+				total={total}
 				isCollapsed={isCollapsed}
-				onPrev={pagination.handlePrev}
-				onNext={pagination.handleNext}
-				hasPrev={pagination.hasPrev}
-				hasNext={pagination.hasNext}
-				showControls={!isLgUp && pagination.totalPages > 1}
+				onPrev={() => {}}
+				onNext={() => fetchNextPage()}
+				hasPrev={false}
+				hasNext={!!hasNextPage}
+				showControls={hasNextPage || customers.length > 0}
 			/>
 		</SidebarList>
 	);

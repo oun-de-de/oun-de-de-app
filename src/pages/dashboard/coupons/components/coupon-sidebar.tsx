@@ -1,11 +1,9 @@
-import { useMemo, useState } from "react";
-
-import * as dashboard from "@/_mock/data/dashboard";
+import { useInfiniteQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import couponService from "@/core/api/services/couponService";
 import { EntityListItem, SidebarList } from "@/core/components/common";
-import { up, useMediaQuery } from "@/core/hooks/use-media-query";
-import { useSidebarPagination } from "@/core/hooks/use-sidebar-pagination";
 import type { SelectOption } from "@/core/types/common";
-import { normalizeToken } from "@/core/utils/dashboard-utils";
+import type { Coupon } from "@/core/types/coupon";
 
 type CouponSidebarProps = {
 	activeCouponId: string | null;
@@ -23,36 +21,21 @@ const STATUS_OPTIONS: SelectOption[] = [
 export function CouponSidebar({ activeCouponId, onSelect, onToggle, isCollapsed }: CouponSidebarProps) {
 	const [searchTerm, setSearchTerm] = useState("");
 	const [status, setStatus] = useState("all");
-	const isLgUp = useMediaQuery(up("lg"));
-
-	const filteredCoupons = useMemo(() => {
-		const normalizedSearch = normalizeToken(searchTerm);
-		const normalizedStatus = normalizeToken(status);
-
-		return dashboard.couponList.filter((coupon) => {
-			// Filter by Status
-			if (normalizedStatus !== "all") {
-				const couponStatus = normalizeToken(coupon.status || "");
-				if (couponStatus !== normalizedStatus) return false;
-			}
-
-			// Filter by Search (Name or Plate Number)
-			if (normalizedSearch) {
-				const name = normalizeToken(coupon.name || "");
-				const code = normalizeToken(coupon.code || "");
-				if (!name.includes(normalizedSearch) && !code.includes(normalizedSearch)) {
-					return false;
-				}
-			}
-
-			return true;
-		});
-	}, [searchTerm, status]);
-
-	const pagination = useSidebarPagination({
-		data: filteredCoupons,
-		enabled: !isLgUp,
+	const { data, fetchNextPage, hasNextPage } = useInfiniteQuery({
+		queryKey: ["coupons", "sidebar", { search: searchTerm, status }],
+		queryFn: ({ pageParam = 1 }) =>
+			couponService.getCouponList({
+				page: pageParam,
+				limit: 20,
+				search: searchTerm || undefined,
+				status: status === "all" ? undefined : status,
+			}),
+		initialPageParam: 1,
+		getNextPageParam: (lastPage) => (lastPage.page < lastPage.pageCount ? lastPage.page + 1 : undefined),
 	});
+
+	const coupons = data?.pages.flatMap((page) => page.list) ?? [];
+	const total = data?.pages[0]?.total ?? 0;
 
 	return (
 		<SidebarList>
@@ -67,13 +50,17 @@ export function CouponSidebar({ activeCouponId, onSelect, onToggle, isCollapsed 
 
 			<SidebarList.Body
 				className="mt-4 divide-y divide-border-gray-300 flex-1 min-h-0"
-				data={pagination.pagedData}
+				data={coupons}
 				estimateSize={56}
 				height="100%"
-				renderItem={(item, style) => (
+				renderItem={(item: Coupon, style) => (
 					<EntityListItem
 						key={item.id}
-						entity={item}
+						entity={{
+							id: item.id,
+							name: item.driverName || `Coupon #${item.id.slice(0, 8)}`,
+							code: item.vehicle?.licensePlate ?? "",
+						}}
 						isActive={item.id === activeCouponId}
 						onSelect={onSelect}
 						style={style}
@@ -83,13 +70,13 @@ export function CouponSidebar({ activeCouponId, onSelect, onToggle, isCollapsed 
 			/>
 
 			<SidebarList.Footer
-				total={pagination.total}
+				total={total}
 				isCollapsed={isCollapsed}
-				onPrev={pagination.handlePrev}
-				onNext={pagination.handleNext}
-				hasPrev={pagination.hasPrev}
-				hasNext={pagination.hasNext}
-				showControls={!isLgUp && pagination.totalPages > 1}
+				onPrev={() => {}}
+				onNext={() => fetchNextPage()}
+				hasPrev={false}
+				hasNext={!!hasNextPage}
+				showControls={hasNextPage || coupons.length > 0}
 			/>
 		</SidebarList>
 	);

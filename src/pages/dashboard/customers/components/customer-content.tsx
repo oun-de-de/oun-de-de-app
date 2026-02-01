@@ -1,48 +1,49 @@
-import { customerList, customerSummaryCards } from "@/_mock/data/dashboard";
-import { SmartDataTable, SummaryStatCard } from "@/core/components/common";
+import { customerSummaryCards } from "@/_mock/data/dashboard";
+import { SmartDataTable, SplitButton, SummaryStatCard } from "@/core/components/common";
 import Icon from "@/core/components/icon/icon";
-import type { TransactionRow } from "@/core/types/common";
+import type { Customer } from "@/core/types/customer";
 import { Button } from "@/core/ui/button";
 import { Text } from "@/core/ui/typography";
+import { useRouter } from "@/routes/hooks";
 import { columns } from "./customer-columns";
 
 type CustomerContentProps = {
-	activeCustomerId: string | null;
+	activeCustomerName: string | null | undefined;
 	listState: any; // Using exact type from store would be better if exported
 	updateState: (state: any) => void;
-	pagedTransactions: TransactionRow[];
+	pagedData: Customer[];
 	totalItems: number;
 	totalPages: number;
 	currentPage: number;
 	paginationItems: Array<number | "...">;
+	isLoading?: boolean;
 };
 
 const summaryCards = customerSummaryCards;
 
 const filterTypeOptions = [
-	{ value: "all", label: "All" },
-	{ value: "cash-sale", label: "Cash Sale" },
-	{ value: "invoice", label: "Invoice" },
-	{ value: "receipt", label: "Receipt" },
+	{ value: "all", label: "All Status" },
+	{ value: "active", label: "Active" },
+	{ value: "inactive", label: "Inactive" },
 ];
 
 const filterFieldOptions = [
-	{ value: "field-name", label: "Field name" },
-	{ value: "customer", label: "Customer" },
-	{ value: "ref-no", label: "Ref No" },
+	{ value: "all", label: "All Fields" },
+	{ value: "name", label: "Name" },
+	{ value: "code", label: "Code" },
 ];
 
 export function CustomerContent({
-	activeCustomerId,
+	activeCustomerName,
 	listState,
 	updateState,
-	pagedTransactions,
+	pagedData,
 	totalItems,
 	totalPages,
 	currentPage,
 	paginationItems,
 }: CustomerContentProps) {
-	const activeCustomer = customerList.find((customer) => customer.id === activeCustomerId);
+	const router = useRouter();
 
 	return (
 		<>
@@ -53,14 +54,35 @@ export function CustomerContent({
 						Customer
 					</Button>
 					<Text variant="body2" className="text-slate-400">
-						{activeCustomer ? `${activeCustomer.name} selected` : "No Customer Selected"}
+						{activeCustomerName ? `${activeCustomerName} selected` : "No Customer Selected"}
 					</Text>
 				</div>
-				<Button size="sm" className="gap-2">
-					<Icon icon="mdi:plus" />
-					Create Invoice
-					<Icon icon="mdi:chevron-down" />
-				</Button>
+				<SplitButton
+					mainAction={{
+						label: (
+							<>
+								<Icon icon="mdi:plus" className="mr-2 h-4 w-4" />
+								Create Customer
+							</>
+						),
+						onClick: () => router.push("/dashboard/customers/create"),
+					}}
+					options={[
+						{
+							label: "Create Invoice",
+							onClick: () => console.log("Create Invoice clicked"),
+						},
+						{
+							label: "Create Cash Sale",
+							onClick: () => console.log("Create Cash Sale clicked"),
+						},
+						{
+							label: "Create Receipt",
+							onClick: () => console.log("Create Receipt clicked"),
+						},
+					]}
+					size="sm"
+				/>
 			</div>
 
 			<div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
@@ -72,7 +94,7 @@ export function CustomerContent({
 			<SmartDataTable
 				className="flex-1 min-h-0"
 				maxBodyHeight="100%"
-				data={pagedTransactions}
+				data={pagedData}
 				columns={columns}
 				filterConfig={{
 					typeOptions: filterTypeOptions,

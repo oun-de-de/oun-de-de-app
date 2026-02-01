@@ -1,64 +1,64 @@
 import type { ColumnDef } from "@tanstack/react-table";
-import type { CouponRow } from "@/core/types/common";
+import type { Coupon } from "@/core/types/coupon";
 
-export const columns: ColumnDef<CouponRow>[] = [
+export const columns: ColumnDef<Coupon>[] = [
 	{
-		header: "Coupon No",
-		accessorKey: "couponNo",
-		cell: ({ row }) => <span className="font-semibold text-sky-600">#{row.original.couponNo}</span>,
+		header: "ID",
+		accessorKey: "id",
+		cell: ({ row }) => <span className="font-semibold text-sky-600">#{row.original.id.slice(0, 8)}</span>,
 	},
 	{
 		header: "Date",
-		accessorKey: "couponDate",
+		accessorKey: "date",
+		cell: ({ row }) => new Date(row.original.date).toLocaleDateString(),
 	},
 	{
 		header: "Plate Number",
-		accessorKey: "plateNumber",
+		accessorFn: (row) => row.vehicle?.licensePlate,
 		cell: ({ row }) => (
-			<span className="rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium">{row.original.plateNumber}</span>
+			<span className="rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium">
+				{row.original.vehicle?.licensePlate ?? "-"}
+			</span>
 		),
 	},
 	{
-		header: "Customer",
-		accessorKey: "customerName",
+		header: "Vehicle Type",
+		accessorFn: (row) => row.vehicle?.vehicleType,
+		cell: ({ row }) => row.original.vehicle?.vehicleType ?? "-",
 	},
 	{
 		header: "Driver",
 		accessorKey: "driverName",
 	},
 	{
-		header: "In Weight (Kg)",
-		accessorKey: "inWeight",
-		cell: ({ row }) => (row.original.inWeight ? row.original.inWeight.toLocaleString() : "-"),
-	},
-	{
-		header: "Out Weight (Kg)",
+		header: "Employee",
+		accessorFn: (row) => row.employee?.username,
 		cell: ({ row }) => {
-			const out = row.original.out1Weight || row.original.out2Weight;
-			return out ? out.toLocaleString() : "-";
+			const emp = row.original.employee;
+			if (!emp) return "-";
+			return emp.firstName && emp.lastName ? `${emp.firstName} ${emp.lastName}` : emp.username;
 		},
 	},
 	{
-		header: "Net Weight (Kg)",
+		header: "Weight Records",
 		cell: ({ row }) => {
-			const inW = row.original.inWeight || 0;
-			const outW = row.original.out1Weight || row.original.out2Weight;
-
-			if (!outW) return "-";
-
-			const net = Math.abs(inW - outW);
-			return net > 0 ? <span className="font-semibold text-emerald-600">{net.toLocaleString()}</span> : "-";
+			const records = row.original.weightRecords;
+			if (!records || records.length === 0) return "-";
+			return <span className="font-medium">{records.length} records</span>;
 		},
 	},
 	{
-		header: "Status",
+		header: "Total Weight",
 		cell: ({ row }) => {
-			const hasOut = row.original.out1Weight || row.original.out2Weight;
-			return hasOut ? (
-				<span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs text-emerald-700">Completed</span>
-			) : (
-				<span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs text-amber-700">Pending</span>
-			);
+			const records = row.original.weightRecords;
+			if (!records || records.length === 0) return "-";
+			const total = records.reduce((sum, r) => sum + r.weight, 0);
+			return <span className="font-semibold text-emerald-600">{total.toLocaleString()} kg</span>;
 		},
+	},
+	{
+		header: "Remark",
+		accessorKey: "remark",
+		cell: ({ row }) => row.original.remark || "-",
 	},
 ];

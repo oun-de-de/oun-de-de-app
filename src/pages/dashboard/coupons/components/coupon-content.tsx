@@ -1,21 +1,22 @@
-import { couponList, couponSummaryCards } from "@/_mock/data/dashboard";
+import { couponSummaryCards } from "@/_mock/data/dashboard";
 import { SmartDataTable, SummaryStatCard } from "@/core/components/common";
 import Icon from "@/core/components/icon/icon";
 import type { ListState } from "@/core/store/createListStore";
-import type { CouponRow } from "@/core/types/common";
+import type { Coupon } from "@/core/types/coupon";
 import { Button } from "@/core/ui/button";
 import { Text } from "@/core/ui/typography";
 import { columns } from "./coupon-columns";
 
 type CouponContentProps = {
-	activeCouponId: string | null;
+	activeCustomerName: string | null | undefined;
 	listState: ListState;
 	updateState: (state: Partial<ListState>) => void;
-	pagedCoupons: CouponRow[];
+	pagedCoupons: Coupon[];
 	totalItems: number;
 	totalPages: number;
 	currentPage: number;
 	paginationItems: Array<number | "...">;
+	isLoading?: boolean;
 };
 
 const summaryCards = couponSummaryCards;
@@ -29,12 +30,11 @@ const filterTypeOptions = [
 const filterFieldOptions = [
 	{ value: "all", label: "All Fields" },
 	{ value: "plate-number", label: "Plate Number" },
-	{ value: "customer", label: "Customer" },
-	{ value: "coupon-no", label: "Coupon No" },
+	{ value: "driver", label: "Driver" },
 ];
 
 export function CouponContent({
-	activeCouponId,
+	activeCustomerName,
 	listState,
 	updateState,
 	pagedCoupons,
@@ -43,7 +43,7 @@ export function CouponContent({
 	currentPage,
 	paginationItems,
 }: CouponContentProps) {
-	const activeCoupon = couponList.find((item) => item.id === activeCouponId);
+	// const activeCoupon = pagedCoupons.find((item) => item.id === activeCouponId);
 
 	return (
 		<>
@@ -54,7 +54,7 @@ export function CouponContent({
 						Coupons
 					</Button>
 					<Text variant="body2" className="text-muted-foreground">
-						{activeCoupon ? `${activeCoupon.name} selected` : "No coupon selected"}
+						{activeCustomerName ? `${activeCustomerName} selected` : "No customer selected"}
 					</Text>
 				</div>
 				<Button size="sm" className="gap-2">

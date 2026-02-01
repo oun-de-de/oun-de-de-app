@@ -1,5 +1,6 @@
-import { copyWithPagination, Pagination } from "../types/pagination";
 import isEqual from "fast-deep-equal";
+import type { PaginatedResponse } from "@/core/types/common";
+import { copyWithPagination, type Pagination } from "../types/pagination";
 
 /**
  * Generates an array of pagination items (page numbers and ellipses) based on the current page and total pages.
@@ -77,4 +78,14 @@ export function updatePage<T>(pagination: Pagination<T>, newPagination: Paginati
 		total: newPagination.total,
 		error: newPagination.error,
 	});
+}
+
+export function mapPaginatedResponseToPagination<T>(response: PaginatedResponse<T>): Pagination<T> {
+	return {
+		list: response.content,
+		page: response.number + 1,
+		pageSize: response.size,
+		pageCount: response.totalPages,
+		total: response.totalElements,
+	};
 }

@@ -1,3 +1,5 @@
+import type { BasicStatus } from "./enum";
+
 export type SummaryStatCardData = {
 	label: string;
 	value: number;
@@ -10,7 +12,7 @@ export type EntityListItemData = {
 	name: string;
 	code: string;
 	type?: string;
-	status?: string;
+	status?: string | BasicStatus;
 };
 
 export type EntitySelectType = {
@@ -106,4 +108,34 @@ export type CouponRow = {
 	out2Manual?: boolean;
 	delAccNo?: string;
 	delDate?: string;
+	status?: string;
+};
+
+export type PaginatedResponse<T> = {
+	content: T[];
+	pageable: {
+		pageNumber: number;
+		pageSize: number;
+		sort: {
+			empty: boolean;
+			sorted: boolean;
+			unsorted: boolean;
+		};
+		offset: number;
+		paged: boolean;
+		unpaged: boolean;
+	};
+	totalElements: number;
+	totalPages: number;
+	last: boolean;
+	size: number;
+	number: number;
+	sort: {
+		empty: boolean;
+		sorted: boolean;
+		unsorted: boolean;
+	};
+	numberOfElements: number;
+	first: boolean;
+	empty: boolean;
 };

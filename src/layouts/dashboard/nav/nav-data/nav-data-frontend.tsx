@@ -71,6 +71,7 @@ export const frontendNavData: NavProps["data"] = [
 				actions: [
 					{
 						title: "New Coupon",
+						path: "/dashboard/coupons/create",
 					},
 				],
 			},

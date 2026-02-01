@@ -1,5 +1,5 @@
 import type React from "react";
-import { useFormContext } from "react-hook-form";
+import { type RegisterOptions, useFormContext } from "react-hook-form";
 import { cn } from "@/core/utils";
 import { FormField } from "./form-field";
 import { selectVariants } from "./styles/variants";
@@ -19,6 +19,7 @@ type FormSelectProps = {
 	selectProps?: React.SelectHTMLAttributes<HTMLSelectElement>;
 	placeholder?: string;
 	disabled?: boolean;
+	rules?: RegisterOptions;
 };
 
 export function FormSelect({
@@ -34,6 +35,7 @@ export function FormSelect({
 	selectProps,
 	placeholder,
 	disabled,
+	rules,
 }: FormSelectProps) {
 	const { register } = useFormContext();
 
@@ -47,7 +49,7 @@ export function FormSelect({
 		>
 			{({ error }) => (
 				<select
-					{...register(name)}
+					{...register(name, rules)}
 					disabled={disabled}
 					{...selectProps}
 					className={cn(selectVariants({ variant, size, state: error ? "error" : "normal" }), selectClassName)}

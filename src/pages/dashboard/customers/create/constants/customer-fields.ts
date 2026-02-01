@@ -7,7 +7,6 @@ export const CUSTOMER_FIELDS: FormFieldConfig[] = [
 		type: "date",
 		required: true,
 		defaultValue: new Date().toISOString().split("T")[0],
-		helperText: "Customer registration date",
 	},
 	{
 		name: "code",
@@ -39,11 +38,7 @@ export const CUSTOMER_FIELDS: FormFieldConfig[] = [
 		label: "Employee",
 		type: "select",
 		required: true,
-		options: [
-			{ label: "Employee 1", value: "employee_1" },
-			{ label: "Employee 2", value: "employee_2" },
-			// Add employee options dynamically
-		],
+		options: [],
 		placeholder: "Select employee",
 	},
 	{

@@ -75,9 +75,7 @@ export const EntityListItem = memo(function EntityListItem({
 			className={cn(entityListItemVariants({ variant, activeVariant, className }))}
 			style={style}
 		>
-			<span className={cn("font-semibold", isActive ? "text-white" : "text-black")}>
-				{entity.id} : {entity.name}
-			</span>
+			<span className={cn("font-semibold", isActive ? "text-white" : "text-black")}>{entity.name}</span>
 			<span
 				className={cn(
 					"hidden md:inline text-xs opacity-70 pr-2",

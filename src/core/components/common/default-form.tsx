@@ -96,6 +96,7 @@ export function DefaultForm({
 
 	const methods = useForm<DefaultFormData>({
 		defaultValues: buildDefaultValues(),
+		mode: "onBlur",
 	});
 
 	const handleFormSubmit = async (data: DefaultFormData) => {
@@ -103,6 +104,7 @@ export function DefaultForm({
 	};
 
 	const renderField = (field: FormFieldConfig) => {
+		const rules = field.required ? { required: `${field.label} is required` } : undefined;
 		const commonProps = {
 			key: field.name,
 			name: field.name,
@@ -110,6 +112,7 @@ export function DefaultForm({
 			placeholder: field.placeholder,
 			helperText: field.helperText,
 			requiredMark: field.required,
+			rules,
 		};
 
 		switch (field.type) {

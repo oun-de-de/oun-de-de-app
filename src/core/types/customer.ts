@@ -1,13 +1,51 @@
-import type { BasicStatus } from "./enum";
+export interface Vehicle {
+	vehicleType: string;
+	licensePlate: string;
+}
 
 export interface Customer {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  address: string;
-  balance: number;
-  status: BasicStatus;
-  createdAt: string;
-  avatar?: string;
+	id: string;
+	registerDate: string;
+	code: string;
+	name: string;
+	status: boolean;
+	customerType: string;
+	defaultPrice: string;
+	warehouse: string;
+	memo: string;
+	profileUrl: string;
+	shopBannerUrl: string;
+	employeeId: string;
+	telephone: string;
+	email: string;
+	geography: string;
+	address: string;
+	location: string;
+	map: string;
+	billingAddress: string;
+	deliveryAddress: string;
+	vehicles: Vehicle[];
+}
+
+export interface CreateCustomer {
+	registerDate: string;
+	code: string;
+	name: string;
+	status: boolean;
+	customerType: string;
+	defaultPrice: string;
+	warehouse: string;
+	memo: string;
+	profileUrl: string;
+	shopBannerUrl: string;
+	employeeId: string;
+	telephone: string;
+	email: string;
+	geography: string;
+	address: string;
+	location: string;
+	map: string;
+	billingAddress: string;
+	deliveryAddress: string;
+	vehicles: Vehicle[];
 }
