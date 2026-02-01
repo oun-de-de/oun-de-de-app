@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { customerTransactions } from "@/_mock/data/dashboard";
 import { DashboardSplitView } from "@/core/components/common/dashboard-split-view";
+import { useSidebarCollapse } from "@/core/hooks/use-sidebar-collapse";
 import { useCustomersList, useCustomersListActions } from "@/core/store/customersListStore";
 import { buildPagination, normalizeToken } from "@/core/utils/dashboard-utils";
 import { CustomerContent } from "./components/customer-content";
@@ -13,7 +14,7 @@ export default function CustomersPage() {
 	const listState = useCustomersList();
 	const { updateState } = useCustomersListActions();
 
-	const [isCollapsed, setIsCollapsed] = useState(false);
+	const { isCollapsed, handleToggle } = useSidebarCollapse();
 
 	const filteredTransactions = useMemo(() => {
 		const normalizedType = normalizeToken(listState.typeFilter);
@@ -70,7 +71,7 @@ export default function CustomersPage() {
 				<CustomerSidebar
 					activeCustomerId={activeCustomerId}
 					onSelect={setActiveCustomerId}
-					onToggle={() => setIsCollapsed((prev) => !prev)}
+					onToggle={handleToggle}
 					isCollapsed={isCollapsed}
 				/>
 			}

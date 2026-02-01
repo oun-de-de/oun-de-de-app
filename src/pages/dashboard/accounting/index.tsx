@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { DashboardSplitView } from "@/core/components/common/dashboard-split-view";
+import { useSidebarCollapse } from "@/core/hooks/use-sidebar-collapse";
 import { useAccountingList } from "@/core/store/accountingListStore";
 import { AccountingContent } from "./components/accounting-content";
 import { AccountingSidebar } from "./components/accounting-sidebar";
@@ -8,7 +9,7 @@ export default function AccountingPage() {
 	const [activeAccountId, setActiveAccountId] = useState<string | null>(null);
 	const listState = useAccountingList();
 
-	const [isCollapsed, setIsCollapsed] = useState(false);
+	const { isCollapsed, handleToggle } = useSidebarCollapse();
 
 	return (
 		<DashboardSplitView
@@ -17,7 +18,7 @@ export default function AccountingPage() {
 				<AccountingSidebar
 					activeAccountId={activeAccountId}
 					onSelect={setActiveAccountId}
-					onToggle={() => setIsCollapsed((prev) => !prev)}
+					onToggle={handleToggle}
 					isCollapsed={isCollapsed}
 				/>
 			}

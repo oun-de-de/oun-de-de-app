@@ -26,6 +26,10 @@ export const ROUTE_TITLE_MAPPINGS = [
 		title: "Product/Service Center",
 	},
 	{
+		path: "/dashboard/coupons",
+		title: "Coupon Center",
+	},
+	{
 		path: "/dashboard/accounting",
 		title: "Accounting Center",
 	},
@@ -53,7 +57,6 @@ export const ROUTE_TITLE_MAPPINGS = [
 		path: "/dashboard/borrow/payment",
 		title: "Borrow Payment Center",
 	},
-
 	// Nested routes that might be accessed
 	{
 		path: "/dashboard/reports/customer-list",

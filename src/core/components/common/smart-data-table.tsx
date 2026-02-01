@@ -239,7 +239,7 @@ export function SmartDataTable<T extends object>({
 	}, [updateScrollState]);
 
 	return (
-		<div className={`flex flex-col space-y-4 ${className || ""}`}>
+		<div className={cn("flex flex-col gap-4", className)}>
 			{filterConfig && (
 				<TableFilterBar
 					typeOptions={filterConfig.typeOptions || []}

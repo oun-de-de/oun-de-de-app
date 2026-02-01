@@ -1,8 +1,9 @@
-import { PaginationStatus, usePagination, UsePaginationOptions } from "@/core/hooks/use-pagination";
-import { Pagination } from "@/core/types/pagination";
-import { VirtualList } from "@/core/components/common/virtual-list/virtual-list";
-import React, { forwardRef, useImperativeHandle, useMemo } from "react";
+import type React from "react";
+import { forwardRef, useImperativeHandle, useMemo } from "react";
 import styled from "styled-components";
+import { VirtualList } from "@/core/components/common/virtual-list/virtual-list";
+import { PaginationStatus, type UsePaginationOptions, usePagination } from "@/core/hooks/use-pagination";
+import type { Pagination } from "@/core/types/pagination";
 
 type EmptyBuilder = () => React.ReactNode;
 type SeparatorBuilder = (index: number) => React.ReactNode;
@@ -128,6 +129,7 @@ function InnerPagedGrid<T>(props: PagedGridProps<T>, ref: React.ForwardedRef<Pag
 			estimateSize={rowHeight}
 			overscan={invisibleItemsThreshold}
 			className={className}
+			containment="strict"
 			renderItem={(rowItems, style) => {
 				const firstItemIndex = rows.indexOf(rowItems) * columns;
 				// const isLastRow = rows.indexOf(rowItems) === rows.length - 1;

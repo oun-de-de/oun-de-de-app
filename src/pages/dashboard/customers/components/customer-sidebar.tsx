@@ -1,5 +1,7 @@
 import { customerList } from "@/_mock/data/dashboard";
 import { EntityListItem, SidebarList } from "@/core/components/common";
+import { up, useMediaQuery } from "@/core/hooks/use-media-query";
+import { useSidebarPagination } from "@/core/hooks/use-sidebar-pagination";
 import type { SelectOption } from "@/core/types/common";
 
 type CustomerSidebarProps = {
@@ -20,6 +22,13 @@ const STATUS_OPTIONS: SelectOption[] = [
 ];
 
 export function CustomerSidebar({ activeCustomerId, onSelect, onToggle, isCollapsed }: CustomerSidebarProps) {
+	const isLgUp = useMediaQuery(up("lg"));
+
+	const pagination = useSidebarPagination({
+		data: customerList,
+		enabled: !isLgUp,
+	});
+
 	return (
 		<SidebarList>
 			<SidebarList.Header
@@ -36,7 +45,7 @@ export function CustomerSidebar({ activeCustomerId, onSelect, onToggle, isCollap
 
 			<SidebarList.Body
 				className="mt-4 divide-y divide-border-gray-300 flex-1 min-h-0"
-				data={customerList}
+				data={pagination.pagedData}
 				estimateSize={56}
 				height="100%"
 				renderItem={(customer, style) => (
@@ -51,7 +60,15 @@ export function CustomerSidebar({ activeCustomerId, onSelect, onToggle, isCollap
 				)}
 			/>
 
-			<SidebarList.Footer total={200} isCollapsed={isCollapsed} />
+			<SidebarList.Footer
+				total={pagination.total}
+				isCollapsed={isCollapsed}
+				onPrev={pagination.handlePrev}
+				onNext={pagination.handleNext}
+				hasPrev={pagination.hasPrev}
+				hasNext={pagination.hasNext}
+				showControls={!isLgUp && pagination.totalPages > 1}
+			/>
 		</SidebarList>
 	);
 }

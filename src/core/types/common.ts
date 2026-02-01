@@ -77,3 +77,33 @@ export type AuditLogRow = {
 	user: string;
 	event: string;
 };
+
+export type CouponRow = {
+	couponNo: number;
+	couponId?: number;
+	couponDate?: string;
+	plateNumber?: string;
+	plateImage?: string;
+	driverName?: string;
+	customerCode?: string;
+	customerName?: string;
+	price1?: number;
+	price2?: number;
+	kgPerProd1?: number;
+	kgPerProd2?: number;
+	employerCode?: string;
+	employerName?: string;
+	remark?: string;
+	accNo?: string;
+	inWeight?: number;
+	inTime?: string;
+	inManual?: boolean;
+	out1Weight?: number;
+	out1Time?: string;
+	out1Manual?: boolean;
+	out2Weight?: number;
+	out2Time?: string;
+	out2Manual?: boolean;
+	delAccNo?: string;
+	delDate?: string;
+};

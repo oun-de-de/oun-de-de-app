@@ -80,7 +80,7 @@ export const EntityListItem = memo(function EntityListItem({
 			</span>
 			<span
 				className={cn(
-					"hidden md:inline text-xs opacity-70",
+					"hidden md:inline text-xs opacity-70 pr-2",
 					isActive ? "text-white" : "text-muted-foreground",
 					variant === "compact" && "scale-90",
 				)}

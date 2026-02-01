@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { settingsLeftMenu, settingsTopTabs } from "@/_mock/data/dashboard";
 import { DashboardSplitView } from "@/core/components/common/dashboard-split-view";
+import { useSidebarCollapse } from "@/core/hooks/use-sidebar-collapse";
 import { Button } from "@/core/ui/button";
 import { Card, CardContent } from "@/core/ui/card";
 import { SettingsContent } from "./components/settings-content";
@@ -18,7 +19,7 @@ export default function SettingsPage() {
 function SettingsView() {
 	const [activeTab, setActiveTab] = useState(settingsTopTabs[0]);
 	const [activeItem, setActiveItem] = useState(settingsLeftMenu[0]);
-	const [isCollapsed, setIsCollapsed] = useState(false);
+	const { isCollapsed, handleToggle } = useSidebarCollapse();
 
 	return (
 		<div className="flex w-full flex-col gap-4">
@@ -43,7 +44,7 @@ function SettingsView() {
 					<SettingsSidebar
 						activeItem={activeItem}
 						onSelect={setActiveItem}
-						onToggle={() => setIsCollapsed((prev) => !prev)}
+						onToggle={handleToggle}
 						isCollapsed={isCollapsed}
 					/>
 				}

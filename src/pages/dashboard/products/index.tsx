@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import { productRows as transactions } from "@/_mock/data/dashboard";
 import { DashboardSplitView } from "@/core/components/common/dashboard-split-view";
+import { useSidebarCollapse } from "@/core/hooks/use-sidebar-collapse";
 import { useProductsList, useProductsListActions } from "@/core/store/productsListStore";
 import { buildPagination, normalizeToken } from "@/core/utils/dashboard-utils";
 
@@ -13,7 +14,7 @@ export default function ProductsPage() {
 	const listState = useProductsList();
 	const { updateState } = useProductsListActions();
 
-	const [isCollapsed, setIsCollapsed] = useState(false);
+	const { isCollapsed, handleToggle } = useSidebarCollapse();
 
 	const filteredTransactions = useMemo(() => {
 		const normalizedType = normalizeToken(listState.typeFilter);
@@ -67,7 +68,7 @@ export default function ProductsPage() {
 				<ProductSidebar
 					activeProductId={activeProductId}
 					onSelect={setActiveProductId}
-					onToggle={() => setIsCollapsed((prev) => !prev)}
+					onToggle={handleToggle}
 					isCollapsed={isCollapsed}
 				/>
 			}

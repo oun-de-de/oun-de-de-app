@@ -26,7 +26,12 @@ type SidebarToggleButtonProps = {
 
 export function SidebarToggleButton({ onClick, isCollapsed, variant = "ghost", className }: SidebarToggleButtonProps) {
 	return (
-		<Button variant={variant} size="icon" className={cn("h-9 w-9 shrink-0", className)} onClick={onClick}>
+		<Button
+			variant={variant}
+			size="icon"
+			className={cn("h-9 w-9 shrink-0 hidden lg:block", className)}
+			onClick={onClick}
+		>
 			<Icon icon={isCollapsed ? "mdi:menu-open" : "mdi:menu"} />
 		</Button>
 	);

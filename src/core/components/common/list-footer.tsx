@@ -3,13 +3,13 @@ import Icon from "@/core/components/icon/icon";
 import { Button } from "@/core/ui/button";
 import { cn } from "@/core/utils";
 
-const listFooterVariants = cva("flex items-center text-xs text-muted-foreground transition-colors", {
+const listFooterVariants = cva("flex items-center text-xs text-muted-foreground transition-colors mt-auto", {
 	variants: {
 		variant: {
-			default: "justify-between mt-4",
-			compact: "justify-between mt-2 py-1",
-			minimal: "justify-end gap-2 mt-2",
-			centered: "justify-center mt-4",
+			default: "justify-between pt-4",
+			compact: "justify-between pt-2 py-1",
+			minimal: "justify-end gap-2 pt-2",
+			centered: "justify-center pt-4",
 		},
 	},
 	defaultVariants: {
@@ -45,7 +45,7 @@ export function ListFooter({
 
 	if (isCollapsed) {
 		return (
-			<div className={cn("flex flex-col items-center gap-1 mt-4", className)}>
+			<div className={cn("flex flex-col items-center gap-1 pt-4 mt-auto", className)}>
 				<span className="text-[10px] font-medium">{total} total</span>
 				{showControls && (
 					<span className="flex items-center gap-1">

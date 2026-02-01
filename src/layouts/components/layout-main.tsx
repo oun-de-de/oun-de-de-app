@@ -1,10 +1,10 @@
+import { Suspense } from "react";
+import { Outlet, ScrollRestoration, useLocation } from "react-router";
 import { AuthGuard } from "@/core/components/auth";
 import { LineLoading } from "@/core/components/loading/line-loading";
 import { useSettings } from "@/core/store/settingStore";
 import { cn } from "@/core/utils";
 import Page403 from "@/pages/sys/error/Page403";
-import { Suspense } from "react";
-import { Outlet, ScrollRestoration, useLocation } from "react-router";
 
 interface NavItem {
 	path: string;

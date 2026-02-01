@@ -1,6 +1,8 @@
 import { useMemo, useState } from "react";
 import { accountingAccountList } from "@/_mock/data/dashboard";
 import { EntityListItem, SidebarList } from "@/core/components/common";
+import { up, useMediaQuery } from "@/core/hooks/use-media-query";
+import { useSidebarPagination } from "@/core/hooks/use-sidebar-pagination";
 
 // Infer type from mock data since it's not exported
 type AccountingAccount = (typeof accountingAccountList)[number];
@@ -21,6 +23,7 @@ export function AccountingSidebar({ activeAccountId, onSelect, onToggle, isColla
 	const [typeFilter, setTypeFilter] = useState("type");
 	const [searchValue, setSearchValue] = useState("");
 	const [statusFilter, setStatusFilter] = useState("active");
+	const isLgUp = useMediaQuery(up("lg"));
 
 	const filteredAccounts = useMemo(() => {
 		return accountingAccountList.filter((account) => {
@@ -46,6 +49,11 @@ export function AccountingSidebar({ activeAccountId, onSelect, onToggle, isColla
 		});
 	}, [typeFilter, searchValue, statusFilter]);
 
+	const pagination = useSidebarPagination({
+		data: filteredAccounts,
+		enabled: !isLgUp,
+	});
+
 	return (
 		<SidebarList>
 			<SidebarList.Header
@@ -63,7 +71,7 @@ export function AccountingSidebar({ activeAccountId, onSelect, onToggle, isColla
 
 			<SidebarList.Body
 				className="flex-1 divide-y divide-border-gray-300 min-h-0"
-				data={filteredAccounts}
+				data={pagination.pagedData}
 				estimateSize={56}
 				height="100%"
 				renderItem={(account: AccountingAccount, style) => (
@@ -78,7 +86,15 @@ export function AccountingSidebar({ activeAccountId, onSelect, onToggle, isColla
 				)}
 			/>
 
-			<SidebarList.Footer total={filteredAccounts.length} isCollapsed={isCollapsed} />
+			<SidebarList.Footer
+				total={pagination.total}
+				isCollapsed={isCollapsed}
+				onPrev={pagination.handlePrev}
+				onNext={pagination.handleNext}
+				hasPrev={pagination.hasPrev}
+				hasNext={pagination.hasNext}
+				showControls={!isLgUp && pagination.totalPages > 1}
+			/>
 		</SidebarList>
 	);
 }

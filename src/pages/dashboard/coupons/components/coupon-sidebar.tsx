@@ -7,53 +7,39 @@ import { useSidebarPagination } from "@/core/hooks/use-sidebar-pagination";
 import type { SelectOption } from "@/core/types/common";
 import { normalizeToken } from "@/core/utils/dashboard-utils";
 
-type ProductSidebarProps = {
-	activeProductId: string | null;
+type CouponSidebarProps = {
+	activeCouponId: string | null;
 	onSelect: (id: string | null) => void;
 	onToggle?: () => void;
 	isCollapsed?: boolean;
 };
 
-const MAIN_TYPE_OPTIONS: SelectOption[] = [
-	{ value: "all", label: "All Types" },
-	{ value: "inventory", label: "Inventory" },
-	{ value: "service", label: "Service" },
-];
-
 const STATUS_OPTIONS: SelectOption[] = [
 	{ value: "all", label: "All Status" },
-	{ value: "active", label: "Active" },
-	{ value: "inactive", label: "Inactive" },
+	{ value: "completed", label: "Completed" },
+	{ value: "pending", label: "Pending" },
 ];
 
-export function ProductSidebar({ activeProductId, onSelect, onToggle, isCollapsed }: ProductSidebarProps) {
+export function CouponSidebar({ activeCouponId, onSelect, onToggle, isCollapsed }: CouponSidebarProps) {
 	const [searchTerm, setSearchTerm] = useState("");
-	const [mainType, setMainType] = useState("all");
 	const [status, setStatus] = useState("all");
 	const isLgUp = useMediaQuery(up("lg"));
 
-	const filteredProducts = useMemo(() => {
+	const filteredCoupons = useMemo(() => {
 		const normalizedSearch = normalizeToken(searchTerm);
-		const normalizedType = normalizeToken(mainType);
 		const normalizedStatus = normalizeToken(status);
 
-		return dashboard.productList.filter((product) => {
-			// Filter by Type
-			if (normalizedType !== "all") {
-				const productType = normalizeToken(product.type || "");
-				if (productType !== normalizedType) return false;
-			}
-
+		return dashboard.couponList.filter((coupon) => {
 			// Filter by Status
 			if (normalizedStatus !== "all") {
-				const productStatus = normalizeToken(product.status || "");
-				if (productStatus !== normalizedStatus) return false;
+				const couponStatus = normalizeToken(coupon.status || "");
+				if (couponStatus !== normalizedStatus) return false;
 			}
 
-			// Filter by Search (Name or Code)
+			// Filter by Search (Name or Plate Number)
 			if (normalizedSearch) {
-				const name = normalizeToken(product.name || "");
-				const code = normalizeToken(product.code || "");
+				const name = normalizeToken(coupon.name || "");
+				const code = normalizeToken(coupon.code || "");
 				if (!name.includes(normalizedSearch) && !code.includes(normalizedSearch)) {
 					return false;
 				}
@@ -61,21 +47,18 @@ export function ProductSidebar({ activeProductId, onSelect, onToggle, isCollapse
 
 			return true;
 		});
-	}, [searchTerm, mainType, status]);
+	}, [searchTerm, status]);
 
 	const pagination = useSidebarPagination({
-		data: filteredProducts,
+		data: filteredCoupons,
 		enabled: !isLgUp,
 	});
 
 	return (
 		<SidebarList>
 			<SidebarList.Header
-				mainTypeOptions={MAIN_TYPE_OPTIONS}
-				mainTypePlaceholder="Item Type"
-				onMainTypeChange={setMainType}
 				onMenuClick={onToggle}
-				searchPlaceholder="Search..."
+				searchPlaceholder="Search coupons..."
 				onSearchChange={setSearchTerm}
 				statusOptions={STATUS_OPTIONS}
 				onStatusChange={setStatus}
@@ -91,7 +74,7 @@ export function ProductSidebar({ activeProductId, onSelect, onToggle, isCollapse
 					<EntityListItem
 						key={item.id}
 						entity={item}
-						isActive={item.id === activeProductId}
+						isActive={item.id === activeCouponId}
 						onSelect={onSelect}
 						style={style}
 						isCollapsed={isCollapsed}

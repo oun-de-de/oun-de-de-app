@@ -1,4 +1,4 @@
-import { type AxiosRequestConfig } from "axios";
+import type { AxiosRequestConfig } from "axios";
 import { AuthNetworkService, NoAuthNetworkService } from "./network-service";
 
 // Legacy API Client for backward compatibility with Auth

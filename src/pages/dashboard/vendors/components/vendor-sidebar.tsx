@@ -1,6 +1,7 @@
 import { vendorList } from "@/_mock/data/dashboard";
 import { EntityListItem, SidebarList } from "@/core/components/common";
-
+import { up, useMediaQuery } from "@/core/hooks/use-media-query";
+import { useSidebarPagination } from "@/core/hooks/use-sidebar-pagination";
 import type { SelectOption } from "@/core/types/common";
 
 type VendorSidebarProps = {
@@ -21,6 +22,13 @@ const STATUS_OPTIONS: SelectOption[] = [
 ];
 
 export function VendorSidebar({ activeVendorId, onSelect, onToggle, isCollapsed }: VendorSidebarProps) {
+	const isLgUp = useMediaQuery(up("lg"));
+
+	const pagination = useSidebarPagination({
+		data: vendorList,
+		enabled: !isLgUp,
+	});
+
 	return (
 		<SidebarList>
 			<SidebarList.Header
@@ -37,7 +45,7 @@ export function VendorSidebar({ activeVendorId, onSelect, onToggle, isCollapsed 
 
 			<SidebarList.Body
 				className="mt-4 divide-y divide-border-gray-300 flex-1 min-h-0"
-				data={vendorList}
+				data={pagination.pagedData}
 				estimateSize={56}
 				height="100%"
 				renderItem={(vendor, style) => (
@@ -52,7 +60,15 @@ export function VendorSidebar({ activeVendorId, onSelect, onToggle, isCollapsed 
 				)}
 			/>
 
-			<SidebarList.Footer total={200} isCollapsed={isCollapsed} />
+			<SidebarList.Footer
+				total={pagination.total}
+				isCollapsed={isCollapsed}
+				onPrev={pagination.handlePrev}
+				onNext={pagination.handleNext}
+				hasPrev={pagination.hasPrev}
+				hasNext={pagination.hasNext}
+				showControls={!isLgUp && pagination.totalPages > 1}
+			/>
 		</SidebarList>
 	);
 }

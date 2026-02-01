@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { EntityListItem, SidebarList } from "@/core/components/common";
+import { up, useMediaQuery } from "@/core/hooks/use-media-query";
+import { useSidebarPagination } from "@/core/hooks/use-sidebar-pagination";
 import type { SelectOption } from "@/core/types/common";
 
 type Props = {
@@ -31,6 +33,12 @@ export function BorrowSidebar({ activeBorrowId, onSelect, onToggle, isCollapsed 
 	const [searchValue, setSearchValue] = useState("");
 	const [statusFilter, setStatusFilter] = useState("active");
 	const [typeFilter, setTypeFilter] = useState("all");
+	const isLgUp = useMediaQuery(up("lg"));
+
+	const pagination = useSidebarPagination({
+		data: MOCK_LIST,
+		enabled: !isLgUp,
+	});
 
 	return (
 		<SidebarList>
@@ -51,7 +59,7 @@ export function BorrowSidebar({ activeBorrowId, onSelect, onToggle, isCollapsed 
 
 			<SidebarList.Body
 				className="flex-1 min-h-0"
-				data={MOCK_LIST} // In real app, filter this based on search/status
+				data={pagination.pagedData}
 				estimateSize={40}
 				gap={8}
 				height="100%"
@@ -67,7 +75,15 @@ export function BorrowSidebar({ activeBorrowId, onSelect, onToggle, isCollapsed 
 				)}
 			/>
 
-			<SidebarList.Footer total={MOCK_LIST.length} isCollapsed={isCollapsed} />
+			<SidebarList.Footer
+				total={pagination.total}
+				isCollapsed={isCollapsed}
+				onPrev={pagination.handlePrev}
+				onNext={pagination.handleNext}
+				hasPrev={pagination.hasPrev}
+				hasNext={pagination.hasNext}
+				showControls={!isLgUp && pagination.totalPages > 1}
+			/>
 		</SidebarList>
 	);
 }
