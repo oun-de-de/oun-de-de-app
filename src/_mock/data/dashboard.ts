@@ -283,6 +283,7 @@ export const productRows: ProductRow[] = [
 		qty: 1,
 		cost: 6000,
 		price: 6500,
+		weight: 50,
 	},
 	{
 		date: "13/10/2025",
@@ -292,6 +293,7 @@ export const productRows: ProductRow[] = [
 		qty: 2,
 		cost: 2100,
 		price: 2600,
+		weight: 20,
 	},
 ];
 

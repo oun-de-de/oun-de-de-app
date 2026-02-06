@@ -8,7 +8,7 @@ import type { Customer } from "@/core/types/customer";
 import { buildPagination } from "@/core/utils/dashboard-utils";
 import { CustomerSidebar } from "@/pages/dashboard/customers/components/customer-sidebar";
 import { CouponContent } from "./components/coupon-content";
-import { useCouponsList, useCouponsListActions } from "./stores/couponsListStore";
+import { useCouponsList, useCouponsListActions } from "./stores/coupons-store";
 
 export default function CouponsPage() {
 	const [activeCustomer, setActiveCustomer] = useState<Customer | null>(null);

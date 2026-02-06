@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
 import couponService from "@/core/api/services/couponService";
-import employeeService from "@/core/api/services/employeeService";
+import employeeService from "@/core/api/services/employee-service";
 import vehicleService from "@/core/api/services/vehicleService";
 import type { DefaultFormData } from "@/core/components/common";
 import type { CreateCouponRequest } from "@/core/types/coupon";

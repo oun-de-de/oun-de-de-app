@@ -1,83 +1,98 @@
-import { useEffect, useMemo, useState } from "react";
-
-import { productRows as transactions } from "@/_mock/data/dashboard";
+import { useQuery } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
+import productService from "@/core/api/services/product-service";
 import { DashboardSplitView } from "@/core/components/common/dashboard-split-view";
 import { useSidebarCollapse } from "@/core/hooks/use-sidebar-collapse";
-import { useProductsList, useProductsListActions } from "@/core/store/productsListStore";
-import { buildPagination, normalizeToken } from "@/core/utils/dashboard-utils";
-
+import type { Product } from "@/core/types/product";
+import { buildPagination } from "@/core/utils/dashboard-utils";
 import { ProductContent } from "./components/product-content";
 import { ProductSidebar } from "./components/product-sidebar";
+import { useProductsList, useProductsListActions } from "./stores/product-list-store";
 
 export default function ProductsPage() {
-	const [activeProductId, setActiveProductId] = useState<string | null>(null);
+	const [activeProduct, setActiveProduct] = useState<Product | null>(null);
 	const listState = useProductsList();
 	const { updateState } = useProductsListActions();
 
 	const { isCollapsed, handleToggle } = useSidebarCollapse();
 
-	const filteredTransactions = useMemo(() => {
-		const normalizedType = normalizeToken(listState.typeFilter);
-		const normalizedQuery = listState.searchValue.trim().toLowerCase();
+	// clear active product when user starts searching
+	useEffect(() => {
+		if (listState.searchValue && activeProduct) {
+			setActiveProduct(null);
+		}
+	}, [listState.searchValue, activeProduct]);
 
-		return transactions.filter((row) => {
-			if (normalizedType && normalizedType !== "all") {
-				const rowType = normalizeToken(row.type);
-				if (rowType !== normalizedType) {
-					return false;
-				}
-			}
+	const { data } = useQuery({
+		queryKey: [
+			"products",
+			listState.page,
+			listState.pageSize,
+			listState.searchValue,
+			listState.typeFilter,
+			listState.fieldFilter,
+			activeProduct?.name,
+		],
+		queryFn: () => productService.getProductList(),
+	});
 
-			if (!normalizedQuery) {
-				return true;
-			}
+	const allProducts = data || [];
 
-			// Note: productRows currently lacks 'name' field, so we mainly filter by refNo or type
+	const filteredProducts = allProducts.filter((product) => {
+		const query = listState.searchValue.toLowerCase();
+
+		let matchesSearch = true;
+		if (query) {
+			const name = (product.name || "").toLowerCase();
+			const refNo = (product.refNo || "").toLowerCase();
+
 			if (listState.fieldFilter === "ref-no") {
-				return row.refNo.toLowerCase().includes(normalizedQuery);
+				matchesSearch = refNo.includes(query);
+			} else if (listState.fieldFilter === "name") {
+				matchesSearch = name.includes(query);
+			} else {
+				matchesSearch = name.includes(query) || refNo.includes(query);
 			}
+		}
 
-			return (
-				row.refNo.toLowerCase().includes(normalizedQuery) || row.type.toLowerCase().includes(normalizedQuery)
-				// Add name check here if mock data is updated
-			);
-		});
-	}, [listState.fieldFilter, listState.searchValue, listState.typeFilter]);
+		return matchesSearch;
+	});
 
-	const totalItems = filteredTransactions.length;
+	const totalItems = filteredProducts.length;
 	const totalPages = Math.max(1, Math.ceil(totalItems / listState.pageSize));
 	const currentPage = Math.min(listState.page, totalPages);
 
-	const pagedTransactions = useMemo(() => {
-		const startIndex = (currentPage - 1) * listState.pageSize;
-		return filteredTransactions.slice(startIndex, startIndex + listState.pageSize);
-	}, [currentPage, filteredTransactions, listState.pageSize]);
-
-	const paginationItems = buildPagination(currentPage, totalPages);
-
 	useEffect(() => {
-		if (listState.page > totalPages) {
+		if (listState.page > totalPages && totalPages > 0) {
 			updateState({ page: totalPages });
 		}
 	}, [listState.page, totalPages, updateState]);
+
+	const pagedProducts = filteredProducts.slice(
+		(currentPage - 1) * listState.pageSize,
+		currentPage * listState.pageSize,
+	);
+
+	const paginationItems = buildPagination(currentPage, totalPages);
 
 	return (
 		<DashboardSplitView
 			sidebarClassName={isCollapsed ? "lg:w-20" : "lg:w-1/4"}
 			sidebar={
 				<ProductSidebar
-					activeProductId={activeProductId}
-					onSelect={setActiveProductId}
+					activeProductId={activeProduct?.id || null}
+					onSelect={(id) => setActiveProduct(allProducts.find((p) => p.id === id) || null)}
 					onToggle={handleToggle}
 					isCollapsed={isCollapsed}
+					products={allProducts}
 				/>
 			}
 			content={
 				<ProductContent
-					activeProductId={activeProductId}
+					activeProduct={activeProduct}
 					listState={listState}
 					updateState={updateState}
-					pagedTransactions={pagedTransactions}
+					pagedData={pagedProducts}
 					totalItems={totalItems}
 					totalPages={totalPages}
 					currentPage={currentPage}

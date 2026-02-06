@@ -6,9 +6,10 @@ export enum EmployeeApi {
 	Create = "/employees",
 }
 
-const getEmployeeList = (): Promise<Employee[]> =>
+const getEmployeeList = (params?: { page?: number; size?: number }): Promise<Employee[]> =>
 	apiClient.get<Employee[]>({
 		url: EmployeeApi.List,
+		params,
 	});
 
 const createEmployee = (employee: CreateEmployee) =>

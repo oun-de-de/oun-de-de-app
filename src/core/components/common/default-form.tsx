@@ -1,6 +1,6 @@
 import { cva, type VariantProps } from "class-variance-authority";
 import type { ComponentProps, ReactNode } from "react";
-import { type DefaultValues, useForm } from "react-hook-form";
+import { type DefaultValues, type RegisterOptions, useForm, type ValidationRule } from "react-hook-form";
 import { FormActions, FormProvider, FormSelect, FormSwitch, FormTextarea, FormTextField } from "@/core/components/form";
 import { Text } from "@/core/ui/typography";
 import { cn } from "@/core/utils";
@@ -53,6 +53,10 @@ export type FormFieldConfig = {
 	defaultValue?: FormValue;
 	helperText?: string;
 	component?: ReactNode;
+	className?: string;
+	pattern?: ValidationRule<RegExp>;
+	startAdornment?: ReactNode;
+	endAdornment?: ReactNode;
 };
 
 export type DefaultFormData = Record<string, FormValue>;
@@ -113,37 +117,53 @@ export function DefaultForm<TFormData extends DefaultFormData = DefaultFormData>
 	};
 
 	const renderField = (field: FormFieldConfig) => {
-		const rules = field.required ? { required: `${field.label} is required` } : undefined;
-		const commonProps = {
+		const rules: RegisterOptions = {
+			required: field.required ? { value: true, message: `${field.label} is required` } : undefined,
+			pattern: field.pattern,
+		};
+
+		// Base props for all form components
+		const baseProps = {
 			key: field.name,
 			name: field.name,
 			label: field.label,
 			placeholder: field.placeholder,
 			helperText: field.helperText,
 			requiredMark: field.required,
+			containerClassName: field.className,
 			rules,
+		};
+
+		const textFieldProps = {
+			...baseProps,
+			startAdornment: field.startAdornment,
+			endAdornment: field.endAdornment,
 		};
 
 		switch (field.type) {
 			case "select":
-				return <FormSelect {...commonProps} options={field.options || []} variant={inputVariant} size={inputSize} />;
+				return <FormSelect {...baseProps} options={field.options || []} variant={inputVariant} size={inputSize} />;
 
 			case "switch":
-				return <FormSwitch {...commonProps} />;
+				return <FormSwitch {...baseProps} />;
 
 			case "textarea":
-				return <FormTextarea {...commonProps} variant={inputVariant} size={inputSize} />;
+				return <FormTextarea {...baseProps} variant={inputVariant} size={inputSize} />;
 
 			case "date":
-				return <FormTextField {...commonProps} type="date" variant={inputVariant} size={inputSize} />;
+				return <FormTextField {...textFieldProps} type="date" variant={inputVariant} size={inputSize} />;
 
 			case "custom":
-				return <div key={field.name}>{field.component}</div>;
+				return (
+					<div key={field.name} className={field.className}>
+						{field.component}
+					</div>
+				);
 
 			default:
 				return (
 					<FormTextField
-						{...commonProps}
+						{...textFieldProps}
 						type={field.type === "number" ? "number" : "text"}
 						variant={inputVariant}
 						size={inputSize}

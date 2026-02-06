@@ -1,4 +1,5 @@
 import type { FormFieldConfig } from "@/core/components/common";
+import { DEFAULT_PRICE_OPTIONS } from "../../utils/customer-utils";
 
 export const CUSTOMER_FIELDS: FormFieldConfig[] = [
 	{
@@ -13,7 +14,12 @@ export const CUSTOMER_FIELDS: FormFieldConfig[] = [
 		label: "Code",
 		type: "text",
 		required: true,
-		placeholder: "Enter customer code",
+		placeholder: "Enter customer code: CUSxxxxxx",
+		pattern: {
+			value: /^CUS\d{6}$/,
+			message: "Code must be in format CUSxxxxxx (e.g., CUS123456)",
+		},
+		className: "w-full sm:w-[240px]",
 	},
 	{
 		name: "name",
@@ -23,15 +29,11 @@ export const CUSTOMER_FIELDS: FormFieldConfig[] = [
 		placeholder: "Enter customer name",
 	},
 	{
-		name: "customerType",
-		label: "Customer Type",
+		name: "referredBy",
+		label: "Referred By",
 		type: "select",
-		required: true,
-		options: [
-			{ label: "លក់ដុំ (ជាបន្តិច)", value: "wholesale_small" },
-			{ label: "លក់រាយ", value: "retail" },
-			{ label: "អតិថិជន VIP", value: "vip" },
-		],
+		options: [],
+		placeholder: "Select referrer",
 	},
 	{
 		name: "employeeId",
@@ -45,22 +47,8 @@ export const CUSTOMER_FIELDS: FormFieldConfig[] = [
 		name: "defaultPrice",
 		label: "Default Price",
 		type: "select",
-		options: [
-			{ label: "Retail Price", value: "retail_price" },
-			{ label: "Wholesale Price", value: "wholesale_price" },
-			{ label: "Special Price", value: "special_price" },
-		],
+		options: DEFAULT_PRICE_OPTIONS,
 		defaultValue: "retail_price",
-	},
-	{
-		name: "warehouse",
-		label: "Warehouse",
-		type: "select",
-		options: [
-			{ label: "Warehouse 1", value: "Warehouse 1" },
-			{ label: "Warehouse 2", value: "Warehouse 2" },
-			// Add warehouse options dynamically
-		],
 	},
 	{
 		name: "telephone",
@@ -75,16 +63,10 @@ export const CUSTOMER_FIELDS: FormFieldConfig[] = [
 		placeholder: "Enter email address",
 	},
 	{
-		name: "geography",
-		label: "Geography",
-		type: "text",
-		placeholder: "Enter geography/region",
-	},
-	{
-		name: "address",
-		label: "Address",
-		type: "textarea",
-		placeholder: "Enter full address",
+		name: "warehouse",
+		label: "Warehouse",
+		type: "select",
+		options: [],
 	},
 	{
 		name: "status",
@@ -92,6 +74,12 @@ export const CUSTOMER_FIELDS: FormFieldConfig[] = [
 		type: "switch",
 		defaultValue: true,
 		helperText: "Active/Inactive customer status",
+	},
+	{
+		name: "geography",
+		label: "Geography",
+		type: "text",
+		placeholder: "Enter geography/region",
 	},
 	{
 		name: "location",
@@ -104,18 +92,6 @@ export const CUSTOMER_FIELDS: FormFieldConfig[] = [
 		label: "Map URL",
 		type: "text",
 		placeholder: "Enter Google Maps link",
-	},
-	{
-		name: "billingAddress",
-		label: "Billing Address",
-		type: "textarea",
-		placeholder: "Enter billing address",
-	},
-	{
-		name: "deliveryAddress",
-		label: "Delivery Address",
-		type: "textarea",
-		placeholder: "Enter delivery address",
 	},
 	{
 		name: "profileUrl",
@@ -132,10 +108,32 @@ export const CUSTOMER_FIELDS: FormFieldConfig[] = [
 		helperText: "URL for shop banner image",
 	},
 	{
+		name: "address",
+		label: "Address",
+		type: "textarea",
+		placeholder: "Enter full address",
+		className: "col-span-2",
+	},
+	{
+		name: "billingAddress",
+		label: "Billing Address",
+		type: "textarea",
+		placeholder: "Enter billing address",
+		className: "col-span-2",
+	},
+	{
+		name: "deliveryAddress",
+		label: "Delivery Address",
+		type: "textarea",
+		placeholder: "Enter delivery address",
+		className: "col-span-2",
+	},
+	{
 		name: "memo",
 		label: "Memo",
 		type: "textarea",
 		placeholder: "Enter additional notes",
 		helperText: "Additional notes or comments about the customer",
+		className: "col-span-2",
 	},
 ];

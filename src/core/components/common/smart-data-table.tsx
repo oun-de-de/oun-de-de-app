@@ -26,7 +26,6 @@ export type SmartTableFilterConfig = {
 	/** Current value of the first dropdown */
 	typeValue?: string;
 	/** Current value of the second dropdown */
-	/** Current value of the second dropdown */
 	fieldValue?: string;
 	/** Current value of the search input */
 	searchValue?: string;
@@ -139,6 +138,10 @@ type SmartDataTableProps<T> = {
  * />
  * ```
  */
+
+/** Helper to generate fixed column size styles */
+const getColumnSizeStyle = (size?: number) => (size ? { width: size, minWidth: size, maxWidth: size } : undefined);
+
 export function SmartDataTable<T extends object>({
 	data,
 	columns,
@@ -171,11 +174,11 @@ export function SmartDataTable<T extends object>({
 		});
 	}, []);
 
-	const scrollByAmount = (delta: number) => {
+	const scrollByAmount = useCallback((delta: number) => {
 		const el = scrollRef.current;
 		if (!el) return;
 		el.scrollBy({ left: delta, behavior: "smooth" });
-	};
+	}, []);
 
 	const table = useReactTable({
 		data,
@@ -287,10 +290,12 @@ export function SmartDataTable<T extends object>({
 												canSort && "cursor-pointer select-none",
 												header.column.columnDef.meta?.headerClassName,
 											);
+											const sizeStyle = getColumnSizeStyle(header.column.columnDef.size);
 											return (
 												<th
 													key={header.id}
 													className={classNames}
+													style={sizeStyle}
 													onClick={canSort ? header.column.getToggleSortingHandler() : undefined}
 												>
 													<div className="inline-flex items-center justify-center gap-1">
@@ -327,8 +332,9 @@ export function SmartDataTable<T extends object>({
 													"px-3 py-2 border-r border-gray-300 last:border-r-0",
 													cell.column.columnDef.meta?.bodyClassName,
 												);
+												const sizeStyle = getColumnSizeStyle(cell.column.columnDef.size);
 												return (
-													<td key={cell.id} className={classNames}>
+													<td key={cell.id} className={classNames} style={sizeStyle}>
 														{flexRender(cell.column.columnDef.cell, cell.getContext())}
 													</td>
 												);

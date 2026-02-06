@@ -1,6 +1,8 @@
 import { cva, type VariantProps } from "class-variance-authority";
+import { useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 import Icon from "@/core/components/icon/icon";
+import { useDebounce } from "@/core/hooks/use-debounce";
 import { Button } from "@/core/ui/button";
 import { Input } from "@/core/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/core/ui/select";
@@ -56,6 +58,35 @@ export function TableFilterBar({
 	onSearchChange,
 	onFilterClick,
 }: FilterBarProps) {
+	const [localSearch, setLocalSearch] = useState(searchValue || "");
+	const debouncedSearch = useDebounce(localSearch, 300);
+	const isUpdatingFromProp = useRef(false);
+	const prevSearchValue = useRef(searchValue);
+
+	// sync local state with prop when prop changes
+	useEffect(() => {
+		if (searchValue !== prevSearchValue.current) {
+			prevSearchValue.current = searchValue;
+
+			if (searchValue !== localSearch) {
+				isUpdatingFromProp.current = true;
+				setLocalSearch(searchValue || "");
+			}
+		}
+	}, [searchValue, localSearch]);
+
+	// trigger callback only when debounced value changes from user input
+	useEffect(() => {
+		if (isUpdatingFromProp.current) {
+			isUpdatingFromProp.current = false;
+			return;
+		}
+
+		if (debouncedSearch !== (searchValue || "")) {
+			onSearchChange?.(debouncedSearch);
+		}
+	}, [debouncedSearch, onSearchChange, searchValue]);
+
 	return (
 		<FilterContainer className={cn(filterBarVariants({ variant }), className)}>
 			<Button
@@ -99,8 +130,8 @@ export function TableFilterBar({
 				<Input
 					placeholder={searchPlaceholder}
 					className="pl-9"
-					value={searchValue ?? ""}
-					onChange={(event) => onSearchChange?.(event.target.value)}
+					value={localSearch}
+					onChange={(event) => setLocalSearch(event.target.value)}
 				/>
 				<SearchIconWrapper>
 					<Icon icon="mdi:magnify" />

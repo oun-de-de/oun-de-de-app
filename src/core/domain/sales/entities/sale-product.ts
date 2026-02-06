@@ -1,9 +1,10 @@
-import type { DateFilter, CustomerFilter, EmployeeFilter, WarehouseFilter, SaleCategoryFilter } from "./sale-filter";
+import type { CustomerFilter, DateFilter, EmployeeFilter, SaleCategoryFilter, WarehouseFilter } from "./sale-filter";
 
 export type SaleProduct = {
 	id: string | number;
 	name: string;
 	price: number;
+	weight?: number;
 	amount: number;
 	currency?: string;
 	imageUrl?: string;

@@ -1,8 +1,8 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
-import customerService from "@/core/api/services/customerService";
-import employeeService from "@/core/api/services/employeeService";
+import customerService from "@/core/api/services/customer-service";
+import employeeService from "@/core/api/services/employee-service";
 import type { CreateCustomer } from "@/core/types/customer";
 import { Text } from "@/core/ui/typography";
 import { CustomerForm, type CustomerFormData } from "./components/customer-form";
@@ -20,43 +20,58 @@ export default function CreateCustomerPage() {
 		value: emp.id,
 	}));
 
-	const handleSubmit = async (data: CustomerFormData) => {
-		try {
-			// Transform data to match API schema
-			const customerData: CreateCustomer = {
-				registerDate: data.registerDate as string,
-				code: data.code as string,
-				name: data.name as string,
-				status: !!data.status,
-				customerType: data.customerType as string,
-				defaultPrice: data.defaultPrice as string,
-				warehouse: data.warehouse as string,
-				memo: data.memo as string,
-				profileUrl: data.profileUrl as string,
-				shopBannerUrl: data.shopBannerUrl as string,
-				employeeId: data.employeeId as string,
-				telephone: data.telephone as string,
-				email: data.email as string,
-				geography: data.geography as string,
-				address: data.address as string,
-				location: data.location as string,
-				map: data.map as string,
-				billingAddress: data.billingAddress as string,
-				deliveryAddress: data.deliveryAddress as string,
-				vehicles: data.vehicles ?? [],
-			};
+	const { data: customersResponse } = useQuery({
+		queryKey: ["customers", "referredByOptions"],
+		queryFn: () => customerService.getCustomerList({ limit: 1000 }),
+	});
 
-			await customerService.createCustomer(customerData);
+	const customerOptions = (customersResponse?.list || []).map((cus) => ({
+		label: cus.name,
+		value: cus.id,
+	}));
 
+	const { mutateAsync: createCustomer } = useMutation({
+		mutationFn: async (data: CreateCustomer) => {
+			return customerService.createCustomer(data);
+		},
+		onSuccess: () => {
 			toast.success("Customer has been created successfully");
 			navigate("/dashboard/customers");
-		} catch (error) {
-			toast.error("Failed to create customer");
+		},
+		onError: (error) => {
 			console.error(error);
-		}
+			toast.error("Failed to create customer");
+		},
+	});
+
+	const handleSubmit = async (data: CustomerFormData) => {
+		const customerData: CreateCustomer = {
+			registerDate: data.registerDate as string,
+			code: data.code as string,
+			name: data.name as string,
+			status: !!data.status,
+			referredBy: data.referredBy as string,
+			defaultPrice: data.defaultPrice as string,
+			warehouse: data.warehouse as string,
+			memo: data.memo as string,
+			profileUrl: data.profileUrl as string,
+			shopBannerUrl: data.shopBannerUrl as string,
+			employeeId: data.employeeId as string,
+			telephone: data.telephone as string,
+			email: data.email as string,
+			geography: data.geography as string,
+			address: data.address as string,
+			location: data.location as string,
+			map: data.map as string,
+			billingAddress: data.billingAddress as string,
+			deliveryAddress: data.deliveryAddress as string,
+			vehicles: data.vehicles ?? [],
+		};
+
+		await createCustomer(customerData);
 	};
 
-	const handleCancel = () => {};
+	const handleCancel = () => navigate("/dashboard/customers");
 
 	return (
 		<div className="flex flex-col h-full p-6 gap-6">
@@ -74,6 +89,7 @@ export default function CreateCustomerPage() {
 						mode="create"
 						showTitle={false}
 						employeeOptions={employeeOptions}
+						customerOptions={customerOptions}
 					/>
 				</div>
 			</div>

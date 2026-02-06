@@ -1,10 +1,13 @@
 import type { ColumnDef } from "@tanstack/react-table";
-import type { ProductRow } from "@/core/types/common";
+import Icon from "@/core/components/icon/icon";
+import type { Product } from "@/core/types/product";
+import { Button } from "@/core/ui/button";
 
-export const columns: ColumnDef<ProductRow>[] = [
+export const columns: ColumnDef<Product>[] = [
 	{
 		header: "Date",
 		accessorKey: "date",
+		cell: ({ row }) => new Date(row.original.date).toLocaleDateString(),
 	},
 	{
 		header: "Ref No",
@@ -12,27 +15,35 @@ export const columns: ColumnDef<ProductRow>[] = [
 		cell: ({ row }) => <span className="text-sky-600">{row.original.refNo}</span>,
 	},
 	{
-		header: "Type",
-		cell: ({ row }) => (
-			<span className="rounded-full bg-sky-100 px-2 py-0.5 text-xs text-sky-700">{row.original.type}</span>
-		),
+		header: "Name",
+		accessorKey: "name",
 	},
 	{
-		header: "Status",
-		cell: ({ row }) => (
-			<span className="rounded-md bg-amber-100 px-2 py-0.5 text-xs text-amber-700">{row.original.status}</span>
-		),
-	},
-	{
-		header: "Qty",
-		accessorKey: "qty",
+		header: "Quantity",
+		accessorKey: "quantity",
 	},
 	{
 		header: "Cost",
-		cell: ({ row }) => row.original.cost.toLocaleString(),
+		accessorKey: "cost",
+		cell: ({ row }) => (row.original.cost || 0).toLocaleString(),
 	},
 	{
 		header: "Price",
-		cell: ({ row }) => <span className="font-semibold">{row.original.price.toLocaleString()}</span>,
+		accessorKey: "price",
+		cell: ({ row }) => <span className="font-semibold">{(row.original.price || 0).toLocaleString()}</span>,
+	},
+	{
+		header: "Actions",
+		id: "actions",
+		cell: () => (
+			<div className="flex gap-1">
+				<Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary">
+					<Icon icon="mdi:pencil" />
+				</Button>
+				<Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive">
+					<Icon icon="mdi:delete" />
+				</Button>
+			</div>
+		),
 	},
 ];

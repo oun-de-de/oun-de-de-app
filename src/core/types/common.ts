@@ -57,6 +57,7 @@ export type ProductRow = {
 	qty: number;
 	cost: number;
 	price: number;
+	weight: number;
 };
 
 export type AccountingRow = {

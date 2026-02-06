@@ -34,6 +34,7 @@ export const frontendNavData: NavProps["data"] = [
 					},
 					{
 						title: "Create Receipt",
+						path: "/dashboard/customers/create-receipt",
 					},
 				],
 			},

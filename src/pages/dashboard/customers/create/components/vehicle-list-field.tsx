@@ -2,6 +2,7 @@ import { Icon } from "@iconify/react";
 import { useFieldArray, useFormContext } from "react-hook-form";
 import { FormSelect, FormTextField } from "@/core/components/form";
 import { Button } from "@/core/ui/button";
+import { VEHICLE_TYPE_OPTIONS } from "../../utils/customer-utils";
 
 export function VehicleListField() {
 	const { control } = useFormContext();
@@ -33,11 +34,7 @@ export function VehicleListField() {
 							<FormSelect
 								name={`vehicles.${index}.vehicleType`}
 								label="Vehicle Type"
-								options={[
-									{ label: "Truck", value: "truck" },
-									{ label: "TukTuk", value: "tuk_tuk" },
-									{ label: "Others", value: "others" },
-								]}
+								options={VEHICLE_TYPE_OPTIONS}
 								placeholder="Select Type"
 							/>
 						</div>

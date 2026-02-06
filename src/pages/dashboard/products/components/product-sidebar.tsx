@@ -1,10 +1,9 @@
 import { useMemo, useState } from "react";
 
-import * as dashboard from "@/_mock/data/dashboard";
 import { EntityListItem, SidebarList } from "@/core/components/common";
 import { up, useMediaQuery } from "@/core/hooks/use-media-query";
 import { useSidebarPagination } from "@/core/hooks/use-sidebar-pagination";
-import type { SelectOption } from "@/core/types/common";
+import type { Product } from "@/core/types/product";
 import { normalizeToken } from "@/core/utils/dashboard-utils";
 
 type ProductSidebarProps = {
@@ -12,48 +11,21 @@ type ProductSidebarProps = {
 	onSelect: (id: string | null) => void;
 	onToggle?: () => void;
 	isCollapsed?: boolean;
+	products: Product[];
 };
 
-const MAIN_TYPE_OPTIONS: SelectOption[] = [
-	{ value: "all", label: "All Types" },
-	{ value: "inventory", label: "Inventory" },
-	{ value: "service", label: "Service" },
-];
-
-const STATUS_OPTIONS: SelectOption[] = [
-	{ value: "all", label: "All Status" },
-	{ value: "active", label: "Active" },
-	{ value: "inactive", label: "Inactive" },
-];
-
-export function ProductSidebar({ activeProductId, onSelect, onToggle, isCollapsed }: ProductSidebarProps) {
+export function ProductSidebar({ activeProductId, onSelect, onToggle, isCollapsed, products }: ProductSidebarProps) {
 	const [searchTerm, setSearchTerm] = useState("");
-	const [mainType, setMainType] = useState("all");
-	const [status, setStatus] = useState("all");
 	const isLgUp = useMediaQuery(up("lg"));
 
 	const filteredProducts = useMemo(() => {
 		const normalizedSearch = normalizeToken(searchTerm);
-		const normalizedType = normalizeToken(mainType);
-		const normalizedStatus = normalizeToken(status);
 
-		return dashboard.productList.filter((product) => {
-			// Filter by Type
-			if (normalizedType !== "all") {
-				const productType = normalizeToken(product.type || "");
-				if (productType !== normalizedType) return false;
-			}
-
-			// Filter by Status
-			if (normalizedStatus !== "all") {
-				const productStatus = normalizeToken(String(product.status ?? ""));
-				if (productStatus !== normalizedStatus) return false;
-			}
-
-			// Filter by Search (Name or Code)
+		return products.filter((product) => {
+			// Filter by Search (Name or RefNo)
 			if (normalizedSearch) {
 				const name = normalizeToken(product.name || "");
-				const code = normalizeToken(product.code || "");
+				const code = normalizeToken(product.refNo || "");
 				if (!name.includes(normalizedSearch) && !code.includes(normalizedSearch)) {
 					return false;
 				}
@@ -61,30 +33,31 @@ export function ProductSidebar({ activeProductId, onSelect, onToggle, isCollapse
 
 			return true;
 		});
-	}, [searchTerm, mainType, status]);
+	}, [searchTerm, products]);
 
 	const pagination = useSidebarPagination({
 		data: filteredProducts,
 		enabled: !isLgUp,
 	});
 
+	// Map products to EntityListItemData format (requires code)
+	const sidebarData = pagination.pagedData.map((product) => ({
+		...product,
+		code: product.refNo,
+	}));
+
 	return (
 		<SidebarList>
 			<SidebarList.Header
-				mainTypeOptions={MAIN_TYPE_OPTIONS}
-				mainTypePlaceholder="Item Type"
-				onMainTypeChange={setMainType}
 				onMenuClick={onToggle}
 				searchPlaceholder="Search..."
 				onSearchChange={setSearchTerm}
-				statusOptions={STATUS_OPTIONS}
-				onStatusChange={setStatus}
 				isCollapsed={isCollapsed}
 			/>
 
 			<SidebarList.Body
 				className="mt-4 divide-y divide-border-gray-300 flex-1 min-h-0"
-				data={pagination.pagedData}
+				data={sidebarData}
 				estimateSize={56}
 				height="100%"
 				renderItem={(item, style) => (

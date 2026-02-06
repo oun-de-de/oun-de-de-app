@@ -6,11 +6,11 @@ export interface Customer {
 	code: string;
 	name: string;
 	status: boolean;
-	customerType: string;
 	defaultPrice: string;
 	warehouse: string;
 	memo: string;
 	profileUrl: string;
+	referredBy?: string;
 	shopBannerUrl: string;
 	employeeId: string;
 	telephone: string;
@@ -22,6 +22,12 @@ export interface Customer {
 	billingAddress: string;
 	deliveryAddress: string;
 	vehicles: Vehicle[];
+	depositBalance?: number;
+	creditLimit?: number;
+	invoiceCount?: number;
+	invoiceTotal?: number;
+	overdueCount?: number;
+	overdueTotal?: number;
 }
 
 export interface CreateCustomer {
@@ -29,11 +35,11 @@ export interface CreateCustomer {
 	code: string;
 	name: string;
 	status: boolean;
-	customerType: string;
 	defaultPrice: string;
 	warehouse: string;
 	memo: string;
 	profileUrl: string;
+	referredBy?: string;
 	shopBannerUrl: string;
 	employeeId: string;
 	telephone: string;

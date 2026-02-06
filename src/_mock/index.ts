@@ -1,24 +1,25 @@
 import { setupWorker } from "msw/browser";
-import { mockTokenExpired } from "./handlers/_demo";
+import { createCustomerVehicle, customerList, getCustomerVehicleList } from "./handlers/_customer";
 import {
-	dailyIncomePos,
 	customerInfo,
-	performance,
-	dashboardFilters,
 	dailyIncomeAccounting,
+	dailyIncomePos,
+	dashboardFilters,
+	performance,
 } from "./handlers/_dashboard";
+import { mockTokenExpired } from "./handlers/_demo";
 import { menuList } from "./handlers/_menu";
-import { signIn, refresh, userList } from "./handlers/_user";
-import { customerList } from "./handlers/_customer";
+import { createProduct, deleteProduct, getProductById, getProductList, updateProduct } from "./handlers/_product";
 import {
+	saleCategories,
+	saleCategoryFilter,
 	saleCustomers,
 	saleEmployees,
-	saleWarehouses,
-	saleCategoryFilter,
-	saleCategories,
-	saleGetProduct,
 	saleGetProducts,
+	saleWarehouses,
 } from "./handlers/_sale";
+import { refresh, signIn, userList } from "./handlers/_user";
+import { createVehicle, deleteVehicle, getVehicleById, getVehicleList, updateVehicle } from "./handlers/_vehicle";
 
 const handlers = [
 	signIn,
@@ -27,6 +28,8 @@ const handlers = [
 	mockTokenExpired,
 	menuList,
 	customerList,
+	getCustomerVehicleList,
+	createCustomerVehicle,
 	dailyIncomePos,
 	customerInfo,
 	performance,
@@ -37,8 +40,17 @@ const handlers = [
 	saleWarehouses,
 	saleCategoryFilter,
 	saleCategories,
-	saleGetProduct,
 	saleGetProducts,
+	getVehicleList,
+	getVehicleById,
+	createVehicle,
+	updateVehicle,
+	deleteVehicle,
+	getProductList,
+	getProductById,
+	createProduct,
+	updateProduct,
+	deleteProduct,
 ];
 
 const worker = setupWorker(...handlers);

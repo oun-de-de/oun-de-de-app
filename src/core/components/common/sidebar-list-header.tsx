@@ -50,7 +50,7 @@ export function SidebarListHeader({
 	isCollapsed,
 }: SidebarListHeaderProps) {
 	const [localSearch, setLocalSearch] = useState(searchValue);
-	const debouncedSearch = useDebounce(localSearch, 500);
+	const debouncedSearch = useDebounce(localSearch, 300);
 
 	useEffect(() => {
 		setLocalSearch(searchValue);

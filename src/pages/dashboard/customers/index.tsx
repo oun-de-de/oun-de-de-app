@@ -1,29 +1,49 @@
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
-
-import customerService from "@/core/api/services/customerService";
+import { useEffect, useState } from "react";
+import customerService from "@/core/api/services/customer-service";
 import { DashboardSplitView } from "@/core/components/common/dashboard-split-view";
 import { useSidebarCollapse } from "@/core/hooks/use-sidebar-collapse";
-import { useCustomersList, useCustomersListActions } from "@/core/store/customersListStore";
 import type { Customer } from "@/core/types/customer";
 import { buildPagination } from "@/core/utils/dashboard-utils";
 import { CustomerContent } from "./components/customer-content";
 import { CustomerSidebar } from "./components/customer-sidebar";
+import { useCustomerListActions, useCustomerListState } from "./stores/customer-list-store";
 
 export default function CustomersPage() {
 	const [activeCustomer, setActiveCustomer] = useState<Customer | null>(null);
-	const listState = useCustomersList();
-	const { updateState } = useCustomersListActions();
+	const listState = useCustomerListState();
+	const { updateState } = useCustomerListActions();
 	const { isCollapsed, handleToggle } = useSidebarCollapse();
 
+	// clear active customer when user starts searching
+	useEffect(() => {
+		if (listState.searchValue && activeCustomer) {
+			setActiveCustomer(null);
+		}
+	}, [listState.searchValue, activeCustomer]);
+
+	// function to query customers list
 	const { data, isLoading } = useQuery({
-		queryKey: ["customers", listState.page, listState.pageSize],
-		queryFn: () =>
-			customerService.getCustomerList({
+		queryKey: [
+			"customers",
+			listState.page,
+			listState.pageSize,
+			listState.searchValue,
+			listState.typeFilter,
+			listState.fieldFilter,
+			activeCustomer?.name,
+		],
+		queryFn: () => {
+			const searchValue = activeCustomer?.name || listState.searchValue || undefined;
+			return customerService.getCustomerList({
 				page: listState.page,
 				limit: listState.pageSize,
-				name: activeCustomer?.name || listState.searchValue || undefined,
-			}),
+				// Use fieldFilter to determine which field to search by
+				name: listState.fieldFilter === "name" || listState.fieldFilter === "all" ? searchValue : undefined,
+				code: listState.fieldFilter === "code" ? searchValue : undefined,
+				status: listState.typeFilter !== "all" ? listState.typeFilter : undefined,
+			});
+		},
 	});
 
 	const customers = data?.list ?? [];
@@ -47,7 +67,7 @@ export default function CustomersPage() {
 			}
 			content={
 				<CustomerContent
-					activeCustomerName={activeCustomer?.name}
+					activeCustomer={activeCustomer}
 					listState={listState}
 					updateState={updateState}
 					pagedData={customers}

@@ -51,7 +51,7 @@ export function FormTextField({
 			containerClassName={containerClassName}
 		>
 			{({ error }) => (
-				<div className="flex items-center gap-2">
+				<div className="relative flex items-center gap-2">
 					{startAdornment}
 					<Input
 						{...register(name, rules)}

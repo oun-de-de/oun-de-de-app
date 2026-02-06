@@ -3,9 +3,19 @@ import type { Coupon } from "@/core/types/coupon";
 
 export const columns: ColumnDef<Coupon>[] = [
 	{
+		header: "No",
+		cell: ({ row, table }) => {
+			const { pageIndex, pageSize } = table.getState().pagination;
+			return pageIndex * pageSize + row.index + 1;
+		},
+		meta: {
+			bodyClassName: "text-center",
+		},
+	},
+	{
 		header: "ID",
 		accessorKey: "id",
-		cell: ({ row }) => <span className="font-semibold text-sky-600">#{row.original.id.slice(0, 8)}</span>,
+		cell: ({ row }) => <span className="font-semibold text-sky-600">{row.original.id.slice(0, 8)}</span>,
 	},
 	{
 		header: "Date",
