@@ -6,6 +6,7 @@ export type Product = {
 	quantity: number;
 	cost: number;
 	price: number;
+	unit: string;
 };
 
 export type CreateProduct = Omit<Product, "id">;

@@ -42,12 +42,13 @@ type SidebarListToggleProps = {
 	onToggle?: () => void;
 	isCollapsed?: boolean;
 	className?: string;
+	variant?: "ghost" | "outline";
 };
 
-function SidebarListToggle({ onToggle, isCollapsed, className }: SidebarListToggleProps) {
+function SidebarListToggle({ onToggle, isCollapsed, className, variant }: SidebarListToggleProps) {
 	return (
 		<div className={cn("flex items-center justify-end p-2 border-b border-gray-100 mb-2", className)}>
-			<SidebarToggleButton onClick={onToggle} isCollapsed={isCollapsed} />
+			<SidebarToggleButton onClick={onToggle} isCollapsed={isCollapsed} variant={variant} />
 		</div>
 	);
 }

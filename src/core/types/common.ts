@@ -71,8 +71,11 @@ export type AccountingRow = {
 };
 
 export type SettingsRow = {
+	id?: string;
 	name: string;
 	type: string;
+	descr?: string;
+	location?: string;
 };
 
 export type AuditLogRow = {

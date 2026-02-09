@@ -23,8 +23,7 @@ const SelectTrigger = React.forwardRef<
 		hideIcon?: boolean;
 		variant?: "default" | "filled" | "ghost";
 	}
->(({ className, size = "md", variant = "default", children, hideIcon = false, ...props }, ref) => {
-	// Map "default" size to "md" for consistency with inputVariants if needed, or handle it in variants
+>(({ className, size = "sm", variant = "default", children, hideIcon = false, ...props }, ref) => {
 	const finalSize = size === "default" ? "md" : size;
 
 	return (
@@ -33,7 +32,7 @@ const SelectTrigger = React.forwardRef<
 			data-size={finalSize}
 			ref={ref}
 			className={cn(
-				"group inline-flex items-center justify-between", // base layout
+				"group inline-flex items-center justify-between",
 				inputVariants({
 					variant,
 					size: finalSize as "sm" | "md" | "lg",

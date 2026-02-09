@@ -21,13 +21,16 @@ export const columns: ColumnDef<Customer>[] = [
 		accessorKey: "telephone",
 	},
 	{
-		header: "Referred By",
+		header: "Customer Type",
 		accessorKey: "referredBy",
 	},
 	{
 		header: "Price Level",
 		accessorKey: "defaultPrice",
 		size: 100,
+		cell: ({ row }) => {
+			return <span className="font-medium text-sky-600">{row.original.defaultPrice}</span>;
+		},
 		meta: { bodyClassName: "text-center" },
 	},
 	{
@@ -43,6 +46,7 @@ export const columns: ColumnDef<Customer>[] = [
 	},
 	{
 		header: "Actions",
+		size: 80,
 		id: "actions",
 		cell: ({ row }) => <CustomerActions customerId={row.original.id} />,
 	},

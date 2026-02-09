@@ -19,7 +19,6 @@ export const CUSTOMER_FIELDS: FormFieldConfig[] = [
 			value: /^CUS\d{6}$/,
 			message: "Code must be in format CUSxxxxxx (e.g., CUS123456)",
 		},
-		className: "w-full sm:w-[240px]",
 	},
 	{
 		name: "name",
@@ -29,7 +28,7 @@ export const CUSTOMER_FIELDS: FormFieldConfig[] = [
 		placeholder: "Enter customer name",
 	},
 	{
-		name: "referredBy",
+		name: "referredById",
 		label: "Referred By",
 		type: "select",
 		options: [],

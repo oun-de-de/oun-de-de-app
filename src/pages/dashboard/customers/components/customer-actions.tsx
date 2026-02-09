@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import customerService from "@/core/api/services/customer-service";
 import Icon from "@/core/components/icon/icon";
 import { Button } from "@/core/ui/button";
+import { customerQueryOptions } from "../hooks/use-get-customer";
 
 type CustomerActionsProps = {
 	customerId: string;
@@ -18,9 +19,15 @@ export function CustomerActions({ customerId }: CustomerActionsProps) {
 		navigate(`/dashboard/customers/edit/${customerId}`);
 	};
 
+	// prefetch customer data
+	const handlePrefetch = () => {
+		queryClient.prefetchQuery(customerQueryOptions(customerId));
+	};
+
+	// soft delete
 	const { mutateAsync: deleteCustomer } = useMutation({
 		mutationFn: async () => {
-			return customerService.deleteCustomer(customerId);
+			return customerService.updateCustomer(customerId, { status: false });
 		},
 		onSuccess: () => {
 			toast.success("Customer deleted successfully");
@@ -45,6 +52,8 @@ export function CustomerActions({ customerId }: CustomerActionsProps) {
 				size="icon"
 				className="h-8 w-8 text-muted-foreground hover:text-primary"
 				onClick={handleEdit}
+				onMouseEnter={handlePrefetch}
+				onFocus={handlePrefetch}
 				title="Edit"
 			>
 				<Icon icon="mdi:pencil" />

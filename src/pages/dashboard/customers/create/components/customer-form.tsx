@@ -1,11 +1,12 @@
 import { useMemo } from "react";
 import { DefaultForm, type DefaultFormData, type FormFieldConfig } from "@/core/components/common";
 import type { CreateCustomer } from "@/core/types/customer";
+import type { Vehicle } from "@/core/types/vehicle";
 import { CUSTOMER_FIELDS } from "../constants/customer-fields";
 import { GenerateCodeButton } from "./generate-code-button";
 import { VehicleListField } from "./vehicle-list-field";
 
-export type CustomerFormData = DefaultFormData & { vehicles?: CreateCustomer["vehicles"] };
+export type CustomerFormData = DefaultFormData & { vehicles?: CreateCustomer["vehicles"] | Vehicle[] };
 
 type CustomerFormProps = {
 	onSubmit?: (data: CustomerFormData) => Promise<void> | void;
@@ -33,7 +34,7 @@ export function CustomerForm({
 			if (field.name === "employeeId") {
 				return { ...field, options: employeeOptions };
 			}
-			if (field.name === "referredBy") {
+			if (field.name === "referredById") {
 				return { ...field, options: customerOptions };
 			}
 			if (field.name === "code") {

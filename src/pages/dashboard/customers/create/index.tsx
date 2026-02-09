@@ -25,10 +25,13 @@ export default function CreateCustomerPage() {
 		queryFn: () => customerService.getCustomerList({ limit: 1000 }),
 	});
 
-	const customerOptions = (customersResponse?.list || []).map((cus) => ({
-		label: cus.name,
-		value: cus.id,
-	}));
+	const customerOptions =
+		customersResponse?.list && customersResponse.list.length > 0
+			? customersResponse.list.map((cus) => ({
+					label: cus.name,
+					value: cus.id,
+				}))
+			: [{ label: "None", value: "none", disabled: true }];
 
 	const { mutateAsync: createCustomer } = useMutation({
 		mutationFn: async (data: CreateCustomer) => {
@@ -50,7 +53,7 @@ export default function CreateCustomerPage() {
 			code: data.code as string,
 			name: data.name as string,
 			status: !!data.status,
-			referredBy: data.referredBy as string,
+			referredById: data.referredById as string,
 			defaultPrice: data.defaultPrice as string,
 			warehouse: data.warehouse as string,
 			memo: data.memo as string,

@@ -9,6 +9,7 @@ export function VehicleListField() {
 	const { fields, append, remove } = useFieldArray({
 		control,
 		name: "vehicles",
+		keyName: "fieldKey",
 	});
 
 	return (
@@ -28,34 +29,49 @@ export function VehicleListField() {
 			</div>
 
 			<div className="space-y-4">
-				{fields.map((field, index) => (
-					<div key={field.id} className="flex gap-4 items-start">
-						<div className="flex-1">
-							<FormSelect
-								name={`vehicles.${index}.vehicleType`}
-								label="Vehicle Type"
-								options={VEHICLE_TYPE_OPTIONS}
-								placeholder="Select Type"
-							/>
+				{fields.map((field, index) => {
+					const isExistingVehicle = Boolean((field as { id?: string }).id);
+
+					return (
+						<div key={field.fieldKey} className="space-y-2">
+							<div className="flex gap-4 items-start">
+								<div className="flex-1">
+									<FormSelect
+										name={`vehicles.${index}.vehicleType`}
+										label="Vehicle Type"
+										options={VEHICLE_TYPE_OPTIONS}
+										placeholder="Select Type"
+										disabled={isExistingVehicle}
+									/>
+								</div>
+								<div className="flex-1">
+									<FormTextField
+										name={`vehicles.${index}.licensePlate`}
+										label="License Plate"
+										placeholder="Enter plate number"
+										disabled={isExistingVehicle}
+									/>
+								</div>
+								<Button
+									type="button"
+									variant="ghost"
+									size="icon"
+									className="mt-8 text-red-500 hover:text-red-700 hover:bg-red-50 disabled:opacity-50"
+									onClick={() => remove(index)}
+									disabled={isExistingVehicle}
+									title={
+										isExistingVehicle ? "Editing/removing existing vehicles is not supported yet" : "Remove vehicle"
+									}
+								>
+									<Icon icon="mdi:trash-can-outline" className="w-5 h-5" />
+								</Button>
+							</div>
+							{isExistingVehicle && (
+								<p className="text-xs text-gray-500">Editing/removing existing vehicles is not supported yet.</p>
+							)}
 						</div>
-						<div className="flex-1">
-							<FormTextField
-								name={`vehicles.${index}.licensePlate`}
-								label="License Plate"
-								placeholder="Enter plate number"
-							/>
-						</div>
-						<Button
-							type="button"
-							variant="ghost"
-							size="icon"
-							className="mt-8 text-red-500 hover:text-red-700 hover:bg-red-50"
-							onClick={() => remove(index)}
-						>
-							<Icon icon="mdi:trash-can-outline" className="w-5 h-5" />
-						</Button>
-					</div>
-				))}
+					);
+				})}
 				{fields.length === 0 && (
 					<div className="text-sm text-gray-500 text-center py-4 border border-dashed rounded-lg bg-gray-50">
 						No vehicles added. Click "Add Vehicle" to register a vehicle.

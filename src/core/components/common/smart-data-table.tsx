@@ -100,6 +100,15 @@ type SmartDataTableProps<T> = {
 	className?: string;
 	/** Max height for the scrollable table body container (e.g. "60vh", "480px") */
 	maxBodyHeight?: string;
+	/** Callback when a row is clicked */
+	onRowClick?: (row: T) => void;
+	/** Visual variant of the table wrapper */
+	variant?: "default" | "borderless";
+	/**
+	 * whether to show the filter bar.
+	 * If undefined, defaults to true if filterConfig is provided.
+	 */
+	enableFilterBar?: boolean;
 };
 
 /**
@@ -150,11 +159,17 @@ export function SmartDataTable<T extends object>({
 	paginationConfig,
 	className,
 	maxBodyHeight = "60vh",
+	onRowClick,
+	variant = "default",
+	enableFilterBar = true,
 }: SmartDataTableProps<T>) {
 	const scrollRef = useRef<HTMLDivElement>(null);
 	const [canScrollLeft, setCanScrollLeft] = useState(false);
 	const [canScrollRight, setCanScrollRight] = useState(false);
 	const rafRef = useRef<number | null>(null);
+
+	// show filter bar
+	const showFilterBar = enableFilterBar !== false && !!filterConfig;
 
 	const paginationState: PaginationState | undefined = paginationConfig
 		? { pageIndex: paginationConfig.page - 1, pageSize: paginationConfig.pageSize }
@@ -243,7 +258,7 @@ export function SmartDataTable<T extends object>({
 
 	return (
 		<div className={cn("flex flex-col gap-4", className)}>
-			{filterConfig && (
+			{showFilterBar && filterConfig && (
 				<TableFilterBar
 					typeOptions={filterConfig.typeOptions || []}
 					fieldOptions={filterConfig.fieldOptions || []}
@@ -277,7 +292,12 @@ export function SmartDataTable<T extends object>({
 					ref={scrollRef}
 					onScroll={updateScrollState}
 				>
-					<TableWrap className="min-w-full inline-block align-middle">
+					<div
+						className={cn(
+							"min-w-full inline-block align-middle",
+							variant !== "borderless" && "border border-gray-300 rounded",
+						)}
+					>
 						<Table>
 							<TableHead>
 								{table.getHeaderGroups().map((headerGroup) => (
@@ -326,7 +346,11 @@ export function SmartDataTable<T extends object>({
 									</tr>
 								) : (
 									table.getRowModel().rows.map((row) => (
-										<TableRow key={row.id}>
+										<TableRow
+											key={row.id}
+											onClick={onRowClick ? () => onRowClick(row.original) : undefined}
+											className={cn(onRowClick && "cursor-pointer hover:bg-gray-50")}
+										>
 											{row.getVisibleCells().map((cell) => {
 												const classNames = cn(
 													"px-3 py-2 border-r border-gray-300 last:border-r-0",
@@ -344,7 +368,7 @@ export function SmartDataTable<T extends object>({
 								)}
 							</TableBody>
 						</Table>
-					</TableWrap>
+					</div>
 				</div>
 			</div>
 
@@ -370,10 +394,6 @@ export function SmartDataTable<T extends object>({
 }
 
 //#region Styled Components
-const TableWrap = styled.div.attrs({
-	className: "min-w-full inline-block align-middle border border-gray-300 rounded",
-})``;
-
 const ScrollArrowButton = styled.button<{ $side: "left" | "right" }>`
 	position: absolute;
 	top: 50%;

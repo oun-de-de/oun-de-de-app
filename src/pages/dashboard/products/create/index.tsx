@@ -31,6 +31,7 @@ export default function CreateProductPage() {
 			quantity: Number(data.quantity),
 			cost: Number(data.cost),
 			price: Number(data.price),
+			unit: data.unit as string,
 		};
 
 		await createProduct(productData);

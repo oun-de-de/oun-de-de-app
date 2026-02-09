@@ -420,7 +420,7 @@ export const DB_MENU: Menu[] = [
 export const DB_USER: AppUserData[] = [
 	{
 		user_id: "user_admin_id",
-		username: "admin",
+		username: "administrator",
 		type: "local",
 		roles: ["SUPER_ADMIN"],
 		permissions: [],

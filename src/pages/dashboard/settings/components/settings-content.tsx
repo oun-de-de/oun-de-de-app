@@ -3,15 +3,16 @@ import { toast } from "sonner";
 import { settingsRows } from "@/_mock/data/dashboard";
 import { SmartDataTable } from "@/core/components/common";
 import Icon from "@/core/components/icon/icon";
-
+import type { UnitType } from "@/core/types/setting";
 import { Button } from "@/core/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/core/ui/dialog";
 import { Input } from "@/core/ui/input";
 import { Text } from "@/core/ui/typography";
-
+import { useCreateUnit, useCreateWarehouse, useGetUnitList, useGetWarehouseList } from "../hooks/use-settings";
 import { useFormState, useSettingsSidebarActions } from "../stores";
-import { columns } from "./settings-columns";
+import { getColumnsForItem } from "./settings-columns";
 import { SettingsForm } from "./settings-form/settings-form";
+import type { SettingsRow } from "@/core/types/common";
 
 type SettingsContentProps = {
 	activeItem: string;
@@ -20,22 +21,57 @@ type SettingsContentProps = {
 export function SettingsContent({ activeItem }: SettingsContentProps) {
 	const [page, setPage] = useState(1);
 	const [search, setSearch] = useState("");
-
-	// Use store for form state
 	const { showForm, editItem, formMode } = useFormState();
 	const { openCreateForm, closeForm } = useSettingsSidebarActions();
+	const { data: warehouses } = useGetWarehouseList();
+	const { data: units } = useGetUnitList();
+	const { mutateAsync: createWarehouse, isPending: isCreatingWarehouse } = useCreateWarehouse();
+	const { mutateAsync: createUnit, isPending: isCreatingUnit } = useCreateUnit();
 
-	// Filter based on active item (mock logic)
-	const filteredRows = settingsRows.filter((row) => row.name.toLowerCase().includes(search.toLowerCase()));
-
-	const handleSave = async (_data: Record<string, unknown>) => {
-		// Simulate API call
-		if (formMode === "create") {
-			toast.success(`${activeItem} has been created`);
-		} else {
-			toast.success(`${activeItem} has been updated`);
+	const getData = (): SettingsRow[] => {
+		if (activeItem === "Warehouse") {
+			return (warehouses || []).map((w) => ({ ...w, type: "Warehouse" }));
 		}
-		closeForm();
+		if (activeItem === "Unit") {
+			return units || [];
+		}
+		return settingsRows;
+	};
+
+	const isSaving = isCreatingWarehouse || isCreatingUnit;
+
+	const data = getData();
+	const filteredRows = data.filter((row) => row.name.toLowerCase().includes(search.toLowerCase()));
+
+	const columns = getColumnsForItem(activeItem);
+
+	const handleSave = async (formData: Record<string, unknown>) => {
+		try {
+			if (activeItem === "Warehouse") {
+				const warehouseData = {
+					name: formData.name as string,
+					descr: (formData.descr as string) || "",
+					location: (formData.location as string) || "",
+				};
+				await createWarehouse(warehouseData);
+			} else if (activeItem === "Unit") {
+				const unitData = {
+					name: formData.name as string,
+					descr: (formData.descr as string) || "",
+					type: formData.type as UnitType,
+				};
+				await createUnit(unitData);
+			} else {
+				if (formMode === "create") {
+					toast.success(`${activeItem} has been created`);
+				} else {
+					toast.success(`${activeItem} has been updated`);
+				}
+			}
+			closeForm();
+		} catch {
+			// Error handled in mutation
+		}
 	};
 
 	return (
@@ -45,7 +81,7 @@ export function SettingsContent({ activeItem }: SettingsContentProps) {
 					{activeItem}
 				</Text>
 				<div className="flex items-center gap-2">
-					<Button size="sm" className="gap-1" onClick={openCreateForm}>
+					<Button size="sm" className="gap-1" onClick={openCreateForm} disabled={isSaving}>
 						<Icon icon="mdi:plus" />
 						New
 					</Button>
@@ -86,7 +122,7 @@ export function SettingsContent({ activeItem }: SettingsContentProps) {
 						onSubmit={handleSave}
 						onCancel={closeForm}
 						mode={formMode}
-						defaultValues={editItem ? { name: editItem.name, type: editItem.type } : undefined}
+						defaultValues={editItem || undefined}
 						showTitle={false}
 					/>
 				</DialogContent>

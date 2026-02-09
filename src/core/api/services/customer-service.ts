@@ -1,5 +1,12 @@
 import type { PaginatedResponse } from "@/core/types/common";
-import type { CreateCustomer, Customer } from "@/core/types/customer";
+import type {
+	CreateCustomer,
+	CreateProductSettings,
+	Customer,
+	CustomerDetail,
+	ProductSettings,
+	UpdateCustomer,
+} from "@/core/types/customer";
 import type { Pagination } from "@/core/types/pagination";
 import type { CreateVehicle, Vehicle } from "@/core/types/vehicle";
 import { mapPaginatedResponseToPagination } from "@/core/utils/pagination";
@@ -8,8 +15,7 @@ import { apiClient } from "../apiClient";
 export enum CustomerApi {
 	List = "/customers",
 	Create = "/customers",
-	VehicleList = "/customers/vehicles",
-	VehicleCreate = "/customers/vehicles",
+	Update = "/customers",
 }
 
 const getCustomerList = (params?: {
@@ -36,42 +42,61 @@ const getCustomerList = (params?: {
 		})
 		.then(mapPaginatedResponseToPagination);
 
+const getCustomer = (id: string) =>
+	apiClient.get<CustomerDetail>({
+		url: `${CustomerApi.List}/${id}`,
+	});
 const createCustomer = (customer: CreateCustomer) =>
 	apiClient.post<Customer>({ url: CustomerApi.Create, data: customer });
 
+const updateCustomer = (id: string, customer: UpdateCustomer) =>
+	apiClient.put<Customer>({
+		url: `${CustomerApi.Update}/${id}`,
+		data: customer,
+	});
+
 const getCustomerVehicleList = (customerId: string) =>
 	apiClient.get<Vehicle[]>({
-		url: `${CustomerApi.VehicleList}/${customerId}/vehicles`,
+		url: `${CustomerApi.List}/${customerId}/vehicles`,
 	});
 
 const createCustomerVehicle = (customerId: string, vehicle: CreateVehicle) =>
 	apiClient.post<Vehicle>({
-		url: `${CustomerApi.VehicleCreate}/${customerId}/vehicles`,
+		url: `${CustomerApi.List}/${customerId}/vehicles`,
 		data: vehicle,
 	});
 
-const getCustomerById = (id: string) =>
-	apiClient.get<Customer>({
-		url: `${CustomerApi.List}/${id}`,
+const createProductSetting = (customerId: string, setting: CreateProductSettings) =>
+	apiClient.post<ProductSettings>({
+		url: `${CustomerApi.List}/${customerId}/product-settings`,
+		data: setting,
 	});
 
-const updateCustomer = (id: string, customer: Partial<CreateCustomer>) =>
-	apiClient.put<Customer>({
-		url: `${CustomerApi.List}/${id}`,
-		data: customer,
+const updateProductSetting = (customerId: string, productId: string, setting: CreateProductSettings) =>
+	apiClient.put<ProductSettings>({
+		url: `${CustomerApi.List}/${customerId}/product-settings/${productId}`,
+		data: setting,
 	});
 
-const deleteCustomer = (id: string) =>
-	apiClient.delete<boolean>({
-		url: `${CustomerApi.List}/${id}`,
+const deleteProductSetting = (customerId: string, productId: string) =>
+	apiClient.delete({
+		url: `${CustomerApi.List}/${customerId}/product-settings/${productId}`,
+	});
+
+const getProductSettings = (customerId: string) =>
+	apiClient.get<ProductSettings[]>({
+		url: `${CustomerApi.List}/${customerId}/product-settings`,
 	});
 
 export default {
 	getCustomerList,
+	getCustomer,
 	createCustomer,
+	updateCustomer,
 	getCustomerVehicleList,
 	createCustomerVehicle,
-	getCustomerById,
-	updateCustomer,
-	deleteCustomer,
+	getProductSettings,
+	createProductSetting,
+	updateProductSetting,
+	deleteProductSetting,
 };

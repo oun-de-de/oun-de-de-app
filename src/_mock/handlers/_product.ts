@@ -11,6 +11,7 @@ const getProductList = http.get("/api/v1/products", async () => {
 		quantity: faker.number.int({ min: 1, max: 100 }),
 		cost: parseFloat(faker.commerce.price()),
 		price: parseFloat(faker.commerce.price()),
+		unit: faker.helpers.arrayElement(["kg", "g", "l", "ml", "pcs"]),
 	}));
 
 	return HttpResponse.json(products, { status: 200 });
@@ -26,6 +27,7 @@ const getProductById = http.get("/api/v1/products/:id", async ({ params }) => {
 		quantity: faker.number.int({ min: 1, max: 100 }),
 		cost: parseFloat(faker.commerce.price()),
 		price: parseFloat(faker.commerce.price()),
+		unit: faker.helpers.arrayElement(["kg", "g", "l", "ml", "pcs"]),
 	};
 
 	return HttpResponse.json(product, { status: 200 });

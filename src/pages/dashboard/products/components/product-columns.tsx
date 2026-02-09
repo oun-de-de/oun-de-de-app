@@ -6,6 +6,7 @@ import { Button } from "@/core/ui/button";
 export const columns: ColumnDef<Product>[] = [
 	{
 		header: "Date",
+		size: 80,
 		accessorKey: "date",
 		cell: ({ row }) => new Date(row.original.date).toLocaleDateString(),
 	},
@@ -20,20 +21,27 @@ export const columns: ColumnDef<Product>[] = [
 	},
 	{
 		header: "Quantity",
+		size: 60,
 		accessorKey: "quantity",
+		meta: { bodyClassName: "text-right" },
 	},
 	{
 		header: "Cost",
+		size: 60,
 		accessorKey: "cost",
 		cell: ({ row }) => (row.original.cost || 0).toLocaleString(),
+		meta: { bodyClassName: "text-right" },
 	},
 	{
 		header: "Price",
+		size: 60,
 		accessorKey: "price",
 		cell: ({ row }) => <span className="font-semibold">{(row.original.price || 0).toLocaleString()}</span>,
+		meta: { bodyClassName: "text-right" },
 	},
 	{
 		header: "Actions",
+		size: 80,
 		id: "actions",
 		cell: () => (
 			<div className="flex gap-1">
