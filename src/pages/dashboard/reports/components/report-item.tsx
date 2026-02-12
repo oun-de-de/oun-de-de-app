@@ -1,3 +1,4 @@
+import { Link } from "react-router";
 import Icon from "@/core/components/icon/icon";
 import { Button } from "@/core/ui/button";
 import { cn } from "@/core/utils";
@@ -10,9 +11,15 @@ interface ReportItemProps {
 }
 
 export function ReportItem({ label, isFavorite, onToggleFavorite, className }: ReportItemProps) {
+	const slug = label.toLowerCase().replace(/\s+/g, "-");
+	const href = `/dashboard/reports/detail/${slug}`;
+
 	return (
 		<div className={cn("flex items-center justify-between rounded-md border px-3 py-2 text-sm", className)}>
-			<span className="text-slate-500">{label}</span>
+			<Link to={href} className="flex-1 text-slate-500 hover:text-sky-600 hover:underline">
+				{label}
+			</Link>
+
 			<Button
 				variant="ghost"
 				size="icon"
