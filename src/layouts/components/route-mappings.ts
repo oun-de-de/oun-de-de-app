@@ -57,6 +57,10 @@ export const ROUTE_TITLE_MAPPINGS = [
 		path: "/dashboard/borrow/payment",
 		title: "Borrow Payment Center",
 	},
+	{
+		path: "/dashboard/equipment",
+		title: "Equipment Center",
+	},
 	// Nested routes that might be accessed
 	{
 		path: "/dashboard/reports/customer-list",

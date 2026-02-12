@@ -99,6 +99,12 @@ export const frontendNavData: NavProps["data"] = [
 				],
 			},
 			{
+				title: "Equipment",
+				path: "/dashboard/equipment",
+				icon: <Icon icon="lucide:wrench" size="24" />,
+				roles: ["SUPER_ADMIN"],
+			},
+			{
 				title: "Accounting",
 				path: "/dashboard/accounting",
 				icon: <Icon icon="lucide:scale" size="24" />,

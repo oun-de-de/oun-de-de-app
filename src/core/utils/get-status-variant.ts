@@ -44,7 +44,24 @@ export const getStatusVariant = (status: string): BadgeVariant => {
 		case "archived":
 			return "secondary";
 
+		case "open":
+			return "warning";
+
 		default:
 			return "outline";
+	}
+};
+export const getInvoiceTypeVariant = (type: string): BadgeVariant => {
+	const normalizedType = type.toLowerCase();
+
+	switch (normalizedType) {
+		case "invoice":
+			return "success";
+		case "credit note":
+			return "warning";
+		case "debit note":
+			return "info";
+		default:
+			return "default";
 	}
 };
