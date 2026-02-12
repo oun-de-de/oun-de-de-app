@@ -13,15 +13,10 @@ type CustomerSidebarProps = {
 	isCollapsed?: boolean;
 };
 
-const STATUS_OPTIONS: SelectOption[] = [
-	{ value: "all", label: "All" },
-	{ value: "active", label: "Active" },
-	{ value: "inactive", label: "Inactive" },
-];
+const STATUS_OPTIONS: SelectOption[] = [{ value: "all", label: "All" }];
 
 export function CustomerSidebar({ activeCustomerId, onSelect, onToggle, isCollapsed }: CustomerSidebarProps) {
 	const [searchTerm, setSearchTerm] = useState("");
-	const [status, setStatus] = useState("active");
 	const [customerType, setCustomerType] = useState("all");
 	const [customerTypeInput, setCustomerTypeInput] = useState("all");
 	const [paymentTerm, setPaymentTerm] = useState("");
@@ -53,15 +48,14 @@ export function CustomerSidebar({ activeCustomerId, onSelect, onToggle, isCollap
 	};
 
 	const { data, fetchNextPage, hasNextPage } = useInfiniteQuery({
-		queryKey: ["customers", "sidebar", { name: searchTerm, status, customerType, paymentTerm }],
+		queryKey: ["customers", "sidebar", { name: searchTerm, customerType, paymentTerm }],
 		queryFn: ({ pageParam = 1 }) =>
 			customerService.getCustomerList({
 				page: pageParam,
 				limit: 20,
 				name: searchTerm || undefined,
-				status: status !== "all" ? status : undefined,
 				customerType: customerType !== "all" ? customerType : undefined,
-				paymentTerm: paymentTerm || undefined,
+				paymentTerm: paymentTerm ? Number(paymentTerm) : undefined,
 			}),
 		initialPageParam: 1,
 		getNextPageParam: (lastPage) => (lastPage.page < lastPage.pageCount ? lastPage.page + 1 : undefined),
@@ -79,7 +73,7 @@ export function CustomerSidebar({ activeCustomerId, onSelect, onToggle, isCollap
 				searchPlaceholder="Search..."
 				onSearchChange={setSearchTerm}
 				statusOptions={STATUS_OPTIONS}
-				onStatusChange={setStatus}
+				statusValue="all"
 				isCollapsed={isCollapsed}
 			/>
 

@@ -29,15 +29,13 @@ export default function CustomersPage() {
 			listState.page,
 			listState.pageSize,
 			listState.searchValue,
-			listState.typeFilter,
 			listState.fieldFilter,
 			activeCustomer?.name,
-			activeCustomer?.code,
 		],
 		queryFn: () => {
 			let searchValue: string | undefined;
 			if (activeCustomer) {
-				searchValue = listState.fieldFilter === "code" ? activeCustomer.code : activeCustomer.name;
+				searchValue = activeCustomer.name;
 			} else {
 				searchValue = listState.searchValue || undefined;
 			}
@@ -45,9 +43,7 @@ export default function CustomersPage() {
 			return customerService.getCustomerList({
 				page: listState.page,
 				limit: listState.pageSize,
-				name: listState.fieldFilter === "name" || listState.fieldFilter === "all" ? searchValue : undefined,
-				code: listState.fieldFilter === "code" ? searchValue : undefined,
-				status: listState.typeFilter !== "all" ? listState.typeFilter : undefined,
+				name: searchValue,
 			});
 		},
 	});

@@ -8,15 +8,24 @@ import { customerQueryOptions } from "../hooks/use-get-customer";
 
 type CustomerActionsProps = {
 	customerId: string;
+	customerName: string;
 };
 
-export function CustomerActions({ customerId }: CustomerActionsProps) {
+export function CustomerActions({ customerId, customerName }: CustomerActionsProps) {
 	const navigate = useNavigate();
 
 	const queryClient = useQueryClient();
 
 	const handleEdit = () => {
 		navigate(`/dashboard/customers/edit/${customerId}`);
+	};
+
+	const handleViewInvoices = () => {
+		const params = new URLSearchParams({
+			customerId,
+			customerName,
+		});
+		navigate(`/dashboard/invoice?${params.toString()}`);
 	};
 
 	// prefetch customer data
@@ -47,6 +56,15 @@ export function CustomerActions({ customerId }: CustomerActionsProps) {
 
 	return (
 		<div className="flex gap-1">
+			<Button
+				variant="ghost"
+				size="icon"
+				className="h-8 w-8 text-muted-foreground hover:text-primary"
+				onClick={handleViewInvoices}
+				title="View invoices"
+			>
+				<Icon icon="mdi:file-document-outline" />
+			</Button>
 			<Button
 				variant="ghost"
 				size="icon"
