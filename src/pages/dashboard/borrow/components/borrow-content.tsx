@@ -3,12 +3,17 @@ import { useNavigate } from "react-router";
 import { SmartDataTable, SummaryStatCard } from "@/core/components/common";
 import { SplitButton } from "@/core/components/common/split-button";
 import Icon from "@/core/components/icon/icon";
-import type { SummaryStatCardData } from "@/core/types/common";
 import { Button } from "@/core/ui/button";
 import { Text } from "@/core/ui/typography";
-
 import type { BorrowState } from "@/pages/dashboard/borrow/stores/borrow-store";
 import { MOCK_LOAN_RECORDS } from "../constants/loan-records";
+import {
+	BORROW_FIELD_OPTIONS,
+	BORROW_TYPE_OPTIONS,
+	buildBorrowSummaryCards,
+	filterBorrowRows,
+	paginateBorrowRows,
+} from "../utils/borrow-content-utils";
 import { mapLoanRecordToBorrowRow } from "../utils/loan-utils";
 import { borrowColumns } from "./borrow-columns";
 
@@ -20,42 +25,17 @@ type Props = {
 
 export function BorrowContent({ activeBorrowId, listState, updateState }: Props) {
 	const navigate = useNavigate();
+	const { fieldFilter, searchValue, typeFilter } = listState;
 	const loanRows = useMemo(() => MOCK_LOAN_RECORDS.map((record) => mapLoanRecordToBorrowRow(record)), []);
 
-	const filteredData = useMemo(() => {
-		let data = loanRows;
-		if (listState.searchValue) {
-			const q = listState.searchValue.toLowerCase();
-			if (listState.fieldFilter === "borrower") {
-				data = data.filter((row) => row.borrower.toLowerCase().includes(q));
-			} else if (listState.fieldFilter === "borrowerType") {
-				data = data.filter((row) => row.borrowerType.toLowerCase().includes(q));
-			} else {
-				data = data.filter((row) => row.refNo.toLowerCase().includes(q));
-			}
-		}
-		if (listState.typeFilter !== "all") {
-			data = data.filter((row) => row.status === listState.typeFilter);
-		}
-		return data;
-	}, [listState.fieldFilter, listState.searchValue, listState.typeFilter, loanRows]);
-
-	const summaryCards = useMemo<SummaryStatCardData[]>(() => {
-		const activeCount = loanRows.filter((row) => row.status === "Active").length;
-		const overdueCount = loanRows.filter((row) => row.status === "Overdue").length;
-		const closedCount = loanRows.filter((row) => row.status === "Returned").length;
-		return [
-			{ label: "Active Loans", value: activeCount, color: "bg-blue-500", icon: "mdi:cash-multiple" },
-			{ label: "Overdue Loans", value: overdueCount, color: "bg-red-500", icon: "mdi:alert-circle-outline" },
-			{ label: "Closed Loans", value: closedCount, color: "bg-emerald-500", icon: "mdi:check-circle-outline" },
-		];
-	}, [loanRows]);
-
-	const totalItems = filteredData.length;
-	const totalPages = Math.max(1, Math.ceil(totalItems / listState.pageSize));
-	const paginatedData = filteredData.slice(
-		(listState.page - 1) * listState.pageSize,
-		listState.page * listState.pageSize,
+	const filteredData = useMemo(
+		() => filterBorrowRows(loanRows, { fieldFilter, searchValue, typeFilter }),
+		[fieldFilter, loanRows, searchValue, typeFilter],
+	);
+	const summaryCards = useMemo(() => buildBorrowSummaryCards(loanRows), [loanRows]);
+	const { totalItems, totalPages, paginatedRows, paginationItems } = useMemo(
+		() => paginateBorrowRows(filteredData, listState.page, listState.pageSize),
+		[filteredData, listState.page, listState.pageSize],
 	);
 
 	useEffect(() => {
@@ -92,17 +72,8 @@ export function BorrowContent({ activeBorrowId, listState, updateState }: Props)
 	];
 
 	const filterConfig = {
-		typeOptions: [
-			{ label: "All Status", value: "all" },
-			{ label: "Active", value: "Active" },
-			{ label: "Returned", value: "Returned" },
-			{ label: "Overdue", value: "Overdue" },
-		],
-		fieldOptions: [
-			{ label: "Ref No", value: "refNo" },
-			{ label: "Borrower", value: "borrower" },
-			{ label: "Type", value: "borrowerType" },
-		],
+		typeOptions: BORROW_TYPE_OPTIONS,
+		fieldOptions: BORROW_FIELD_OPTIONS,
 		typeValue: listState.typeFilter,
 		fieldValue: listState.fieldFilter || "refNo",
 		searchValue: listState.searchValue,
@@ -118,7 +89,7 @@ export function BorrowContent({ activeBorrowId, listState, updateState }: Props)
 		totalPages,
 		onPageChange: (p: number) => updateState({ page: p }),
 		onPageSizeChange: (s: number) => updateState({ pageSize: s, page: 1 }),
-		paginationItems: Array.from({ length: totalPages }, (_, i) => i + 1),
+		paginationItems,
 	};
 
 	return (
@@ -149,7 +120,7 @@ export function BorrowContent({ activeBorrowId, listState, updateState }: Props)
 			<SmartDataTable
 				className="flex-1 min-h-0"
 				maxBodyHeight="100%"
-				data={paginatedData}
+				data={paginatedRows}
 				columns={borrowColumns}
 				filterConfig={filterConfig}
 				paginationConfig={paginationConfig}
