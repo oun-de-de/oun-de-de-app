@@ -8,9 +8,9 @@ import { Text } from "@/core/ui/typography";
 import type { BorrowState } from "@/pages/dashboard/borrow/stores/borrow-store";
 import { MOCK_LOAN_RECORDS } from "../constants/loan-records";
 import {
-	BORROW_FIELD_OPTIONS,
-	BORROW_TYPE_OPTIONS,
 	buildBorrowSummaryCards,
+	buildBorrowTableConfigs,
+	buildBorrowViewActions,
 	filterBorrowRows,
 	paginateBorrowRows,
 } from "../utils/borrow-content-utils";
@@ -37,6 +37,21 @@ export function BorrowContent({ activeBorrowId, listState, updateState }: Props)
 		() => paginateBorrowRows(filteredData, listState.page, listState.pageSize),
 		[filteredData, listState.page, listState.pageSize],
 	);
+	const { mainAction, options, newBorrowMainAction, newBorrowOptions } = useMemo(
+		() => buildBorrowViewActions({ activeView: listState.activeView, updateState, navigate }),
+		[listState.activeView, navigate, updateState],
+	);
+	const { filterConfig, paginationConfig } = useMemo(
+		() =>
+			buildBorrowTableConfigs({
+				state: listState,
+				totalItems,
+				totalPages,
+				paginationItems,
+				updateState,
+			}),
+		[listState, paginationItems, totalItems, totalPages, updateState],
+	);
 
 	useEffect(() => {
 		if (listState.page > totalPages) {
@@ -45,52 +60,6 @@ export function BorrowContent({ activeBorrowId, listState, updateState }: Props)
 	}, [listState.page, totalPages, updateState]);
 
 	const activeBorrow = loanRows.find((row) => row.id === activeBorrowId);
-
-	const mainAction = {
-		label: listState.activeView === "requests" ? "Requests" : "All Loans",
-		onClick: () => {},
-	};
-
-	const options = [
-		{ label: "All Loans", onClick: () => updateState({ activeView: "all" }) },
-		{ label: "Requests", onClick: () => updateState({ activeView: "requests" }) },
-	];
-
-	const newBorrowMainAction = {
-		label: (
-			<span className="flex items-center gap-2">
-				<Icon icon="mdi:plus" />
-				New Loan
-			</span>
-		),
-		onClick: () => navigate("/dashboard/borrow/new"),
-	};
-
-	const newBorrowOptions = [
-		{ label: "Record Monthly Payment", onClick: () => {} },
-		{ label: "Adjust Schedule", onClick: () => {} },
-	];
-
-	const filterConfig = {
-		typeOptions: BORROW_TYPE_OPTIONS,
-		fieldOptions: BORROW_FIELD_OPTIONS,
-		typeValue: listState.typeFilter,
-		fieldValue: listState.fieldFilter || "refNo",
-		searchValue: listState.searchValue,
-		onTypeChange: (v: string) => updateState({ typeFilter: v, page: 1 }),
-		onFieldChange: (v: string) => updateState({ fieldFilter: v, page: 1 }),
-		onSearchChange: (v: string) => updateState({ searchValue: v, page: 1 }),
-	};
-
-	const paginationConfig = {
-		page: listState.page,
-		pageSize: listState.pageSize,
-		totalItems,
-		totalPages,
-		onPageChange: (p: number) => updateState({ page: p }),
-		onPageSizeChange: (s: number) => updateState({ pageSize: s, page: 1 }),
-		paginationItems,
-	};
 
 	return (
 		<>

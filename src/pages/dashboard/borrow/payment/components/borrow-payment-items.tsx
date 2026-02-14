@@ -18,7 +18,7 @@ export function BorrowPaymentItems({ cart, onRemove }: BorrowPaymentItemsProps) 
 			<SectionHeader icon={ShoppingCart} title="Review Items" />
 
 			<div className="flex-1 border rounded-md overflow-hidden bg-white flex flex-col">
-				<SmartDataTable data={cart} columns={columns as any} />
+				<SmartDataTable data={cart} columns={columns} />
 			</div>
 		</div>
 	);

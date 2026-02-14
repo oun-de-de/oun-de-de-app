@@ -8,6 +8,7 @@ import { SidebarToggleButton } from "./sidebar-list";
 export type SidebarListHeaderProps = {
 	className?: string;
 	// Main Type Select
+	showMainTypeFilter?: boolean;
 	mainTypeOptions?: { value: string; label: string }[];
 	mainTypePlaceholder?: string;
 	mainTypeValue?: string;
@@ -33,6 +34,7 @@ export type SidebarListHeaderProps = {
 
 export function SidebarListHeader({
 	className,
+	showMainTypeFilter = true,
 	mainTypeOptions = [],
 	mainTypePlaceholder = "Select Type",
 	mainTypeValue,
@@ -84,20 +86,24 @@ export function SidebarListHeader({
 		<div className={cn("flex flex-col gap-3 pb-2 md:pb-4", className)}>
 			{/* Top Row: Type Select + Menu */}
 			<div className="flex items-center gap-2">
-				{mainTypeFilter ?? (
-					<Select value={mainTypeValue} onValueChange={onMainTypeChange}>
-						<SelectTrigger className="w-full">
-							<SelectValue placeholder={mainTypePlaceholder}>{resolvedMainTypeLabel}</SelectValue>
-						</SelectTrigger>
-						<SelectContent>
-							<SelectItem value="type">{mainTypePlaceholder}</SelectItem>
-							{mainTypeOptions.map((opt) => (
-								<SelectItem key={opt.value} value={opt.value}>
-									{opt.label}
-								</SelectItem>
-							))}
-						</SelectContent>
-					</Select>
+				{showMainTypeFilter ? (
+					(mainTypeFilter ?? (
+						<Select value={mainTypeValue} onValueChange={onMainTypeChange}>
+							<SelectTrigger className="w-full">
+								<SelectValue placeholder={mainTypePlaceholder}>{resolvedMainTypeLabel}</SelectValue>
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value="type">{mainTypePlaceholder}</SelectItem>
+								{mainTypeOptions.map((opt) => (
+									<SelectItem key={opt.value} value={opt.value}>
+										{opt.label}
+									</SelectItem>
+								))}
+							</SelectContent>
+						</Select>
+					))
+				) : (
+					<div className="flex-1" />
 				)}
 				<SidebarToggleButton onClick={onMenuClick} isCollapsed={false} variant="outline" />
 			</div>

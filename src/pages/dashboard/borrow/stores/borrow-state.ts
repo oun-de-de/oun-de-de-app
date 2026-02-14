@@ -2,9 +2,13 @@ import type { ListState } from "@/core/store/createListStore";
 import type { BaseState } from "@/core/types/state";
 
 type BorrowType = "InitialState" | "UpdateState" | "ResetState";
+export type BorrowTypeFilter = "all" | "Active" | "Returned" | "Overdue";
+export type BorrowFieldFilter = "refNo" | "borrower" | "borrowerType";
 
 export type BorrowState = BaseState<BorrowType> &
-	ListState & {
+	Omit<ListState, "typeFilter" | "fieldFilter"> & {
+		typeFilter: BorrowTypeFilter;
+		fieldFilter: BorrowFieldFilter;
 		activeView: "all" | "requests";
 	};
 

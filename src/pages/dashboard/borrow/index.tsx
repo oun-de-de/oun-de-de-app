@@ -17,6 +17,8 @@ export default function BorrowPage() {
 			sidebar={
 				<BorrowSidebar
 					activeBorrowId={activeBorrowId}
+					listState={listState}
+					updateState={updateState}
 					onSelect={setActiveBorrowId}
 					onToggle={handleToggle}
 					isCollapsed={isCollapsed}

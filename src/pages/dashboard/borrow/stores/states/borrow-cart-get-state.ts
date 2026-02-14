@@ -45,7 +45,8 @@ export const BorrowCartUpdateQtyState = (state: BorrowCartState, id: string, del
 		patch: {
 			cart: state.cart.map((i) => {
 				if (i.id !== id) return i;
-				const nextQty = Math.min(i.inStock, Math.max(1, i.qty + delta));
+				const maxQty = Math.max(1, i.inStock);
+				const nextQty = Math.min(maxQty, Math.max(1, i.qty + delta));
 				return { ...i, qty: nextQty };
 			}),
 		},
