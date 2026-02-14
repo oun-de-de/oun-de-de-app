@@ -1,11 +1,12 @@
+import Icon from "@/core/components/icon/icon";
 import type { EquipmentItem, EquipmentItemId } from "@/core/types/equipment";
 import { Button } from "@/core/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/core/ui/card";
 import { Input } from "@/core/ui/input";
 import { Label } from "@/core/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/core/ui/select";
+import { Text } from "@/core/ui/typography";
 
-interface StockInFormProps {
+type StockInFormProps = {
 	items: EquipmentItem[];
 	itemId: EquipmentItemId;
 	quantity: string;
@@ -14,7 +15,8 @@ interface StockInFormProps {
 	onQuantityChange: (value: string) => void;
 	onNoteChange: (value: string) => void;
 	onSubmit: () => void;
-}
+	hideItemSelector?: boolean;
+};
 
 export function StockInForm({
 	items,
@@ -25,13 +27,17 @@ export function StockInForm({
 	onQuantityChange,
 	onNoteChange,
 	onSubmit,
+	hideItemSelector = false,
 }: StockInFormProps) {
 	return (
-		<Card className="xl:col-span-1">
-			<CardHeader className="pb-3">
-				<CardTitle className="text-base">Stock In (Manual)</CardTitle>
-			</CardHeader>
-			<CardContent className="space-y-3">
+		<div className="rounded-lg border border-green-200 bg-green-50/30 p-4 space-y-3">
+			<div className="flex items-center gap-2 mb-1">
+				<Icon icon="mdi:package-variant-plus" className="text-green-600" />
+				<Text variant="body1" className="font-semibold text-green-900">
+					Add Stock
+				</Text>
+			</div>
+			{!hideItemSelector && (
 				<div className="space-y-1.5">
 					<Label>Item</Label>
 					<Select value={itemId} onValueChange={(value) => onItemChange(value as EquipmentItemId)}>
@@ -47,18 +53,19 @@ export function StockInForm({
 						</SelectContent>
 					</Select>
 				</div>
-				<div className="space-y-1.5">
-					<Label>Quantity</Label>
-					<Input type="number" min={1} value={quantity} onChange={(e) => onQuantityChange(e.target.value)} />
-				</div>
-				<div className="space-y-1.5">
-					<Label>Note</Label>
-					<Input value={note} onChange={(e) => onNoteChange(e.target.value)} placeholder="Manual stock in" />
-				</div>
-				<Button className="w-full" onClick={onSubmit}>
-					Add Stock In
-				</Button>
-			</CardContent>
-		</Card>
+			)}
+			<div className="space-y-1.5">
+				<Label>Quantity</Label>
+				<Input type="number" min={1} value={quantity} onChange={(e) => onQuantityChange(e.target.value)} />
+			</div>
+			<div className="space-y-1.5">
+				<Label>Note</Label>
+				<Input value={note} onChange={(e) => onNoteChange(e.target.value)} placeholder="Manual stock in" />
+			</div>
+			<Button variant="success" className="w-full" onClick={onSubmit}>
+				<Icon icon="mdi:plus" className="mr-1" />
+				Add Stock
+			</Button>
+		</div>
 	);
 }
