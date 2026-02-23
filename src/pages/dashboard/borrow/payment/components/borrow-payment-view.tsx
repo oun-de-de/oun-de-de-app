@@ -10,13 +10,14 @@ export function BorrowPaymentView() {
 	const {
 		cart,
 		removeFromCart,
+		totalQty,
 		totalAmount,
-		borrowerName,
-		setBorrowerName,
-		phone,
-		setPhone,
-		idCard,
-		setIdCard,
+		borrowerType,
+		setBorrowerType,
+		borrowerId,
+		setBorrowerId,
+		termMonths,
+		setTermMonths,
 		paymentMethod,
 		setPaymentMethod,
 		depositAmount,
@@ -28,6 +29,9 @@ export function BorrowPaymentView() {
 		refNo,
 		setRefNo,
 		confirm,
+		isPending,
+		customers,
+		employees,
 	} = useBorrowPaymentForm();
 
 	return (
@@ -35,7 +39,9 @@ export function BorrowPaymentView() {
 			header={<BorrowPaymentHeader />}
 			rightPanel={
 				<BorrowPaymentRightPanel
-					totalAmount={totalAmount}
+					totalQty={totalQty}
+					termMonths={termMonths}
+					setTermMonths={setTermMonths}
 					paymentMethod={paymentMethod}
 					setPaymentMethod={setPaymentMethod}
 					depositAmount={depositAmount}
@@ -47,16 +53,17 @@ export function BorrowPaymentView() {
 					notes={notes}
 					setNotes={setNotes}
 					onConfirm={confirm}
+					isPending={isPending}
 				/>
 			}
 		>
 			<BorrowPaymentBorrowerInfo
-				borrowerName={borrowerName}
-				setBorrowerName={setBorrowerName}
-				phone={phone}
-				setPhone={setPhone}
-				idCard={idCard}
-				setIdCard={setIdCard}
+				borrowerType={borrowerType}
+				setBorrowerType={setBorrowerType}
+				borrowerId={borrowerId}
+				setBorrowerId={setBorrowerId}
+				customers={customers}
+				employees={employees}
 			/>
 
 			<div className="px-6 py-2">

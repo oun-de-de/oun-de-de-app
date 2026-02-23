@@ -1,55 +1,48 @@
 import type { ColumnDef } from "@tanstack/react-table";
+import type { BorrowerType } from "@/core/types/loan";
 import { Badge } from "@/core/ui/badge";
-import { getStatusVariant } from "@/core/utils/get-status-variant";
-import type { BorrowerType } from "../../../../core/types/loan";
 
 export type BorrowRow = {
 	id: string;
-	refNo: string;
-	borrower: string;
 	borrowerType: BorrowerType;
+	borrowerId: string;
+	principalAmount: number;
+	termMonths: number;
+	monthlyPayment: number;
 	startDate: string;
-	loanAmount: string;
-	monthlyPayment: string;
-	plannedMonths: number;
-	paidMonths: number;
-	missedMonths: number;
-	adjustedMonths: number;
-	remainingAmount: string;
-	status: "Active" | "Returned" | "Overdue";
 };
 
 export const borrowColumns: ColumnDef<BorrowRow>[] = [
-	{ accessorKey: "refNo", header: "Ref No" },
-	{ accessorKey: "borrower", header: "Borrower" },
+	{ accessorKey: "borrowerId", header: "Borrower ID" },
 	{
 		accessorKey: "borrowerType",
+		size: 100,
 		header: "Type",
 		cell: ({ row }) => (
-			<Badge variant={row.original.borrowerType === "Employee" ? "info" : "secondary"} shape="square">
+			<Badge variant={row.original.borrowerType === "employee" ? "info" : "secondary"} shape="square">
 				{row.original.borrowerType}
 			</Badge>
 		),
+		meta: {
+			bodyClassName: "text-center",
+		},
 	},
 	{ accessorKey: "startDate", header: "Start Date" },
-	{ accessorKey: "loanAmount", header: "Loan Amount" },
-	{ accessorKey: "monthlyPayment", header: "Monthly Pay" },
-	{ accessorKey: "plannedMonths", header: "Plan (Month)" },
-	{ accessorKey: "paidMonths", header: "Paid (Month)" },
-	{ accessorKey: "missedMonths", header: "Missed (Month)" },
-	{ accessorKey: "adjustedMonths", header: "Adjusted (Month)" },
-	{ accessorKey: "remainingAmount", header: "Remaining" },
 	{
-		accessorKey: "status",
-		header: "Status",
-		cell: ({ getValue }) => {
-			const status = getValue() as string;
-			const variant = getStatusVariant(status);
-			return (
-				<Badge variant={variant} shape="square">
-					{status}
-				</Badge>
-			);
-		},
+		accessorKey: "principalAmount",
+		header: "Principal",
+		cell: ({ row }) => row.original.principalAmount.toLocaleString(),
+		meta: { bodyClassName: "text-right" },
+	},
+	{
+		accessorKey: "termMonths",
+		header: "Term (Months)",
+		meta: { bodyClassName: "text-right" },
+	},
+	{
+		accessorKey: "monthlyPayment",
+		header: "Monthly Pay",
+		cell: ({ row }) => row.original.monthlyPayment.toLocaleString(),
+		meta: { bodyClassName: "text-right" },
 	},
 ];

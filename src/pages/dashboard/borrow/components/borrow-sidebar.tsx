@@ -3,6 +3,7 @@ import { EntityListItem, SidebarList } from "@/core/components/common";
 import { up, useMediaQuery } from "@/core/hooks/use-media-query";
 import { useSidebarPagination } from "@/core/hooks/use-sidebar-pagination";
 import type { SelectOption } from "@/core/types/common";
+import { useLoans } from "../hooks/use-loans";
 import type { BorrowState } from "../stores/borrow-state";
 
 type Props = {
@@ -16,28 +17,20 @@ type Props = {
 
 const STATUS_OPTIONS: SelectOption[] = [
 	{ value: "all", label: "All" },
-	{ value: "Active", label: "Active" },
-	{ value: "Returned", label: "Returned" },
-	{ value: "Overdue", label: "Overdue" },
+	{ value: "employee", label: "Employee" },
+	{ value: "customer", label: "Customer" },
 ];
 
 type BorrowSidebarItem = {
 	id: string;
 	name: string;
 	code: string;
-	status: string;
 };
-
-const MOCK_LIST: BorrowSidebarItem[] = [
-	{ id: "1", name: "John Doe", code: "BR-2025-001", status: "Active" },
-	{ id: "2", name: "Jane Smith", code: "BR-2025-002", status: "Active" },
-	{ id: "3", name: "Alice Johnson", code: "BR-2025-003", status: "Returned" },
-];
 
 const normalizeText = (value: string) => value.trim().toLowerCase();
 
-const matchStatus = (item: BorrowSidebarItem, statusFilter: BorrowState["typeFilter"]) =>
-	statusFilter === "all" || item.status === statusFilter;
+const matchType = (item: BorrowSidebarItem, typeFilter: BorrowState["typeFilter"], typeMap: Map<string, string>) =>
+	typeFilter === "all" || typeMap.get(item.id) === typeFilter;
 
 const matchSearch = (item: BorrowSidebarItem, normalizedQuery: string) =>
 	normalizedQuery === "" ||
@@ -45,16 +38,37 @@ const matchSearch = (item: BorrowSidebarItem, normalizedQuery: string) =>
 	item.name.toLowerCase().includes(normalizedQuery);
 
 const isBorrowTypeFilter = (value: string): value is BorrowState["typeFilter"] =>
-	value === "all" || value === "Active" || value === "Returned" || value === "Overdue";
+	value === "all" || value === "employee" || value === "customer";
 
 export function BorrowSidebar({ activeBorrowId, listState, updateState, onSelect, onToggle, isCollapsed }: Props) {
 	const { searchValue, typeFilter } = listState;
 	const isLgUp = useMediaQuery(up("lg"));
 	const normalizedQuery = normalizeText(searchValue);
 
+	const { data: loansResponse } = useLoans();
+	const loans = loansResponse?.content ?? [];
+
+	const sidebarItems = useMemo<BorrowSidebarItem[]>(
+		() =>
+			loans.map((loan) => ({
+				id: loan.id,
+				name: loan.borrowerId,
+				code: `${loan.borrowerType} | ${loan.principalAmount.toLocaleString()}`,
+			})),
+		[loans],
+	);
+
+	const typeMap = useMemo(() => {
+		const map = new Map<string, string>();
+		for (const loan of loans) {
+			map.set(loan.id, loan.borrowerType);
+		}
+		return map;
+	}, [loans]);
+
 	const filteredList = useMemo(
-		() => MOCK_LIST.filter((item) => matchStatus(item, typeFilter) && matchSearch(item, normalizedQuery)),
-		[normalizedQuery, typeFilter],
+		() => sidebarItems.filter((item) => matchType(item, typeFilter, typeMap) && matchSearch(item, normalizedQuery)),
+		[normalizedQuery, typeFilter, sidebarItems, typeMap],
 	);
 
 	const pagination = useSidebarPagination({
@@ -66,7 +80,7 @@ export function BorrowSidebar({ activeBorrowId, listState, updateState, onSelect
 		<SidebarList>
 			<SidebarList.Header
 				showMainTypeFilter={false}
-				searchPlaceholder="Search ref or name..."
+				searchPlaceholder="Search loans..."
 				searchValue={searchValue}
 				onSearchChange={(value) => updateState({ searchValue: value, page: 1 })}
 				statusOptions={STATUS_OPTIONS}

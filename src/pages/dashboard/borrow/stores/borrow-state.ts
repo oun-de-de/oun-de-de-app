@@ -2,8 +2,8 @@ import type { ListState } from "@/core/store/createListStore";
 import type { BaseState } from "@/core/types/state";
 
 type BorrowType = "InitialState" | "UpdateState" | "ResetState";
-export type BorrowTypeFilter = "all" | "Active" | "Returned" | "Overdue";
-export type BorrowFieldFilter = "refNo" | "borrower" | "borrowerType";
+export type BorrowTypeFilter = "all" | "employee" | "customer";
+export type BorrowFieldFilter = "borrowerId" | "borrowerType";
 
 export type BorrowState = BaseState<BorrowType> &
 	Omit<ListState, "typeFilter" | "fieldFilter"> & {
@@ -15,7 +15,7 @@ export type BorrowState = BaseState<BorrowType> &
 export const createBorrowInitialState = (): BorrowState => ({
 	type: "InitialState",
 	typeFilter: "all",
-	fieldFilter: "refNo",
+	fieldFilter: "borrowerId",
 	searchValue: "",
 	page: 1,
 	pageSize: 10,

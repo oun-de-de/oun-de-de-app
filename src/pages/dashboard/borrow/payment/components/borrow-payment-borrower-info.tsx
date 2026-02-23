@@ -1,53 +1,75 @@
 import { User } from "lucide-react";
-import { Input } from "@/core/ui/input";
+import { useMemo } from "react";
+import type { Customer } from "@/core/types/customer";
+import type { Employee } from "@/core/types/employee";
+import type { BorrowerType } from "@/core/types/loan";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/core/ui/select";
 import { FormRow } from "@/pages/dashboard/borrow/components/borrow-form-row";
 import { SectionHeader } from "@/pages/dashboard/borrow/components/borrow-section-header";
 
 interface BorrowPaymentBorrowerInfoProps {
-	borrowerName: string;
-	setBorrowerName: (value: string) => void;
-	phone: string;
-	setPhone: (value: string) => void;
-	idCard: string;
-	setIdCard: (value: string) => void;
+	borrowerType: BorrowerType;
+	setBorrowerType: (value: BorrowerType) => void;
+	borrowerId: string;
+	setBorrowerId: (value: string) => void;
+	customers: Customer[];
+	employees: Employee[];
 }
 
 export function BorrowPaymentBorrowerInfo({
-	borrowerName,
-	setBorrowerName,
-	phone,
-	setPhone,
-	idCard,
-	setIdCard,
+	borrowerType,
+	setBorrowerType,
+	borrowerId,
+	setBorrowerId,
+	customers,
+	employees,
 }: BorrowPaymentBorrowerInfoProps) {
+	const options = useMemo(() => {
+		if (borrowerType === "customer") {
+			return customers.map((c) => ({ value: c.id, label: c.name || "Unknown Customer" }));
+		}
+		return employees.map((e) => ({ value: e.id, label: `${e.firstName} ${e.lastName}`.trim() || e.username }));
+	}, [borrowerType, customers, employees]);
+
+	const handleBorrowerTypeChange = (value: string) => {
+		if (value === "customer" || value === "employee") {
+			setBorrowerType(value);
+		}
+	};
+
 	return (
 		<div className="p-6 pb-2">
 			<SectionHeader icon={User} title="Borrower Information" />
 
-			<div className="pl-2 space-y-1 max-w-2xl">
-				<FormRow label="Borrower Name" required>
-					<Input
-						placeholder="Required..."
-						value={borrowerName}
-						onChange={(e) => setBorrowerName(e.target.value)}
-						className="h-9 border-gray-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 bg-white"
-					/>
+			<div className="pl-2 space-y-4 max-w-2xl">
+				<FormRow label="Borrower Type" required>
+					<div className="w-full sm:w-[200px]">
+						<Select value={borrowerType} onValueChange={handleBorrowerTypeChange}>
+							<SelectTrigger className="bg-white">
+								<SelectValue placeholder="Select Type..." />
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value="customer">Customer</SelectItem>
+								<SelectItem value="employee">Employee</SelectItem>
+							</SelectContent>
+						</Select>
+					</div>
 				</FormRow>
 
-				<FormRow label="Contact / ID">
-					<div className="flex gap-2 w-full">
-						<Input
-							placeholder="Phone..."
-							value={phone}
-							onChange={(e) => setPhone(e.target.value)}
-							className="h-9 border-gray-200"
-						/>
-						<Input
-							placeholder="ID Card..."
-							value={idCard}
-							onChange={(e) => setIdCard(e.target.value)}
-							className="h-9 border-gray-200"
-						/>
+				<FormRow label="Borrower Selection" required>
+					<div className="w-full sm:w-[300px]">
+						<Select value={borrowerId} onValueChange={setBorrowerId}>
+							<SelectTrigger className="bg-white">
+								<SelectValue placeholder={`Select ${borrowerType === "customer" ? "Customer" : "Employee"}...`} />
+							</SelectTrigger>
+							<SelectContent>
+								{options.map((opt) => (
+									<SelectItem key={opt.value} value={opt.value}>
+										{opt.label}
+									</SelectItem>
+								))}
+							</SelectContent>
+						</Select>
 					</div>
 				</FormRow>
 			</div>

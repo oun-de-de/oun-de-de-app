@@ -23,6 +23,7 @@ export function getFrontendDashboardRoutes(): RouteObject[] {
 		{ path: "dashboard/borrow", element: Component("/pages/dashboard/borrow") },
 		{ path: "dashboard/borrow/new", element: Component("/pages/dashboard/borrow/create") },
 		{ path: "dashboard/borrow/payment", element: Component("/pages/dashboard/borrow/payment") },
+		{ path: "dashboard/borrow/:id", element: Component("/pages/dashboard/borrow/detail") },
 		{ path: "dashboard/equipment", element: Component("/pages/dashboard/equipment") },
 		{ path: "dashboard/equipment/:id", element: Component("/pages/dashboard/equipment/detail") },
 	];

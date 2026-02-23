@@ -77,3 +77,6 @@ export const useBorrowCartSelector = <T>(selector: (state: BorrowCartState) => T
 
 export const useCartTotal = () =>
 	useBorrowCartSelector((state) => state.cart.reduce((sum, item) => sum + item.price * item.qty, 0));
+
+export const useCartTotalQty = () =>
+	useBorrowCartSelector((state) => state.cart.reduce((sum, item) => sum + item.qty, 0));
