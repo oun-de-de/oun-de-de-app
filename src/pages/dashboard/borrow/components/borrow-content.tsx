@@ -6,7 +6,7 @@ import Icon from "@/core/components/icon/icon";
 import { Button } from "@/core/ui/button";
 import { Text } from "@/core/ui/typography";
 import type { BorrowState } from "@/pages/dashboard/borrow/stores/borrow-store";
-import { MOCK_LOAN_RECORDS } from "../constants/loan-records";
+import { useLoans } from "../hooks/use-loans";
 import {
 	buildBorrowSummaryCards,
 	buildBorrowTableConfigs,
@@ -14,19 +14,28 @@ import {
 	filterBorrowRows,
 	paginateBorrowRows,
 } from "../utils/borrow-content-utils";
-import { mapLoanRecordToBorrowRow } from "../utils/loan-utils";
+import { mapLoanToBorrowRow } from "../utils/loan-utils";
 import { borrowColumns } from "./borrow-columns";
 
 type Props = {
-	activeBorrowId: string | null;
+	activeCustomerId: string | null;
+	activeCustomerName: string | null;
 	listState: BorrowState;
 	updateState: (updates: Partial<Omit<BorrowState, "type">>) => void;
 };
 
-export function BorrowContent({ activeBorrowId, listState, updateState }: Props) {
+export function BorrowContent({ activeCustomerId, activeCustomerName, listState, updateState }: Props) {
 	const navigate = useNavigate();
 	const { fieldFilter, searchValue, typeFilter } = listState;
-	const loanRows = useMemo(() => MOCK_LOAN_RECORDS.map((record) => mapLoanRecordToBorrowRow(record)), []);
+	const { data: loansResponse } = useLoans();
+
+	const loanRows = useMemo(
+		() =>
+			(loansResponse?.content ?? [])
+				.filter((loan) => !activeCustomerId || loan.borrowerId === activeCustomerId)
+				.map((loan) => mapLoanToBorrowRow(loan)),
+		[loansResponse, activeCustomerId],
+	);
 
 	const filteredData = useMemo(
 		() => filterBorrowRows(loanRows, { fieldFilter, searchValue, typeFilter }),
@@ -59,24 +68,34 @@ export function BorrowContent({ activeBorrowId, listState, updateState }: Props)
 		}
 	}, [listState.page, totalPages, updateState]);
 
-	const activeBorrow = loanRows.find((row) => row.id === activeBorrowId);
-
 	return (
 		<>
 			<div className="flex flex-wrap items-center justify-between gap-2 mb-4">
 				<div className="flex items-center gap-2">
-					<SplitButton variant="outline" size="sm" mainAction={mainAction} options={options} />
+					<SplitButton
+						variant="outline"
+						size="sm"
+						mainAction={mainAction}
+						options={options}
+						mainButtonClassName="bg-blue-400 text-white hover:bg-blue-500 border-blue-400"
+						triggerButtonClassName="bg-blue-400 text-white hover:bg-blue-500 border-blue-400"
+					/>
 					<Text variant="body2" className="text-slate-400">
-						{activeBorrow ? `${activeBorrow.refNo} selected` : "No Record Selected"}
+						{activeCustomerId ? `${activeCustomerName || activeCustomerId} selected` : "All Customers"}
 					</Text>
 				</div>
 
 				<div className="flex gap-2">
-					<Button size="sm" className="gap-2" variant="outline">
+					<Button size="sm" className="gap-2 bg-blue-400 text-white shadow-sm hover:bg-blue-500">
 						<Icon icon="mdi:printer" />
 						Print Report
 					</Button>
-					<SplitButton mainAction={newBorrowMainAction} options={newBorrowOptions} />
+					<SplitButton
+						mainAction={newBorrowMainAction}
+						options={newBorrowOptions}
+						mainButtonClassName="bg-emerald-400 text-white hover:bg-emerald-500"
+						triggerButtonClassName="bg-emerald-400 text-white hover:bg-emerald-500"
+					/>
 				</div>
 			</div>
 
@@ -93,6 +112,7 @@ export function BorrowContent({ activeBorrowId, listState, updateState }: Props)
 				columns={borrowColumns}
 				filterConfig={filterConfig}
 				paginationConfig={paginationConfig}
+				onRowClick={(row) => navigate(`/dashboard/borrow/${row.id}`)}
 			/>
 		</>
 	);

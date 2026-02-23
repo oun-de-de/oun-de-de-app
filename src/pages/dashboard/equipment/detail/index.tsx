@@ -1,3 +1,6 @@
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import customerService from "@/core/api/services/customer-service";
 import { SmartDataTable } from "@/core/components/common";
 import Icon from "@/core/components/icon/icon";
 import { Button } from "@/core/ui/button";
@@ -7,7 +10,8 @@ import { buildPagination } from "@/core/utils/dashboard-utils";
 import { useRouter } from "@/routes/hooks/use-router";
 import { StockInForm } from "../components/stock-in-form";
 import { StockOutBorrowForm } from "../components/stock-out-borrow-form";
-import { EQUIPMENT_ITEMS } from "../constants/constants";
+import { useInventoryItems } from "../hooks/use-inventory-items";
+import { BorrowingsTable } from "./components/borrowings-table";
 import { EquipmentInfoCard } from "./components/equipment-info-card";
 import { EquipmentQuickActions } from "./components/equipment-quick-actions";
 import { EquipmentSettings } from "./components/equipment-settings";
@@ -15,36 +19,22 @@ import { useEquipmentDetail } from "./hooks/use-equipment-detail";
 
 export default function EquipmentDetailPage() {
 	const router = useRouter();
-	const {
-		activeItem,
-		filteredSummary,
-		stockInQty,
-		stockInNote,
-		borrowQty,
-		borrowCustomer,
-		setStockInItemId,
-		setStockInQty,
-		setStockInNote,
-		setBorrowItemId,
-		setBorrowQty,
-		setBorrowCustomer,
-		addStockIn,
-		addBorrowStockOut,
-		columns,
-		pagedRows,
-		currentPage,
-		totalItems,
-		totalPages,
-		tableTypeFilter,
-		tableFieldFilter,
-		tableSearchValue,
-		tablePageSize,
-		setTableTypeFilter,
-		setTableFieldFilter,
-		setTableSearchValue,
-		setTablePage,
-		setTablePageSize,
-	} = useEquipmentDetail();
+	const [activeTab, setActiveTab] = useState("overview");
+	const { data: items = [] } = useInventoryItems();
+	const { data: customerPage } = useQuery({
+		queryKey: ["equipment-borrow-customers"],
+		queryFn: () => customerService.getCustomerList({ limit: 1000 }),
+	});
+	const customers = customerPage?.list ?? [];
+	const { activeItem, isItemLoading, stockIn, borrow, borrowingsData, table } = useEquipmentDetail();
+
+	if (isItemLoading) {
+		return (
+			<div className="flex h-full items-center justify-center">
+				<Text variant="body1">Loading...</Text>
+			</div>
+		);
+	}
 
 	if (!activeItem) {
 		return (
@@ -75,10 +65,18 @@ export default function EquipmentDetailPage() {
 						{activeItem.name}
 					</Button>
 					<Text variant="body2" className="text-slate-400">
-						{activeItem.category}
+						{activeItem.code}
 					</Text>
 				</div>
 				<div className="flex gap-2">
+					<Button
+						size="sm"
+						onClick={() => setActiveTab("transactions")}
+						className="gap-1 bg-emerald-600 text-white shadow-sm hover:bg-emerald-700"
+					>
+						<Icon icon="mdi:swap-horizontal" />
+						Update Stock
+					</Button>
 					<EquipmentQuickActions
 						onPrintReport={() => {}}
 						onExport={() => {}}
@@ -89,7 +87,7 @@ export default function EquipmentDetailPage() {
 			</div>
 
 			{/* Tabbed Content */}
-			<Tabs defaultValue="overview" className="flex-1 min-h-0 flex flex-col">
+			<Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 min-h-0 flex flex-col">
 				<TabsList>
 					<TabsTrigger value="overview" className="data-[state=active]:font-bold">
 						<Icon icon="mdi:view-dashboard" className="data-[state=active]:text-blue-600" />
@@ -98,6 +96,10 @@ export default function EquipmentDetailPage() {
 					<TabsTrigger value="transactions" className="data-[state=active]:font-bold">
 						<Icon icon="mdi:swap-horizontal" className="data-[state=active]:text-blue-600" />
 						Transactions
+					</TabsTrigger>
+					<TabsTrigger value="borrowings" className="data-[state=active]:font-bold">
+						<Icon icon="mdi:hand-extended-outline" className="data-[state=active]:text-blue-600" />
+						Borrowings
 					</TabsTrigger>
 					<TabsTrigger value="settings" className="data-[state=active]:font-bold">
 						<Icon icon="mdi:cog" className="data-[state=active]:text-blue-600" />
@@ -108,12 +110,7 @@ export default function EquipmentDetailPage() {
 				{/* Overview Tab */}
 				<TabsContent value="overview" className="flex-1 min-h-0 overflow-auto">
 					<div className="space-y-6">
-						<EquipmentInfoCard
-							item={activeItem}
-							remaining={filteredSummary[0]?.remaining ?? 0}
-							isLowStock={filteredSummary[0]?.isLowStock ?? false}
-							onUpdate={(_updates) => {}}
-						/>
+						<EquipmentInfoCard item={activeItem} onUpdate={() => {}} />
 
 						{/* Recent Transactions Preview */}
 						<div className="rounded-lg border bg-white p-6 shadow-sm">
@@ -125,7 +122,12 @@ export default function EquipmentDetailPage() {
 									View All
 								</Button>
 							</div>
-							<SmartDataTable className="flex-1" maxBodyHeight="300px" data={pagedRows.slice(0, 5)} columns={columns} />
+							<SmartDataTable
+								className="flex-1"
+								maxBodyHeight="300px"
+								data={table.pagedRows.slice(0, 5)}
+								columns={table.columns}
+							/>
 						</div>
 					</div>
 				</TabsContent>
@@ -135,27 +137,35 @@ export default function EquipmentDetailPage() {
 					{/* Stock In/Out Forms */}
 					<div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
 						<StockInForm
-							items={EQUIPMENT_ITEMS}
+							items={items}
 							itemId={activeItem.id}
-							quantity={stockInQty}
-							note={stockInNote}
-							onItemChange={setStockInItemId}
-							onQuantityChange={setStockInQty}
-							onNoteChange={setStockInNote}
-							onSubmit={addStockIn}
-							hideItemSelector={true}
+							quantity={stockIn.qty}
+							note={stockIn.note}
+							reason={stockIn.reason}
+							onItemChange={() => {}}
+							onQuantityChange={stockIn.setQty}
+							onNoteChange={stockIn.setNote}
+							onReasonChange={stockIn.setReason}
+							onSubmit={stockIn.submit}
+							hideItemSelector
+							isPending={stockIn.isPending}
 						/>
-
 						<StockOutBorrowForm
-							items={EQUIPMENT_ITEMS}
+							items={items}
+							customers={customers}
 							itemId={activeItem.id}
-							quantity={borrowQty}
-							customerName={borrowCustomer}
-							onItemChange={setBorrowItemId}
-							onQuantityChange={setBorrowQty}
-							onCustomerNameChange={setBorrowCustomer}
-							onSubmit={addBorrowStockOut}
-							hideItemSelector={true}
+							quantity={borrow.qty}
+							customerId={borrow.customerId}
+							expectedReturnDate={borrow.expectedReturnDate}
+							memo={borrow.memo}
+							onItemChange={() => {}}
+							onQuantityChange={borrow.setQty}
+							onCustomerIdChange={borrow.setCustomerId}
+							onExpectedReturnDateChange={borrow.setExpectedReturnDate}
+							onMemoChange={borrow.setMemo}
+							onSubmit={borrow.submit}
+							hideItemSelector
+							isPending={borrow.isPending}
 						/>
 					</div>
 
@@ -163,43 +173,51 @@ export default function EquipmentDetailPage() {
 					<SmartDataTable
 						className="flex-1 min-h-0"
 						maxBodyHeight="100%"
-						data={pagedRows}
-						columns={columns}
+						data={table.pagedRows}
+						columns={table.columns}
 						filterConfig={{
 							typeOptions: [
 								{ value: "all", label: "All Type" },
-								{ value: "stock-in", label: "Stock In" },
-								{ value: "stock-out-borrow", label: "Stock Out (Borrow)" },
+								{ value: "IN", label: "Stock In" },
+								{ value: "OUT", label: "Stock Out" },
 							],
 							fieldOptions: [
-								{ value: "item", label: "Item" },
-								{ value: "customer", label: "Customer" },
-								{ value: "slipNo", label: "Slip No" },
-								{ value: "note", label: "Note" },
+								{ value: "reason", label: "Reason" },
+								{ value: "memo", label: "Memo" },
 							],
-							typeValue: tableTypeFilter,
-							fieldValue: tableFieldFilter,
-							searchValue: tableSearchValue,
-							onTypeChange: setTableTypeFilter,
-							onFieldChange: setTableFieldFilter,
-							onSearchChange: setTableSearchValue,
+							typeValue: table.typeFilter,
+							fieldValue: table.fieldFilter,
+							searchValue: table.searchValue,
+							onTypeChange: table.setTypeFilter,
+							onFieldChange: table.setFieldFilter,
+							onSearchChange: table.setSearchValue,
 							searchPlaceholder: "Search transaction",
 						}}
 						paginationConfig={{
-							page: currentPage,
-							pageSize: tablePageSize,
-							totalItems,
-							totalPages,
-							paginationItems: buildPagination(currentPage, totalPages),
-							onPageChange: setTablePage,
-							onPageSizeChange: setTablePageSize,
+							page: table.currentPage,
+							pageSize: table.pageSize,
+							totalItems: table.totalItems,
+							totalPages: table.totalPages,
+							paginationItems: buildPagination(table.currentPage, table.totalPages),
+							onPageChange: table.setPage,
+							onPageSizeChange: table.setPageSize,
 						}}
+					/>
+				</TabsContent>
+
+				{/* Borrowings Tab */}
+				<TabsContent value="borrowings" className="flex-1 min-h-0 overflow-auto">
+					<BorrowingsTable
+						borrowings={borrowingsData.list}
+						onReturn={borrowingsData.returnItem}
+						onPay={(customerId) => router.push(`/dashboard/borrow?customerId=${customerId}`)}
+						isReturnPending={borrowingsData.isReturnPending}
 					/>
 				</TabsContent>
 
 				{/* Settings Tab */}
 				<TabsContent value="settings" className="flex-1 min-h-0 overflow-auto">
-					<EquipmentSettings item={activeItem} onUpdate={(_updates) => {}} />
+					<EquipmentSettings item={activeItem} onUpdate={() => {}} />
 				</TabsContent>
 			</Tabs>
 		</div>
