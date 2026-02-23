@@ -1,5 +1,10 @@
 import type { CreateVehicle, Vehicle } from "./vehicle";
 
+export interface PaymentTerm {
+	duration: number;
+	startDate: string;
+}
+
 export interface Customer {
 	id: string;
 	registerDate: string;
@@ -7,7 +12,7 @@ export interface Customer {
 	name: string;
 	status: boolean;
 	defaultPrice: string;
-	warehouse: string;
+	warehouseId: string;
 	memo: string;
 	profileUrl: string;
 	referredBy?: string;
@@ -24,6 +29,7 @@ export interface Customer {
 	vehicles: Vehicle[];
 	depositBalance?: number;
 	creditLimit?: number;
+	paymentTerm?: PaymentTerm;
 	invoiceCount?: number;
 	invoiceTotal?: number;
 	overdueCount?: number;
@@ -74,7 +80,7 @@ export interface CreateCustomer {
 	name: string;
 	status: boolean;
 	defaultPrice: string;
-	warehouse: string;
+	warehouseId: string;
 	memo: string;
 	profileUrl: string;
 	referredById?: string;
@@ -89,6 +95,7 @@ export interface CreateCustomer {
 	billingAddress: string;
 	deliveryAddress: string;
 	vehicles: CreateVehicle[];
+	paymentTerm?: PaymentTerm;
 }
 
 export interface UpdateCustomer {
@@ -97,7 +104,7 @@ export interface UpdateCustomer {
 	status?: boolean;
 	referredById?: string;
 	defaultPrice?: string;
-	warehouse?: string;
+	warehouseId?: string;
 	memo?: string;
 	profileUrl?: string;
 	shopBannerUrl?: string;
@@ -110,19 +117,18 @@ export interface UpdateCustomer {
 	map?: string;
 	billingAddress?: string;
 	deliveryAddress?: string;
+	paymentTerm?: PaymentTerm;
 }
 
 export interface ProductSettings {
 	productId: string;
 	customerId: string;
 	price: number;
-	unit: string;
 	quantity: number;
 }
 
 export interface CreateProductSettings {
 	productId: string;
-	unit: string;
 	quantity: number;
 	price: number;
 }

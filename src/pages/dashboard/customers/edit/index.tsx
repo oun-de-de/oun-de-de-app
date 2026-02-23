@@ -94,7 +94,7 @@ export default function CustomerEditPage() {
 			<Separator className="my-2" />
 
 			{/* Warehouse Settings */}
-			<WarehouseSettingsForm customerId={id} currentWarehouseId={customer.warehouse} />
+			<WarehouseSettingsForm customerId={id} currentWarehouseId={customer.warehouseId} />
 		</div>
 	);
 }

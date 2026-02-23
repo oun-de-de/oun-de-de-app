@@ -12,7 +12,7 @@ const customerList = http.get("/api/v1/customers", async () => {
 		status: faker.datatype.boolean(),
 		referredBy: faker.helpers.arrayElement([faker.string.uuid(), undefined]),
 		defaultPrice: faker.commerce.price(),
-		warehouse: faker.location.city(),
+		warehouseId: faker.string.uuid(),
 		memo: faker.lorem.sentence(),
 		profileUrl: faker.image.avatar(),
 		shopBannerUrl: faker.image.urlLoremFlickr(),

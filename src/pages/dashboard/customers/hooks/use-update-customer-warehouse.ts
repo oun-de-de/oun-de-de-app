@@ -3,7 +3,7 @@ import { toast } from "sonner";
 import customerService from "@/core/api/services/customer-service";
 
 export type UpdateWarehouseInput = {
-	warehouse: string;
+	warehouseId: string;
 };
 
 export const useUpdateCustomerWarehouse = (customerId?: string) => {

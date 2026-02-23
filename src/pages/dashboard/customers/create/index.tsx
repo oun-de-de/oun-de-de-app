@@ -48,6 +48,21 @@ export default function CreateCustomerPage() {
 	});
 
 	const handleSubmit = async (data: CustomerFormData) => {
+		const paymentTermRaw = data.paymentTerm;
+		const paymentTermDuration =
+			paymentTermRaw === "" || paymentTermRaw === null || paymentTermRaw === undefined
+				? undefined
+				: Number(paymentTermRaw);
+		const paymentTerm =
+			paymentTermDuration === undefined || Number.isNaN(paymentTermDuration) || paymentTermDuration < 0
+				? undefined
+				: {
+						duration: paymentTermDuration,
+						startDate: data.registerDate
+							? new Date(`${data.registerDate as string}T00:00:00.000Z`).toISOString()
+							: new Date().toISOString(),
+					};
+
 		const customerData: CreateCustomer = {
 			registerDate: data.registerDate as string,
 			code: data.code as string,
@@ -55,7 +70,7 @@ export default function CreateCustomerPage() {
 			status: !!data.status,
 			referredById: data.referredById as string,
 			defaultPrice: data.defaultPrice as string,
-			warehouse: data.warehouse as string,
+			warehouseId: data.warehouseId as string,
 			memo: data.memo as string,
 			profileUrl: data.profileUrl as string,
 			shopBannerUrl: data.shopBannerUrl as string,
@@ -69,6 +84,7 @@ export default function CreateCustomerPage() {
 			billingAddress: data.billingAddress as string,
 			deliveryAddress: data.deliveryAddress as string,
 			vehicles: data.vehicles ?? [],
+			paymentTerm,
 		};
 
 		await createCustomer(customerData);
