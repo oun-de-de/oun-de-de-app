@@ -4,7 +4,7 @@ import type { Invoice } from "@/core/types/invoice";
 import { Badge } from "@/core/ui/badge";
 import { Button } from "@/core/ui/button";
 import { Checkbox } from "@/core/ui/checkbox";
-import { getInvoiceTypeVariant, getStatusVariant } from "@/core/utils/get-status-variant";
+import { getInvoiceTypeVariant } from "@/core/utils/get-status-variant";
 
 type InvoiceColumnsOptions = {
 	allSelected: boolean;
@@ -68,20 +68,7 @@ export function getInvoiceColumns({
 			cell: ({ row }) => <Badge variant={getInvoiceTypeVariant(row.original.type)}>{row.original.type}</Badge>,
 			meta: { bodyClassName: "text-center" },
 		},
-		{
-			header: "Status",
-			accessorKey: "status",
-			size: 90,
-			meta: { bodyClassName: "text-center" },
-			cell: ({ row }) => {
-				const status = row.original.status;
-				return (
-					<Badge variant={getStatusVariant(status)} className="w-full">
-						{status}
-					</Badge>
-				);
-			},
-		},
+
 		{
 			header: "Actions",
 			id: "actions",

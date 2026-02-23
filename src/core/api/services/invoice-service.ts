@@ -1,8 +1,8 @@
-import type { PaginatedResponse } from "@/core/types/common";
-import type { Invoice, InvoiceStatus, InvoiceType } from "@/core/types/invoice";
+import type { PagePaginatedResponse } from "@/core/types/common";
+import type { Invoice, InvoiceExportLineResult, InvoiceType } from "@/core/types/invoice";
 import type { Pagination } from "@/core/types/pagination";
-import { mapPaginatedResponseToPagination } from "@/core/utils/pagination";
-import { apiClient } from "../api/apiClient";
+import { mapPagePaginatedResponseToPagination } from "@/core/utils/pagination";
+import { apiClient } from "../apiClient";
 
 export enum INVOICE_API {
 	LIST = "/invoices",
@@ -12,50 +12,49 @@ export const getInvoices = (params?: {
 	page?: number;
 	size?: number;
 	sort?: string;
-	status?: InvoiceStatus;
 	type?: InvoiceType;
 	refNo?: string;
 	customerName?: string;
 	customerId?: string;
+	cycleId?: string;
+	from?: string;
+	to?: string;
 }): Promise<Pagination<Invoice>> =>
 	apiClient
-		.get<PaginatedResponse<Invoice>>({
+		.get<PagePaginatedResponse<Invoice>>({
 			url: INVOICE_API.LIST,
 			params: {
 				page: params?.page ? params.page - 1 : 0,
 				size: params?.size,
 				sort: params?.sort ?? "date,desc",
-				status: params?.status,
 				type: params?.type,
 				refNo: params?.refNo,
 				customerName: params?.customerName,
 				customer_id: params?.customerId,
+				cycle_id: params?.cycleId,
+				from: params?.from,
+				to: params?.to,
 			},
 		})
-		.then(mapPaginatedResponseToPagination);
+		.then(mapPagePaginatedResponseToPagination);
 
-export const exportInvoice = (invoiceIds: string[], from?: string, to?: string) =>
-	apiClient.post<Blob>({
+export const exportInvoice = (invoiceIds: string[]) =>
+	apiClient.post<InvoiceExportLineResult[]>({
 		url: `${INVOICE_API.LIST}/export`,
 		data: {
 			invoiceIds,
-			from,
-			to,
 		},
-		responseType: "blob",
 	});
 
-export const updateInvoice = (invoiceIds: string[], customerName: string, type: InvoiceType, status: InvoiceStatus) =>
-	apiClient.put<Invoice>({
+export const updateInvoice = (invoiceIds: string[], customerName: string, type: InvoiceType) =>
+	apiClient.put<string>({
 		url: `${INVOICE_API.LIST}/update-batch`,
 		data: {
 			invoiceIds,
 			customerName,
 			type,
-			status,
 		},
 	});
-
 export default {
 	getInvoices,
 	exportInvoice,

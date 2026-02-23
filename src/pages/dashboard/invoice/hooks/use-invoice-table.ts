@@ -2,9 +2,9 @@ import { useQuery } from "@tanstack/react-query";
 import type { OnChangeFn, SortingState } from "@tanstack/react-table";
 import isEqual from "fast-deep-equal";
 import { useCallback, useEffect, useMemo } from "react";
+import invoiceService from "@/core/api/services/invoice-service";
 import { useDebounce } from "@/core/hooks/use-debounce";
-import invoiceService from "@/core/services/invoice-service";
-import type { InvoiceStatus, InvoiceType } from "@/core/types/invoice";
+import type { InvoiceType } from "@/core/types/invoice";
 import { buildPagination } from "@/core/utils/dashboard-utils";
 import { getInvoiceState, useInvoiceActions, useInvoiceState } from "../stores/invoice-store";
 
@@ -14,8 +14,7 @@ type UseInvoiceTableParams = {
 };
 
 const getCurrentListState = () => getInvoiceState();
-const isInvoiceStatus = (value: string): value is InvoiceStatus =>
-	value === "OPEN" || value === "CLOSED" || value === "OVERDUE";
+
 const isInvoiceType = (value: string): value is InvoiceType => value === "INVOICE" || value === "RECEIPT";
 
 export function useInvoiceTable({ customerName, customerId }: UseInvoiceTableParams = {}) {
@@ -30,7 +29,7 @@ export function useInvoiceTable({ customerName, customerId }: UseInvoiceTablePar
 			{
 				page,
 				size: pageSize,
-				status: typeFilter,
+				type: typeFilter,
 				search: debouncedSearchValue,
 				field: fieldFilter,
 				customerName,
@@ -41,7 +40,7 @@ export function useInvoiceTable({ customerName, customerId }: UseInvoiceTablePar
 		queryFn: () => {
 			let searchRefNo: string | undefined;
 			let searchCustomerName: string | undefined;
-			let searchStatus: InvoiceStatus | undefined;
+
 			let searchType: InvoiceType | undefined;
 
 			if (fieldFilter === "refNo") {
@@ -50,22 +49,18 @@ export function useInvoiceTable({ customerName, customerId }: UseInvoiceTablePar
 				searchCustomerName = debouncedSearchValue;
 			} else if (fieldFilter === "all") {
 				searchCustomerName = debouncedSearchValue;
-			} else if (fieldFilter === "status" && debouncedSearchValue) {
-				const normalized = debouncedSearchValue.toUpperCase();
-				searchStatus = isInvoiceStatus(normalized) ? normalized : undefined;
 			} else if (fieldFilter === "type" && debouncedSearchValue) {
 				const normalized = debouncedSearchValue.toUpperCase();
 				searchType = isInvoiceType(normalized) ? normalized : undefined;
 			}
 
 			const sortParam = sorting.map((s) => `${s.id},${s.desc ? "desc" : "asc"}`).join(",");
-			const selectedStatus = isInvoiceStatus(typeFilter) ? typeFilter : undefined;
+			const selectedType = isInvoiceType(typeFilter) ? typeFilter : undefined;
 
 			return invoiceService.getInvoices({
 				page: page,
 				size: pageSize,
-				status: searchStatus || selectedStatus,
-				type: searchType,
+				type: searchType ?? selectedType,
 				refNo: searchRefNo,
 				customerName: (customerName ?? searchCustomerName) || undefined,
 				customerId: customerId || undefined,
@@ -89,16 +84,8 @@ export function useInvoiceTable({ customerName, customerId }: UseInvoiceTablePar
 
 	const summaryCards = useMemo(() => {
 		const totalInvoice = invoicePage?.total ?? invoices.length;
-		const openCount = invoices.filter((row) => row.status === "OPEN").length;
-		const closedCount = invoices.filter((row) => row.status === "CLOSED").length;
-		const overdueCount = invoices.filter((row) => row.status === "OVERDUE").length;
 
-		return [
-			{ label: "Total Invoice", value: totalInvoice, color: "bg-sky-500", icon: "mdi:file-document-outline" },
-			{ label: "Open", value: openCount, color: "bg-amber-500", icon: "mdi:cash-remove" },
-			{ label: "Closed", value: closedCount, color: "bg-emerald-500", icon: "mdi:check-circle-outline" },
-			{ label: "Overdue", value: overdueCount, color: "bg-red-500", icon: "mdi:alert-circle-outline" },
-		];
+		return [{ label: "Total Invoice", value: totalInvoice, color: "bg-sky-500", icon: "mdi:file-document-outline" }];
 	}, [invoicePage?.total, invoices]);
 
 	const onTypeFilterChange = useCallback(
