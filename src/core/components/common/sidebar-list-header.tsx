@@ -131,7 +131,7 @@ export function SidebarListHeader({
 	}
 
 	return (
-		<div className={cn("flex flex-col gap-3 pb-2 md:pb-4", className)}>
+		<div className={cn("flex flex-col gap-3 pb-2 md:pb-3", className)}>
 			<div className="flex items-center gap-2">
 				{showMainTypeFilter ? (
 					(mainTypeFilter ?? (
