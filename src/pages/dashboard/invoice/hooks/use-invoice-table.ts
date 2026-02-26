@@ -12,11 +12,12 @@ import { isInvoiceType } from "../utils/formatters";
 type UseInvoiceTableParams = {
 	customerName?: string | null;
 	customerId?: string | null;
+	cycleId?: string | null;
 };
 
 const getCurrentListState = () => getInvoiceState();
 
-export function useInvoiceTable({ customerName, customerId }: UseInvoiceTableParams = {}) {
+export function useInvoiceTable({ customerName, customerId, cycleId }: UseInvoiceTableParams = {}) {
 	const { page, pageSize, typeFilter, fieldFilter, searchValue, sorting } = useInvoiceState();
 	const { updateState } = useInvoiceActions();
 
@@ -33,6 +34,7 @@ export function useInvoiceTable({ customerName, customerId }: UseInvoiceTablePar
 				field: fieldFilter,
 				customerName,
 				customerId,
+				cycleId,
 				sorting,
 			},
 		],
@@ -63,6 +65,7 @@ export function useInvoiceTable({ customerName, customerId }: UseInvoiceTablePar
 				refNo: searchRefNo,
 				customerName: (customerName ?? searchCustomerName) || undefined,
 				customerId: customerId || undefined,
+				cycleId: cycleId || undefined,
 				sort: sortParam || "date,desc",
 			});
 		},

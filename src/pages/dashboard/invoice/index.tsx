@@ -43,6 +43,7 @@ export default function InvoicePage() {
 	const invoiceTable = useInvoiceTable({
 		customerName: activeCycle ? (activeCustomerName ?? activeCycle.customerName) : null,
 		customerId: activeCycle ? (activeCustomerId ?? activeCycle.customerId) : null,
+		cycleId: activeCycle?.id ?? null,
 	});
 
 	const activeInvoiceLabel = activeCycle

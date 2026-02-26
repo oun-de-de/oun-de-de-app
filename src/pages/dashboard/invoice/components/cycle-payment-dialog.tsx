@@ -16,6 +16,8 @@ type CyclePaymentDialogProps = {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
 	cycle: Cycle | null;
+	defaultTab?: "payment" | "loan";
+	hideTabSwitch?: boolean;
 };
 
 function toIsoStartOfDay(date: string): string {
@@ -30,7 +32,13 @@ function getLocalToday(): string {
 	return `${year}-${month}-${day}`;
 }
 
-export function CyclePaymentDialog({ open, onOpenChange, cycle }: CyclePaymentDialogProps) {
+export function CyclePaymentDialog({
+	open,
+	onOpenChange,
+	cycle,
+	defaultTab = "payment",
+	hideTabSwitch = false,
+}: CyclePaymentDialogProps) {
 	const navigate = useNavigate();
 	const [activeTab, setActiveTab] = useState("payment");
 	const [amount, setAmount] = useState("");
@@ -56,12 +64,12 @@ export function CyclePaymentDialog({ open, onOpenChange, cycle }: CyclePaymentDi
 	useEffect(() => {
 		if (!open) return;
 		const today = getLocalToday();
-		setActiveTab("payment");
+		setActiveTab(defaultTab);
 		setAmount("");
 		setPaymentDate(today);
 		setTermMonths("1");
 		setLoanStartDate(today);
-	}, [open]);
+	}, [open, defaultTab]);
 
 	const handleSubmit = async () => {
 		if (!hasCycle) return;
@@ -118,7 +126,7 @@ export function CyclePaymentDialog({ open, onOpenChange, cycle }: CyclePaymentDi
 		<Dialog open={open} onOpenChange={onOpenChange}>
 			<DialogContent className="sm:max-w-5xl overflow-y-auto p-4 md:p-6">
 				<DialogHeader className="pr-8">
-					<DialogTitle>Create Cycle Payment</DialogTitle>
+					<DialogTitle>{defaultTab === "loan" ? "Convert Cycle To Loan" : "Create Cycle Payment"}</DialogTitle>
 					<DialogDescription>
 						{cycle
 							? `${cycle.customerName} · ${new Date(cycle.startDate).toLocaleDateString()} ~ ${new Date(cycle.endDate).toLocaleDateString()}`
@@ -127,10 +135,12 @@ export function CyclePaymentDialog({ open, onOpenChange, cycle }: CyclePaymentDi
 				</DialogHeader>
 
 				<Tabs value={activeTab} onValueChange={setActiveTab} className="w-full mt-2">
-					<TabsList className="grid w-full grid-cols-2">
-						<TabsTrigger value="payment">Make Payment</TabsTrigger>
-						<TabsTrigger value="loan">Convert to Loan</TabsTrigger>
-					</TabsList>
+					{!hideTabSwitch && (
+						<TabsList className="grid w-full grid-cols-2">
+							<TabsTrigger value="payment">Make Payment</TabsTrigger>
+							<TabsTrigger value="loan">Convert to Loan</TabsTrigger>
+						</TabsList>
+					)}
 					<TabsContent value="payment" className="space-y-4 pt-4">
 						<div className="grid grid-cols-1 md:grid-cols-2 gap-3">
 							<div className="space-y-1.5">

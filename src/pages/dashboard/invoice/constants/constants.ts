@@ -20,6 +20,7 @@ export const DURATION_OPTIONS = [
 	{ value: "7", label: "7 Days" },
 	{ value: "10", label: "10 Days" },
 	{ value: "15", label: "15 Days" },
+	{ value: "20", label: "20 Days" },
 	{ value: "30", label: "30 Days" },
 	{ value: "45", label: "45 Days" },
 ] as const;

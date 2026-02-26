@@ -25,10 +25,6 @@ export function CycleContent({ customerId, customerName, onSelectCycle, requireC
 		cycles,
 		summaryCards,
 		duration,
-		fromDate,
-		toDate,
-		setFromDate,
-		setToDate,
 		onDurationChange,
 		onResetFilters,
 		currentPage,
@@ -66,7 +62,6 @@ export function CycleContent({ customerId, customerName, onSelectCycle, requireC
 			<div className="flex flex-wrap items-center justify-between gap-2">
 				<div className="flex items-center gap-2">
 					<Button size="sm" className="gap-1">
-						<Icon icon="mdi:calendar-clock" />
 						Cycles
 					</Button>
 					<Text variant="body2" className="text-muted-foreground">
@@ -107,7 +102,6 @@ export function CycleContent({ customerId, customerName, onSelectCycle, requireC
 									{opt.label}
 								</SelectItem>
 							))}
-							<SelectItem value="custom">Others</SelectItem>
 						</SelectContent>
 					</Select>
 				</div>
@@ -138,14 +132,14 @@ export function CycleContent({ customerId, customerName, onSelectCycle, requireC
 					</div>
 				)}
 
-				<div className="space-y-1.5">
+				{/* <div className="space-y-1.5">
 					<Label>From</Label>
 					<Input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} />
 				</div>
 				<div className="space-y-1.5">
 					<Label>To</Label>
 					<Input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} />
-				</div>
+				</div> */}
 				<Button
 					size="sm"
 					onClick={() => {

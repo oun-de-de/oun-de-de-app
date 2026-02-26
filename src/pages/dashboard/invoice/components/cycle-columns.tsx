@@ -3,12 +3,6 @@ import type { Cycle } from "@/core/types/cycle";
 import { Badge } from "@/core/ui/badge";
 import { formatDisplayDate, formatNumber } from "../utils/formatters";
 
-function getDurationDays(startDate: string, endDate: string): number {
-	const start = new Date(startDate);
-	const end = new Date(endDate);
-	return Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
-}
-
 function getCycleStatusVariant(status: Cycle["status"]): "success" | "warning" | "error" {
 	switch (status) {
 		case "CLOSED":
@@ -45,16 +39,6 @@ export function getCycleColumns(): ColumnDef<Cycle>[] {
 			accessorKey: "endDate",
 			header: "End Date",
 			cell: ({ row }) => formatDisplayDate(row.original.endDate),
-		},
-		{
-			id: "duration",
-			header: "Duration",
-			size: 100,
-			cell: ({ row }) => {
-				const days = getDurationDays(row.original.startDate, row.original.endDate);
-				return <Badge variant="info">{days} days</Badge>;
-			},
-			meta: { bodyClassName: "text-center" },
 		},
 		{
 			accessorKey: "status",
