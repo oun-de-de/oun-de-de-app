@@ -31,11 +31,11 @@ function ComboboxClear({ className, ...props }: ComboboxPrimitive.Clear.Props) {
 			data-slot="combobox-clear"
 			className={cn(className)}
 			{...props}
-			render={
-				<InputGroupButton variant="ghost" size="icon-xs">
+			render={(renderProps) => (
+				<InputGroupButton {...renderProps} variant="ghost" size="icon-xs">
 					<XIcon className="pointer-events-none" />
 				</InputGroupButton>
-			}
+			)}
 		/>
 	);
 }
@@ -54,21 +54,31 @@ function ComboboxInput({
 	return (
 		<InputGroup className={cn("w-auto", className)}>
 			<ComboboxPrimitive.Input
-				render={<InputGroupInput disabled={disabled} className="focus-visible:[box-shadow:none]" />}
+				render={(renderProps) => (
+					<InputGroupInput
+						{...renderProps}
+						disabled={disabled}
+						className={cn("focus-visible:[box-shadow:none]", renderProps.className)}
+					/>
+				)}
 				{...props}
 			/>
 			<InputGroupAddon align="inline-end">
 				{showTrigger && (
 					<ComboboxTrigger
-						render={
+						render={(renderProps) => (
 							<InputGroupButton
+								{...renderProps}
 								size="icon-xs"
 								variant="ghost"
 								data-slot="input-group-button"
-								className="group-has-data-[slot=combobox-clear]/input-group:hidden data-pressed:bg-transparent"
+								className={cn(
+									"group-has-data-[slot=combobox-clear]/input-group:hidden data-pressed:bg-transparent",
+									renderProps.className,
+								)}
 								disabled={disabled}
 							/>
-						}
+						)}
 					/>
 				)}
 				{showClear && <ComboboxClear disabled={disabled} />}
@@ -226,11 +236,11 @@ function ComboboxChip({
 				<ComboboxPrimitive.ChipRemove
 					className="-ml-1 opacity-50 hover:opacity-100"
 					data-slot="combobox-chip-remove"
-					render={
-						<Button variant="ghost" size="icon" className="h-6 w-6">
+					render={(renderProps) => (
+						<Button {...renderProps} variant="ghost" size="icon" className={cn("h-6 w-6", renderProps.className)}>
 							<XIcon className="pointer-events-none" />
 						</Button>
-					}
+					)}
 				/>
 			)}
 		</ComboboxPrimitive.Chip>
