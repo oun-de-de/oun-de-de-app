@@ -19,6 +19,7 @@ export const useCustomerDefaults = (customer?: CustomerDetail, vehicles?: Vehicl
 			billingAddress: customer.contact.billingAddress,
 			deliveryAddress: customer.contact.deliveryAddress,
 			paymentTerm: customer.paymentTerm?.duration,
+			startDate: customer.paymentTerm?.startDate?.split("T")[0] || "",
 			employeeId: customer.employee.id,
 			referredById: customer.customerReference?.id,
 			vehicles:

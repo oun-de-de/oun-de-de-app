@@ -12,6 +12,8 @@ export interface ProductSettingItem extends CreateProductSettings {
 	unitLabel: string;
 }
 
+const getUnitLabel = (product: Product): string => product.unit?.name ?? "-";
+
 const mapToSettingItem = (
 	setting: { productId: string; price: number; quantity: number },
 	product: Product,
@@ -21,7 +23,7 @@ const mapToSettingItem = (
 	quantity: setting.quantity,
 	productName: product.name,
 	productRef: product.refNo,
-	unitLabel: product.unit.name,
+	unitLabel: getUnitLabel(product),
 });
 
 export const useProductSettingsForm = (customerId?: string) => {
@@ -37,6 +39,7 @@ export const useProductSettingsForm = (customerId?: string) => {
 	const [isInitialized, setIsInitialized] = useState(false);
 	const [isSaving, setIsSaving] = useState(false);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
 	useEffect(() => {
 		setIsInitialized(false);
 		setSettings([]);
@@ -71,7 +74,7 @@ export const useProductSettingsForm = (customerId?: string) => {
 				quantity: 0,
 				productName: product.name,
 				productRef: product.refNo,
-				unitLabel: product.unit.name,
+				unitLabel: getUnitLabel(product),
 			},
 		]);
 	};

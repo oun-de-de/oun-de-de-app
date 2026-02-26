@@ -57,6 +57,12 @@ export const CUSTOMER_FIELDS: FormFieldConfig[] = [
 		placeholder: "Enter payment term in days",
 	},
 	{
+		name:"startDate",
+		label: "Payment Term Start Date",
+		type: "date",
+		placeholder: "Select start date",
+	},
+	{
 		name: "telephone",
 		label: "Telephone",
 		type: "text",

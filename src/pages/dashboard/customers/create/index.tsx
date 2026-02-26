@@ -48,27 +48,33 @@ export default function CreateCustomerPage() {
 	});
 
 	const handleSubmit = async (data: CustomerFormData) => {
-		const paymentTermRaw = data.paymentTerm;
-		const paymentTermDuration =
-			paymentTermRaw === "" || paymentTermRaw === null || paymentTermRaw === undefined
-				? undefined
-				: Number(paymentTermRaw);
+		const duration = Number(data.paymentTerm);
+		const parsedStartDate =
+			typeof data.startDate === "string" && data.startDate
+				? new Date(`${data.startDate}T00:00:00.000Z`)
+				: undefined;
 		const paymentTerm =
-			paymentTermDuration === undefined || Number.isNaN(paymentTermDuration) || paymentTermDuration < 0
-				? undefined
-				: {
-						duration: paymentTermDuration,
-						startDate: data.registerDate
-							? new Date(`${data.registerDate as string}T00:00:00.000Z`).toISOString()
-							: new Date().toISOString(),
-					};
+			data.paymentTerm !== "" &&
+			data.paymentTerm !== null &&
+			data.paymentTerm !== undefined &&
+			Number.isFinite(duration) &&
+			duration >= 0 &&
+			parsedStartDate &&
+			!Number.isNaN(parsedStartDate.getTime())
+				? { duration, startDate: parsedStartDate.toISOString() }
+				: undefined;
 
-		const customerData: CreateCustomer = {
+		const referredById =
+			typeof data.referredById === "string" && data.referredById !== "" && data.referredById !== "none"
+				? data.referredById
+				: undefined;
+
+		await createCustomer({
 			registerDate: data.registerDate as string,
 			code: data.code as string,
 			name: data.name as string,
 			status: !!data.status,
-			referredById: data.referredById as string,
+			referredById,
 			defaultPrice: data.defaultPrice as string,
 			warehouseId: data.warehouseId as string,
 			memo: data.memo as string,
@@ -85,9 +91,7 @@ export default function CreateCustomerPage() {
 			deliveryAddress: data.deliveryAddress as string,
 			vehicles: data.vehicles ?? [],
 			paymentTerm,
-		};
-
-		await createCustomer(customerData);
+		} satisfies CreateCustomer);
 	};
 
 	const handleCancel = () => navigate("/dashboard/customers");
