@@ -1,14 +1,26 @@
-import { useNavigate } from "react-router";
 import { SmartDataTable, SummaryStatCard } from "@/core/components/common";
-import Icon from "@/core/components/icon/icon";
 import { Button } from "@/core/ui/button";
 import { Text } from "@/core/ui/typography";
+import { useNavigate } from "react-router";
 import { useEquipmentContent } from "../hooks/use-equipment-content";
 import { CreateItemDialog } from "./create-item-dialog";
 
 type Props = {
 	activeItemId: string | null;
 };
+
+const EQUIPMENT_TYPE_OPTIONS = [
+	{ value: "all", label: "All Type" },
+	{ value: "consumable", label: "Consumable" },
+	{ value: "equipment", label: "Equipment" },
+];
+
+const EQUIPMENT_FIELD_OPTIONS = [
+	{ value: "name", label: "Name" },
+	{ value: "code", label: "Code" },
+];
+
+const SEARCH_PLACEHOLDER = "Search items";
 
 export function EquipmentContent({ activeItemId }: Props) {
 	const navigate = useNavigate();
@@ -20,7 +32,6 @@ export function EquipmentContent({ activeItemId }: Props) {
 			<div className="flex flex-wrap items-center justify-between gap-2">
 				<div className="flex items-center gap-2">
 					<Button size="sm" className="gap-1">
-						<Icon icon="mdi:toolbox-outline" />
 						Equipment
 					</Button>
 					<Text variant="body2" className="text-slate-400">
@@ -29,10 +40,6 @@ export function EquipmentContent({ activeItemId }: Props) {
 				</div>
 				<div className="flex gap-2">
 					<CreateItemDialog onSubmit={(data) => createItem.mutate(data)} isPending={createItem.isPending} />
-					<Button size="sm" className="gap-2 bg-sky-600 text-white shadow-sm hover:bg-sky-700">
-						<Icon icon="mdi:printer" />
-						Print Report
-					</Button>
 				</div>
 			</div>
 
@@ -54,22 +61,15 @@ export function EquipmentContent({ activeItemId }: Props) {
 					if (link) navigate(link);
 				}}
 				filterConfig={{
-					typeOptions: [
-						{ value: "all", label: "All Type" },
-						{ value: "consumable", label: "Consumable" },
-						{ value: "equipment", label: "Equipment" },
-					],
-					fieldOptions: [
-						{ value: "name", label: "Name" },
-						{ value: "code", label: "Code" },
-					],
+					typeOptions: EQUIPMENT_TYPE_OPTIONS,
+					fieldOptions: EQUIPMENT_FIELD_OPTIONS,
 					typeValue: table.typeFilter,
 					fieldValue: table.fieldFilter,
 					searchValue: table.searchValue,
 					onTypeChange: table.setTypeFilter,
 					onFieldChange: table.setFieldFilter,
 					onSearchChange: table.setSearchValue,
-					searchPlaceholder: "Search items",
+					searchPlaceholder: SEARCH_PLACEHOLDER,
 				}}
 			/>
 		</>

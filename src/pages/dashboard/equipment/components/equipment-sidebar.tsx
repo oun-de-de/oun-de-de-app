@@ -3,6 +3,7 @@ import { EntityListItem, SidebarList } from "@/core/components/common";
 import { up, useMediaQuery } from "@/core/hooks/use-media-query";
 import { useSidebarPagination } from "@/core/hooks/use-sidebar-pagination";
 import type { InventoryItem } from "@/core/types/inventory";
+import { cn } from "@/core/utils";
 import { useInventoryItems } from "../hooks/use-inventory-items";
 
 type Props = {
@@ -18,6 +19,10 @@ const matchSearch = (item: InventoryItem, normalizedQuery: string) =>
 	normalizedQuery === "" ||
 	item.name.toLowerCase().includes(normalizedQuery) ||
 	item.code.toLowerCase().includes(normalizedQuery);
+
+const DEFAULT_ITEM_SIZE = 56;
+const COLLAPSED_ITEM_SIZE = 42;
+const COLLAPSED_ITEM_GAP = 8;
 
 export function EquipmentSidebar({ activeItemId, onSelect, onToggle, isCollapsed }: Props) {
 	const [searchTerm, setSearchTerm] = useState("");
@@ -58,10 +63,11 @@ export function EquipmentSidebar({ activeItemId, onSelect, onToggle, isCollapsed
 			/>
 
 			<SidebarList.Body
-				className="mt-2 divide-y divide-border-gray-300 flex-1 min-h-0"
+				key={isCollapsed ? "collapsed" : "expanded"}
+				className={cn("mt-2 flex-1 min-h-0", !isCollapsed && "divide-y divide-border-gray-300")}
 				data={sidebarData}
-				estimateSize={40}
-				gap={8}
+				estimateSize={isCollapsed ? COLLAPSED_ITEM_SIZE : DEFAULT_ITEM_SIZE}
+				gap={isCollapsed ? COLLAPSED_ITEM_GAP : 0}
 				height="100%"
 				renderItem={(item, style) => (
 					<EntityListItem

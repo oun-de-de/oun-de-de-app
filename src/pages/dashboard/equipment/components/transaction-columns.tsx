@@ -76,10 +76,14 @@ export function transactionColumns(): ColumnDef<TransactionRow>[] {
 		{
 			accessorKey: "type",
 			header: "Type",
-			cell: ({ row }) => <Badge variant={row.original.type === "IN" ? "info" : "secondary"}>{row.original.type}</Badge>,
+			size: 80,
+			cell: ({ row }) => <Badge variant={row.original.type === "IN" ? "info" : "error"} shape="square">{row.original.type}</Badge>,
+			meta: {
+				bodyClassName: "text-center",
+			}
 		},
 		{ accessorKey: "reason", header: "Reason" },
-		{ accessorKey: "quantity", header: "Quantity" },
+		{ accessorKey: "quantity", header: "Quantity", meta: { bodyClassName: "text-right" } },
 		{ accessorKey: "memo", header: "Memo" },
 	];
 }
