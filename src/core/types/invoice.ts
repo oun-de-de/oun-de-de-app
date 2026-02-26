@@ -43,4 +43,5 @@ export interface InvoiceExportPreviewRow {
 export interface InvoiceExportPreviewLocationState {
 	selectedInvoiceIds: string[];
 	previewRows: InvoiceExportPreviewRow[];
+	autoPrint?: boolean;
 }

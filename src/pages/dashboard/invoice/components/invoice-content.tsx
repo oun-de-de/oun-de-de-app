@@ -13,10 +13,12 @@ import {
 	INVOICE_FILTER_TYPE_OPTIONS,
 	INVOICE_TYPE_OPTIONS,
 } from "../constants/constants";
+import { useCyclePayments } from "../hooks/use-cycle-payments";
 import { useInvoiceSelection } from "../hooks/use-invoice-selection";
 import { CyclePaymentDialog } from "./cycle-payment-dialog";
 import { InvoiceBulkUpdateDialog } from "./invoice-bulk-update-dialog";
 import { getInvoiceColumns } from "./invoice-columns";
+import { PAYMENT_COLUMNS } from "./payment-columns";
 
 type InvoiceContentProps = {
 	pagedData: Invoice[];
@@ -70,6 +72,8 @@ export function InvoiceContent({
 	const [updateTargetIds, setUpdateTargetIds] = useState<string[]>([]);
 	const [updateInitialValues, setUpdateInitialValues] = useState<{ customerName?: string; type?: Invoice["type"] }>({});
 	const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
+	const [isConvertDialogOpen, setIsConvertDialogOpen] = useState(false);
+	const { payments, isLoadingPayments } = useCyclePayments(activeCycle?.id);
 	const {
 		selectedInvoiceIds,
 		selectedInvoiceById,
@@ -144,6 +148,7 @@ export function InvoiceContent({
 			state: {
 				selectedInvoiceIds,
 				previewRows,
+				autoPrint: true,
 			},
 		});
 	};
@@ -199,6 +204,15 @@ export function InvoiceContent({
 						<Icon icon="mdi:cash-plus" />
 						Payment
 					</Button>
+					<Button
+						size="sm"
+						onClick={() => setIsConvertDialogOpen(true)}
+						disabled={!activeCycle}
+						className="gap-1 bg-rose-600 text-white shadow-sm hover:bg-rose-700 disabled:bg-slate-300"
+					>
+						<Icon icon="mdi:hand-coin-outline" />
+						Convert To Loan
+					</Button>
 				</div>
 			</div>
 
@@ -211,13 +225,39 @@ export function InvoiceContent({
 				onSuccess={() => onToggleAll(false)}
 			/>
 
-			<CyclePaymentDialog open={isPaymentDialogOpen} onOpenChange={setIsPaymentDialogOpen} cycle={activeCycle} />
+			<CyclePaymentDialog
+				open={isPaymentDialogOpen}
+				onOpenChange={setIsPaymentDialogOpen}
+				cycle={activeCycle}
+				defaultTab="payment"
+				hideTabSwitch
+			/>
+			<CyclePaymentDialog
+				open={isConvertDialogOpen}
+				onOpenChange={setIsConvertDialogOpen}
+				cycle={activeCycle}
+				defaultTab="loan"
+				hideTabSwitch
+			/>
 
 			<div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
 				{summaryCards.map((card) => (
 					<SummaryStatCard key={card.label} {...card} />
 				))}
 			</div>
+
+			{activeCycle && (
+				<div className="space-y-2 rounded-lg border bg-white p-4">
+					<Text className="text-sm font-semibold">Payment History</Text>
+					<SmartDataTable
+						className="max-h-[260px]"
+						maxBodyHeight="260px"
+						data={payments}
+						columns={PAYMENT_COLUMNS}
+					/>
+					{isLoadingPayments && <Text className="text-xs text-slate-500">Loading payments...</Text>}
+				</div>
+			)}
 
 			<SmartDataTable
 				className="flex-1 min-h-0"

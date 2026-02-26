@@ -155,3 +155,24 @@
   --layout-header-height: 64px;
   --layout-multi-tabs-height: 48px;
 }
+
+@media print {
+  body .invoice-export-preview-page * {
+    visibility: hidden;
+  }
+
+  body .invoice-export-preview-page .invoice-export-preview-template,
+  body .invoice-export-preview-page .invoice-export-preview-template * {
+    visibility: visible;
+  }
+
+  body .invoice-export-preview-page .invoice-export-preview-template {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    max-width: none !important;
+    margin: 0;
+    padding: 0;
+  }
+}

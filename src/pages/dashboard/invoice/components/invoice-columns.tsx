@@ -1,5 +1,4 @@
 import type { ColumnDef } from "@tanstack/react-table";
-import { Icon } from "@/core/components/icon";
 import type { Invoice } from "@/core/types/invoice";
 import { Badge } from "@/core/ui/badge";
 import { Button } from "@/core/ui/button";
@@ -82,7 +81,7 @@ export function getInvoiceColumns({
 					className="h-7 px-2 text-xs print:hidden"
 					onClick={() => onEditOne(row.original)}
 				>
-					<Icon icon="mdi:pencil" />
+					Edit
 				</Button>
 			),
 		},

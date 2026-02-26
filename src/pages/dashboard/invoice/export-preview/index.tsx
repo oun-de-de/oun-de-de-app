@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLocation } from "react-router";
 import { toast } from "sonner";
 import invoiceService from "@/core/api/services/invoice-service";
@@ -51,6 +51,7 @@ export default function InvoiceExportPreviewPage() {
 	const [templateMode, setTemplateMode] = useState<TemplateMode>("standard");
 	const [paperSizeMode, setPaperSizeMode] = useState<PaperSizeMode>("a4");
 	const [sortMode, setSortMode] = useState<SortMode>("default");
+	const [hasAutoPrinted, setHasAutoPrinted] = useState(false);
 	const [columnVisibility, setColumnVisibility] = useState<Record<string, boolean>>(() =>
 		Object.fromEntries(columns.map((column) => [column.id, true])),
 	);
@@ -104,29 +105,45 @@ export default function InvoiceExportPreviewPage() {
 		}
 	};
 
-	return (
-		<div className="flex h-full flex-col gap-4 p-2">
-			<div className="flex flex-col">
-				<ExportPreviewToolbar
-					showSections={showSections}
-					onShowSectionsChange={setShowSections}
-					templateMode={templateMode}
-					onTemplateModeChange={setTemplateMode}
-					paperSizeMode={paperSizeMode}
-					onPaperSizeModeChange={setPaperSizeMode}
-					sortMode={sortMode}
-					onSortModeChange={setSortMode}
-					columns={columns}
-					columnVisibility={columnVisibility}
-					onColumnVisibilityChange={(columnId, checked) =>
-						setColumnVisibility((prev) => ({ ...prev, [columnId]: checked }))
-					}
-					onExport={handleConfirmExport}
-					isExporting={isExporting}
-					isExportDisabled={selectedInvoiceIds.length === 0 || isExporting || exportQuery.isLoading}
-				/>
+	const handlePrint = () => {
+		window.print();
+	};
 
-				<div className={cn("w-full", tableWrapperClassName)}>
+	useEffect(() => {
+		if (hasAutoPrinted || !state?.autoPrint) return;
+		if (exportQuery.isLoading || previewRows.length === 0) return;
+		setHasAutoPrinted(true);
+		requestAnimationFrame(() => {
+			window.print();
+		});
+	}, [hasAutoPrinted, state?.autoPrint, exportQuery.isLoading, previewRows.length]);
+
+	return (
+		<div className="invoice-export-preview-page flex h-full flex-col gap-4 p-2 print:p-0">
+			<div className="flex flex-col">
+				<div className="print:hidden">
+					<ExportPreviewToolbar
+						showSections={showSections}
+						onShowSectionsChange={setShowSections}
+						templateMode={templateMode}
+						onTemplateModeChange={setTemplateMode}
+						paperSizeMode={paperSizeMode}
+						onPaperSizeModeChange={setPaperSizeMode}
+						sortMode={sortMode}
+						onSortModeChange={setSortMode}
+						columns={columns}
+						columnVisibility={columnVisibility}
+						onColumnVisibilityChange={(columnId, checked) =>
+							setColumnVisibility((prev) => ({ ...prev, [columnId]: checked }))
+						}
+						onExport={handleConfirmExport}
+						onPrint={handlePrint}
+						isExporting={isExporting}
+						isExportDisabled={selectedInvoiceIds.length === 0 || isExporting || exportQuery.isLoading}
+					/>
+				</div>
+
+				<div className={cn("invoice-export-preview-template w-full", tableWrapperClassName)}>
 					<ReportTemplateTable
 						className={tableClassName}
 						showSections={showSections}

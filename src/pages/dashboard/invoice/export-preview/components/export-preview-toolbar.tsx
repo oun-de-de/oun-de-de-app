@@ -34,6 +34,7 @@ type ExportPreviewToolbarProps = {
 	columnVisibility: Record<string, boolean>;
 	onColumnVisibilityChange: (columnId: string, checked: boolean) => void;
 	onExport: () => void;
+	onPrint: () => void;
 	isExporting: boolean;
 	isExportDisabled: boolean;
 };
@@ -51,6 +52,7 @@ export function ExportPreviewToolbar({
 	columnVisibility,
 	onColumnVisibilityChange,
 	onExport,
+	onPrint,
 	isExporting,
 	isExportDisabled,
 }: ExportPreviewToolbarProps) {
@@ -184,7 +186,7 @@ export function ExportPreviewToolbar({
 						<Icon icon="mdi:file-excel-outline" size="1.2em" />
 						<span className="text-xs font-medium">{isExporting ? "Exporting..." : "Export Excel"}</span>
 					</Button>
-					<Button variant="ghost" size="sm" className={toolbarButtonClassName}>
+					<Button variant="ghost" size="sm" className={toolbarButtonClassName} onClick={onPrint}>
 						<Icon icon="mdi:printer-outline" size="1.2em" />
 						<span className="text-xs font-medium">Print</span>
 					</Button>
