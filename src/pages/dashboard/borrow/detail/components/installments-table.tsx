@@ -1,12 +1,11 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { useMemo, useState } from "react";
 import { SmartDataTable } from "@/core/components/common";
-import Icon from "@/core/components/icon/icon";
 import type { Installment } from "@/core/types/loan";
-import { Badge } from "@/core/ui/badge";
 import { Button } from "@/core/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/core/ui/dialog";
 import { Text } from "@/core/ui/typography";
+import { getInstallmentsColumns } from "./installments-columns";
 
 type InstallmentsTableProps = {
 	installments: Installment[];
@@ -14,73 +13,15 @@ type InstallmentsTableProps = {
 	isPayPending?: boolean;
 };
 
-function isPayableStatus(status: Installment["status"]) {
-	const normalizedStatus = status.toLowerCase();
-	return normalizedStatus === "unpaid" || normalizedStatus === "overdue";
-}
-
 export function InstallmentsTable({ installments, onPay, isPayPending }: InstallmentsTableProps) {
 	const [selectedInstallment, setSelectedInstallment] = useState<Installment | null>(null);
 
 	const columns = useMemo<ColumnDef<Installment>[]>(
-		() => [
-			{
-				accessorKey: "monthIndex",
-				size: 80,
-				header: "Inst. No.",
-				cell: ({ row }) => <span className="font-mono">{row.original.monthIndex}</span>,
-				meta: { bodyClassName: "text-center" },
-			},
-			{
-				accessorKey: "dueDate",
-				header: "Due Date",
-				cell: ({ row }) => new Date(row.original.dueDate).toLocaleDateString(),
-			},
-			{
-				accessorKey: "amount",
-				header: "Amount",
-				cell: ({ row }) => row.original.amount.toLocaleString(),
-				meta: { bodyClassName: "text-right" },
-			},
-			{
-				accessorKey: "status",
-				header: "Status",
-				size: 100,
-				cell: ({ row }) => {
-					const normalizedStatus = row.original.status.toLowerCase();
-					return (
-						<Badge variant={normalizedStatus === "paid" ? "success" : "destructive"}>
-							{normalizedStatus.toUpperCase()}
-						</Badge>
-					);
-				},
-				meta: { bodyClassName: "text-center" },
-			},
-			{
-				accessorKey: "paidAt",
-				header: "Paid At",
-				cell: ({ row }) => (row.original.paidAt ? new Date(row.original.paidAt).toLocaleDateString() : "-"),
-			},
-			{
-				id: "action",
-				header: "Action",
-				cell: ({ row }) => {
-					if (!isPayableStatus(row.original.status)) return null;
-					return (
-						<Button
-							variant="outline"
-							size="sm"
-							onClick={() => setSelectedInstallment(row.original)}
-							disabled={isPayPending}
-						>
-							<Icon icon="mdi:cash" className="mr-1" />
-							{isPayPending ? "..." : "Pay"}
-						</Button>
-					);
-				},
-				meta: { bodyClassName: "text-center" },
-			},
-		],
+		() =>
+			getInstallmentsColumns({
+				isPayPending,
+				onSelectInstallment: setSelectedInstallment,
+			}),
 		[isPayPending],
 	);
 
