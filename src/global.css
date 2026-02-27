@@ -169,19 +169,20 @@
     background: #fff !important;
   }
 
-  body > * {
-    display: none !important;
+  body * {
+    visibility: hidden !important;
   }
 
-  body > #root {
-    display: block !important;
-  }
-
-  body > #root > * {
-    display: none !important;
+  .invoice-export-preview-page,
+  .invoice-export-preview-page *,
+  .report-print-page,
+  .report-print-page * {
+    visibility: visible !important;
   }
 
   .invoice-export-preview-page {
+    position: absolute !important;
+    inset: 0 !important;
     display: block !important;
     height: auto !important;
     min-height: 0 !important;
@@ -238,5 +239,33 @@
 
   .invoice-export-preview-page .invoice-print-sheet .invoice-print-header {
     margin-bottom: 4px !important;
+  }
+
+  .report-print-page {
+    position: absolute !important;
+    inset: 0 !important;
+    display: block !important;
+    height: auto !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .report-print-page .report-print-target {
+    display: block !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    background: #fff !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  .report-print-page .report-print-target table {
+    width: 100% !important;
+    table-layout: auto !important;
   }
 }

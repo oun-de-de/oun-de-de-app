@@ -33,6 +33,7 @@ interface ReportToolbarProps {
 	onShowSectionsChange?: (sections: ReportSectionVisibility) => void;
 	showColumns?: ReportColumnVisibility;
 	onShowColumnsChange?: (columns: ReportColumnVisibility) => void;
+	onPrint?: () => void;
 }
 
 export function ReportToolbar({
@@ -43,6 +44,7 @@ export function ReportToolbar({
 	onShowSectionsChange,
 	showColumns,
 	onShowColumnsChange,
+	onPrint,
 }: ReportToolbarProps) {
 	return (
 		<div
@@ -177,7 +179,7 @@ export function ReportToolbar({
 					<>
 						<ToolbarButton icon="mdi:cog-outline" label="Customize" />
 						<ToolbarButton icon="mdi:file-excel-outline" label="Export Excel" />
-						<ToolbarButton icon="mdi:printer-outline" label="Print" />
+						<ToolbarButton icon="mdi:printer-outline" label="Print" onClick={onPrint} />
 						<ToolbarButton icon="mdi:content-copy" label="Copy" />
 					</>
 				)}

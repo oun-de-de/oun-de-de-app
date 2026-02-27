@@ -99,7 +99,9 @@ export function ReportTemplateTable({
 				(headerContent || (
 					<div className="flex flex-col items-center gap-1 text-center print:gap-0.5">
 						<div className="text-lg font-bold text-slate-700 print:text-[22px] print:tracking-[0.02em]">{title}</div>
-						{subtitle && <div className="text-base font-semibold text-slate-600 print:text-[16px]">{subtitle}</div>}
+						{subtitle && (
+							<div className="pb-2 text-base font-semibold text-slate-600 print:pb-4 print:text-[16px]">{subtitle}</div>
+						)}
 					</div>
 				))}
 
