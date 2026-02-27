@@ -1,32 +1,52 @@
 import type { ColumnDef } from "@tanstack/react-table";
+import type { BorrowerType } from "@/core/types/loan";
 import { Badge } from "@/core/ui/badge";
-import { getStatusVariant } from "@/core/utils/get-status-variant";
 
 export type BorrowRow = {
 	id: string;
-	refNo: string;
-	borrower: string;
-	date: string;
-	status: "Active" | "Returned" | "Overdue";
-	itemCount: number;
+	borrowerType: BorrowerType;
+	borrowerId: string;
+	principalAmount: number;
+	termMonths: number;
+	monthlyPayment: number;
+	startDate: string;
 };
 
 export const borrowColumns: ColumnDef<BorrowRow>[] = [
-	{ accessorKey: "refNo", header: "Ref No" },
-	{ accessorKey: "borrower", header: "Borrower" },
-	{ accessorKey: "date", header: "Date" },
-	{ accessorKey: "itemCount", header: "Items" },
+	{ accessorKey: "borrowerId", header: "Borrower ID" },
 	{
-		accessorKey: "status",
-		header: "Status",
-		cell: ({ getValue }) => {
-			const status = getValue() as string;
-			const variant = getStatusVariant(status);
-			return (
-				<Badge variant={variant} shape="square">
-					{status}
-				</Badge>
-			);
+		accessorKey: "borrowerType",
+		size: 100,
+		header: "Type",
+		cell: ({ row }) => (
+			<Badge
+				variant={row.original.borrowerType === "employee" ? "info" : "success"}
+				shape="square"
+				className="capitalize"
+			>
+				{row.original.borrowerType}
+			</Badge>
+		),
+		meta: {
+			bodyClassName: "text-center",
 		},
+	},
+	{ accessorKey: "startDate", header: "Start Date" },
+	{
+		accessorKey: "principalAmount",
+		header: "Principal",
+		cell: ({ row }) => row.original.principalAmount.toLocaleString(),
+		meta: { bodyClassName: "text-right" },
+	},
+	{
+		accessorKey: "termMonths",
+		header: "Term (Months)",
+		meta: { bodyClassName: "text-right" },
+	},
+	{
+		accessorKey: "monthlyPayment",
+		header: "Monthly Pay",
+		cell: ({ row }) => row.original.monthlyPayment.toLocaleString(),
+		meta: { bodyClassName: "text-right" },
 	},
 ];

@@ -2,9 +2,14 @@ import type { Vehicle } from "./vehicle";
 
 export interface WeightRecord {
 	id?: string;
-	price: number;
-	weight: number;
+	productName: string | null;
+	unit: string | null;
+	pricePerProduct: number | null;
+	quantityPerProduct: number | null;
+	quantity: number | null;
+	weight: number | null;
 	outTime: string;
+	memo: string | null;
 	manual: boolean;
 }
 
@@ -23,13 +28,34 @@ export interface Coupon {
 	vehicle: Vehicle;
 	employee: CouponEmployee;
 	weightRecords: WeightRecord[];
+	couponNo: number | null;
+	couponId: number | null;
+	accNo: string | null;
+	delAccNo: string | null;
+	delDate: string | null;
 }
 
 export interface CreateCouponRequest {
-	date: string;
 	vehicleId: string;
-	driverName: string;
+	driverName?: string;
 	employeeId: string;
-	remark: string;
-	weightRecords: WeightRecord[];
+	remark?: string;
+	weightRecords: CreateWeightRecordRequest[];
+	couponNo?: number;
+	couponId?: number;
+	accNo?: string;
+	delAccNo?: string;
+	delDate?: string;
+}
+
+export interface CreateWeightRecordRequest {
+	productName?: string | null;
+	unit?: string | null;
+	pricePerProduct?: number | null;
+	quantityPerProduct?: number | null;
+	quantity?: number | null;
+	weight?: number | null;
+	outTime?: string;
+	memo?: string | null;
+	manual?: boolean;
 }

@@ -1,15 +1,31 @@
-import { createListStore, type ListState } from "@/core/store/createListStore";
+import { create } from "zustand";
+import { devtools } from "zustand/middleware";
+import { type CouponState, CouponInitialState } from "./coupon-state";
 
-const createInitialState = (): ListState => ({
-	typeFilter: "all",
-	fieldFilter: "all",
-	searchValue: "",
-	page: 1,
-	pageSize: 10,
-});
+type CouponStore = {
+	state: CouponState;
+	actions: {
+		updateState: (payload: Partial<CouponState>) => void;
+		resetState: () => void;
+	};
+};
 
-const useCouponsListStore = createListStore(createInitialState());
+const useCouponsListStore = create<CouponStore>()(
+	devtools(
+		(set) => ({
+			state: CouponInitialState(),
+			actions: {
+				updateState: (payload: Partial<CouponState>) =>
+					set((s) => ({
+						state: { ...s.state, ...payload },
+					})),
+				resetState: () => set({ state: CouponInitialState() }),
+			},
+		}),
+		{ name: "CouponsListStore" },
+	),
+);
 
 export const useCouponsList = () => useCouponsListStore((store) => store.state);
-
 export const useCouponsListActions = () => useCouponsListStore((store) => store.actions);
+export default useCouponsListStore;

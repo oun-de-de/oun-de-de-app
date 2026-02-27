@@ -1,5 +1,5 @@
 import { cva, type VariantProps } from "class-variance-authority";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 import Icon from "@/core/components/icon/icon";
 import { useDebounce } from "@/core/hooks/use-debounce";
@@ -40,6 +40,7 @@ interface FilterBarProps extends VariantProps<typeof filterBarVariants> {
 	onFieldChange?: (value: string) => void;
 	onSearchChange?: (value: string) => void;
 	onFilterClick?: () => void;
+	optionsByField?: Record<string, SelectOption[]>;
 }
 
 export function TableFilterBar({
@@ -57,23 +58,48 @@ export function TableFilterBar({
 	onFieldChange,
 	onSearchChange,
 	onFilterClick,
+	optionsByField,
 }: FilterBarProps) {
 	const [localSearch, setLocalSearch] = useState(searchValue || "");
 	const debouncedSearch = useDebounce(localSearch, 300);
 	const isUpdatingFromProp = useRef(false);
-	const prevSearchValue = useRef(searchValue);
+
+	const clearSearch = useCallback(() => {
+		if (localSearch === "" && (searchValue || "") === "") {
+			return;
+		}
+		isUpdatingFromProp.current = true;
+		setLocalSearch("");
+		if ((searchValue || "") !== "") {
+			onSearchChange?.("");
+		}
+	}, [localSearch, onSearchChange, searchValue]);
+
+	const handleOnTypeChange = useCallback(
+		(value: string) => {
+			if (value === typeValue) return;
+			onTypeChange?.(value);
+			if (value === "all") {
+				clearSearch();
+			}
+		},
+		[clearSearch, onTypeChange, typeValue],
+	);
+
+	const handleOnFieldChange = useCallback(
+		(value: string) => {
+			if (value === fieldValue) return;
+			onFieldChange?.(value);
+			clearSearch();
+		},
+		[clearSearch, fieldValue, onFieldChange],
+	);
 
 	// sync local state with prop when prop changes
 	useEffect(() => {
-		if (searchValue !== prevSearchValue.current) {
-			prevSearchValue.current = searchValue;
-
-			if (searchValue !== localSearch) {
-				isUpdatingFromProp.current = true;
-				setLocalSearch(searchValue || "");
-			}
-		}
-	}, [searchValue, localSearch]);
+		isUpdatingFromProp.current = true;
+		setLocalSearch(searchValue || "");
+	}, [searchValue]);
 
 	// trigger callback only when debounced value changes from user input
 	useEffect(() => {
@@ -100,7 +126,7 @@ export function TableFilterBar({
 				<Icon icon="mdi:filter-variant" />
 			</Button>
 
-			<Select value={typeValue ?? ""} onValueChange={onTypeChange}>
+			<Select value={typeValue ?? ""} onValueChange={handleOnTypeChange}>
 				<SelectTrigger className="w-[160px]">
 					<SelectValue placeholder={typePlaceholder} />
 				</SelectTrigger>
@@ -113,7 +139,7 @@ export function TableFilterBar({
 				</SelectContent>
 			</Select>
 
-			<Select value={fieldValue ?? ""} onValueChange={onFieldChange}>
+			<Select value={fieldValue ?? ""} onValueChange={handleOnFieldChange}>
 				<SelectTrigger className="w-[160px]">
 					<SelectValue placeholder={fieldPlaceholder} />
 				</SelectTrigger>
@@ -127,15 +153,32 @@ export function TableFilterBar({
 			</Select>
 
 			<SearchWrapper>
-				<Input
-					placeholder={searchPlaceholder}
-					className="pl-9"
-					value={localSearch}
-					onChange={(event) => setLocalSearch(event.target.value)}
-				/>
-				<SearchIconWrapper>
-					<Icon icon="mdi:magnify" />
-				</SearchIconWrapper>
+				{fieldValue && optionsByField?.[fieldValue] ? (
+					<Select value={localSearch} onValueChange={(value) => setLocalSearch(value)}>
+						<SelectTrigger className="w-full">
+							<SelectValue placeholder={searchPlaceholder} />
+						</SelectTrigger>
+						<SelectContent>
+							{optionsByField[fieldValue].map((option) => (
+								<SelectItem key={option.value} value={option.value}>
+									{option.label}
+								</SelectItem>
+							))}
+						</SelectContent>
+					</Select>
+				) : (
+					<>
+						<Input
+							placeholder={searchPlaceholder}
+							className="pl-9"
+							value={localSearch}
+							onChange={(event) => setLocalSearch(event.target.value)}
+						/>
+						<SearchIconWrapper>
+							<Icon icon="mdi:magnify" />
+						</SearchIconWrapper>
+					</>
+				)}
 			</SearchWrapper>
 		</FilterContainer>
 	);

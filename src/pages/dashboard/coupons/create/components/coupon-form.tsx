@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import type { ReactNode } from "react";
 import { DefaultForm, type DefaultFormData, type FormFieldConfig } from "@/core/components/common";
 import { COUPON_FIELDS } from "../constants/coupon-fields";
 
@@ -10,6 +11,7 @@ type CouponFormProps = {
 	showTitle?: boolean;
 	employeeOptions?: { label: string; value: string }[];
 	vehicleOptions?: { label: string; value: string }[];
+	weightRecordsComponent?: ReactNode;
 };
 
 export function CouponForm({
@@ -20,6 +22,7 @@ export function CouponForm({
 	showTitle = true,
 	employeeOptions = [],
 	vehicleOptions = [],
+	weightRecordsComponent,
 }: CouponFormProps) {
 	const title = mode === "create" ? "Add Coupon" : "Edit Coupon";
 
@@ -31,9 +34,12 @@ export function CouponForm({
 			if (field.name === "vehicleId") {
 				return { ...field, options: vehicleOptions };
 			}
+			if (field.name === "weightRecordsBuilder") {
+				return { ...field, component: weightRecordsComponent };
+			}
 			return field;
 		});
-	}, [employeeOptions, vehicleOptions]);
+	}, [employeeOptions, vehicleOptions, weightRecordsComponent]);
 
 	return (
 		<DefaultForm

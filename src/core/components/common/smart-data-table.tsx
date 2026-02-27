@@ -43,6 +43,8 @@ export type SmartTableFilterConfig = {
 	onSearchChange?: (value: string) => void;
 	/** Callback when filter button is clicked (usually for mobile/extra filters) */
 	onFilterClick?: () => void;
+	/** Options for specific search fields to render a Select instead of Input */
+	optionsByField?: Record<string, { value: string; label: string }[]>;
 };
 
 /**
@@ -272,6 +274,7 @@ export function SmartDataTable<T extends object>({
 					onFieldChange={filterConfig.onFieldChange}
 					onSearchChange={filterConfig.onSearchChange}
 					onFilterClick={filterConfig.onFilterClick}
+					optionsByField={filterConfig.optionsByField}
 				/>
 			)}
 

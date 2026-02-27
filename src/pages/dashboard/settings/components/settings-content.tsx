@@ -2,7 +2,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { settingsRows } from "@/_mock/data/dashboard";
 import { SmartDataTable } from "@/core/components/common";
-import Icon from "@/core/components/icon/icon";
+import type { SettingsRow } from "@/core/types/common";
 import type { UnitType } from "@/core/types/setting";
 import { Button } from "@/core/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/core/ui/dialog";
@@ -12,7 +12,6 @@ import { useCreateUnit, useCreateWarehouse, useGetUnitList, useGetWarehouseList 
 import { useFormState, useSettingsSidebarActions } from "../stores";
 import { getColumnsForItem } from "./settings-columns";
 import { SettingsForm } from "./settings-form/settings-form";
-import type { SettingsRow } from "@/core/types/common";
 
 type SettingsContentProps = {
 	activeItem: string;
@@ -82,7 +81,6 @@ export function SettingsContent({ activeItem }: SettingsContentProps) {
 				</Text>
 				<div className="flex items-center gap-2">
 					<Button size="sm" className="gap-1" onClick={openCreateForm} disabled={isSaving}>
-						<Icon icon="mdi:plus" />
 						New
 					</Button>
 					<Input

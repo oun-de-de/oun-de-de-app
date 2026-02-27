@@ -20,7 +20,7 @@ function ReportsView() {
 
 	const favoriteItems = nonFavoriteSections
 		.flatMap((section) => section.items)
-		.filter((item) => favorites.includes(item.label));
+		.filter((item) => favorites.includes(item.slug) || favorites.includes(item.label));
 
 	const favoriteSection = {
 		title: "Favorite",

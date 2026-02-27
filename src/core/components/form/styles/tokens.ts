@@ -1,5 +1,5 @@
 export const formTokens = {
-	field: "grid gap-1.5",
+	field: "grid content-start gap-1.5",
 	label: "text-sm font-medium text-foreground",
 	helper: "text-xs text-muted-foreground",
 	error: "text-xs text-destructive",

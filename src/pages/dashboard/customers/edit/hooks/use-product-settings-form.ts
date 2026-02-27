@@ -9,18 +9,21 @@ import { useCreateProductSetting, useGetProductSettings } from "../../hooks/use-
 export interface ProductSettingItem extends CreateProductSettings {
 	productName: string;
 	productRef: string;
+	unitLabel: string;
 }
 
+const getUnitLabel = (product: Product): string => product.unit?.name ?? "-";
+
 const mapToSettingItem = (
-	setting: { productId: string; price: number; unit: string; quantity: number },
+	setting: { productId: string; price: number; quantity: number },
 	product: Product,
 ): ProductSettingItem => ({
 	productId: setting.productId,
 	price: setting.price,
-	unit: setting.unit,
 	quantity: setting.quantity,
 	productName: product.name,
 	productRef: product.refNo,
+	unitLabel: getUnitLabel(product),
 });
 
 export const useProductSettingsForm = (customerId?: string) => {
@@ -36,6 +39,7 @@ export const useProductSettingsForm = (customerId?: string) => {
 	const [isInitialized, setIsInitialized] = useState(false);
 	const [isSaving, setIsSaving] = useState(false);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
 	useEffect(() => {
 		setIsInitialized(false);
 		setSettings([]);
@@ -67,10 +71,10 @@ export const useProductSettingsForm = (customerId?: string) => {
 			{
 				productId: product.id,
 				price: product.price,
-				unit: product.unit.name,
 				quantity: 0,
 				productName: product.name,
 				productRef: product.refNo,
+				unitLabel: getUnitLabel(product),
 			},
 		]);
 	};
@@ -85,17 +89,13 @@ export const useProductSettingsForm = (customerId?: string) => {
 		setSettings((prev) => prev.filter((item) => item.productId !== productId));
 	};
 
-	const handleChange = (productId: string, field: "price" | "unit" | "quantity", value: string) => {
+	const handleChange = (productId: string, field: "price" | "quantity", value: string) => {
 		if (existingProductIds.has(productId)) {
 			return;
 		}
 		setSettings((prev) =>
 			prev.map((item) => {
 				if (item.productId !== productId) return item;
-
-				if (field === "unit") {
-					return { ...item, unit: value };
-				}
 
 				const numValue = Number(value);
 				return { ...item, [field]: Number.isNaN(numValue) ? 0 : numValue };
@@ -117,7 +117,7 @@ export const useProductSettingsForm = (customerId?: string) => {
 				return;
 			}
 			await Promise.all(
-				newSettings.map(({ productId, price, unit, quantity }) => createSetting({ productId, price, unit, quantity })),
+				newSettings.map(({ productId, price, quantity }) => createSetting({ productId, price, quantity })),
 			);
 			toast.success("Product settings saved successfully");
 		} catch {

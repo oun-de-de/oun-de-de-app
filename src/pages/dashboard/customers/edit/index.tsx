@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
-import type { CreateVehicle, Vehicle } from "@/core/types/vehicle";
+import type { CreateVehicle } from "@/core/types/vehicle";
 import { Separator } from "@/core/ui/separator";
 import { Text } from "@/core/ui/typography";
 import type { CustomerFormData } from "../create/components/customer-form";
@@ -40,8 +40,8 @@ export default function CustomerEditPage() {
 		await updateCustomerInfo(customerPayload);
 
 		const newVehicles: CreateVehicle[] = Array.isArray(formData.vehicles)
-			? (formData.vehicles as Vehicle[])
-					.filter((vehicle) => !vehicle.id && vehicle.vehicleType && vehicle.licensePlate)
+			? formData.vehicles
+					.filter((vehicle) => !("id" in vehicle) && vehicle.vehicleType && vehicle.licensePlate)
 					.map((vehicle) => ({
 						vehicleType: vehicle.vehicleType,
 						licensePlate: vehicle.licensePlate,
@@ -94,7 +94,7 @@ export default function CustomerEditPage() {
 			<Separator className="my-2" />
 
 			{/* Warehouse Settings */}
-			<WarehouseSettingsForm customerId={id} currentWarehouseId={customer.warehouse} />
+			<WarehouseSettingsForm customerId={id} currentWarehouseId={customer.warehouseId} />
 		</div>
 	);
 }

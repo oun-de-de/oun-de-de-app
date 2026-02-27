@@ -155,3 +155,117 @@
   --layout-header-height: 64px;
   --layout-multi-tabs-height: 48px;
 }
+
+@media print {
+  @page {
+    size: A4;
+    margin: 12mm;
+  }
+
+  html,
+  body {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #fff !important;
+  }
+
+  body * {
+    visibility: hidden !important;
+  }
+
+  .invoice-export-preview-page,
+  .invoice-export-preview-page *,
+  .report-print-page,
+  .report-print-page * {
+    visibility: visible !important;
+  }
+
+  .invoice-export-preview-page {
+    position: absolute !important;
+    inset: 0 !important;
+    display: block !important;
+    height: auto !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .invoice-export-preview-page .invoice-export-preview-template {
+    display: block !important;
+    max-width: none !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .invoice-export-preview-page .invoice-export-print-target {
+    display: block !important;
+    position: static !important;
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    transform: none !important;
+    background: #fff !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  .invoice-export-preview-page .invoice-export-print-target table {
+    width: 100% !important;
+    table-layout: auto !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  .invoice-export-preview-page .invoice-print-sheet {
+    font-size: 10px !important;
+    line-height: 1.2 !important;
+    color: #111827 !important;
+  }
+
+  .invoice-export-preview-page .invoice-print-sheet table {
+    font-size: 10px !important;
+  }
+
+  .invoice-export-preview-page .invoice-print-sheet th,
+  .invoice-export-preview-page .invoice-print-sheet td {
+    border-color: #9ca3af !important;
+    padding: 4px 6px !important;
+  }
+
+  .invoice-export-preview-page .invoice-print-sheet .invoice-print-header {
+    margin-bottom: 4px !important;
+  }
+
+  .report-print-page {
+    position: absolute !important;
+    inset: 0 !important;
+    display: block !important;
+    height: auto !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .report-print-page .report-print-target {
+    display: block !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    background: #fff !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  .report-print-page .report-print-target table {
+    width: 100% !important;
+    table-layout: auto !important;
+  }
+}

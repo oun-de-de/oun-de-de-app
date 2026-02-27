@@ -1,7 +1,7 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { Trash2 } from "lucide-react";
 import { Button } from "@/core/ui/button";
-import type { CartItem } from "@/pages/dashboard/borrow/stores/borrowCartStore";
+import type { CartItem } from "@/pages/dashboard/borrow/stores/borrow-cart-store";
 
 export const getBorrowPaymentColumns = (onRemove: (id: string) => void): ColumnDef<CartItem>[] => [
 	{

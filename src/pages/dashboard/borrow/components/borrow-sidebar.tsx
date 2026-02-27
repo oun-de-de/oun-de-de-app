@@ -1,67 +1,109 @@
-import { useState } from "react";
+import { useMemo } from "react";
 import { EntityListItem, SidebarList } from "@/core/components/common";
 import { up, useMediaQuery } from "@/core/hooks/use-media-query";
 import { useSidebarPagination } from "@/core/hooks/use-sidebar-pagination";
 import type { SelectOption } from "@/core/types/common";
+import { cn } from "@/core/utils";
+import { useLoans } from "../hooks/use-loans";
+import type { BorrowState } from "../stores/borrow-state";
 
 type Props = {
 	activeBorrowId: string | null;
+	listState: BorrowState;
+	updateState: (updates: Partial<Omit<BorrowState, "type">>) => void;
 	onSelect: (id: string | null) => void;
 	onToggle?: () => void;
 	isCollapsed?: boolean;
 };
 
 const STATUS_OPTIONS: SelectOption[] = [
-	{ value: "active", label: "Active" },
-	{ value: "returned", label: "Returned" },
-	{ value: "overdue", label: "Overdue" },
+	{ value: "all", label: "All" },
+	{ value: "employee", label: "Employee" },
+	{ value: "customer", label: "Customer" },
 ];
+const DEFAULT_ITEM_SIZE = 56;
+const COLLAPSED_ITEM_SIZE = 42;
+const COLLAPSED_ITEM_GAP = 8;
 
-const TYPE_OPTIONS: SelectOption[] = [
-	{ value: "all", label: "All Borrowings" },
-	{ value: "my", label: "My Borrowings" },
-];
+type BorrowSidebarItem = {
+	id: string;
+	name: string;
+	code: string;
+};
 
-// Mock Data for the list
-const MOCK_LIST = [
-	{ id: "1", name: "John Doe", code: "BR-2025-001", status: "Active" },
-	{ id: "2", name: "Jane Smith", code: "BR-2025-002", status: "Active" },
-	{ id: "3", name: "Alice Johnson", code: "BR-2025-003", status: "Returned" },
-];
+const normalizeText = (value: string) => value.trim().toLowerCase();
 
-export function BorrowSidebar({ activeBorrowId, onSelect, onToggle, isCollapsed }: Props) {
-	const [searchValue, setSearchValue] = useState("");
-	const [statusFilter, setStatusFilter] = useState("active");
-	const [typeFilter, setTypeFilter] = useState("all");
+const matchType = (item: BorrowSidebarItem, typeFilter: BorrowState["typeFilter"], typeMap: Map<string, string>) =>
+	typeFilter === "all" || typeMap.get(item.id) === typeFilter;
+
+const matchSearch = (item: BorrowSidebarItem, normalizedQuery: string) =>
+	normalizedQuery === "" ||
+	item.code.toLowerCase().includes(normalizedQuery) ||
+	item.name.toLowerCase().includes(normalizedQuery);
+
+const isBorrowTypeFilter = (value: string): value is BorrowState["typeFilter"] =>
+	value === "all" || value === "employee" || value === "customer";
+
+export function BorrowSidebar({ activeBorrowId, listState, updateState, onSelect, onToggle, isCollapsed }: Props) {
+	const { searchValue, typeFilter } = listState;
 	const isLgUp = useMediaQuery(up("lg"));
+	const normalizedQuery = normalizeText(searchValue);
+
+	const { data: loansResponse } = useLoans();
+	const loans = loansResponse?.content ?? [];
+
+	const sidebarItems = useMemo<BorrowSidebarItem[]>(
+		() =>
+			loans.map((loan) => ({
+				id: loan.id,
+				name: loan.borrowerId,
+				code: `${loan.borrowerType} | ${loan.principalAmount.toLocaleString()}`,
+			})),
+		[loans],
+	);
+
+	const typeMap = useMemo(() => {
+		const map = new Map<string, string>();
+		for (const loan of loans) {
+			map.set(loan.id, loan.borrowerType);
+		}
+		return map;
+	}, [loans]);
+
+	const filteredList = useMemo(
+		() => sidebarItems.filter((item) => matchType(item, typeFilter, typeMap) && matchSearch(item, normalizedQuery)),
+		[normalizedQuery, typeFilter, sidebarItems, typeMap],
+	);
 
 	const pagination = useSidebarPagination({
-		data: MOCK_LIST,
+		data: filteredList,
 		enabled: !isLgUp,
 	});
+
+	const handleStatusChange = (value: string) => {
+		if (!isBorrowTypeFilter(value)) return;
+		updateState({ typeFilter: value, page: 1 });
+	};
 
 	return (
 		<SidebarList>
 			<SidebarList.Header
-				mainTypeOptions={TYPE_OPTIONS}
-				mainTypeValue={typeFilter}
-				mainTypePlaceholder="Borrowing Type"
-				onMainTypeChange={setTypeFilter}
-				searchPlaceholder="Search ref or name..."
+				showMainTypeFilter={false}
+				searchPlaceholder="Search loans..."
 				searchValue={searchValue}
-				onSearchChange={setSearchValue}
+				onSearchChange={(value) => updateState({ searchValue: value, page: 1 })}
 				statusOptions={STATUS_OPTIONS}
-				statusValue={statusFilter}
-				onStatusChange={setStatusFilter}
+				statusValue={typeFilter}
+				onStatusChange={(value) => handleStatusChange(value)}
 				onMenuClick={onToggle}
 				isCollapsed={isCollapsed}
 			/>
 
 			<SidebarList.Body
-				className="flex-1 min-h-0"
+				className={cn("mt-2 flex-1 min-h-0", !isCollapsed && "divide-y divide-border-gray-300")}
 				data={pagination.pagedData}
-				estimateSize={40}
-				gap={8}
+				estimateSize={isCollapsed ? COLLAPSED_ITEM_SIZE : DEFAULT_ITEM_SIZE}
+				gap={isCollapsed ? COLLAPSED_ITEM_GAP : 0}
 				height="100%"
 				renderItem={(item, style) => (
 					<EntityListItem

@@ -9,7 +9,7 @@ const entityListItemVariants = cva(
 	{
 		variants: {
 			variant: {
-				default: "p-2 h-10",
+				default: "p-3 h-10",
 				compact: "p-1 text-sm",
 				bordered: "border-b border-gray-100 p-2 first:rounded-t last:border-0 last:rounded-b",
 			},
@@ -48,19 +48,14 @@ export const EntityListItem = memo(function EntityListItem({
 		return (
 			<div style={style} className="flex justify-center">
 				<Button
-					variant="ghost"
+					variant={isActive ? "info" : "outline"}
 					size="none"
 					onClick={() => onSelect(isActive ? null : entity.id)}
 					data-active={isActive}
-					className={cn(
-						entityListItemVariants({ variant, activeVariant }),
-						"justify-center px-0 rounded-lg !w-10 !h-10",
-					)}
+					className={cn("h-8 w-8 justify-center rounded px-0", className)}
 					title={entity.name}
 				>
-					<span className={cn("font-bold text-sm truncate", isActive ? "text-white" : "text-black")}>
-						{entity.id.slice(0, 3)}
-					</span>
+					<span className={cn("font-bold text-sm truncate")}>{entity.name.slice(0, 1)}</span>
 				</Button>
 			</div>
 		);
@@ -68,8 +63,7 @@ export const EntityListItem = memo(function EntityListItem({
 
 	return (
 		<Button
-			variant="ghost"
-			size="none"
+			variant="secondary"
 			onClick={() => onSelect(isActive ? null : entity.id)}
 			data-active={isActive}
 			className={cn(entityListItemVariants({ variant, activeVariant, className }))}

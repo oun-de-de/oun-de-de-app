@@ -1,16 +1,11 @@
 import { customerSummaryCards } from "@/_mock/data/dashboard";
 import type { Customer } from "@/core/types/customer";
 
-export const FILTER_TYPE_OPTIONS = [
-	{ value: "all", label: "All Status" },
-	{ value: "active", label: "Active" },
-	{ value: "inactive", label: "Inactive" },
-];
+export const FILTER_TYPE_OPTIONS = [{ value: "all", label: "All" }];
 
 export const FILTER_FIELD_OPTIONS = [
 	{ value: "all", label: "All Fields" },
 	{ value: "name", label: "Name" },
-	{ value: "code", label: "Code" },
 ];
 
 export const VEHICLE_TYPE_OPTIONS = [

@@ -1,4 +1,4 @@
-import type { CartItem } from "@/pages/dashboard/borrow/stores/borrowCartStore";
+import type { CartItem } from "@/pages/dashboard/borrow/stores/borrow-cart-store";
 
 interface BorrowPaymentSummaryProps {
 	cart: CartItem[];

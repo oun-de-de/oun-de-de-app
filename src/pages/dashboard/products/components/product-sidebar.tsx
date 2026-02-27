@@ -4,6 +4,7 @@ import { EntityListItem, SidebarList } from "@/core/components/common";
 import { up, useMediaQuery } from "@/core/hooks/use-media-query";
 import { useSidebarPagination } from "@/core/hooks/use-sidebar-pagination";
 import type { Product } from "@/core/types/product";
+import { cn } from "@/core/utils";
 import { normalizeToken } from "@/core/utils/dashboard-utils";
 
 type ProductSidebarProps = {
@@ -13,6 +14,10 @@ type ProductSidebarProps = {
 	isCollapsed?: boolean;
 	products: Product[];
 };
+
+const DEFAULT_ITEM_SIZE = 56;
+const COLLAPSED_ITEM_SIZE = 42;
+const COLLAPSED_ITEM_GAP = 8;
 
 export function ProductSidebar({ activeProductId, onSelect, onToggle, isCollapsed, products }: ProductSidebarProps) {
 	const [searchTerm, setSearchTerm] = useState("");
@@ -56,9 +61,11 @@ export function ProductSidebar({ activeProductId, onSelect, onToggle, isCollapse
 			/>
 
 			<SidebarList.Body
-				className="mt-4 divide-y divide-border-gray-300 flex-1 min-h-0"
+				key={isCollapsed ? "collapsed" : "expanded"}
+				className={cn("mt-2 flex-1 min-h-0", !isCollapsed && "divide-y divide-border-gray-300")}
 				data={sidebarData}
-				estimateSize={56}
+				estimateSize={isCollapsed ? COLLAPSED_ITEM_SIZE : DEFAULT_ITEM_SIZE}
+				gap={isCollapsed ? COLLAPSED_ITEM_GAP : 0}
 				height="100%"
 				renderItem={(item, style) => (
 					<EntityListItem

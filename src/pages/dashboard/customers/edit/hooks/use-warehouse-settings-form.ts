@@ -56,7 +56,7 @@ export const useWarehouseSettingsForm = (customerId?: string, currentWarehouseId
 		if (selectedWarehouse) {
 			try {
 				await updateCustomerWarehouse({
-					warehouse: selectedWarehouse.warehouseId,
+					warehouseId: selectedWarehouse.warehouseId,
 				});
 			} catch {
 				// error toast handled in hook

@@ -39,7 +39,11 @@ export const columns: ColumnDef<Customer>[] = [
 		size: 100,
 		cell: ({ row }) => {
 			const value = row.original.defaultPrice;
-			return <Badge variant={getDefaultPriceVariant(value)}>{getDefaultPriceLabel(value)}</Badge>;
+			return (
+				<Badge variant={getDefaultPriceVariant(value)} className="w-full">
+					{getDefaultPriceLabel(value)}
+				</Badge>
+			);
 		},
 		meta: { bodyClassName: "text-center" },
 	},
@@ -51,13 +55,17 @@ export const columns: ColumnDef<Customer>[] = [
 		cell: ({ row }) => {
 			const status = row.original.status ? "Active" : "Inactive";
 			const variant = getStatusVariant(status);
-			return <Badge variant={variant}>{status}</Badge>;
+			return (
+				<Badge variant={variant} className="w-full">
+					{status}
+				</Badge>
+			);
 		},
 	},
 	{
 		header: "Actions",
-		size: 80,
 		id: "actions",
-		cell: ({ row }) => <CustomerActions customerId={row.original.id} />,
+		size: 200,
+		cell: ({ row }) => <CustomerActions customerId={row.original.id} customerName={row.original.name} />,
 	},
 ];

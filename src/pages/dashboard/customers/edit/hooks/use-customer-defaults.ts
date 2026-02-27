@@ -8,8 +8,15 @@ export const useCustomerDefaults = (customer?: CustomerDetail, vehicles?: Vehicl
 		if (!customer) return undefined;
 
 		return {
-			...customer,
 			registerDate: customer.registerDate?.split("T")[0] || "",
+			code: customer.code,
+			name: customer.name,
+			status: customer.status,
+			defaultPrice: customer.defaultPrice,
+			warehouseId: customer.warehouseId,
+			memo: customer.memo,
+			profileUrl: customer.profileUrl,
+			shopBannerUrl: customer.shopBannerUrl,
 			telephone: customer.contact.telephone,
 			email: customer.contact.email,
 			geography: customer.contact.geography,
@@ -18,6 +25,8 @@ export const useCustomerDefaults = (customer?: CustomerDetail, vehicles?: Vehicl
 			map: customer.contact.map,
 			billingAddress: customer.contact.billingAddress,
 			deliveryAddress: customer.contact.deliveryAddress,
+			paymentTerm: customer.paymentTerm?.duration,
+			startDate: customer.paymentTerm?.startDate?.split("T")[0] || "",
 			employeeId: customer.employee.id,
 			referredById: customer.customerReference?.id,
 			vehicles:
@@ -25,6 +34,6 @@ export const useCustomerDefaults = (customer?: CustomerDetail, vehicles?: Vehicl
 					...v,
 					vehicleType: v.vehicleType.toLowerCase(),
 				})) || [],
-		} as unknown as CustomerFormData;
+		};
 	}, [customer, vehicles]);
 };

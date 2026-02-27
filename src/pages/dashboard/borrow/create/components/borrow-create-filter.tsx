@@ -1,36 +1,21 @@
 import { CheckSquare, PlusCircle, Search } from "lucide-react";
 import { Button } from "@/core/ui/button";
 import { Input } from "@/core/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/core/ui/select";
 
 import { FormRow } from "@/pages/dashboard/borrow/components/borrow-form-row";
 import { SectionHeader } from "@/pages/dashboard/borrow/components/borrow-section-header";
 
-// Rabbit Style Select Input
 export const SelectInput = ({ placeholder }: { placeholder: string }) => (
-	<div className="relative">
-		<select className="w-full h-9 rounded border border-gray-200 bg-white px-3 py-1 text-sm text-gray-700 focus:outline-none focus:border-blue-400 appearance-none">
-			<option value="" disabled selected>
-				{placeholder}
-			</option>
-			<option>Option 1</option>
-			<option>Option 2</option>
-		</select>
-		<div className="absolute right-3 top-2.5 pointer-events-none">
-			<svg
-				aria-hidden="true"
-				className="h-4 w-4 text-gray-400"
-				xmlns="http://www.w3.org/2000/svg"
-				viewBox="0 0 20 20"
-				fill="currentColor"
-			>
-				<path
-					fillRule="evenodd"
-					d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-					clipRule="evenodd"
-				/>
-			</svg>
-		</div>
-	</div>
+	<Select>
+		<SelectTrigger className="h-9 border-gray-200 bg-white text-sm text-gray-700 focus:border-blue-400">
+			<SelectValue placeholder={placeholder} />
+		</SelectTrigger>
+		<SelectContent>
+			<SelectItem value="option-1">Option 1</SelectItem>
+			<SelectItem value="option-2">Option 2</SelectItem>
+		</SelectContent>
+	</Select>
 );
 
 interface BorrowCreateFilterProps {

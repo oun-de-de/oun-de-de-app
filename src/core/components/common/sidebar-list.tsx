@@ -20,16 +20,16 @@ export function SidebarList({ children, className }: SidebarListProps) {
 type SidebarToggleButtonProps = {
 	onClick?: () => void;
 	isCollapsed?: boolean;
-	variant?: "ghost" | "outline";
+	variant?: "ghost" | "outline" | "info";
 	className?: string;
 };
 
-export function SidebarToggleButton({ onClick, isCollapsed, variant = "ghost", className }: SidebarToggleButtonProps) {
+export function SidebarToggleButton({ onClick, isCollapsed, variant = "info", className }: SidebarToggleButtonProps) {
 	return (
 		<Button
 			variant={variant}
 			size="icon"
-			className={cn("h-9 w-9 shrink-0 hidden lg:block", className)}
+			className={cn("h-8 w-8 shrink-0 hidden lg:block", className)}
 			onClick={onClick}
 		>
 			<Icon icon={isCollapsed ? "mdi:menu-open" : "mdi:menu"} />
@@ -42,7 +42,7 @@ type SidebarListToggleProps = {
 	onToggle?: () => void;
 	isCollapsed?: boolean;
 	className?: string;
-	variant?: "ghost" | "outline";
+	variant?: "ghost" | "outline" | "info";
 };
 
 function SidebarListToggle({ onToggle, isCollapsed, className, variant }: SidebarListToggleProps) {

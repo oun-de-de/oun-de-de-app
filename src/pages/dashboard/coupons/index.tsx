@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 
-import couponService from "@/core/api/services/couponService";
+import couponService from "@/core/api/services/coupon-service";
 import { DashboardSplitView } from "@/core/components/common/dashboard-split-view";
 import { useSidebarCollapse } from "@/core/hooks/use-sidebar-collapse";
 import type { Customer } from "@/core/types/customer";
@@ -18,6 +18,11 @@ export default function CouponsPage() {
 
 	const { isCollapsed, handleToggle } = useSidebarCollapse();
 
+	const handleCustomerSelect = (customer: Customer | null) => {
+		setActiveCustomer(customer);
+		updateState({ page: 1 });
+	};
+
 	const { data, isLoading } = useQuery({
 		queryKey: [
 			"coupons",
@@ -25,7 +30,7 @@ export default function CouponsPage() {
 			listState.pageSize,
 			listState.searchValue,
 			listState.typeFilter,
-			activeCustomer?.name,
+			activeCustomer?.id,
 		],
 		queryFn: () =>
 			couponService.getCouponList({
@@ -50,7 +55,7 @@ export default function CouponsPage() {
 			sidebar={
 				<CustomerSidebar
 					activeCustomerId={activeCustomer?.id || null}
-					onSelect={setActiveCustomer}
+					onSelect={handleCustomerSelect}
 					onToggle={handleToggle}
 					isCollapsed={isCollapsed}
 				/>

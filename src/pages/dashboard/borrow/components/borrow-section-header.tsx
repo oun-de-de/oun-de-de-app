@@ -1,6 +1,5 @@
 import type { ElementType } from "react";
 
-// Rabbit POS Style Section Header
 export const SectionHeader = ({ icon: Icon, title }: { icon?: ElementType; title: string }) => (
 	<div className="flex items-center gap-2 mb-4">
 		{Icon && <Icon className="w-4 h-4 text-gray-400" />}

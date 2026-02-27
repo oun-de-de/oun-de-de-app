@@ -1,4 +1,5 @@
 import type { FormFieldConfig } from "@/core/components/common";
+import { formatDateToYYYYMMDD } from "@/core/utils/date-utils";
 import { DEFAULT_PRICE_OPTIONS } from "../../utils/customer-utils";
 
 export const CUSTOMER_FIELDS: FormFieldConfig[] = [
@@ -7,7 +8,7 @@ export const CUSTOMER_FIELDS: FormFieldConfig[] = [
 		label: "Register Date",
 		type: "date",
 		required: true,
-		defaultValue: new Date().toISOString().split("T")[0],
+		defaultValue: formatDateToYYYYMMDD(new Date()),
 	},
 	{
 		name: "code",
@@ -50,6 +51,18 @@ export const CUSTOMER_FIELDS: FormFieldConfig[] = [
 		defaultValue: "retail_price",
 	},
 	{
+		name: "paymentTerm",
+		label: "Payment Term (days)",
+		type: "number",
+		placeholder: "Enter payment term in days",
+	},
+	{
+		name:"startDate",
+		label: "Payment Term Start Date",
+		type: "date",
+		placeholder: "Select start date",
+	},
+	{
 		name: "telephone",
 		label: "Telephone",
 		type: "text",
@@ -62,7 +75,7 @@ export const CUSTOMER_FIELDS: FormFieldConfig[] = [
 		placeholder: "Enter email address",
 	},
 	{
-		name: "warehouse",
+		name: "warehouseId",
 		label: "Warehouse",
 		type: "select",
 		options: [],

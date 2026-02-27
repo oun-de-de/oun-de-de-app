@@ -1,6 +1,6 @@
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import couponService from "@/core/api/services/couponService";
+import couponService from "@/core/api/services/coupon-service";
 import { EntityListItem, SidebarList } from "@/core/components/common";
 import type { SelectOption } from "@/core/types/common";
 import type { Coupon } from "@/core/types/coupon";

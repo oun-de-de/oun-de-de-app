@@ -10,6 +10,13 @@ export type MenuItemProps = {
 	isCollapsed?: boolean;
 };
 
+function getCollapsedLabel(label: string): string {
+	const words = label.trim().split(/\s+/).filter(Boolean);
+	if (words.length === 0) return "?";
+	if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
+	return `${words[0][0]}${words[1][0]}`.toUpperCase();
+}
+
 const ICONS = {
 	active: "mdi:checkbox-blank-circle",
 	inactive: "mdi:checkbox-blank-circle-outline",
@@ -18,13 +25,13 @@ const ICONS = {
 const StyledButton = styled(Button)<{ $isActive: boolean }>`
 	justify-content: flex-start;
 	letter-spacing: 0.025em;
+	padding: 0.60rem;
 
 	${({ $isActive }) =>
 		$isActive &&
 		css`
 			background-color: rgb(2 132 199);
 			color: white;
-			font-size: 1rem;
 
 			&:hover {
 				background-color: rgb(2 132 199 / 0.9);
@@ -42,10 +49,10 @@ export const MenuItem = memo(function MenuItem({ label, isActive, onSelect, isCo
 				size="icon"
 				onClick={handleClick}
 				$isActive={isActive}
-				className="w-8 h-8 mx-auto rounded-lg mb-1"
+				className="mb-1 h-9 w-9 justify-center rounded-lg px-0 text-xs font-semibold tracking-wide"
 				title={label}
 			>
-				<span className="font-bold text-lg">{label.charAt(0)}</span>
+				<span>{getCollapsedLabel(label)}</span>
 			</StyledButton>
 		);
 	}

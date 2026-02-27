@@ -8,13 +8,13 @@ import { ReportItem } from "./report-item";
 export interface ReportSectionData {
 	title: string;
 	icon: string;
-	items: { label: string }[];
+	items: { slug: string; label: string }[];
 }
 
 interface ReportSectionProps {
 	section: ReportSectionData;
 	favorites: string[];
-	onToggleFavorite: (label: string) => void;
+	onToggleFavorite: (slug: string) => void;
 	className?: string;
 }
 
@@ -36,9 +36,10 @@ export function ReportSection({ section, favorites, onToggleFavorite, className 
 				<div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
 					{section.items.map((item) => (
 						<ReportItem
-							key={item.label}
+							key={item.slug}
+							slug={item.slug}
 							label={item.label}
-							isFavorite={favorites.includes(item.label)}
+							isFavorite={favorites.includes(item.slug) || favorites.includes(item.label)}
 							onToggleFavorite={onToggleFavorite}
 						/>
 					))}

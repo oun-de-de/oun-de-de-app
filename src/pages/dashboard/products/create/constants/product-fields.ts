@@ -1,4 +1,5 @@
 import type { FormFieldConfig } from "@/core/components/common";
+import { formatDateToYYYYMMDD } from "@/core/utils/date-utils";
 
 export const PRODUCT_FIELDS: FormFieldConfig[] = [
 	{
@@ -6,7 +7,7 @@ export const PRODUCT_FIELDS: FormFieldConfig[] = [
 		label: "Date",
 		type: "date",
 		required: false,
-		defaultValue: new Date().toISOString().split("T")[0],
+		defaultValue: formatDateToYYYYMMDD(new Date()),
 	},
 	{
 		name: "refNo",

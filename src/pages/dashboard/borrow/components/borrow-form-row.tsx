@@ -8,7 +8,6 @@ interface FormRowProps {
 	className?: string;
 }
 
-// Rabbit POS Style Form Row
 export function FormRow({ label, required, children, className }: FormRowProps) {
 	return (
 		<div className={cn("flex items-center gap-4 py-1.5", className)}>

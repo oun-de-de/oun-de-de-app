@@ -1,16 +1,8 @@
 import type { ColumnDef } from "@tanstack/react-table";
+import type { InventoryItem } from "@/core/types/inventory";
 import { Button } from "@/core/ui/button";
 
-export type Equipment = {
-	id: string;
-	code: string;
-	name: string;
-	category: string;
-	inStock: number;
-	price: number;
-};
-
-export const getBorrowCreateColumns = (onAddToCart: (item: Equipment) => void): ColumnDef<Equipment>[] => [
+export const getBorrowCreateColumns = (onAddToCart: (item: InventoryItem) => void): ColumnDef<InventoryItem>[] => [
 	{ accessorKey: "code", header: "Code" },
 	{
 		accessorKey: "name",
@@ -19,16 +11,14 @@ export const getBorrowCreateColumns = (onAddToCart: (item: Equipment) => void): 
 			<span className="font-semibold text-blue-600 hover:underline cursor-pointer">{getValue() as string}</span>
 		),
 	},
-	{ accessorKey: "category", header: "Category" },
+	{ accessorKey: "type", header: "Type" },
 	{
-		accessorKey: "inStock",
+		accessorKey: "quantityOnHand",
 		header: "Stock",
 		cell: ({ getValue }) => <span className="text-gray-600">{getValue() as number}</span>,
-	},
-	{
-		accessorKey: "price",
-		header: "Price",
-		cell: ({ getValue }) => <span className="font-medium text-gray-900">${getValue() as number}</span>,
+		meta: {
+			bodyClassName: "text-right",
+		},
 	},
 	{
 		id: "actions",
@@ -38,10 +28,13 @@ export const getBorrowCreateColumns = (onAddToCart: (item: Equipment) => void): 
 				type="button"
 				size="sm"
 				onClick={() => onAddToCart(row.original)}
-				className="h-7 px-4 text-[11px] uppercase font-bold bg-blue-500 hover:bg-blue-600 text-white tracking-wide rounded-sm shadow-sm"
+				className="h-6 px-4 text-[11px] uppercase font-bold bg-blue-500 hover:bg-blue-600 text-white tracking-wide rounded-sm shadow-sm"
 			>
 				Select
 			</Button>
 		),
+		meta: {
+			bodyClassName: "text-center",
+		},
 	},
 ];

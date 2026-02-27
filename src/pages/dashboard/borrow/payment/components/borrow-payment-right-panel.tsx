@@ -1,166 +1,89 @@
-import { Check, CreditCard, LayoutGrid, Wallet } from "lucide-react";
+import { Check, Loader2 } from "lucide-react";
 import { Button } from "@/core/ui/button";
 import { Input } from "@/core/ui/input";
 import { Label } from "@/core/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/core/ui/tabs";
-import { Textarea } from "@/core/ui/textarea";
-import { cn } from "@/core/utils";
+import { formatDateToYYYYMMDD } from "@/core/utils/date-utils";
 
 interface BorrowPaymentRightPanelProps {
-	totalAmount: number;
-	paymentMethod: string;
-	setPaymentMethod: (value: string) => void;
+	termMonths: number;
+	setTermMonths: (value: number) => void;
 	depositAmount: string;
 	setDepositAmount: (value: string) => void;
-	dueDate: string;
-	setDueDate: (value: string) => void;
-	refNo: string;
-	setRefNo: (value: string) => void;
-	notes: string;
-	setNotes: (value: string) => void;
+	dueDate: Date;
+	setDueDate: (value: Date) => void;
 	onConfirm: () => void;
+	isPending: boolean;
 }
 
 export function BorrowPaymentRightPanel({
-	totalAmount,
-	paymentMethod,
-	setPaymentMethod,
+	termMonths,
+	setTermMonths,
 	depositAmount,
 	setDepositAmount,
 	dueDate,
 	setDueDate,
-	refNo,
-	setRefNo,
-	notes,
-	setNotes,
 	onConfirm,
+	isPending,
 }: BorrowPaymentRightPanelProps) {
 	return (
-		<Tabs defaultValue="payment" className="flex flex-col h-full bg-white border-l border-gray-200">
-			{/* Rabbit POS Style Tabs */}
-			<TabsList className="w-full justify-start rounded-none h-11 p-0 bg-transparent space-x-4 px-4">
-				<TabsTrigger
-					value="payment"
-					className="h-full rounded-none border-b-2 border-transparent data-[state=active]:border-blue-500 data-[state=active]:text-blue-600 data-[state=active]:shadow-none bg-transparent px-1 font-bold text-xs uppercase tracking-wide text-gray-500 gap-2"
-				>
-					<Wallet className="w-3.5 h-3.5" /> Payment
-				</TabsTrigger>
-				<TabsTrigger
-					value="info"
-					className="h-full rounded-none border-b-2 border-transparent data-[state=active]:border-blue-500 data-[state=active]:text-blue-600 data-[state=active]:shadow-none bg-transparent px-1 font-bold text-xs uppercase tracking-wide text-gray-500 gap-2"
-				>
-					<LayoutGrid className="w-3.5 h-3.5" /> Other Info
-				</TabsTrigger>
-			</TabsList>
-
-			<div className="flex-1 p-4 overflow-y-auto bg-white">
-				<TabsContent value="payment" className="space-y-4 mt-0">
-					<div className="space-y-4">
-						<div className="space-y-2">
-							<Label className="text-xs font-bold text-blue-600 uppercase flex items-center gap-1">
-								<span className="text-red-500">*</span> Payment Method
-							</Label>
-							<div className="flex gap-2">
-								<label
-									className={cn(
-										"flex items-center gap-2 px-3 py-2 rounded-sm border cursor-pointer transition-all text-xs font-bold uppercase",
-										paymentMethod === "cash"
-											? "bg-blue-50 border-blue-500 text-blue-700 ring-1 ring-blue-500"
-											: "bg-white border-gray-200 text-gray-600 hover:bg-gray-50",
-									)}
-								>
-									<input
-										type="radio"
-										className="hidden"
-										checked={paymentMethod === "cash"}
-										onChange={() => setPaymentMethod("cash")}
-									/>
-									<Wallet className="w-3.5 h-3.5" /> Cash
-								</label>
-								<label
-									className={cn(
-										"flex items-center gap-2 px-3 py-2 rounded-sm border cursor-pointer transition-all text-xs font-bold uppercase",
-										paymentMethod === "card"
-											? "bg-blue-50 border-blue-500 text-blue-700 ring-1 ring-blue-500"
-											: "bg-white border-gray-200 text-gray-600 hover:bg-gray-50",
-									)}
-								>
-									<input
-										type="radio"
-										className="hidden"
-										checked={paymentMethod === "card"}
-										onChange={() => setPaymentMethod("card")}
-									/>
-									<CreditCard className="w-3.5 h-3.5" /> Card
-								</label>
-							</div>
+		<div className="h-full flex flex-col">
+			<div className="flex-1">
+				<div className="space-y-5">
+					<div className="space-y-2">
+						<Label className="w-24 lg:w-32 shrink-0 text-[13px] font-medium text-gray-500">
+							<span className="text-rose-500">*</span>Deposit Amount
+						</Label>
+						<div className="relative group">
+							<span className="absolute left-3.5 top-3.5 text-slate-400 font-bold group-focus-within:text-blue-500 transition-colors pointer-events-none">
+								$
+							</span>
+							<Input
+								type="number"
+								value={depositAmount}
+								onChange={(e) => setDepositAmount(e.target.value)}
+								className="h-12 pl-8 font-bold text-lg border-slate-200 focus:border-blue-500 rounded-lg shadow-inner bg-slate-50/50"
+								placeholder="0.00"
+							/>
 						</div>
+					</div>
 
-						<div className="space-y-1">
-							<Label className="text-xs font-bold text-gray-500 uppercase flex items-center gap-1">
-								<span className="text-red-500">*</span> Deposit Amount
-							</Label>
-							<div className="relative">
-								<Input
-									type="number"
-									value={depositAmount}
-									onChange={(e) => setDepositAmount(e.target.value)}
-									className="h-9 pl-7 font-bold border-blue-200 focus:border-blue-500"
-									placeholder="0.00"
-								/>
-								<span className="absolute left-2.5 top-2.5 text-gray-500 text-xs">$</span>
-							</div>
+					<div className="flex gap-4 w-full">
+						<div className="space-y-2 flex-[1]">
+							<Label className="text-xs font-bold text-slate-500 uppercase">Term (M)</Label>
+							<Input
+								type="number"
+								min={1}
+								value={termMonths}
+								onChange={(e) => setTermMonths(Number(e.target.value) || 1)}
+								className="h-11 border-slate-200 font-medium rounded-lg text-center shadow-inner bg-slate-50/50"
+							/>
 						</div>
-
-						<div className="space-y-1">
-							<Label className="text-xs font-medium text-gray-500 uppercase">Due Date</Label>
+						<div className="space-y-2 flex-[2.5]">
+							<Label className="text-xs font-bold text-slate-500 uppercase">Due Date</Label>
 							<Input
 								type="date"
-								value={dueDate}
-								onChange={(e) => setDueDate(e.target.value)}
-								className="h-9 border-gray-200"
+								value={formatDateToYYYYMMDD(dueDate)}
+								onChange={(e) => {
+									if (!e.target.value) return;
+									setDueDate(new Date(`${e.target.value}T00:00:00.000Z`));
+								}}
+								className="h-11 border-slate-200 font-medium rounded-lg shadow-inner bg-slate-50/50"
 							/>
 						</div>
 					</div>
-				</TabsContent>
-
-				<TabsContent value="info" className="space-y-4 mt-0">
-					<div className="space-y-3">
-						<div className="space-y-1">
-							<Label className="text-xs font-medium text-gray-500 uppercase">Reference No</Label>
-							<Input
-								value={refNo}
-								onChange={(e) => setRefNo(e.target.value)}
-								className="h-9 border-gray-200"
-								placeholder="REF-..."
-							/>
-						</div>
-						<div className="space-y-1">
-							<Label className="text-xs font-medium text-gray-500 uppercase">Notes</Label>
-							<Textarea
-								value={notes}
-								onChange={(e) => setNotes(e.target.value)}
-								className="min-h-[100px] border-gray-200 resize-none text-sm"
-								placeholder="..."
-							/>
-						</div>
-					</div>
-				</TabsContent>
+				</div>
 			</div>
 
-			{/* Right Column Footer (Total + Action) */}
-			<div className="p-4 border-t bg-gray-50 space-y-3">
-				<div className="flex justify-between items-center px-1">
-					<span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Total Payable</span>
-					<span className="text-2xl font-bold text-blue-600">${totalAmount.toFixed(2)}</span>
-				</div>
+			<div className="pt-8 mt-auto">
 				<Button
-					className="w-full h-10 text-xs font-bold uppercase tracking-wide bg-blue-600 hover:bg-blue-700 shadow-md"
+					disabled={isPending}
+					className="w-full h-12 text-sm font-bold uppercase tracking-wide bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-600/20 rounded-xl transition-all"
 					onClick={onConfirm}
 				>
-					<Check className="w-4 h-4 mr-2" /> Confirm Payment
+					{isPending ? <Loader2 className="w-5 h-5 mr-2 animate-spin" /> : <Check className="w-5 h-5 mr-2" />}
+					{isPending ? "Creating Loan..." : "Confirm & Create Loan"}
 				</Button>
 			</div>
-		</Tabs>
+		</div>
 	);
 }

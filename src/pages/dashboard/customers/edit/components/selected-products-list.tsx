@@ -10,7 +10,7 @@ import type { ProductSettingItem } from "../hooks/use-product-settings-form";
 interface SelectedProductsListProps {
 	settings: ProductSettingItem[];
 	existingProductIds: Set<string>;
-	onChange: (productId: string, field: "price" | "unit" | "quantity", value: string) => void;
+	onChange: (productId: string, field: "price" | "quantity", value: string) => void;
 	onRemove: (productId: string) => void;
 }
 
@@ -52,16 +52,9 @@ export function SelectedProductsList({ settings, existingProductIds, onChange, o
 			},
 			{
 				header: "Unit",
-				accessorKey: "unit",
+				accessorKey: "unitLabel",
 				size: 100,
-				cell: ({ row }) => (
-					<Input
-						value={row.original.unit}
-						onChange={(e) => onChange(row.original.productId, "unit", e.target.value)}
-						className="w-full h-8"
-						disabled={existingProductIds.has(row.original.productId)}
-					/>
-				),
+				cell: ({ row }) => <span>{row.original.unitLabel}</span>,
 			},
 			{
 				header: "Quantity",

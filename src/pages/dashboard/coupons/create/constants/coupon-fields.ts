@@ -1,4 +1,5 @@
 import type { FormFieldConfig } from "@/core/components/common";
+import { formatDateToYYYYMMDD } from "@/core/utils/date-utils";
 
 export const COUPON_FIELDS: FormFieldConfig[] = [
 	{
@@ -6,7 +7,7 @@ export const COUPON_FIELDS: FormFieldConfig[] = [
 		label: "Date",
 		type: "date",
 		required: true,
-		defaultValue: new Date().toISOString().split("T")[0],
+		defaultValue: formatDateToYYYYMMDD(new Date()),
 	},
 	{
 		name: "vehicleId",
@@ -36,5 +37,41 @@ export const COUPON_FIELDS: FormFieldConfig[] = [
 		label: "Remark",
 		type: "textarea",
 		placeholder: "Enter remarks or notes",
+	},
+	{
+		name: "couponNo",
+		label: "Coupon No",
+		type: "number",
+		placeholder: "Optional coupon number",
+	},
+	{
+		name: "couponId",
+		label: "Coupon ID",
+		type: "number",
+		placeholder: "Optional legacy coupon ID",
+	},
+	{
+		name: "accNo",
+		label: "Accounting No",
+		type: "text",
+		placeholder: "Optional accounting reference",
+	},
+	{
+		name: "delAccNo",
+		label: "Delivery Accounting No",
+		type: "text",
+		placeholder: "Optional delivery accounting number",
+	},
+	{
+		name: "delDate",
+		label: "Delivery Date",
+		type: "date",
+	},
+	{
+		name: "weightRecordsBuilder",
+		label: "Weight Records",
+		type: "custom",
+		component: null,
+		className: "md:col-span-2",
 	},
 ];

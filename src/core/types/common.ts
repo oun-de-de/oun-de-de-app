@@ -143,3 +143,13 @@ export type PaginatedResponse<T> = {
 	first: boolean;
 	empty: boolean;
 };
+
+export type PagePaginatedResponse<T> = {
+	content: T[];
+	page: {
+		size: number;
+		number: number;
+		totalElements: number;
+		totalPages: number;
+	};
+};

@@ -48,30 +48,45 @@ export default function CreateCustomerPage() {
 	});
 
 	const handleSubmit = async (data: CustomerFormData) => {
-		const customerData: CreateCustomer = {
-			registerDate: data.registerDate as string,
-			code: data.code as string,
-			name: data.name as string,
+		const duration = Number(data.paymentTerm);
+		const parsedStartDate = data.startDate ? new Date(`${data.startDate}T00:00:00.000Z`) : undefined;
+		const hasPaymentTermValue = data.paymentTerm !== "" && data.paymentTerm != null;
+		const paymentTerm =
+			hasPaymentTermValue &&
+			Number.isFinite(duration) &&
+			duration >= 0 &&
+			parsedStartDate &&
+			!Number.isNaN(parsedStartDate.getTime())
+				? { duration, startDate: parsedStartDate.toISOString() }
+				: undefined;
+
+		const referredById = data.referredById && data.referredById !== "none" ? data.referredById : undefined;
+
+		const payload: CreateCustomer = {
+			registerDate: data.registerDate,
+			code: data.code,
+			name: data.name,
 			status: !!data.status,
-			referredById: data.referredById as string,
-			defaultPrice: data.defaultPrice as string,
-			warehouse: data.warehouse as string,
-			memo: data.memo as string,
-			profileUrl: data.profileUrl as string,
-			shopBannerUrl: data.shopBannerUrl as string,
-			employeeId: data.employeeId as string,
-			telephone: data.telephone as string,
-			email: data.email as string,
-			geography: data.geography as string,
-			address: data.address as string,
-			location: data.location as string,
-			map: data.map as string,
-			billingAddress: data.billingAddress as string,
-			deliveryAddress: data.deliveryAddress as string,
+			referredById,
+			defaultPrice: data.defaultPrice,
+			warehouseId: data.warehouseId,
+			memo: data.memo,
+			profileUrl: data.profileUrl,
+			shopBannerUrl: data.shopBannerUrl,
+			employeeId: data.employeeId,
+			telephone: data.telephone,
+			email: data.email,
+			geography: data.geography,
+			address: data.address,
+			location: data.location,
+			map: data.map,
+			billingAddress: data.billingAddress,
+			deliveryAddress: data.deliveryAddress,
 			vehicles: data.vehicles ?? [],
+			paymentTerm,
 		};
 
-		await createCustomer(customerData);
+		await createCustomer(payload);
 	};
 
 	const handleCancel = () => navigate("/dashboard/customers");

@@ -27,7 +27,7 @@ export function SummaryStatCard({ label, value, color, icon }: SummaryStatCardDa
 		<CardRoot>
 			<div>
 				<LabelText>{label}</LabelText>
-				<ValueTitle>{fNumber(value)} KHR</ValueTitle>
+				<ValueTitle>{fNumber(value)}</ValueTitle>
 			</div>
 			<IconWrap $color={color}>
 				<Icon icon={icon} size={20} />

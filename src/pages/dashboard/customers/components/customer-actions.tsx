@@ -2,21 +2,29 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
 import customerService from "@/core/api/services/customer-service";
-import Icon from "@/core/components/icon/icon";
 import { Button } from "@/core/ui/button";
 import { customerQueryOptions } from "../hooks/use-get-customer";
 
 type CustomerActionsProps = {
 	customerId: string;
+	customerName: string;
 };
 
-export function CustomerActions({ customerId }: CustomerActionsProps) {
+export function CustomerActions({ customerId, customerName }: CustomerActionsProps) {
 	const navigate = useNavigate();
 
 	const queryClient = useQueryClient();
 
 	const handleEdit = () => {
 		navigate(`/dashboard/customers/edit/${customerId}`);
+	};
+
+	const handleViewInvoices = () => {
+		const params = new URLSearchParams({
+			customerId,
+			customerName,
+		});
+		navigate(`/dashboard/invoice?${params.toString()}`);
 	};
 
 	// prefetch customer data
@@ -47,25 +55,21 @@ export function CustomerActions({ customerId }: CustomerActionsProps) {
 
 	return (
 		<div className="flex gap-1">
+			<Button variant="info" size="sm" className="h-8 gap-1" onClick={handleViewInvoices} title="View invoices">
+				Invoice
+			</Button>
 			<Button
-				variant="ghost"
-				size="icon"
-				className="h-8 w-8 text-muted-foreground hover:text-primary"
+				variant="warning"
+				size="sm"
 				onClick={handleEdit}
 				onMouseEnter={handlePrefetch}
 				onFocus={handlePrefetch}
 				title="Edit"
 			>
-				<Icon icon="mdi:pencil" />
+				Edit
 			</Button>
-			<Button
-				variant="ghost"
-				size="icon"
-				className="h-8 w-8 text-muted-foreground hover:text-destructive"
-				onClick={handleDelete}
-				title="Delete"
-			>
-				<Icon icon="mdi:delete" />
+			<Button variant="destructive" size="sm" onClick={handleDelete} className="text-white" title="Delete">
+				Delete
 			</Button>
 		</div>
 	);

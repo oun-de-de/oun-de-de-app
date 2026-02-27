@@ -1,5 +1,5 @@
 import isEqual from "fast-deep-equal";
-import type { PaginatedResponse } from "@/core/types/common";
+import type { PagePaginatedResponse, PaginatedResponse } from "@/core/types/common";
 import { copyWithPagination, type Pagination } from "../types/pagination";
 
 /**
@@ -96,5 +96,15 @@ export function mapPaginatedResponseToPagination<T>(response: PaginatedResponse<
 		pageSize: response.size,
 		pageCount: response.totalPages,
 		total: response.totalElements,
+	};
+}
+
+export function mapPagePaginatedResponseToPagination<T>(response: PagePaginatedResponse<T>): Pagination<T> {
+	return {
+		list: response.content,
+		page: response.page.number + 1,
+		pageSize: response.page.size,
+		pageCount: response.page.totalPages,
+		total: response.page.totalElements,
 	};
 }

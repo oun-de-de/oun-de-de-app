@@ -1,134 +1,102 @@
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useNavigate } from "react-router";
 import { SmartDataTable, SummaryStatCard } from "@/core/components/common";
 import { SplitButton } from "@/core/components/common/split-button";
-import Icon from "@/core/components/icon/icon";
-import type { SummaryStatCardData } from "@/core/types/common";
 import { Button } from "@/core/ui/button";
 import { Text } from "@/core/ui/typography";
-
-import type { BorrowListState } from "@/pages/dashboard/borrow/stores/borrowStore";
-import { type BorrowRow, borrowColumns } from "./borrow-columns";
-
-// Mock Stats
-const SUMMARY_CARDS: SummaryStatCardData[] = [
-	{ label: "Active Borrows", value: 12, color: "bg-blue-500", icon: "mdi:clipboard-clock-outline" },
-	{ label: "Overdue", value: 2, color: "bg-red-500", icon: "mdi:alert-circle-outline" },
-	{ label: "Returned Today", value: 5, color: "bg-emerald-500", icon: "mdi:check-circle-outline" },
-];
-
-const MOCK_BORROWS: BorrowRow[] = [
-	{ id: "1", refNo: "BR-2025-001", borrower: "John Doe", date: "2025-01-20", status: "Active", itemCount: 2 },
-	{ id: "2", refNo: "BR-2025-002", borrower: "Jane Smith", date: "2025-01-18", status: "Active", itemCount: 1 },
-	{ id: "3", refNo: "BR-2025-003", borrower: "Alice Johnson", date: "2025-01-15", status: "Returned", itemCount: 3 },
-	{ id: "4", refNo: "BR-2025-004", borrower: "Bob Brown", date: "2025-01-10", status: "Overdue", itemCount: 1 },
-];
+import type { BorrowState } from "@/pages/dashboard/borrow/stores/borrow-store";
+import { useLoans } from "../hooks/use-loans";
+import {
+	buildBorrowSummaryCards,
+	buildBorrowTableConfigs,
+	buildBorrowViewActions,
+	filterBorrowRows,
+	paginateBorrowRows,
+} from "../utils/borrow-content-utils";
+import { mapLoanToBorrowRow } from "../utils/loan-utils";
+import { borrowColumns } from "./borrow-columns";
 
 type Props = {
-	activeBorrowId: string | null;
-	listState: BorrowListState;
-	updateState: (updates: Partial<BorrowListState>) => void;
+	activeCustomerId: string | null;
+	activeCustomerName: string | null;
+	listState: BorrowState;
+	updateState: (updates: Partial<Omit<BorrowState, "type">>) => void;
 };
 
-export function BorrowContent({ activeBorrowId, listState, updateState }: Props) {
+export function BorrowContent({ activeCustomerId, activeCustomerName, listState, updateState }: Props) {
 	const navigate = useNavigate();
+	const { fieldFilter, searchValue, typeFilter } = listState;
+	const { data: loansResponse } = useLoans();
 
-	const filteredData = useMemo(() => {
-		let data = MOCK_BORROWS;
-		if (listState.searchValue) {
-			const q = listState.searchValue.toLowerCase();
-			data = data.filter((row) => row.refNo.toLowerCase().includes(q) || row.borrower.toLowerCase().includes(q));
-		}
-		if (listState.typeFilter !== "all") {
-			data = data.filter((row) => row.status === listState.typeFilter);
-		}
-		return data;
-	}, [listState.searchValue, listState.typeFilter]);
-
-	const totalItems = filteredData.length;
-	const totalPages = Math.ceil(totalItems / listState.pageSize);
-	const paginatedData = filteredData.slice(
-		(listState.page - 1) * listState.pageSize,
-		listState.page * listState.pageSize,
+	const loanRows = useMemo(
+		() =>
+			(loansResponse?.content ?? [])
+				.filter((loan) => !activeCustomerId || loan.borrowerId === activeCustomerId)
+				.map((loan) => mapLoanToBorrowRow(loan)),
+		[loansResponse, activeCustomerId],
 	);
 
-	const activeBorrow = MOCK_BORROWS.find((b) => b.id === activeBorrowId);
+	const filteredData = useMemo(
+		() => filterBorrowRows(loanRows, { fieldFilter, searchValue, typeFilter }),
+		[fieldFilter, loanRows, searchValue, typeFilter],
+	);
+	const summaryCards = useMemo(() => buildBorrowSummaryCards(loanRows), [loanRows]);
+	const { totalItems, totalPages, paginatedRows, paginationItems } = useMemo(
+		() => paginateBorrowRows(filteredData, listState.page, listState.pageSize),
+		[filteredData, listState.page, listState.pageSize],
+	);
+	const { mainAction, options, newBorrowMainAction } = useMemo(
+		() => buildBorrowViewActions({ activeView: listState.activeView, updateState, navigate }),
+		[listState.activeView, navigate, updateState],
+	);
+	const { filterConfig, paginationConfig } = useMemo(
+		() =>
+			buildBorrowTableConfigs({
+				state: listState,
+				totalItems,
+				totalPages,
+				paginationItems,
+				updateState,
+			}),
+		[listState, paginationItems, totalItems, totalPages, updateState],
+	);
 
-	const mainAction = {
-		label: listState.activeView === "requests" ? "Requests" : "All Borrowings",
-		onClick: () => {},
-	};
-
-	const options = [
-		{ label: "All Borrowings", onClick: () => updateState({ activeView: "all" }) },
-		{ label: "Requests", onClick: () => updateState({ activeView: "requests" }) },
-	];
-
-	const newBorrowMainAction = {
-		label: (
-			<span className="flex items-center gap-2">
-				<Icon icon="mdi:plus" />
-				New Borrowing
-			</span>
-		),
-		onClick: () => navigate("/dashboard/borrow/new"),
-	};
-
-	const newBorrowOptions = [
-		{ label: "Return Equipment", onClick: () => {} },
-		{ label: "Report Issue", onClick: () => {} },
-	];
-
-	const filterConfig = {
-		typeOptions: [
-			{ label: "All Status", value: "all" },
-			{ label: "Active", value: "Active" },
-			{ label: "Returned", value: "Returned" },
-			{ label: "Overdue", value: "Overdue" },
-		],
-		fieldOptions: [
-			{ label: "Ref No", value: "refNo" },
-			{ label: "Borrower", value: "borrower" },
-		],
-		typeValue: listState.typeFilter,
-		fieldValue: listState.fieldFilter || "refNo",
-		searchValue: listState.searchValue,
-		onTypeChange: (v: string) => updateState({ typeFilter: v, page: 1 }),
-		onFieldChange: (v: string) => updateState({ fieldFilter: v }),
-		onSearchChange: (v: string) => updateState({ searchValue: v, page: 1 }),
-	};
-
-	const paginationConfig = {
-		page: listState.page,
-		pageSize: listState.pageSize,
-		totalItems,
-		totalPages,
-		onPageChange: (p: number) => updateState({ page: p }),
-		onPageSizeChange: (s: number) => updateState({ pageSize: s, page: 1 }),
-		paginationItems: Array.from({ length: totalPages }, (_, i) => i + 1),
-	};
+	useEffect(() => {
+		if (listState.page > totalPages) {
+			updateState({ page: totalPages });
+		}
+	}, [listState.page, totalPages, updateState]);
 
 	return (
 		<>
 			<div className="flex flex-wrap items-center justify-between gap-2 mb-4">
 				<div className="flex items-center gap-2">
-					<SplitButton variant="outline" size="sm" mainAction={mainAction} options={options} />
+					<SplitButton
+						variant="outline"
+						size="sm"
+						mainAction={mainAction}
+						options={options}
+						mainButtonClassName="bg-blue-400 text-white hover:bg-blue-500 border-blue-400"
+						triggerButtonClassName="bg-blue-400 text-white hover:bg-blue-500 border-blue-400"
+					/>
 					<Text variant="body2" className="text-slate-400">
-						{activeBorrow ? `${activeBorrow.refNo} selected` : "No Record Selected"}
+						{activeCustomerId ? `${activeCustomerName || activeCustomerId} selected` : "All Customers"}
 					</Text>
 				</div>
 
 				<div className="flex gap-2">
-					<Button size="sm" className="gap-2" variant="outline">
-						<Icon icon="mdi:printer" />
-						Print Report
+					<Button
+						size="sm"
+						onClick={newBorrowMainAction.onClick}
+						className="bg-emerald-400 text-white hover:bg-emerald-500"
+					>
+						{newBorrowMainAction.label}
 					</Button>
-					<SplitButton mainAction={newBorrowMainAction} options={newBorrowOptions} />
 				</div>
 			</div>
 
 			<div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4 mb-4">
-				{SUMMARY_CARDS.map((card) => (
+				{summaryCards.map((card) => (
 					<SummaryStatCard key={card.label} {...card} />
 				))}
 			</div>
@@ -136,10 +104,11 @@ export function BorrowContent({ activeBorrowId, listState, updateState }: Props)
 			<SmartDataTable
 				className="flex-1 min-h-0"
 				maxBodyHeight="100%"
-				data={paginatedData}
+				data={paginatedRows}
 				columns={borrowColumns}
 				filterConfig={filterConfig}
 				paginationConfig={paginationConfig}
+				onRowClick={(row) => navigate(`/dashboard/borrow/${row.id}`)}
 			/>
 		</>
 	);
