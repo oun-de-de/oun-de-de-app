@@ -30,8 +30,8 @@ export function BorrowPaymentRightPanel({
 			<div className="flex-1">
 				<div className="space-y-5">
 					<div className="space-y-2">
-						<Label className="text-xs font-bold text-slate-500 uppercase flex items-center gap-1">
-							<span className="text-rose-500">*</span> Deposit Amount
+						<Label className="w-24 lg:w-32 shrink-0 text-[13px] font-medium text-gray-500">
+							<span className="text-rose-500">*</span>Deposit Amount
 						</Label>
 						<div className="relative group">
 							<span className="absolute left-3.5 top-3.5 text-slate-400 font-bold group-focus-within:text-blue-500 transition-colors pointer-events-none">
