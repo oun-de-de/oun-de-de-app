@@ -9,7 +9,7 @@ export interface ReportsState {
 }
 
 interface ReportsActions {
-	toggleFavorite: (label: string) => void;
+	toggleFavorite: (reportKey: string) => void;
 	clearFavorites: () => void;
 }
 
@@ -27,14 +27,14 @@ export const reportsBoundStore = createBoundStore<ReportsStore>({
 						favorites: [],
 					},
 					actions: {
-						toggleFavorite: (label) => {
+						toggleFavorite: (reportKey) => {
 							const { state } = get();
 							const { favorites } = state;
-							const isFav = favorites.includes(label);
+							const isFav = favorites.includes(reportKey);
 							if (isFav) {
-								set({ state: { ...state, favorites: favorites.filter((item) => item !== label) } });
+								set({ state: { ...state, favorites: favorites.filter((item) => item !== reportKey) } });
 							} else {
-								set({ state: { ...state, favorites: [...favorites, label] } });
+								set({ state: { ...state, favorites: [...favorites, reportKey] } });
 							}
 						},
 						clearFavorites: () => {

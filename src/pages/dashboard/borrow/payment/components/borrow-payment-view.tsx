@@ -1,7 +1,5 @@
 import { useBorrowPaymentForm } from "../hooks/use-borrow-payment-form";
-import { useBorrowCartActions, useBorrowCartSelector } from "@/pages/dashboard/borrow/stores/borrow-cart-store";
 import { BorrowPaymentBorrowerInfo } from "./borrow-payment-borrower-info";
-import { BorrowPaymentItems } from "./borrow-payment-items";
 import { BorrowPaymentLayout } from "./borrow-payment-layout";
 import { BorrowPaymentRightPanel } from "./borrow-payment-right-panel";
 
@@ -19,7 +17,6 @@ export function BorrowPaymentView() {
 		isPending,
 		customers,
 	} = useBorrowPaymentForm();
-
 
 	return (
 		<BorrowPaymentLayout>

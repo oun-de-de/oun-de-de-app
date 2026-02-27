@@ -1,7 +1,6 @@
 import type { PaginatedResponse } from "@/core/types/common";
 import type { BorrowerType, CreateLoanRequest, Installment, InstallmentStatus, Loan } from "@/core/types/loan";
 import { apiClient } from "../apiClient";
-import { sort } from "ramda";
 
 export enum LoanApi {
 	Loans = "/loans",

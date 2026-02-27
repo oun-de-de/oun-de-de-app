@@ -4,14 +4,14 @@ import { Button } from "@/core/ui/button";
 import { cn } from "@/core/utils";
 
 interface ReportItemProps {
+	slug: string;
 	label: string;
 	isFavorite: boolean;
-	onToggleFavorite: (label: string) => void;
+	onToggleFavorite: (slug: string) => void;
 	className?: string;
 }
 
-export function ReportItem({ label, isFavorite, onToggleFavorite, className }: ReportItemProps) {
-	const slug = label.toLowerCase().replace(/\s+/g, "-");
+export function ReportItem({ slug, label, isFavorite, onToggleFavorite, className }: ReportItemProps) {
 	const href = `/dashboard/reports/detail/${slug}`;
 
 	return (
@@ -24,7 +24,7 @@ export function ReportItem({ label, isFavorite, onToggleFavorite, className }: R
 				variant="ghost"
 				size="icon"
 				className="h-auto w-auto p-1 hover:bg-transparent"
-				onClick={() => onToggleFavorite(label)}
+				onClick={() => onToggleFavorite(slug)}
 			>
 				<Icon
 					icon={isFavorite ? "mdi:star" : "mdi:star-outline"}

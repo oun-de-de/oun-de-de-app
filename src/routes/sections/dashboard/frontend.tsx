@@ -1,4 +1,5 @@
 import type { RouteObject } from "react-router";
+import ReportDetailTemplate from "@/pages/dashboard/reports/report-detail";
 import { Component } from "../../utils/utils";
 
 export function getFrontendDashboardRoutes(): RouteObject[] {
@@ -16,7 +17,7 @@ export function getFrontendDashboardRoutes(): RouteObject[] {
 		{ path: "dashboard/coupons/create", element: Component("/pages/dashboard/coupons/create") },
 		{ path: "dashboard/accounting", element: Component("/pages/dashboard/accounting") },
 		{ path: "dashboard/reports", element: Component("/pages/dashboard/reports") },
-		{ path: "dashboard/reports/detail/:slug", element: Component("/pages/dashboard/reports/report-detail") },
+		{ path: "dashboard/reports/detail/:slug", element: <ReportDetailTemplate /> },
 		{ path: "dashboard/settings", element: Component("/pages/dashboard/settings") },
 		{ path: "dashboard/audit-log", element: Component("/pages/dashboard/audit-log") },
 		{ path: "dashboard/borrow", element: Component("/pages/dashboard/borrow") },

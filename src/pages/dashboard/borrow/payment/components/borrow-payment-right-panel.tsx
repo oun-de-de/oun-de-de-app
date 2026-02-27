@@ -1,4 +1,4 @@
-import { Check, Loader2, Wallet } from "lucide-react";
+import { Check, Loader2 } from "lucide-react";
 import { Button } from "@/core/ui/button";
 import { Input } from "@/core/ui/input";
 import { Label } from "@/core/ui/label";
