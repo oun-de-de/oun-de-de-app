@@ -49,14 +49,10 @@ export default function CreateCustomerPage() {
 
 	const handleSubmit = async (data: CustomerFormData) => {
 		const duration = Number(data.paymentTerm);
-		const parsedStartDate =
-			typeof data.startDate === "string" && data.startDate
-				? new Date(`${data.startDate}T00:00:00.000Z`)
-				: undefined;
+		const parsedStartDate = data.startDate ? new Date(`${data.startDate}T00:00:00.000Z`) : undefined;
+		const hasPaymentTermValue = data.paymentTerm !== "" && data.paymentTerm != null;
 		const paymentTerm =
-			data.paymentTerm !== "" &&
-			data.paymentTerm !== null &&
-			data.paymentTerm !== undefined &&
+			hasPaymentTermValue &&
 			Number.isFinite(duration) &&
 			duration >= 0 &&
 			parsedStartDate &&
@@ -64,34 +60,33 @@ export default function CreateCustomerPage() {
 				? { duration, startDate: parsedStartDate.toISOString() }
 				: undefined;
 
-		const referredById =
-			typeof data.referredById === "string" && data.referredById !== "" && data.referredById !== "none"
-				? data.referredById
-				: undefined;
+		const referredById = data.referredById && data.referredById !== "none" ? data.referredById : undefined;
 
-		await createCustomer({
-			registerDate: data.registerDate as string,
-			code: data.code as string,
-			name: data.name as string,
+		const payload: CreateCustomer = {
+			registerDate: data.registerDate,
+			code: data.code,
+			name: data.name,
 			status: !!data.status,
 			referredById,
-			defaultPrice: data.defaultPrice as string,
-			warehouseId: data.warehouseId as string,
-			memo: data.memo as string,
-			profileUrl: data.profileUrl as string,
-			shopBannerUrl: data.shopBannerUrl as string,
-			employeeId: data.employeeId as string,
-			telephone: data.telephone as string,
-			email: data.email as string,
-			geography: data.geography as string,
-			address: data.address as string,
-			location: data.location as string,
-			map: data.map as string,
-			billingAddress: data.billingAddress as string,
-			deliveryAddress: data.deliveryAddress as string,
+			defaultPrice: data.defaultPrice,
+			warehouseId: data.warehouseId,
+			memo: data.memo,
+			profileUrl: data.profileUrl,
+			shopBannerUrl: data.shopBannerUrl,
+			employeeId: data.employeeId,
+			telephone: data.telephone,
+			email: data.email,
+			geography: data.geography,
+			address: data.address,
+			location: data.location,
+			map: data.map,
+			billingAddress: data.billingAddress,
+			deliveryAddress: data.deliveryAddress,
 			vehicles: data.vehicles ?? [],
 			paymentTerm,
-		} satisfies CreateCustomer);
+		};
+
+		await createCustomer(payload);
 	};
 
 	const handleCancel = () => navigate("/dashboard/customers");

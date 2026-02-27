@@ -6,7 +6,30 @@ import { CUSTOMER_FIELDS } from "../constants/customer-fields";
 import { GenerateCodeButton } from "./generate-code-button";
 import { VehicleListField } from "./vehicle-list-field";
 
-export type CustomerFormData = DefaultFormData & { vehicles?: CreateCustomer["vehicles"] | Vehicle[] };
+export type CustomerFormData = DefaultFormData & {
+	registerDate: string;
+	code: string;
+	name: string;
+	status: boolean;
+	referredById?: string;
+	defaultPrice: string;
+	warehouseId: string;
+	memo: string;
+	profileUrl: string;
+	shopBannerUrl: string;
+	employeeId: string;
+	telephone: string;
+	email: string;
+	geography: string;
+	address: string;
+	location: string;
+	map: string;
+	billingAddress: string;
+	deliveryAddress: string;
+	vehicles?: CreateCustomer["vehicles"] | Vehicle[];
+	paymentTerm?: string | number | null;
+	startDate?: string;
+};
 
 type CustomerFormProps = {
 	onSubmit?: (data: CustomerFormData) => Promise<void> | void;

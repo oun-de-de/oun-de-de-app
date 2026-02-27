@@ -22,15 +22,13 @@ const STRING_FIELDS = [
 	"deliveryAddress",
 ] as const;
 
-type StringFieldKey = (typeof STRING_FIELDS)[number];
-
 export const mapCustomerFormToUpdatePayload = (
 	data: CustomerFormData | Partial<UpdateCustomer>,
 ): UpdateCustomerInfoInput => {
 	const payload: UpdateCustomerInfoInput = {};
 
 	for (const key of STRING_FIELDS) {
-		const value = data[key as StringFieldKey];
+		const value = data[key];
 		if (typeof value === "string") payload[key] = value;
 	}
 

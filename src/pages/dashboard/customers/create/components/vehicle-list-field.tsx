@@ -4,6 +4,12 @@ import { FormSelect, FormTextField } from "@/core/components/form";
 import { Button } from "@/core/ui/button";
 import { VEHICLE_TYPE_OPTIONS } from "../../utils/customer-utils";
 
+const hasExistingVehicleId = (value: unknown): value is { id: string } => {
+	if (typeof value !== "object" || value === null) return false;
+
+	return typeof Reflect.get(value, "id") === "string";
+};
+
 export function VehicleListField() {
 	const { control } = useFormContext();
 	const { fields, append, remove } = useFieldArray({
@@ -30,7 +36,7 @@ export function VehicleListField() {
 
 			<div className="space-y-4">
 				{fields.map((field, index) => {
-					const isExistingVehicle = Boolean((field as { id?: string }).id);
+					const isExistingVehicle = hasExistingVehicleId(field);
 
 					return (
 						<div key={field.fieldKey} className="space-y-2">
