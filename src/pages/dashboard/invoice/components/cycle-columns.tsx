@@ -1,7 +1,7 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import type { Cycle } from "@/core/types/cycle";
 import { Badge } from "@/core/ui/badge";
-import { formatDisplayDate, formatNumber } from "../utils/formatters";
+import { formatDisplayDate, formatKHR } from "../utils/formatters";
 
 function getCycleStatusVariant(status: Cycle["status"]): "success" | "warning" | "error" {
 	switch (status) {
@@ -50,19 +50,19 @@ export function getCycleColumns(): ColumnDef<Cycle>[] {
 		{
 			id: "totalAmount",
 			header: "Total Amount",
-			cell: ({ row }) => formatNumber(row.original.totalAmount),
+			cell: ({ row }) => formatKHR(row.original.totalAmount),
 			meta: { bodyClassName: "text-right" },
 		},
 		{
 			id: "totalPaidAmount",
 			header: "Paid",
-			cell: ({ row }) => formatNumber(row.original.totalPaidAmount),
+			cell: ({ row }) => formatKHR(row.original.totalPaidAmount),
 			meta: { bodyClassName: "text-right" },
 		},
 		{
 			id: "balanceAmount",
 			header: "Balance",
-			cell: ({ row }) => formatNumber((row.original.totalAmount ?? 0) - (row.original.totalPaidAmount ?? 0)),
+			cell: ({ row }) => formatKHR((row.original.totalAmount ?? 0) - (row.original.totalPaidAmount ?? 0)),
 			meta: { bodyClassName: "text-right" },
 		},
 	];

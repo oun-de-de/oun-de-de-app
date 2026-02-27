@@ -15,6 +15,7 @@ import {
 } from "../constants/constants";
 import { useCyclePayments } from "../hooks/use-cycle-payments";
 import { useInvoiceSelection } from "../hooks/use-invoice-selection";
+import { formatDisplayDateTime, formatKHR } from "../utils/formatters";
 import { CyclePaymentDialog } from "./cycle-payment-dialog";
 import { InvoiceBulkUpdateDialog } from "./invoice-bulk-update-dialog";
 import { getInvoiceColumns } from "./invoice-columns";
@@ -84,6 +85,7 @@ export function InvoiceContent({
 		onToggleOne,
 		rowById,
 	} = useInvoiceSelection(pagedData);
+	const displayedPayments = useMemo(() => payments.slice(0, 5), [payments]);
 
 	const handleOpenBulkUpdate = useCallback(() => {
 		if (selectedInvoiceIds.length === 0) return;
@@ -121,6 +123,40 @@ export function InvoiceContent({
 			}),
 		[allSelected, partiallySelected, selectedIdSet, onToggleAll, onToggleOne, handleOpenSingleUpdate],
 	);
+	const cycleSummaryCards = useMemo<SummaryStatCardData[]>(
+		() =>
+			activeCycle
+				? [
+						{ label: "Status", value: activeCycle.status, color: "bg-amber-500", icon: "mdi:information-outline" },
+						{
+							label: "Total Amount",
+							value: formatKHR(activeCycle.totalAmount),
+							color: "bg-emerald-500",
+							icon: "mdi:cash-multiple",
+						},
+						{
+							label: "Total Paid",
+							value: formatKHR(activeCycle.totalPaidAmount),
+							color: "bg-sky-500",
+							icon: "mdi:cash-check",
+						},
+						{
+							label: "Start Date",
+							value: `${formatDisplayDateTime(activeCycle.startDate)}`,
+							color: "bg-violet-500",
+							icon: "mdi:calendar-range",
+						},
+						{
+							label: "End Date",
+							value: `${formatDisplayDateTime(activeCycle.endDate)}`,
+							color: "bg-violet-500",
+							icon: "mdi:calendar-range",
+						},
+					]
+				: [],
+		[activeCycle],
+	);
+	const allSummaryCards = useMemo(() => [...summaryCards, ...cycleSummaryCards], [summaryCards, cycleSummaryCards]);
 
 	const handleOpenExportPreview = () => {
 		if (selectedInvoiceIds.length === 0) return;
@@ -241,8 +277,8 @@ export function InvoiceContent({
 			/>
 
 			<div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
-				{summaryCards.map((card) => (
-					<SummaryStatCard key={card.label} {...card} />
+				{allSummaryCards.map((card, index) => (
+					<SummaryStatCard key={`${card.label}-${index}`} {...card} />
 				))}
 			</div>
 
@@ -250,9 +286,10 @@ export function InvoiceContent({
 				<div className="space-y-2 rounded-lg border bg-white p-4">
 					<Text className="text-sm font-semibold">Payment History</Text>
 					<SmartDataTable
-						className="max-h-[260px]"
-						maxBodyHeight="260px"
-						data={payments}
+						className="max-h-[280px] overflow-hidden rounded-md border border-slate-200"
+						maxBodyHeight="280px"
+						variant="borderless"
+						data={displayedPayments}
 						columns={PAYMENT_COLUMNS}
 					/>
 					{isLoadingPayments && <Text className="text-xs text-slate-500">Loading payments...</Text>}

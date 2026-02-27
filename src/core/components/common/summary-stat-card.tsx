@@ -23,14 +23,16 @@ const IconWrap = styled.span.attrs<{ $color: string }>(({ $color }) => ({
 }))``;
 
 export function SummaryStatCard({ label, value, color, icon }: SummaryStatCardData) {
+	const displayValue = typeof value === "number" ? fNumber(value) : value;
+
 	return (
 		<CardRoot>
 			<div>
 				<LabelText>{label}</LabelText>
-				<ValueTitle>{fNumber(value)}</ValueTitle>
+				<ValueTitle>{displayValue}</ValueTitle>
 			</div>
 			<IconWrap $color={color}>
-				<Icon icon={icon} size={20} />
+				<Icon icon={icon} size={18} />
 			</IconWrap>
 		</CardRoot>
 	);

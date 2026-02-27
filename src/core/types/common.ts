@@ -2,7 +2,7 @@ import type { BasicStatus } from "./enum";
 
 export type SummaryStatCardData = {
 	label: string;
-	value: number;
+	value: number | string;
 	color: string;
 	icon: string;
 };

@@ -9,7 +9,7 @@ import { Input } from "@/core/ui/input";
 import { Label } from "@/core/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/core/ui/tabs";
 import { useCyclePayments } from "../hooks/use-cycle-payments";
-import { formatNumber } from "../utils/formatters";
+import { formatKHR } from "../utils/formatters";
 import { PAYMENT_COLUMNS } from "./payment-columns";
 
 type CyclePaymentDialogProps = {
@@ -20,8 +20,8 @@ type CyclePaymentDialogProps = {
 	hideTabSwitch?: boolean;
 };
 
-function toIsoStartOfDay(date: string): string {
-	return new Date(`${date}T00:00:00.000Z`).toISOString();
+function toIsoDateTime(dateTimeLocal: string): string {
+	return new Date(dateTimeLocal).toISOString();
 }
 
 function getLocalToday(): string {
@@ -30,6 +30,16 @@ function getLocalToday(): string {
 	const month = String(now.getMonth() + 1).padStart(2, "0");
 	const day = String(now.getDate()).padStart(2, "0");
 	return `${year}-${month}-${day}`;
+}
+
+function getLocalNowDateTime(): string {
+	const now = new Date();
+	const year = now.getFullYear();
+	const month = String(now.getMonth() + 1).padStart(2, "0");
+	const day = String(now.getDate()).padStart(2, "0");
+	const hours = String(now.getHours()).padStart(2, "0");
+	const minutes = String(now.getMinutes()).padStart(2, "0");
+	return `${year}-${month}-${day}T${hours}:${minutes}`;
 }
 
 export function CyclePaymentDialog({
@@ -42,7 +52,7 @@ export function CyclePaymentDialog({
 	const navigate = useNavigate();
 	const [activeTab, setActiveTab] = useState("payment");
 	const [amount, setAmount] = useState("");
-	const [paymentDate, setPaymentDate] = useState("");
+	const [paymentDateTime, setPaymentDateTime] = useState("");
 	const [termMonths, setTermMonths] = useState("1");
 	const [loanStartDate, setLoanStartDate] = useState("");
 	const { payments, isLoadingPayments, createPayment, isCreatingPayment, convertToLoan, isConvertingToLoan } =
@@ -64,16 +74,17 @@ export function CyclePaymentDialog({
 	useEffect(() => {
 		if (!open) return;
 		const today = getLocalToday();
+		const nowDateTime = getLocalNowDateTime();
 		setActiveTab(defaultTab);
 		setAmount("");
-		setPaymentDate(today);
+		setPaymentDateTime(nowDateTime);
 		setTermMonths("1");
 		setLoanStartDate(today);
 	}, [open, defaultTab]);
 
 	const handleSubmit = async () => {
 		if (!hasCycle) return;
-		if (!paymentDate) {
+		if (!paymentDateTime) {
 			toast.error("Payment date is required");
 			return;
 		}
@@ -89,7 +100,7 @@ export function CyclePaymentDialog({
 		try {
 			await createPayment({
 				amount: parsedAmount,
-				paymentDate: toIsoStartOfDay(paymentDate),
+				paymentDate: toIsoDateTime(paymentDateTime),
 			});
 			onOpenChange(false);
 		} catch (error) {
@@ -115,7 +126,7 @@ export function CyclePaymentDialog({
 		try {
 			const loan = await convertToLoan({
 				termMonths: parsedTermMonths,
-				startDate: toIsoStartOfDay(loanStartDate),
+				startDate: new Date(`${loanStartDate}T00:00:00.000Z`).toISOString(),
 			});
 			onOpenChange(false);
 			navigate(`/dashboard/borrow/${loan.id}`);
@@ -133,6 +144,16 @@ export function CyclePaymentDialog({
 							: "No cycle selected"}
 					</DialogDescription>
 				</DialogHeader>
+				{cycle && (
+					<div className="grid grid-cols-1 gap-2 rounded-md border bg-slate-50 p-3 text-xs text-slate-600 md:grid-cols-3">
+						<div>Cycle ID: {cycle.id}</div>
+						<div>Status: {cycle.status}</div>
+						<div>Customer: {cycle.customerName}</div>
+						<div>Total: {formatKHR(cycle.totalAmount)}</div>
+						<div>Paid: {formatKHR(totalPaidAmount)}</div>
+						<div>Balance: {formatKHR(cycleBalance)}</div>
+					</div>
+				)}
 
 				<Tabs value={activeTab} onValueChange={setActiveTab} className="w-full mt-2">
 					{!hideTabSwitch && (
@@ -156,23 +177,23 @@ export function CyclePaymentDialog({
 								/>
 							</div>
 							<div className="space-y-1.5">
-								<Label htmlFor="cycle-payment-date">Payment Date</Label>
+								<Label htmlFor="cycle-payment-date">Payment Date Time</Label>
 								<Input
 									id="cycle-payment-date"
-									type="date"
-									value={paymentDate}
-									onChange={(e) => setPaymentDate(e.target.value)}
+									type="datetime-local"
+									value={paymentDateTime}
+									onChange={(e) => setPaymentDateTime(e.target.value)}
 									disabled={isCreatingPayment}
 								/>
 							</div>
 						</div>
 						<div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
-							Remaining balance: <span className="font-semibold">{formatNumber(cycleBalance)}</span>
+							Remaining balance: <span className="font-semibold">{formatKHR(cycleBalance)}</span>
 						</div>
 					</TabsContent>
 					<TabsContent value="loan" className="space-y-4 pt-4">
 						<div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
-							Remaining balance: <span className="font-semibold">{formatNumber(cycleBalance)}</span>
+							Remaining balance: <span className="font-semibold">{formatKHR(cycleBalance)}</span>
 						</div>
 						<div className="grid grid-cols-1 md:grid-cols-2 gap-3">
 							<div className="space-y-1.5">
@@ -204,7 +225,13 @@ export function CyclePaymentDialog({
 
 				<div className="space-y-2 mt-2">
 					<Label className="text-sm font-semibold">Payment History</Label>
-					<SmartDataTable className="max-h-[320px]" maxBodyHeight="320px" data={payments} columns={PAYMENT_COLUMNS} />
+					<SmartDataTable
+						className="max-h-[320px] overflow-hidden rounded-md border border-slate-200"
+						maxBodyHeight="320px"
+						variant="borderless"
+						data={payments}
+						columns={PAYMENT_COLUMNS}
+					/>
 					{isLoadingPayments && <p className="text-xs text-slate-500">Loading payments...</p>}
 				</div>
 

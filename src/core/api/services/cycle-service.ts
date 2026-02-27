@@ -43,6 +43,11 @@ const getPayments = (cycleId: string): Promise<CyclePayment[]> =>
 		url: `${CycleApi.List}/${cycleId}/payments`,
 	});
 
+const getCycle = (cycleId: string): Promise<Cycle> =>
+	apiClient.get<Cycle>({
+		url: `${CycleApi.List}/${cycleId}`,
+	});
+
 const createPayment = (cycleId: string, data: CreatePaymentRequest): Promise<CyclePayment> =>
 	apiClient.post<CyclePayment>({
 		url: `${CycleApi.List}/${cycleId}/payments`,
@@ -57,6 +62,7 @@ const convertToLoan = (cycleId: string, data: ConvertToLoanRequest): Promise<Loa
 
 export default {
 	getCycles,
+	getCycle,
 	getPayments,
 	createPayment,
 	convertToLoan,
