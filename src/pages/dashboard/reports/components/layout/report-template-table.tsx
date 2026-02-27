@@ -89,12 +89,17 @@ export function ReportTemplateTable({
 	const tableColSpan = Math.max(visibleColumns.length, 1);
 
 	return (
-		<div className={cn("flex flex-col gap-6 rounded-md border bg-white p-6", className)}>
+		<div
+			className={cn(
+				"flex flex-col gap-6 rounded-md border bg-white p-6 print:gap-4 print:rounded-none print:border-0 print:p-0",
+				className,
+			)}
+		>
 			{showSections?.header !== false &&
 				(headerContent || (
-					<div className="flex flex-col items-center gap-1 text-center">
-						<div className="text-lg font-bold text-slate-700">{title}</div>
-						{subtitle && <div className="text-base font-semibold text-slate-600">{subtitle}</div>}
+					<div className="flex flex-col items-center gap-1 text-center print:gap-0.5">
+						<div className="text-lg font-bold text-slate-700 print:text-[22px] print:tracking-[0.02em]">{title}</div>
+						{subtitle && <div className="text-base font-semibold text-slate-600 print:text-[16px]">{subtitle}</div>}
 					</div>
 				))}
 
@@ -114,7 +119,7 @@ export function ReportTemplateTable({
 			)}
 
 			<div className="w-full overflow-x-auto">
-				<table className="w-full border-collapse border text-xs text-slate-700">
+				<table className="w-full border-collapse border text-xs text-slate-700 print:text-[11px]">
 					<thead>
 						{table.getHeaderGroups().map((headerGroup) => (
 							<tr key={headerGroup.id} className="bg-slate-50 text-slate-600 uppercase">
@@ -124,7 +129,7 @@ export function ReportTemplateTable({
 										<th
 											key={header.id}
 											className={cn(
-												"border p-2.5 font-semibold",
+												"border p-2.5 font-semibold print:px-2 print:py-1.5",
 												alignClass[meta?.align ?? "center"],
 												meta?.headerClassName,
 											)}
@@ -152,7 +157,11 @@ export function ReportTemplateTable({
 										return (
 											<td
 												key={cell.id}
-												className={cn("border p-2.5", alignClass[meta?.align ?? "center"], meta?.className)}
+												className={cn(
+													"border p-2.5 print:px-2 print:py-1.5",
+													alignClass[meta?.align ?? "center"],
+													meta?.className,
+												)}
 											>
 												{flexRender(cell.column.columnDef.cell, cell.getContext())}
 											</td>
@@ -166,7 +175,7 @@ export function ReportTemplateTable({
 			</div>
 
 			{summaryRows.length > 0 && (
-				<div className="ml-auto flex flex-col items-end gap-1 text-sm font-semibold text-slate-700">
+				<div className="ml-auto flex flex-col items-end gap-1 text-sm font-semibold text-slate-700 print:mt-2 print:text-[18px]">
 					{summaryRows.map((summaryRow) => (
 						<div key={summaryRow.key}>
 							<span>{summaryRow.label}</span>
@@ -176,7 +185,7 @@ export function ReportTemplateTable({
 				</div>
 			)}
 
-			<div className="flex justify-between text-[10px] text-slate-400">
+			<div className="flex justify-between text-[10px] text-slate-400 print:mt-3 print:text-[11px]">
 				<div className="flex flex-col gap-1">
 					{showSections?.signature && <span>Signature: ________________</span>}
 					{showSections?.timestamp !== false && timestampText && <span>{timestampText}</span>}

@@ -1,17 +1,17 @@
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocation } from "react-router";
 import { toast } from "sonner";
 import invoiceService from "@/core/api/services/invoice-service";
 import type { InvoiceExportPreviewLocationState } from "@/core/types/invoice";
 import { cn } from "@/core/utils";
-
-import { ReportTemplateTable } from "../../reports/components/layout/report-template-table";
+import { type ReportTemplateMetaColumn, ReportTemplateTable } from "../../reports/components/layout/report-template-table";
 import type { ReportSectionVisibility } from "../../reports/components/layout/report-toolbar";
 import {
 	DEFAULT_REPORT_SECTIONS,
 	REPORT_DEFAULT_DATE,
 	REPORT_FOOTER_TEXT,
+	REPORT_KHMER_TITLE,
 	REPORT_TIMESTAMP_TEXT,
 } from "../../reports/report-detail/constants";
 import { EXPORT_PREVIEW_COLUMNS } from "./components/export-preview-columns";
@@ -72,6 +72,27 @@ export default function InvoiceExportPreviewPage() {
 	const tableClassName = useMemo(() => getTemplateClassName(templateMode), [templateMode]);
 
 	const reportRows = useMemo(() => buildReportRows(sortedPreviewRows), [sortedPreviewRows]);
+	const reportNo = useMemo(() => sortedPreviewRows[0]?.refNo || "-", [sortedPreviewRows]);
+	const reportDate = useMemo(() => sortedPreviewRows[0]?.date || REPORT_DEFAULT_DATE, [sortedPreviewRows]);
+	const metaColumns = useMemo<ReportTemplateMetaColumn[]>(
+		() => [
+			{
+				key: "left-meta",
+				rows: [`Invoice No: ${reportNo}`],
+			},
+			{
+				key: "center-meta",
+				rows: [""],
+				align: "center",
+			},
+			{
+				key: "right-meta",
+				rows: [`Date: ${reportDate}`],
+				align: "right",
+			},
+		],
+		[reportDate, reportNo],
+	);
 
 	const totalBalance = useMemo(() => calculateTotalBalance(previewRows), [previewRows]);
 
@@ -105,22 +126,22 @@ export default function InvoiceExportPreviewPage() {
 		}
 	};
 
-	const handlePrint = () => {
+	const handlePrint = useCallback(() => {
 		window.print();
-	};
+	}, []);
 
 	useEffect(() => {
 		if (hasAutoPrinted || !state?.autoPrint) return;
 		if (exportQuery.isLoading || previewRows.length === 0) return;
 		setHasAutoPrinted(true);
 		requestAnimationFrame(() => {
-			window.print();
+			handlePrint();
 		});
-	}, [hasAutoPrinted, state?.autoPrint, exportQuery.isLoading, previewRows.length]);
+	}, [hasAutoPrinted, state?.autoPrint, exportQuery.isLoading, previewRows.length, handlePrint]);
 
 	return (
-		<div className="invoice-export-preview-page flex h-full flex-col gap-4 p-2 print:p-0">
-			<div className="flex flex-col">
+		<div className="invoice-export-preview-page flex h-full flex-col gap-4 p-2 print:block print:h-auto print:p-0">
+			<div className="flex flex-col print:block">
 				<div className="print:hidden">
 					<ExportPreviewToolbar
 						showSections={showSections}
@@ -145,10 +166,18 @@ export default function InvoiceExportPreviewPage() {
 
 				<div className={cn("invoice-export-preview-template w-full", tableWrapperClassName)}>
 					<ReportTemplateTable
-						className={tableClassName}
+						className={cn("invoice-export-print-target invoice-print-sheet", tableClassName)}
 						showSections={showSections}
-						title="INVOICE EXPORT PREVIEW"
-						subtitle={REPORT_DEFAULT_DATE}
+						title="Open Invoice On Period By Group"
+						subtitle={reportDate}
+						headerContent={
+							<div className="invoice-print-header flex flex-col items-center gap-1 text-center">
+								<div className="text-[10px] text-slate-500">Rabbit - Open Invoice On Period By Group</div>
+								<div className="text-xl font-bold leading-none text-slate-700">{REPORT_KHMER_TITLE}</div>
+								<div className="text-sm font-semibold text-slate-600 underline underline-offset-2">TEL: 070669898</div>
+							</div>
+						}
+						metaColumns={metaColumns}
 						columns={columns}
 						hiddenColumnKeys={hiddenColumnKeys}
 						rows={reportRows}
