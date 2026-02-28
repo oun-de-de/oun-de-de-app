@@ -48,8 +48,8 @@ export function BorrowSidebar({ activeBorrowId, listState, updateState, onSelect
 		() =>
 			loans.map((loan) => ({
 				id: loan.id,
-				name: loan.borrowerId,
-				code: `${loan.borrowerType} | ${formatKHR(loan.principalAmount)}`,
+				name: loan.borrowerName,
+				code: `${loan.borrowerType} | ${formatKHR(loan.principalAmount)} | ${loan.borrowerId}`,
 			})),
 		[loans],
 	);

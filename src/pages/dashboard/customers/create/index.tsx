@@ -45,7 +45,7 @@ export default function CreateCustomerPage() {
 		const payload: CreateCustomer = {
 			registerDate: new Date(registerDateIso),
 			name: data.name,
-			status: !!data.status,
+			status: true,
 			referredById,
 			warehouseId: data.warehouseId,
 			memo: data.memo,

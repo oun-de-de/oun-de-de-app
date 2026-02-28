@@ -9,7 +9,6 @@ import { buildPagination } from "@/core/utils/dashboard-utils";
 import { useRouter } from "@/routes/hooks/use-router";
 import { EquipmentBorrowingsDialog } from "./components/equipment-borrowings-dialog";
 import { EquipmentInfoCard } from "./components/equipment-info-card";
-import { EquipmentQuickActions } from "./components/equipment-quick-actions";
 import { UpdateStockDialog } from "./components/update-stock-dialog";
 import { useEquipmentDetail } from "./hooks/use-equipment-detail";
 
@@ -84,12 +83,6 @@ export default function EquipmentDetailPage() {
 						isPending={stockUpdate.isPending}
 					/>
 					{isEquipment && <EquipmentBorrowingsDialog itemId={activeItem.id} customers={customers} />}
-					<EquipmentQuickActions
-						onPrintReport={() => {}}
-						onExport={() => {}}
-						onDuplicate={() => {}}
-						onArchive={() => {}}
-					/>
 				</div>
 			</div>
 

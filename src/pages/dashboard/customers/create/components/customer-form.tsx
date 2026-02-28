@@ -50,26 +50,28 @@ export function CustomerForm({
 	const title = mode === "create" ? "Add Customer" : "Edit Customer";
 
 	const fields = useMemo<FormFieldConfig[]>(() => {
-		return CUSTOMER_FIELDS.map((field) => {
-			if (field.name === "registerDate") {
-				return { ...field, required: mode === "create", disabled: mode === "edit" };
-			}
-			if (field.name === "employeeId") {
-				return { ...field, options: employeeOptions };
-			}
-			if (field.name === "referredById") {
-				return { ...field, options: customerOptions };
-			}
-			return field;
-		}).concat([
-			{
-				name: "vehicles",
-				label: "Vehicles",
-				type: "custom",
-				component: <VehicleListField />,
-				className: "col-span-2",
-			},
-		]);
+		return CUSTOMER_FIELDS.filter((field) => !(mode === "create" && field.name === "status"))
+			.map((field) => {
+				if (field.name === "registerDate") {
+					return { ...field, required: mode === "create", disabled: mode === "edit" };
+				}
+				if (field.name === "employeeId") {
+					return { ...field, options: employeeOptions };
+				}
+				if (field.name === "referredById") {
+					return { ...field, options: customerOptions };
+				}
+				return field;
+			})
+			.concat([
+				{
+					name: "vehicles",
+					label: "Vehicles",
+					type: "custom",
+					component: <VehicleListField />,
+					className: "col-span-2",
+				},
+			]);
 	}, [customerOptions, employeeOptions, mode]);
 
 	return (

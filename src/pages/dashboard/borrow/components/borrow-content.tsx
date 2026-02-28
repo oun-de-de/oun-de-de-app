@@ -23,7 +23,7 @@ type Props = {
 
 export function BorrowContent({ activeCustomerId, activeCustomerName, listState, updateState }: Props) {
 	const navigate = useNavigate();
-	const { fieldFilter, searchValue, typeFilter } = listState;
+	const { searchValue, typeFilter } = listState;
 	const { data: loansResponse } = useLoans();
 
 	const loans = useMemo(
@@ -35,8 +35,8 @@ export function BorrowContent({ activeCustomerId, activeCustomerName, listState,
 	);
 
 	const filteredLoans = useMemo(
-		() => filterLoans(loans, { fieldFilter, searchValue, typeFilter }),
-		[fieldFilter, loans, searchValue, typeFilter],
+		() => filterLoans(loans, { searchValue, typeFilter }),
+		[loans, searchValue, typeFilter],
 	);
 	const summaryCards = useMemo(() => buildLoanSummaryCards(loans), [loans]);
 	const { totalItems, totalPages, paginatedLoans, paginationItems } = useMemo(

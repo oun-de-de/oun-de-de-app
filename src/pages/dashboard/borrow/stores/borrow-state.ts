@@ -3,19 +3,16 @@ import type { BaseState } from "@/core/types/state";
 
 type BorrowType = "InitialState" | "UpdateState" | "ResetState";
 export type BorrowTypeFilter = "all" | "employee" | "customer";
-export type BorrowFieldFilter = "borrowerId" | "borrowerType";
 
 export type BorrowState = BaseState<BorrowType> &
 	Omit<ListState, "typeFilter" | "fieldFilter"> & {
 		typeFilter: BorrowTypeFilter;
-		fieldFilter: BorrowFieldFilter;
 		activeView: "all" | "requests";
 	};
 
 export const createBorrowInitialState = (): BorrowState => ({
 	type: "InitialState",
 	typeFilter: "all",
-	fieldFilter: "borrowerId",
 	searchValue: "",
 	page: 1,
 	pageSize: 10,
@@ -33,7 +30,6 @@ export const _BorrowState = ({
 }): BorrowState => ({
 	type,
 	typeFilter: patch?.typeFilter ?? state.typeFilter,
-	fieldFilter: patch?.fieldFilter ?? state.fieldFilter,
 	searchValue: patch?.searchValue ?? state.searchValue,
 	page: patch?.page ?? state.page,
 	pageSize: patch?.pageSize ?? state.pageSize,

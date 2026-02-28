@@ -65,9 +65,14 @@ export function EquipmentInfoCard({ item, onUpdate }: EquipmentInfoCardProps) {
 						</div>
 					) : (
 						<div className="flex flex-col">
-							<Text variant="body1" className="text-2xl font-bold">
-								{item.name}
-							</Text>
+							<div className="flex flex-wrap items-center gap-3">
+								<Text variant="body1" className="text-2xl font-bold">
+									{item.name}
+								</Text>
+								<Badge variant={isLowStock ? "error" : "success"} className={cn("md:h-8", isEditing && "hidden")}>
+									{isLowStock ? "Low Stock" : "Normal"}
+								</Badge>
+							</div>
 							<Text variant="body2" className="text-slate-500 mt-1">
 								{item.code} • <Badge variant="outline">{item.type}</Badge>
 							</Text>
@@ -75,9 +80,6 @@ export function EquipmentInfoCard({ item, onUpdate }: EquipmentInfoCardProps) {
 					)}
 				</div>
 				<div className="flex items-center justify-center gap-2">
-					<Badge variant={isLowStock ? "error" : "success"} className={cn("md:h-8", isEditing && "hidden")}>
-						{isLowStock ? "Low Stock" : "Normal"}
-					</Badge>
 					{!isEditing && onUpdate && (
 						<Button size="sm" variant="secondary" onClick={() => setIsEditing(true)}>
 							Edit

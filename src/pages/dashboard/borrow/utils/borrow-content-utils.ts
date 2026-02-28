@@ -1,7 +1,7 @@
 import type { SummaryStatCardData } from "@/core/types/common";
 import type { Loan } from "@/core/types/loan";
 import { formatKHR } from "@/core/utils/formatters";
-import type { BorrowFieldFilter, BorrowState, BorrowTypeFilter } from "../stores/borrow-state";
+import type { BorrowState, BorrowTypeFilter } from "../stores/borrow-state";
 
 export const BORROW_TYPE_OPTIONS = [
 	{ label: "All Type", value: "all" },
@@ -9,28 +9,16 @@ export const BORROW_TYPE_OPTIONS = [
 	{ label: "Customer", value: "customer" },
 ];
 
-export const BORROW_FIELD_OPTIONS = [
-	{ label: "Borrower ID", value: "borrowerId" },
-	{ label: "Type", value: "borrowerType" },
-];
-
-const SEARCH_SELECTOR: Record<BorrowFieldFilter, (row: Loan) => string> = {
-	borrowerId: (row) => row.borrowerId,
-	borrowerType: (row) => row.borrowerType,
-};
-
 const isBorrowTypeFilter = (value: string): value is BorrowTypeFilter =>
 	value === "all" || value === "employee" || value === "customer";
 
-const isBorrowFieldFilter = (value: string): value is BorrowFieldFilter =>
-	value === "borrowerId" || value === "borrowerType";
-
-export function filterLoans(loans: Loan[], state: Pick<BorrowState, "searchValue" | "fieldFilter" | "typeFilter">) {
+export function filterLoans(loans: Loan[], state: Pick<BorrowState, "searchValue" | "typeFilter">) {
 	const normalizedQuery = state.searchValue.trim().toLowerCase();
-	const selectSearchField = SEARCH_SELECTOR[state.fieldFilter] ?? SEARCH_SELECTOR.borrowerId;
 	const matchesType = (row: Loan) => state.typeFilter === "all" || row.borrowerType === state.typeFilter;
 	const matchesSearch = (row: Loan) =>
-		normalizedQuery === "" || selectSearchField(row).toLowerCase().includes(normalizedQuery);
+		normalizedQuery === "" ||
+		row.borrowerName.toLowerCase().includes(normalizedQuery) ||
+		row.borrowerId.toLowerCase().includes(normalizedQuery);
 
 	return loans.filter((row) => matchesType(row) && matchesSearch(row));
 }
@@ -107,20 +95,16 @@ export function buildBorrowTableConfigs({
 }) {
 	return {
 		filterConfig: {
+			showFieldFilter: false,
 			typeOptions: BORROW_TYPE_OPTIONS,
-			fieldOptions: BORROW_FIELD_OPTIONS,
 			typeValue: state.typeFilter,
-			fieldValue: state.fieldFilter || "borrowerId",
 			searchValue: state.searchValue,
 			onTypeChange: (value: string) => {
 				if (!isBorrowTypeFilter(value)) return;
 				updateState({ typeFilter: value, page: 1 });
 			},
-			onFieldChange: (value: string) => {
-				if (!isBorrowFieldFilter(value)) return;
-				updateState({ fieldFilter: value, page: 1 });
-			},
 			onSearchChange: (v: string) => updateState({ searchValue: v, page: 1 }),
+			searchPlaceholder: "Search borrower name...",
 		},
 		paginationConfig: {
 			page: state.page,
