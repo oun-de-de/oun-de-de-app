@@ -1,4 +1,3 @@
-import dayjs from "dayjs";
 import styled from "styled-components";
 import { Icon } from "@/core/components/icon";
 import { themeVars } from "@/core/theme/theme.css.ts";
@@ -10,6 +9,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/core/ui/popover";
 import { Textarea } from "@/core/ui/textarea";
 import { ToggleGroup, ToggleGroupItem } from "@/core/ui/toggle-group";
 import { Text, Title } from "@/core/ui/typography";
+import { formatDisplayDate, formatDisplayDateTime } from "@/core/utils/formatters";
 import { type Task, TaskPriority } from "./types";
 
 type Props = {
@@ -55,7 +55,9 @@ export default function TaskDetail({ task }: Props) {
 					<div className="label">Due Date</div>
 					<Popover>
 						<PopoverTrigger asChild>
-							<Button variant={"outline"}>{date ? dayjs(date).format("DD/MM/YYYY") : <span>Pick a date</span>}</Button>
+							<Button variant={"outline"}>
+								{date ? formatDisplayDate(date instanceof Date ? date.toISOString() : date) : <span>Pick a date</span>}
+							</Button>
 						</PopoverTrigger>
 						<PopoverContent className="w-auto p-0">
 							<Calendar mode="single" selected={date} initialFocus />
@@ -120,7 +122,7 @@ export default function TaskDetail({ task }: Props) {
 									{username}
 								</Text>
 								<Text variant="caption" color="secondary">
-									{dayjs(time).format("DD/MM/YYYY HH:mm")}
+									{formatDisplayDateTime(time instanceof Date ? time.toISOString() : time)}
 								</Text>
 							</div>
 							<p>{content}</p>

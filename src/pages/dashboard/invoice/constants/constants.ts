@@ -1,6 +1,6 @@
 const INVOICE_TYPE_FILTER_OPTIONS = [
-	{ value: "INVOICE", label: "Invoice" },
-	{ value: "RECEIPT", label: "Receipt" },
+	{ value: "invoice", label: "Invoice" },
+	{ value: "receipt", label: "Receipt" },
 ] as const;
 
 export const INVOICE_FILTER_TYPE_OPTIONS = [{ value: "all", label: "All Type" }, ...INVOICE_TYPE_FILTER_OPTIONS];

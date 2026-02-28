@@ -1,4 +1,4 @@
-import dayjs from "dayjs";
+import { formatDisplayDate } from "@/core/utils/formatters";
 
 type SaleFilters = {
 	date?: DateFilter;
@@ -31,7 +31,7 @@ type SaleCategoryFilter = {
 };
 
 export const defaultSaleFilters: SaleFilters = {
-	date: dayjs().format("DD/MM/YYYY"),
+	date: formatDisplayDate(new Date().toISOString()),
 	customer: undefined,
 	employee: undefined,
 	warehouse: undefined,

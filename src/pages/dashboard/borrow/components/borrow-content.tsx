@@ -27,7 +27,10 @@ export function BorrowContent({ activeCustomerId, activeCustomerName, listState,
 	const { data: loansResponse } = useLoans();
 
 	const loans = useMemo(
-		() => (loansResponse?.content ?? []).filter((loan) => !activeCustomerId || loan.borrowerId === activeCustomerId),
+		() =>
+			(loansResponse?.content ?? []).filter(
+				(loan) => !activeCustomerId || (loan.borrowerType === "customer" && loan.borrowerId === activeCustomerId),
+			),
 		[loansResponse, activeCustomerId],
 	);
 

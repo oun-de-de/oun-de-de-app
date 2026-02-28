@@ -1,4 +1,3 @@
-import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { useState } from "react";
 import type { DateRange } from "react-day-picker";
@@ -7,6 +6,7 @@ import { Calendar } from "@/core/ui/calendar";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/core/ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/core/ui/popover";
 import { cn } from "@/core/utils";
+import { formatDisplayDate } from "@/core/utils/formatters";
 
 interface InvoiceExportDialogProps {
 	open: boolean;
@@ -43,10 +43,11 @@ export function InvoiceExportDialog({ open, onOpenChange, onExport, isExporting 
 									{dateRange?.from ? (
 										dateRange.to ? (
 											<>
-												{format(dateRange.from, "LLL dd, y")} - {format(dateRange.to, "LLL dd, y")}
+												{formatDisplayDate(dateRange.from.toISOString())} -{" "}
+												{formatDisplayDate(dateRange.to.toISOString())}
 											</>
 										) : (
-											format(dateRange.from, "LLL dd, y")
+											formatDisplayDate(dateRange.from.toISOString())
 										)
 									) : (
 										<span>Pick a date range</span>

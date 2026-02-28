@@ -316,6 +316,7 @@ export function InvoiceContent({
 				data={pagedData}
 				columns={columns}
 				filterConfig={{
+					showFieldFilter: false,
 					typeOptions: INVOICE_FILTER_TYPE_OPTIONS,
 					fieldOptions: INVOICE_FILTER_FIELD_OPTIONS,
 					typeValue: typeFilter,

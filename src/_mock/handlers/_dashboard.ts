@@ -1,11 +1,11 @@
 import { faker } from "@faker-js/faker";
-import { http, HttpResponse } from "msw";
-import { ResultStatus } from "@/core/types/enum";
 import { format } from "date-fns";
-import { DailyIncomeAccounting, DailyIncomePos } from "@/core/domain/dashboard/entities/daily-income";
-import { CustomerSummaryItem } from "@/core/domain/dashboard/entities/customer-info";
-import { PerformanceItem } from "@/core/domain/dashboard/entities/performance";
-import { FilterData } from "@/core/domain/dashboard/entities/filter";
+import { HttpResponse, http } from "msw";
+import type { CustomerSummaryItem } from "@/core/domain/dashboard/entities/customer-info";
+import type { DailyIncomeAccounting, DailyIncomePos } from "@/core/domain/dashboard/entities/daily-income";
+import type { FilterData } from "@/core/domain/dashboard/entities/filter";
+import type { PerformanceItem } from "@/core/domain/dashboard/entities/performance";
+import { ResultStatus } from "@/core/types/enum";
 
 /**
  * Generate mock daily income POS data using faker
@@ -133,10 +133,16 @@ const dailyIncomeAccounting = http.get("/api/v1/dashboard/daily-income-accountin
 
 const customerInfo = http.get("/api/v1/dashboard/customer-info", () => {
 	const mock: CustomerSummaryItem[] = [
-		{ id: "deposit", label: "Deposit Balance", value: "0 ₺", variant: "info", icon: "solar:dollar-bold" },
-		{ id: "sale-order", label: "Sale Order", value: "0 ₺", variant: "success", icon: "solar:users-group-rounded-bold" },
-		{ id: "invoice", label: "Invoice", value: "398,631,700 ₺", variant: "warning", icon: "solar:bill-list-bold" },
-		{ id: "overdue", label: "Overdue", value: "0 ₺", variant: "destructive", icon: "solar:bill-cross-bold" },
+		{ id: "deposit", label: "Deposit Balance", value: "0 KHR", variant: "info", icon: "solar:dollar-bold" },
+		{
+			id: "sale-order",
+			label: "Sale Order",
+			value: "0 KHR",
+			variant: "success",
+			icon: "solar:users-group-rounded-bold",
+		},
+		{ id: "invoice", label: "Invoice", value: "398,631,700 KHR", variant: "warning", icon: "solar:bill-list-bold" },
+		{ id: "overdue", label: "Overdue", value: "0 KHR", variant: "destructive", icon: "solar:bill-cross-bold" },
 	];
 
 	return HttpResponse.json(
@@ -156,19 +162,19 @@ const performance = http.get("/api/v1/dashboard/performance", () => {
 		{
 			id: "income",
 			label: "Income",
-			value: "255,180,200 ₺",
+			value: "255,180,200 KHR",
 			variant: "info",
 		},
 		{
 			id: "expenses",
 			label: "Expenses",
-			value: "39,366,200 ₺",
+			value: "39,366,200 KHR",
 			variant: "warning",
 		},
 		{
 			id: "net-income",
 			label: "Net Income",
-			value: "215,814,000 ₺",
+			value: "215,814,000 KHR",
 			variant: "success",
 		},
 	];

@@ -1,6 +1,6 @@
-import { format, isValid, parseISO } from "date-fns";
 import * as XLSX from "xlsx";
 import type { InvoiceExportLineResult } from "@/core/types/invoice";
+import { formatDisplayDate } from "@/core/utils/formatters";
 
 const EXCEL_MIME_TYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 
@@ -27,11 +27,8 @@ const TEMPLATE_COLUMNS: TemplateColumn[] = [
 	{ label: "MEMO", width: 30, map: (row) => row.memo ?? "" },
 ];
 
-function formatReportDate(value?: string): string {
-	if (!value) return "";
-	const parsed = parseISO(value);
-	if (!isValid(parsed)) return value;
-	return format(parsed, "dd/MM/yyyy");
+function formatReportDate(value?: string | null): string {
+	return formatDisplayDate(value);
 }
 
 export function buildInvoiceExportBlob(rows: InvoiceExportLineResult[]): Blob {
