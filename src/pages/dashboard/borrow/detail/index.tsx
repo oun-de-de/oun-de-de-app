@@ -56,9 +56,6 @@ export default function BorrowDetailPage() {
 					<Button size="sm" className="gap-1 pointer-events-none">
 						Loan Details
 					</Button>
-					<Text variant="body2" className="text-slate-400 font-mono">
-						{loan.id.slice(0, 10)}
-					</Text>
 				</div>
 			</div>
 

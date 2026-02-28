@@ -6,8 +6,10 @@ export type Loan = {
 	id: string;
 	borrowerType: BorrowerType;
 	borrowerId: string;
+	borrowerName: string;
 	principalAmount: number;
 	termMonths: number;
+	monthlyPayment: number;
 	startDate: string;
 	createdAt: string;
 };

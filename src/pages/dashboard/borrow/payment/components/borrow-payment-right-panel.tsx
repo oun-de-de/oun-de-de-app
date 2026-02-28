@@ -35,13 +35,13 @@ export function BorrowPaymentRightPanel({
 						</Label>
 						<div className="relative group">
 							<span className="absolute left-3.5 top-3.5 text-slate-400 font-bold group-focus-within:text-blue-500 transition-colors pointer-events-none">
-								$
+								៛
 							</span>
 							<Input
 								type="number"
 								value={depositAmount}
 								onChange={(e) => setDepositAmount(e.target.value)}
-								className="h-12 pl-8 font-bold text-lg border-slate-200 focus:border-blue-500 rounded-lg shadow-inner bg-slate-50/50"
+								className="h-12 pl-8 font-bold text-lg border-slate-200 focus:border-blue-500 rounded-lg bg-slate-50/50"
 								placeholder="0.00"
 							/>
 						</div>
@@ -49,17 +49,17 @@ export function BorrowPaymentRightPanel({
 
 					<div className="flex gap-4 w-full">
 						<div className="space-y-2 flex-[1]">
-							<Label className="text-xs font-bold text-slate-500 uppercase">Term (M)</Label>
+							<Label className="font-medium text-gray-500">Term (M)</Label>
 							<Input
 								type="number"
 								min={1}
 								value={termMonths}
 								onChange={(e) => setTermMonths(Number(e.target.value) || 1)}
-								className="h-11 border-slate-200 font-medium rounded-lg text-center shadow-inner bg-slate-50/50"
+								className="h-11 border-slate-200 font-medium rounded-lg text-center bg-slate-50/50"
 							/>
 						</div>
 						<div className="space-y-2 flex-[2.5]">
-							<Label className="text-xs font-bold text-slate-500 uppercase">Due Date</Label>
+							<Label className="font-medium text-gray-500">Due Date</Label>
 							<Input
 								type="date"
 								value={formatDateToYYYYMMDD(dueDate)}
@@ -67,7 +67,7 @@ export function BorrowPaymentRightPanel({
 									if (!e.target.value) return;
 									setDueDate(new Date(`${e.target.value}T00:00:00.000Z`));
 								}}
-								className="h-11 border-slate-200 font-medium rounded-lg shadow-inner bg-slate-50/50"
+								className="h-11 border-slate-200 font-medium rounded-lg bg-slate-50/50"
 							/>
 						</div>
 					</div>

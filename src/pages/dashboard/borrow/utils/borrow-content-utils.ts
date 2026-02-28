@@ -1,5 +1,5 @@
 import type { SummaryStatCardData } from "@/core/types/common";
-import type { BorrowRow } from "../components/borrow-columns";
+import type { Loan } from "@/core/types/loan";
 import type { BorrowFieldFilter, BorrowState, BorrowTypeFilter } from "../stores/borrow-state";
 
 export const BORROW_TYPE_OPTIONS = [
@@ -13,7 +13,7 @@ export const BORROW_FIELD_OPTIONS = [
 	{ label: "Type", value: "borrowerType" },
 ];
 
-const SEARCH_SELECTOR: Record<BorrowFieldFilter, (row: BorrowRow) => string> = {
+const SEARCH_SELECTOR: Record<BorrowFieldFilter, (row: Loan) => string> = {
 	borrowerId: (row) => row.borrowerId,
 	borrowerType: (row) => row.borrowerType,
 };
@@ -24,24 +24,21 @@ const isBorrowTypeFilter = (value: string): value is BorrowTypeFilter =>
 const isBorrowFieldFilter = (value: string): value is BorrowFieldFilter =>
 	value === "borrowerId" || value === "borrowerType";
 
-export function filterBorrowRows(
-	rows: BorrowRow[],
-	state: Pick<BorrowState, "searchValue" | "fieldFilter" | "typeFilter">,
-) {
+export function filterLoans(loans: Loan[], state: Pick<BorrowState, "searchValue" | "fieldFilter" | "typeFilter">) {
 	const normalizedQuery = state.searchValue.trim().toLowerCase();
 	const selectSearchField = SEARCH_SELECTOR[state.fieldFilter] ?? SEARCH_SELECTOR.borrowerId;
-	const matchesType = (row: BorrowRow) => state.typeFilter === "all" || row.borrowerType === state.typeFilter;
-	const matchesSearch = (row: BorrowRow) =>
+	const matchesType = (row: Loan) => state.typeFilter === "all" || row.borrowerType === state.typeFilter;
+	const matchesSearch = (row: Loan) =>
 		normalizedQuery === "" || selectSearchField(row).toLowerCase().includes(normalizedQuery);
 
-	return rows.filter((row) => matchesType(row) && matchesSearch(row));
+	return loans.filter((row) => matchesType(row) && matchesSearch(row));
 }
 
-export function buildBorrowSummaryCards(rows: BorrowRow[]): SummaryStatCardData[] {
-	const totalLoans = rows.length;
-	const employeeCount = rows.filter((row) => row.borrowerType === "employee").length;
-	const customerCount = rows.filter((row) => row.borrowerType === "customer").length;
-	const totalPrincipal = rows.reduce((sum, row) => sum + row.principalAmount, 0);
+export function buildLoanSummaryCards(loans: Loan[]): SummaryStatCardData[] {
+	const totalLoans = loans.length;
+	const employeeCount = loans.filter((row) => row.borrowerType === "employee").length;
+	const customerCount = loans.filter((row) => row.borrowerType === "customer").length;
+	const totalPrincipal = loans.reduce((sum, row) => sum + row.principalAmount, 0);
 
 	return [
 		{ label: "Total Loans", value: totalLoans, color: "bg-blue-500", icon: "mdi:cash-multiple" },
@@ -51,17 +48,17 @@ export function buildBorrowSummaryCards(rows: BorrowRow[]): SummaryStatCardData[
 	];
 }
 
-export function paginateBorrowRows(rows: BorrowRow[], page: number, pageSize: number) {
-	const totalItems = rows.length;
+export function paginateLoans(loans: Loan[], page: number, pageSize: number) {
+	const totalItems = loans.length;
 	const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
 	const start = (page - 1) * pageSize;
-	const paginatedRows = rows.slice(start, start + pageSize);
+	const paginatedLoans = loans.slice(start, start + pageSize);
 	const paginationItems = Array.from({ length: totalPages }, (_, index) => index + 1);
 
-	return { totalItems, totalPages, paginatedRows, paginationItems };
+	return { totalItems, totalPages, paginatedLoans, paginationItems };
 }
 
-export function buildBorrowViewActions({
+export function buildLoanViewActions({
 	activeView,
 	updateState,
 	navigate,
@@ -72,16 +69,16 @@ export function buildBorrowViewActions({
 }) {
 	const openAllLoans = () => updateState({ activeView: "all", page: 1 });
 	const openRequests = () => updateState({ activeView: "requests", page: 1 });
+	const isRequestsView = activeView === "requests";
 
 	return {
 		mainAction: {
-			label: activeView === "requests" ? "Requests" : "All Loans",
-			onClick: activeView === "requests" ? openRequests : openAllLoans,
+			label: isRequestsView ? "All Loans" : "Requests",
+			onClick: isRequestsView ? openAllLoans : openRequests,
 		},
-		options: [
-			{ label: "All Loans", onClick: openAllLoans },
-			{ label: "Requests", onClick: openRequests },
-		],
+		options: isRequestsView
+			? [{ label: "Requests", onClick: openRequests }]
+			: [{ label: "All Loans", onClick: openAllLoans }],
 		newBorrowMainAction: {
 			label: "New Loan",
 			onClick: () => navigate("/dashboard/borrow/payment"),

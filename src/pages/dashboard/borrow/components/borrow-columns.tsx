@@ -1,19 +1,10 @@
 import type { ColumnDef } from "@tanstack/react-table";
-import type { BorrowerType } from "@/core/types/loan";
+import { format, parseISO } from "date-fns";
+import type { Loan } from "@/core/types/loan";
 import { Badge } from "@/core/ui/badge";
 
-export type BorrowRow = {
-	id: string;
-	borrowerType: BorrowerType;
-	borrowerId: string;
-	principalAmount: number;
-	termMonths: number;
-	monthlyPayment: number;
-	startDate: string;
-};
-
-export const borrowColumns: ColumnDef<BorrowRow>[] = [
-	{ accessorKey: "borrowerId", header: "Borrower ID" },
+export const borrowColumns: ColumnDef<Loan>[] = [
+	{ accessorKey: "borrowerName", header: "Borrower Name" },
 	{
 		accessorKey: "borrowerType",
 		size: 100,
@@ -31,7 +22,11 @@ export const borrowColumns: ColumnDef<BorrowRow>[] = [
 			bodyClassName: "text-center",
 		},
 	},
-	{ accessorKey: "startDate", header: "Start Date" },
+	{
+		accessorKey: "startDate",
+		header: "Start Date",
+		cell: ({ row }) => format(parseISO(row.original.startDate), "yyyy-MM-dd"),
+	},
 	{
 		accessorKey: "principalAmount",
 		header: "Principal",

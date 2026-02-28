@@ -45,7 +45,11 @@ export function getInstallmentsColumns({
 			cell: ({ row }) => {
 				const normalizedStatus = row.original.status.toLowerCase();
 				return (
-					<Badge variant={normalizedStatus === "paid" ? "success" : "destructive"}>
+					<Badge
+						variant={
+							normalizedStatus === "paid" ? "success" : normalizedStatus === "overdue" ? "destructive" : "warning"
+						}
+					>
 						{normalizedStatus.toUpperCase()}
 					</Badge>
 				);

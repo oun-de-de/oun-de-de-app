@@ -3,13 +3,17 @@ import { useState } from "react";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
 import customerService from "@/core/api/services/customer-service";
+import employeeService from "@/core/api/services/employee-service";
 import loanService from "@/core/api/services/loan-service";
+import type { BorrowerType } from "@/core/types/loan";
 import { getTodayUTC, toUtcIsoPreferNowIfToday } from "@/core/utils/date-utils";
 
 export function useBorrowPaymentForm() {
 	const navigate = useNavigate();
 
+	const [borrowerType, setBorrowerType] = useState<BorrowerType>("customer");
 	const [borrowerId, setBorrowerId] = useState("");
+	const [employeeId, setEmployeeId] = useState("");
 	const [termMonths, setTermMonths] = useState<number>(1);
 
 	const [depositAmount, setDepositAmount] = useState<string>("");
@@ -19,6 +23,10 @@ export function useBorrowPaymentForm() {
 	const { data: customers = [] } = useQuery({
 		queryKey: ["customers-list"],
 		queryFn: () => customerService.getCustomerList({ limit: 1000 }).then((res) => res.list),
+	});
+	const { data: employees = [] } = useQuery({
+		queryKey: ["employees-list"],
+		queryFn: () => employeeService.getEmployeeList(),
 	});
 
 	const { mutate: createLoan, isPending } = useMutation({
@@ -33,7 +41,8 @@ export function useBorrowPaymentForm() {
 	});
 
 	const confirm = () => {
-		if (!borrowerId) {
+		const selectedBorrowerId = borrowerType === "customer" ? borrowerId : employeeId;
+		if (!selectedBorrowerId) {
 			toast.error("Please select a valid borrower");
 			return;
 		}
@@ -49,8 +58,8 @@ export function useBorrowPaymentForm() {
 		}
 
 		createLoan({
-			borrowerType: "customer",
-			borrowerId,
+			borrowerType,
+			borrowerId: selectedBorrowerId,
 			principalAmount,
 			termMonths,
 			startDate: toUtcIsoPreferNowIfToday(dueDate) ?? dueDate.toISOString(),
@@ -58,8 +67,12 @@ export function useBorrowPaymentForm() {
 	};
 
 	return {
+		borrowerType,
+		setBorrowerType,
 		borrowerId,
 		setBorrowerId,
+		employeeId,
+		setEmployeeId,
 		termMonths,
 		setTermMonths,
 		depositAmount,
@@ -69,5 +82,6 @@ export function useBorrowPaymentForm() {
 		confirm,
 		isPending,
 		customers,
+		employees,
 	};
 }
