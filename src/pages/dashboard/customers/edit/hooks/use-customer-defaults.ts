@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import type { CustomerDetail } from "@/core/types/customer";
 import type { Vehicle } from "@/core/types/vehicle";
+import { formatDateToYYYYMMDD } from "@/core/utils/date-utils";
 import type { CustomerFormData } from "../../create/components/customer-form";
 
 export const useCustomerDefaults = (customer?: CustomerDetail, vehicles?: Vehicle[]) => {
@@ -8,7 +9,7 @@ export const useCustomerDefaults = (customer?: CustomerDetail, vehicles?: Vehicl
 		if (!customer) return undefined;
 
 		return {
-			registerDate: customer.registerDate ? new Date(customer.registerDate) : new Date(),
+			registerDate: customer.registerDate ? formatDateToYYYYMMDD(new Date(customer.registerDate)) : "",
 			code: customer.code,
 			name: customer.name,
 			status: customer.status,

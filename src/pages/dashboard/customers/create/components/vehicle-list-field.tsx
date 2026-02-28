@@ -47,7 +47,6 @@ export function VehicleListField() {
 										label="Vehicle Type"
 										options={VEHICLE_TYPE_OPTIONS}
 										placeholder="Select Type"
-										disabled={isExistingVehicle}
 									/>
 								</div>
 								<div className="flex-1">
@@ -55,7 +54,6 @@ export function VehicleListField() {
 										name={`vehicles.${index}.licensePlate`}
 										label="License Plate"
 										placeholder="Enter plate number"
-										disabled={isExistingVehicle}
 									/>
 								</div>
 								<Button
@@ -65,15 +63,15 @@ export function VehicleListField() {
 									className="mt-8 text-red-500 hover:text-red-700 hover:bg-red-50 disabled:opacity-50"
 									onClick={() => remove(index)}
 									disabled={isExistingVehicle}
-									title={
-										isExistingVehicle ? "Editing/removing existing vehicles is not supported yet" : "Remove vehicle"
-									}
+									title={isExistingVehicle ? "Removing existing vehicles is not supported yet" : "Remove vehicle"}
 								>
 									<Icon icon="mdi:trash-can-outline" className="w-5 h-5" />
 								</Button>
 							</div>
 							{isExistingVehicle && (
-								<p className="text-xs text-gray-500">Editing/removing existing vehicles is not supported yet.</p>
+								<p className="text-xs text-gray-500">
+									You can edit this vehicle. Removing existing vehicles is not supported yet.
+								</p>
 							)}
 						</div>
 					);

@@ -5,6 +5,7 @@ import type { CustomerFormData } from "../create/components/customer-form";
 export type UpdateCustomerInfoInput = Partial<UpdateCustomer>;
 
 const STRING_FIELDS = [
+	"registerDate",
 	"name",
 	"defaultPrice",
 	"warehouseId",

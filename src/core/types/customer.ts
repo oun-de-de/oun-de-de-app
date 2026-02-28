@@ -76,10 +76,8 @@ export interface CustomerDetail
 
 export interface CreateCustomer {
 	registerDate: Date;
-	code: string;
 	name: string;
 	status: boolean;
-	defaultPrice: string;
 	warehouseId: string;
 	memo: string;
 	profileUrl: string;

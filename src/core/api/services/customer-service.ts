@@ -65,6 +65,12 @@ const createCustomerVehicle = (customerId: string, vehicle: CreateVehicle) =>
 		data: vehicle,
 	});
 
+const updateCustomerVehicle = (customerId: string, vehicleId: string, vehicle: CreateVehicle) =>
+	apiClient.put<Vehicle>({
+		url: `${CustomerApi.List}/${customerId}/vehicles/${vehicleId}`,
+		data: vehicle,
+	});
+
 const createProductSetting = (customerId: string, setting: CreateProductSettings) =>
 	apiClient.post<ProductSettings>({
 		url: `${CustomerApi.List}/${customerId}/product-settings`,
@@ -83,6 +89,7 @@ export default {
 	updateCustomer,
 	getCustomerVehicleList,
 	createCustomerVehicle,
+	updateCustomerVehicle,
 	getProductSettings,
 	createProductSetting,
 };
