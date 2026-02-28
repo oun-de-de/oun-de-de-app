@@ -16,6 +16,7 @@ export function formatDateToYYYYMMDD(date: Date | null | undefined): string {
 	if (!date || !(date instanceof Date) || Number.isNaN(date.getTime())) {
 		return "";
 	}
+
 	return date.toISOString().split("T")[0];
 }
 

@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useCallback, useMemo, useState } from "react";
 import cycleService from "@/core/api/services/cycle-service";
 import { buildPagination } from "@/core/utils/dashboard-utils";
+import { formatKHR } from "../utils/formatters";
 
 export function useCycleTable(customerId: string | null, requireCustomer = false) {
 	const [duration, setDuration] = useState(0);
@@ -62,8 +63,8 @@ export function useCycleTable(customerId: string | null, requireCustomer = false
 				color: "bg-violet-500",
 				icon: "mdi:timer-outline",
 			},
-			{ label: "Total Amount", value: totalAmount, color: "bg-emerald-500", icon: "mdi:cash" },
-			{ label: "Balance", value: totalBalance, color: "bg-amber-500", icon: "mdi:cash-refund" },
+			{ label: "Total Amount", value: formatKHR(totalAmount), color: "bg-emerald-500", icon: "mdi:cash" },
+			{ label: "Balance", value: formatKHR(totalBalance), color: "bg-amber-500", icon: "mdi:cash-refund" },
 		];
 	}, [cycles, totalItems, duration]);
 

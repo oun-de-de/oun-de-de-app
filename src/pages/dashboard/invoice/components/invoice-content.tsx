@@ -15,7 +15,7 @@ import {
 } from "../constants/constants";
 import { useCyclePayments } from "../hooks/use-cycle-payments";
 import { useInvoiceSelection } from "../hooks/use-invoice-selection";
-import { formatDisplayDateTime, formatKHR } from "../utils/formatters";
+import { formatKHR } from "../utils/formatters";
 import { CyclePaymentDialog } from "./cycle-payment-dialog";
 import { InvoiceBulkUpdateDialog } from "./invoice-bulk-update-dialog";
 import { getInvoiceColumns } from "./invoice-columns";
@@ -73,6 +73,7 @@ export function InvoiceContent({
 	const [updateTargetIds, setUpdateTargetIds] = useState<string[]>([]);
 	const [updateInitialValues, setUpdateInitialValues] = useState<{ customerName?: string; type?: Invoice["type"] }>({});
 	const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
+	const [isPaymentHistoryDialogOpen, setIsPaymentHistoryDialogOpen] = useState(false);
 	const [isConvertDialogOpen, setIsConvertDialogOpen] = useState(false);
 	const { payments, isLoadingPayments } = useCyclePayments(activeCycle?.id);
 	const {
@@ -142,13 +143,13 @@ export function InvoiceContent({
 						},
 						{
 							label: "Start Date",
-							value: `${formatDisplayDateTime(activeCycle.startDate)}`,
+							value: `${activeCycle.startDate.split("T")[0]}`,
 							color: "bg-violet-500",
 							icon: "mdi:calendar-range",
 						},
 						{
 							label: "End Date",
-							value: `${formatDisplayDateTime(activeCycle.endDate)}`,
+							value: `${activeCycle.endDate.split("T")[0]}`,
 							color: "bg-violet-500",
 							icon: "mdi:calendar-range",
 						},
@@ -191,7 +192,7 @@ export function InvoiceContent({
 
 	return (
 		<div className={`flex w-full flex-col gap-4 ${isLoading ? "opacity-60 pointer-events-none" : ""}`}>
-			<div className="flex flex-wrap items-center justify-between gap-2">
+			<div className="flex flex-wrap items-center justify-between gap-2 shrink-0">
 				<div className="flex items-center gap-2">
 					{onBack && (
 						<Button size="sm" variant="ghost" onClick={onBack} className="gap-1">
@@ -269,6 +270,12 @@ export function InvoiceContent({
 				hideTabSwitch
 			/>
 			<CyclePaymentDialog
+				open={isPaymentHistoryDialogOpen}
+				onOpenChange={setIsPaymentHistoryDialogOpen}
+				cycle={activeCycle}
+				historyOnly
+			/>
+			<CyclePaymentDialog
 				open={isConvertDialogOpen}
 				onOpenChange={setIsConvertDialogOpen}
 				cycle={activeCycle}
@@ -276,17 +283,24 @@ export function InvoiceContent({
 				hideTabSwitch
 			/>
 
-			<div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
+			<div className="grid grid-cols-1 gap-3 shrink-0 md:grid-cols-2 xl:grid-cols-4">
 				{allSummaryCards.map((card, index) => (
 					<SummaryStatCard key={`${card.label}-${index}`} {...card} />
 				))}
 			</div>
 
 			{activeCycle && (
-				<div className="space-y-2 rounded-lg border bg-white p-4">
-					<Text className="text-sm font-semibold">Payment History</Text>
+				<div className="min-w-0 shrink-0 space-y-2">
+					<div className="flex items-center justify-between gap-2">
+						<Text className="text-sm font-semibold">Payment History</Text>
+						{payments.length > displayedPayments.length && (
+							<Button size="sm" variant="secondary" onClick={() => setIsPaymentHistoryDialogOpen(true)}>
+								View more
+							</Button>
+						)}
+					</div>
 					<SmartDataTable
-						className="max-h-[280px] overflow-hidden rounded-md border border-slate-200"
+						className="min-w-0 max-h-[280px] overflow-hidden rounded-md border border-slate-200"
 						maxBodyHeight="280px"
 						variant="borderless"
 						data={displayedPayments}
@@ -297,7 +311,7 @@ export function InvoiceContent({
 			)}
 
 			<SmartDataTable
-				className="flex-1 min-h-0"
+				className="flex-1 min-h-0 w-full"
 				maxBodyHeight="100%"
 				data={pagedData}
 				columns={columns}

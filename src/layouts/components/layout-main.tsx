@@ -33,7 +33,7 @@ export function LayoutMain({ navData }: LayoutMainProps) {
 			<main
 				data-slot="slash-layout-main"
 				className={cn(
-					"flex-1 w-full flex flex-col min-h-0",
+					"flex min-h-0 w-full flex-1 flex-col",
 					"transition-[max-width] duration-300 ease-in-out",
 					"mx-auto",
 					{

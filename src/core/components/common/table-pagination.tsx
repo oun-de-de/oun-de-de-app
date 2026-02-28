@@ -83,8 +83,8 @@ export function TablePagination({
 	});
 
 	return (
-		<div className="flex shrink flex-wrap items-center justify-between gap-3 text-xs text-gray-700">
-			<div className="flex items-center gap-2">
+		<div className="flex w-full flex-col sm:flex-row flex-wrap items-center justify-between gap-4 p-3 text-xs text-gray-700">
+			<div className="flex items-center gap-1">
 				<Button
 					variant="outline"
 					size="icon"
