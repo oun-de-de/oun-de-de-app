@@ -15,7 +15,7 @@ export const createInvoiceInitialState = (): InvoiceState => ({
 	fieldFilter: "all",
 	searchValue: "",
 	page: 1,
-	pageSize: 100,
+	pageSize: 10,
 	sorting: [{ id: "date", desc: true }],
 });
 

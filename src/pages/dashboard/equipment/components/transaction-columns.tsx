@@ -77,12 +77,34 @@ export function transactionColumns(): ColumnDef<TransactionRow>[] {
 			accessorKey: "type",
 			header: "Type",
 			size: 80,
-			cell: ({ row }) => <Badge variant={row.original.type === "IN" ? "info" : "error"} shape="square">{row.original.type}</Badge>,
+			cell: ({ row }) => (
+				<Badge variant={row.original.type === "IN" ? "info" : "error"} shape="square">
+					{row.original.type}
+				</Badge>
+			),
 			meta: {
 				bodyClassName: "text-center",
-			}
+			},
 		},
-		{ accessorKey: "reason", header: "Reason" },
+		{
+			accessorKey: "reason",
+			header: "Reason",
+			cell: ({ row }) => (
+				<Badge
+					variant={
+						row.original.reason === "PURCHASE"
+							? "info"
+							: row.original.reason === "BORROW"
+								? "warning"
+								: row.original.reason === "CONSUME"
+									? "destructive"
+									: "default"
+					}
+				>
+					{row.original.reason}
+				</Badge>
+			),
+		},
 		{ accessorKey: "quantity", header: "Quantity", meta: { bodyClassName: "text-right" } },
 		{ accessorKey: "memo", header: "Memo" },
 	];

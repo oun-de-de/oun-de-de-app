@@ -1,6 +1,5 @@
 import type { FormFieldConfig } from "@/core/components/common";
 import { formatDateToYYYYMMDD } from "@/core/utils/date-utils";
-import { DEFAULT_PRICE_OPTIONS } from "../../utils/customer-utils";
 
 export const CUSTOMER_FIELDS: FormFieldConfig[] = [
 	{
@@ -9,17 +8,6 @@ export const CUSTOMER_FIELDS: FormFieldConfig[] = [
 		type: "date",
 		required: true,
 		defaultValue: formatDateToYYYYMMDD(new Date()),
-	},
-	{
-		name: "code",
-		label: "Code",
-		type: "text",
-		required: true,
-		placeholder: "Enter customer code: CUSxxxxxx",
-		pattern: {
-			value: /^CUS\d{6}$/,
-			message: "Code must be in format CUSxxxxxx (e.g., CUS123456)",
-		},
 	},
 	{
 		name: "name",
@@ -40,15 +28,6 @@ export const CUSTOMER_FIELDS: FormFieldConfig[] = [
 		label: "Employee",
 		type: "select",
 		required: true,
-		options: [],
-		placeholder: "Select employee",
-	},
-	{
-		name: "defaultPrice",
-		label: "Default Price",
-		type: "select",
-		options: DEFAULT_PRICE_OPTIONS,
-		defaultValue: "retail_price",
 	},
 	{
 		name: "paymentTerm",
@@ -57,7 +36,7 @@ export const CUSTOMER_FIELDS: FormFieldConfig[] = [
 		placeholder: "Enter payment term in days",
 	},
 	{
-		name:"startDate",
+		name: "startDate",
 		label: "Payment Term Start Date",
 		type: "date",
 		placeholder: "Select start date",

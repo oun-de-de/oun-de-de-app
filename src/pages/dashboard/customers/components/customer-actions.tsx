@@ -1,7 +1,5 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router";
-import { toast } from "sonner";
-import customerService from "@/core/api/services/customer-service";
 import { Button } from "@/core/ui/button";
 import { customerQueryOptions } from "../hooks/use-get-customer";
 
@@ -32,26 +30,26 @@ export function CustomerActions({ customerId, customerName }: CustomerActionsPro
 		queryClient.prefetchQuery(customerQueryOptions(customerId));
 	};
 
-	// soft delete
-	const { mutateAsync: deleteCustomer } = useMutation({
-		mutationFn: async () => {
-			return customerService.updateCustomer(customerId, { status: false });
-		},
-		onSuccess: () => {
-			toast.success("Customer deleted successfully");
-			queryClient.invalidateQueries({ queryKey: ["customers"] });
-		},
-		onError: (error) => {
-			toast.error("Failed to delete customer");
-			console.error(error);
-		},
-	});
+	// // soft delete
+	// const { mutateAsync: deleteCustomer } = useMutation({
+	// 	mutationFn: async () => {
+	// 		return customerService.updateCustomer(customerId, { status: false });
+	// 	},
+	// 	onSuccess: () => {
+	// 		toast.success("Customer deleted successfully");
+	// 		queryClient.invalidateQueries({ queryKey: ["customers"] });
+	// 	},
+	// 	onError: (error) => {
+	// 		toast.error("Failed to delete customer");
+	// 		console.error(error);
+	// 	},
+	// });
 
-	const handleDelete = async () => {
-		if (confirm("Are you sure you want to delete this customer?")) {
-			await deleteCustomer();
-		}
-	};
+	// const handleDelete = async () => {
+	// 	if (confirm("Are you sure you want to delete this customer?")) {
+	// 		await deleteCustomer();
+	// 	}
+	// };
 
 	return (
 		<div className="flex gap-1">
@@ -68,9 +66,9 @@ export function CustomerActions({ customerId, customerName }: CustomerActionsPro
 			>
 				Edit
 			</Button>
-			<Button variant="destructive" size="sm" onClick={handleDelete} className="text-white" title="Delete">
+			{/* <Button variant="destructive" size="sm" onClick={handleDelete} className="text-white" title="Delete">
 				Delete
-			</Button>
+			</Button> */}
 		</div>
 	);
 }

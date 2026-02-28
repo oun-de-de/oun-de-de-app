@@ -66,7 +66,8 @@ export function CustomerSidebar({ activeCustomerId, onSelect, onToggle, isCollap
 	});
 
 	const customers = data?.pages.flatMap((page) => page.list) ?? [];
-	const total = data?.pages[0]?.total ?? 0;
+	const totalFromApi = data?.pages[0]?.total ?? 0;
+	const total = totalFromApi > 0 ? totalFromApi : customers.length;
 
 	return (
 		<SidebarList>
@@ -111,7 +112,7 @@ export function CustomerSidebar({ activeCustomerId, onSelect, onToggle, isCollap
 				onNext={() => fetchNextPage()}
 				hasPrev={false}
 				hasNext={!!hasNextPage}
-				showControls={hasNextPage || customers.length > 0}
+				showControls={!!hasNextPage}
 			/>
 		</SidebarList>
 	);

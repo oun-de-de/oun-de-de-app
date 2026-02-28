@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import productService from "@/core/api/services/product-service";
 import type { CreateProduct } from "@/core/types/product";
 import { Text } from "@/core/ui/typography";
+import { toUtcIsoPreferNowIfToday } from "@/core/utils/date-utils";
 import { useGetUnitList } from "@/pages/dashboard/settings/hooks/use-settings";
 import { ProductForm, type ProductFormData } from "./components/product-form";
 
@@ -26,9 +27,10 @@ export default function CreateProductPage() {
 	});
 
 	const handleSubmit = async (data: ProductFormData) => {
+		const productDateIso = toUtcIsoPreferNowIfToday(data.date);
 		const productData: CreateProduct = {
 			name: data.name as string,
-			date: data.date as string,
+			date: productDateIso ?? "",
 			refNo: data.refNo as string,
 			quantity: Number(data.quantity),
 			cost: Number(data.cost),

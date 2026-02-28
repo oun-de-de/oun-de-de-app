@@ -7,13 +7,12 @@ import { Text } from "@/core/ui/typography";
 import type { BorrowState } from "@/pages/dashboard/borrow/stores/borrow-store";
 import { useLoans } from "../hooks/use-loans";
 import {
-	buildBorrowSummaryCards,
+	buildLoanSummaryCards,
 	buildBorrowTableConfigs,
-	buildBorrowViewActions,
-	filterBorrowRows,
-	paginateBorrowRows,
+	buildLoanViewActions,
+	filterLoans,
+	paginateLoans,
 } from "../utils/borrow-content-utils";
-import { mapLoanToBorrowRow } from "../utils/loan-utils";
 import { borrowColumns } from "./borrow-columns";
 
 type Props = {
@@ -28,25 +27,22 @@ export function BorrowContent({ activeCustomerId, activeCustomerName, listState,
 	const { fieldFilter, searchValue, typeFilter } = listState;
 	const { data: loansResponse } = useLoans();
 
-	const loanRows = useMemo(
-		() =>
-			(loansResponse?.content ?? [])
-				.filter((loan) => !activeCustomerId || loan.borrowerId === activeCustomerId)
-				.map((loan) => mapLoanToBorrowRow(loan)),
+	const loans = useMemo(
+		() => (loansResponse?.content ?? []).filter((loan) => !activeCustomerId || loan.borrowerId === activeCustomerId),
 		[loansResponse, activeCustomerId],
 	);
 
-	const filteredData = useMemo(
-		() => filterBorrowRows(loanRows, { fieldFilter, searchValue, typeFilter }),
-		[fieldFilter, loanRows, searchValue, typeFilter],
+	const filteredLoans = useMemo(
+		() => filterLoans(loans, { fieldFilter, searchValue, typeFilter }),
+		[fieldFilter, loans, searchValue, typeFilter],
 	);
-	const summaryCards = useMemo(() => buildBorrowSummaryCards(loanRows), [loanRows]);
-	const { totalItems, totalPages, paginatedRows, paginationItems } = useMemo(
-		() => paginateBorrowRows(filteredData, listState.page, listState.pageSize),
-		[filteredData, listState.page, listState.pageSize],
+	const summaryCards = useMemo(() => buildLoanSummaryCards(loans), [loans]);
+	const { totalItems, totalPages, paginatedLoans, paginationItems } = useMemo(
+		() => paginateLoans(filteredLoans, listState.page, listState.pageSize),
+		[filteredLoans, listState.page, listState.pageSize],
 	);
 	const { mainAction, options, newBorrowMainAction } = useMemo(
-		() => buildBorrowViewActions({ activeView: listState.activeView, updateState, navigate }),
+		() => buildLoanViewActions({ activeView: listState.activeView, updateState, navigate }),
 		[listState.activeView, navigate, updateState],
 	);
 	const { filterConfig, paginationConfig } = useMemo(
@@ -104,7 +100,7 @@ export function BorrowContent({ activeCustomerId, activeCustomerName, listState,
 			<SmartDataTable
 				className="flex-1 min-h-0"
 				maxBodyHeight="100%"
-				data={paginatedRows}
+				data={paginatedLoans}
 				columns={borrowColumns}
 				filterConfig={filterConfig}
 				paginationConfig={paginationConfig}

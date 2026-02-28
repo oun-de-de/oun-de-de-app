@@ -5,6 +5,7 @@ import customerService from "@/core/api/services/customer-service";
 import employeeService from "@/core/api/services/employee-service";
 import type { CreateCustomer } from "@/core/types/customer";
 import { Text } from "@/core/ui/typography";
+import { toUtcIsoPreferNowIfToday, toUtcIsoStartOfDay } from "@/core/utils/date-utils";
 import { CustomerForm, type CustomerFormData } from "./components/customer-form";
 
 export default function CreateCustomerPage() {
@@ -49,26 +50,25 @@ export default function CreateCustomerPage() {
 
 	const handleSubmit = async (data: CustomerFormData) => {
 		const duration = Number(data.paymentTerm);
-		const parsedStartDate = data.startDate ? new Date(`${data.startDate}T00:00:00.000Z`) : undefined;
+		const parsedStartDateIso = toUtcIsoStartOfDay(data.startDate);
+		const registerDateIso = toUtcIsoPreferNowIfToday(data.registerDate);
+		if (!registerDateIso) {
+			toast.error("Invalid register date");
+			return;
+		}
 		const hasPaymentTermValue = data.paymentTerm !== "" && data.paymentTerm != null;
 		const paymentTerm =
-			hasPaymentTermValue &&
-			Number.isFinite(duration) &&
-			duration >= 0 &&
-			parsedStartDate &&
-			!Number.isNaN(parsedStartDate.getTime())
-				? { duration, startDate: parsedStartDate.toISOString() }
+			hasPaymentTermValue && Number.isFinite(duration) && duration >= 0 && parsedStartDateIso
+				? { duration, startDate: parsedStartDateIso }
 				: undefined;
 
 		const referredById = data.referredById && data.referredById !== "none" ? data.referredById : undefined;
 
 		const payload: CreateCustomer = {
-			registerDate: data.registerDate,
-			code: data.code,
+			registerDate: new Date(registerDateIso),
 			name: data.name,
 			status: !!data.status,
 			referredById,
-			defaultPrice: data.defaultPrice,
 			warehouseId: data.warehouseId,
 			memo: data.memo,
 			profileUrl: data.profileUrl,

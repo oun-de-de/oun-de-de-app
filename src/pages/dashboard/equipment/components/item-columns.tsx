@@ -75,14 +75,32 @@ export function itemColumns(): ColumnDef<ItemRow>[] {
 			accessorKey: "type",
 			header: "Type",
 			cell: ({ row }) => (
-				<Badge variant={row.original.type === "CONSUMABLE" ? "info" : "secondary"}>{row.original.type}</Badge>
+				<Badge variant={row.original.type === "CONSUMABLE" ? "info" : "destructive"} className="w-4/5">
+					{row.original.type}
+				</Badge>
 			),
+			meta: {
+				bodyClassName: "text-center",
+			},
+		},
+		{
+			id: "stockStatus",
+			header: "Status",
+			cell: ({ row }) => {
+				const isLowStock = row.original.quantityOnHand <= row.original.alertThreshold;
+				return <Badge variant={isLowStock ? "warning" : "success"}>{isLowStock ? "LOW STOCK" : "NORMAL"}</Badge>;
+			},
+			meta: {
+				bodyClassName: "text-center",
+			},
 		},
 		{ accessorKey: "unit", header: "Unit" },
-		{ accessorKey: "quantityOnHand", header: "On Hand" },
+		{ accessorKey: "quantityOnHand", header: "On Hand", meta: { bodyClassName: "text-right" } },
 		{
 			accessorKey: "alertThreshold",
 			header: "Alert Threshold",
+			cell: ({ row }) => row.original.alertThreshold ?? "-",
+			meta: { bodyClassName: "text-right" },
 		},
 	];
 }

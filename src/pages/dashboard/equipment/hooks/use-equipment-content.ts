@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
+import { toUtcIsoStartOfDay } from "@/core/utils/date-utils";
 import type { ItemRow } from "../components/item-columns";
 import { filterItemRows, itemColumns, mapItemsToRows, paginateItemRows } from "../components/item-columns";
 import { useInventoryItems } from "./use-inventory-items";
@@ -40,11 +41,13 @@ export function useEquipmentContent(activeItemId: string | null) {
 	const [borrowMemo, setBorrowMemo] = useState("");
 
 	const handleBorrow = useCallback(() => {
+		const expectedReturnDateIso = toUtcIsoStartOfDay(borrowExpectedReturnDate);
+		if (!expectedReturnDateIso) return;
 		createBorrowingMutation.mutate(
 			{
 				customerId: borrowCustomerId,
 				quantity: Number(borrowQty),
-				expectedReturnDate: new Date(borrowExpectedReturnDate).toISOString(),
+				expectedReturnDate: expectedReturnDateIso,
 				memo: borrowMemo,
 			},
 			{

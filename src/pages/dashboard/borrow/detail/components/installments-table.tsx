@@ -15,14 +15,23 @@ type InstallmentsTableProps = {
 
 export function InstallmentsTable({ installments, onPay, isPayPending }: InstallmentsTableProps) {
 	const [selectedInstallment, setSelectedInstallment] = useState<Installment | null>(null);
+	const sortedInstallments = useMemo(
+		() => [...installments].sort((a, b) => a.monthIndex - b.monthIndex),
+		[installments],
+	);
+	const firstPayableInstallmentId = useMemo(
+		() => sortedInstallments.find((item) => item.status === "unpaid" || item.status === "overdue")?.id,
+		[sortedInstallments],
+	);
 
 	const columns = useMemo<ColumnDef<Installment>[]>(
 		() =>
 			getInstallmentsColumns({
 				isPayPending,
 				onSelectInstallment: setSelectedInstallment,
+				allowPayInstallmentId: firstPayableInstallmentId,
 			}),
-		[isPayPending],
+		[isPayPending, firstPayableInstallmentId],
 	);
 
 	if (installments.length === 0) {
@@ -35,7 +44,12 @@ export function InstallmentsTable({ installments, onPay, isPayPending }: Install
 
 	return (
 		<>
-			<SmartDataTable className="flex-1 min-h-0 h-fit" maxBodyHeight="100%" data={installments} columns={columns} />
+			<SmartDataTable
+				className="flex-1 min-h-0 h-fit"
+				maxBodyHeight="100%"
+				data={sortedInstallments}
+				columns={columns}
+			/>
 			<Dialog open={!!selectedInstallment} onOpenChange={(open) => (!open ? setSelectedInstallment(null) : undefined)}>
 				<DialogContent className="sm:max-w-md">
 					<DialogHeader>

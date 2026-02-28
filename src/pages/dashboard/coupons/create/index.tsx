@@ -10,6 +10,7 @@ import type { DefaultFormData } from "@/core/components/common";
 import type { CreateCouponRequest } from "@/core/types/coupon";
 import { Button } from "@/core/ui/button";
 import { Text } from "@/core/ui/typography";
+import { toUtcIsoStartOfDay } from "@/core/utils/date-utils";
 import { CouponForm } from "./components/coupon-form";
 import {
 	createInitialRawWeightRecord,
@@ -24,9 +25,7 @@ function toNumberOrUndefined(value: unknown): number | undefined {
 }
 
 function toIsoDateOrUndefined(value: unknown): string | undefined {
-	if (!value || typeof value !== "string") return undefined;
-	const date = new Date(value);
-	return Number.isNaN(date.getTime()) ? undefined : date.toISOString();
+	return toUtcIsoStartOfDay(value);
 }
 
 function toDateInputValue(value: string): string {

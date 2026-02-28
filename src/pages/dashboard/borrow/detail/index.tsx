@@ -1,4 +1,6 @@
+import { useQuery } from "@tanstack/react-query";
 import { useParams } from "react-router";
+import customerService from "@/core/api/services/customer-service";
 import Icon from "@/core/components/icon/icon";
 import { Badge } from "@/core/ui/badge";
 import { Button } from "@/core/ui/button";
@@ -13,6 +15,11 @@ export default function BorrowDetailPage() {
 	const router = useRouter();
 
 	const { loan, isLoading, isError, installments, payInstallment, isPaying } = useBorrowDetail(id || "");
+	const { data: borrower } = useQuery({
+		queryKey: ["loan-borrower", loan?.borrowerType, loan?.borrowerId],
+		queryFn: () => customerService.getCustomer(loan?.borrowerId ?? ""),
+		enabled: !!loan?.borrowerId && loan?.borrowerType === "customer",
+	});
 
 	if (isLoading) {
 		return (
@@ -49,9 +56,6 @@ export default function BorrowDetailPage() {
 					<Button size="sm" className="gap-1 pointer-events-none">
 						Loan Details
 					</Button>
-					<Text variant="body2" className="text-slate-400 font-mono">
-						{loan.id.slice(0, 10)}
-					</Text>
 				</div>
 			</div>
 
@@ -68,7 +72,7 @@ export default function BorrowDetailPage() {
 							</Text>
 							<div className="text-right flex gap-2">
 								<Text variant="body2" className="font-medium">
-									{loan.borrowerId.slice(0, 10)}
+									{borrower?.name || loan.borrowerId.slice(0, 10)}
 								</Text>
 								<span className="text-slate-400">-</span>
 								<Badge variant={loan.borrowerType === "employee" ? "info" : "success"} className="capitalize">
@@ -82,7 +86,7 @@ export default function BorrowDetailPage() {
 								Principal Amount
 							</Text>
 							<Text variant="body2" className="font-medium">
-								{loan.principalAmount.toLocaleString()}
+								{loan.principalAmount.toLocaleString()} KHR
 							</Text>
 						</div>
 						<Separator />

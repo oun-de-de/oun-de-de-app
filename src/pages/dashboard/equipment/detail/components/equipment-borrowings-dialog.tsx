@@ -1,5 +1,6 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { useMemo, useState } from "react";
+import { toast } from "sonner";
 import { SmartDataTable } from "@/core/components/common";
 import type { Customer } from "@/core/types/customer";
 import type { InventoryBorrowing } from "@/core/types/inventory";
@@ -27,14 +28,6 @@ export function EquipmentBorrowingsDialog({ itemId, customers }: EquipmentBorrow
 	const createBorrowing = useCreateBorrowing(itemId);
 	const returnBorrowing = useReturnBorrowing(itemId);
 
-	const customerNameById = useMemo(() => {
-		const map = new Map<string, string>();
-		for (const customer of customers) {
-			map.set(customer.id, customer.name);
-		}
-		return map;
-	}, [customers]);
-
 	const columns = useMemo<ColumnDef<InventoryBorrowing>[]>(
 		() => [
 			{
@@ -43,9 +36,9 @@ export function EquipmentBorrowingsDialog({ itemId, customers }: EquipmentBorrow
 				cell: ({ row }) => new Date(row.original.borrowDate).toLocaleDateString(),
 			},
 			{
-				accessorKey: "customerId",
+				accessorKey: "customerName",
 				header: "Customer",
-				cell: ({ row }) => customerNameById.get(row.original.customerId) ?? row.original.customerId.slice(0, 8),
+				cell: ({ row }) => row.original.customerName,
 			},
 			{ accessorKey: "quantity", header: "Quantity" },
 			{
@@ -64,31 +57,42 @@ export function EquipmentBorrowingsDialog({ itemId, customers }: EquipmentBorrow
 				id: "action",
 				header: "Action",
 				cell: ({ row }) =>
-					row.original.status === "BORROWED" ? (
+					row.original.status === "BORROWED" && (
 						<Button
-							size="sm"
-							variant="outline"
+							variant="secondary"
+							className="text-xs"
 							onClick={() => returnBorrowing.mutate(row.original.id)}
 							disabled={returnBorrowing.isPending}
 						>
 							Return
 						</Button>
-					) : (
-						<span className="text-xs text-slate-400">Returned</span>
 					),
 			},
 		],
-		[customerNameById, returnBorrowing],
+		[returnBorrowing],
 	);
 
 	const handleCreateBorrowing = () => {
-		if (!customerId || !expectedReturnDate) return;
+		const parsedQty = Number(quantity);
+		if (!customerId) {
+			toast.error("Please select customer");
+			return;
+		}
+		if (!Number.isFinite(parsedQty) || parsedQty <= 0) {
+			toast.error("Quantity must be greater than 0");
+			return;
+		}
+		if (!expectedReturnDate) {
+			toast.error("Expected return date is required");
+			return;
+		}
+		const normalizedExpectedReturnDate = new Date(`${expectedReturnDate}T00:00:00.000Z`).toISOString();
 
 		createBorrowing.mutate(
 			{
 				customerId,
-				quantity: Number(quantity),
-				expectedReturnDate: new Date(expectedReturnDate).toISOString(),
+				quantity: parsedQty,
+				expectedReturnDate: normalizedExpectedReturnDate,
 				memo,
 			},
 			{
@@ -109,13 +113,13 @@ export function EquipmentBorrowingsDialog({ itemId, customers }: EquipmentBorrow
 					Borrowings
 				</Button>
 			</DialogTrigger>
-			<DialogContent className="sm:max-w-4xl">
+			<DialogContent className="sm:max-w-7xl">
 				<DialogHeader>
 					<DialogTitle>Equipment Borrowings</DialogTitle>
 				</DialogHeader>
 
-				<div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-					<div className="space-y-1.5 md:col-span-2">
+				<div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+					<div className="space-y-2 md:col-span-2">
 						<Label>Customer</Label>
 						<Select value={customerId} onValueChange={setCustomerId}>
 							<SelectTrigger>
@@ -130,21 +134,17 @@ export function EquipmentBorrowingsDialog({ itemId, customers }: EquipmentBorrow
 							</SelectContent>
 						</Select>
 					</div>
-					<div className="space-y-1.5">
+					<div className="space-y-1">
 						<Label>Quantity</Label>
 						<Input type="number" min={1} value={quantity} onChange={(e) => setQuantity(e.target.value)} />
 					</div>
-					<div className="space-y-1.5">
+					<div className="space-y-2">
 						<Label>Expected Return Date</Label>
-						<Input
-							type="date"
-							value={expectedReturnDate}
-							onChange={(e) => setExpectedReturnDate(e.target.value)}
-						/>
+						<Input type="date" value={expectedReturnDate} onChange={(e) => setExpectedReturnDate(e.target.value)} />
 					</div>
 				</div>
 
-				<div className="space-y-1.5">
+				<div className="space-y-2">
 					<Label>Memo</Label>
 					<Input value={memo} onChange={(e) => setMemo(e.target.value)} placeholder="Additional notes" />
 				</div>

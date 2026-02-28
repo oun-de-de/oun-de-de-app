@@ -37,20 +37,19 @@ function mapRows<T>(rows: T[], toRow: (item: T) => ReportTemplateRow): ReportTem
 	return rows.map(toRow);
 }
 
-function buildInvoiceRows(rows: ReportTemplateRow[] = []): ReportTemplateRow[] {
-	const invoiceRows: MainReportRow[] =
-		rows.length > 0
-			? rows.map((row) => ({
-					invoiceNo: String(row.cells.refNo ?? row.cells.no ?? "-"),
-					invoiceDate: String(row.cells.date ?? REPORT_DEFAULT_DATE),
-					customer: String(row.cells.customer ?? "-"),
-					couponId: String(row.cells.category ?? "-"),
-					cycle: String(row.cells.geography ?? "-"),
-					amountVnd: String(row.cells.originalAmount ?? "0"),
-					paymentTerm: String(row.cells.balance ?? "No"),
-					createdBy: String(row.cells.employee ?? "-"),
-				}))
-			: SAMPLE_MAIN_ROWS;
+function buildInvoiceRows(rows?: ReportTemplateRow[]): ReportTemplateRow[] {
+	const invoiceRows: MainReportRow[] = rows
+		? rows.map((row) => ({
+				invoiceNo: String(row.cells.invoiceNo ?? "-"),
+				invoiceDate: String(row.cells.invoiceDate ?? REPORT_DEFAULT_DATE),
+				customer: String(row.cells.customer ?? "-"),
+				couponId: String(row.cells.couponId ?? "-"),
+				cycle: String(row.cells.cycle ?? "-"),
+				amountVnd: String(row.cells.amountVnd ?? "-"),
+				paymentTerm: String(row.cells.paymentTerm ?? "-"),
+				createdBy: String(row.cells.createdBy ?? "-"),
+			}))
+		: SAMPLE_MAIN_ROWS;
 
 	return mapRows(invoiceRows, (row) =>
 		createRow(row.invoiceNo, {
@@ -73,7 +72,7 @@ function buildInvoiceColumns(): ReportTemplateColumn[] {
 		createTextColumn("customer", "Customer"),
 		createTextColumn("couponId", "Coupon ID"),
 		createTextColumn("cycle", "Cycle"),
-		createTextColumn("amountVnd", "Amount (VND)", "right"),
+		createTextColumn("amountVnd", "Amount"),
 		createTextColumn("paymentTerm", "Payment Term"),
 		createTextColumn("createdBy", "Created By"),
 	];
@@ -96,10 +95,9 @@ function buildCycleColumns(): ReportTemplateColumn[] {
 	return [
 		createTextColumn("customer", "Customer"),
 		createTextColumn("cycle", "Cycle"),
-		createTextColumn("openingBalance", "Opening Balance", "right"),
-		createTextColumn("invoiceTotal", "Invoice Total", "right"),
-		createTextColumn("paid", "Paid", "right"),
-		createTextColumn("outstanding", "Outstanding", "right"),
+		createTextColumn("openingBalance", "Opening Balance"),
+		createTextColumn("invoiceTotal", "Invoice Total"),
+		createTextColumn("paid", "Paid"),
 	];
 }
 
@@ -125,7 +123,6 @@ export const REPORT_REGISTRY: Record<string, ReportDefinition> = {
 		subtitle: REPORT_DEFAULT_DATE,
 		buildRows: buildCycleRows,
 		buildColumns: buildCycleColumns,
-		summaryRows: [{ key: "formula", label: "", value: "Outstanding = Opening + Invoice Total - Paid" }],
 	},
 };
 

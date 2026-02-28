@@ -51,6 +51,7 @@ export interface InventoryBorrowing {
 	id: string;
 	itemId: string;
 	customerId: string;
+	customerName: string;
 	quantity: number;
 	borrowDate: string;
 	expectedReturnDate: string;

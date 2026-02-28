@@ -21,7 +21,9 @@ export function DashboardSplitView({ sidebar, content, className = "", sidebarCl
 			)}
 
 			<Card className="w-full flex-1 min-w-0 h-full print:border-none print:shadow-none">
-				<CardContent className="flex flex-col gap-4 p-4 h-full print:p-0">{content}</CardContent>
+				<CardContent className="flex flex-col gap-4 p-4 h-full min-h-0 overflow-y-auto print:overflow-visible print:p-0">
+					{content}
+				</CardContent>
 			</Card>
 		</div>
 	);

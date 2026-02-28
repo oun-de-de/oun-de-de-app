@@ -6,6 +6,7 @@ import { Button } from "@/core/ui/button";
 type InstallmentsColumnsOptions = {
 	isPayPending?: boolean;
 	onSelectInstallment?: (installment: Installment) => void;
+	allowPayInstallmentId?: string;
 };
 
 function isPayableStatus(status: Installment["status"]) {
@@ -16,6 +17,7 @@ function isPayableStatus(status: Installment["status"]) {
 export function getInstallmentsColumns({
 	isPayPending = false,
 	onSelectInstallment,
+	allowPayInstallmentId,
 }: InstallmentsColumnsOptions = {}): ColumnDef<Installment>[] {
 	return [
 		{
@@ -43,7 +45,11 @@ export function getInstallmentsColumns({
 			cell: ({ row }) => {
 				const normalizedStatus = row.original.status.toLowerCase();
 				return (
-					<Badge variant={normalizedStatus === "paid" ? "success" : "destructive"}>
+					<Badge
+						variant={
+							normalizedStatus === "paid" ? "success" : normalizedStatus === "overdue" ? "destructive" : "warning"
+						}
+					>
 						{normalizedStatus.toUpperCase()}
 					</Badge>
 				);
@@ -62,12 +68,14 @@ export function getInstallmentsColumns({
 			size: 100,
 			cell: ({ row }) => {
 				if (!isPayableStatus(row.original.status) || !onSelectInstallment) return null;
+				const isPayableByOrder = !allowPayInstallmentId || allowPayInstallmentId === row.original.id;
 				return (
 					<Button
-						variant="outline"
+						variant="default"
 						size="sm"
 						onClick={() => onSelectInstallment(row.original)}
-						disabled={isPayPending}
+						disabled={isPayPending || !isPayableByOrder}
+						title={isPayableByOrder ? undefined : "Please pay earlier installment first"}
 					>
 						{isPayPending ? "..." : "Pay"}
 					</Button>

@@ -6,6 +6,13 @@ export interface Invoice {
 	customerName: string;
 	date: string;
 	type: string;
+
+	// Report Fields
+	couponId?: string;
+	cycle?: string;
+	amount?: number;
+	createdBy?: string;
+	paymentTerm?: string;
 }
 
 export interface InvoiceExportLineResult {

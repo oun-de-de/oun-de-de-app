@@ -42,11 +42,22 @@ export default function CouponsPage() {
 	});
 
 	const coupons = data?.list ?? [];
-	const totalItems = data?.total ?? 0;
-	const rawTotalPages = data?.pageCount ?? 0;
-	const rawCurrentPage = data?.page ?? 0;
-	const totalPages = rawTotalPages > 0 ? rawTotalPages : 1;
-	const currentPage = rawCurrentPage > 0 ? rawCurrentPage : 1;
+	const isClientPaginationFallback =
+		(data?.pageCount ?? 0) <= 1 && coupons.length > listState.pageSize && (data?.pageSize ?? 0) >= coupons.length;
+	const totalItems = isClientPaginationFallback ? coupons.length : (data?.total ?? 0);
+	const totalPages = isClientPaginationFallback
+		? Math.max(1, Math.ceil(totalItems / listState.pageSize))
+		: (data?.pageCount ?? 0) > 0
+			? (data?.pageCount ?? 0)
+			: 1;
+	const currentPage = isClientPaginationFallback
+		? Math.min(listState.page, totalPages)
+		: (data?.page ?? 0) > 0
+			? (data?.page ?? 0)
+			: 1;
+	const pagedCoupons = isClientPaginationFallback
+		? coupons.slice((currentPage - 1) * listState.pageSize, currentPage * listState.pageSize)
+		: coupons;
 	const paginationItems = buildPagination(currentPage, totalPages);
 
 	return (
@@ -65,7 +76,7 @@ export default function CouponsPage() {
 					activeCustomerName={activeCustomer?.name}
 					listState={listState}
 					updateState={updateState}
-					pagedCoupons={coupons}
+					pagedCoupons={pagedCoupons}
 					totalItems={totalItems}
 					totalPages={totalPages}
 					currentPage={currentPage}

@@ -4,6 +4,7 @@ import { Badge } from "@/core/ui/badge";
 import { Button } from "@/core/ui/button";
 import { Checkbox } from "@/core/ui/checkbox";
 import { getInvoiceTypeVariant } from "@/core/utils/get-status-variant";
+import { formatDisplayDateTime } from "../utils/formatters";
 
 type InvoiceColumnsOptions = {
 	allSelected: boolean;
@@ -47,16 +48,17 @@ export function getInvoiceColumns({
 			),
 		},
 		{
-			header: "Date",
-			accessorKey: "date",
-			size: 100,
-			meta: { bodyClassName: "text-center" },
-		},
-		{
 			header: "Invoice No",
 			accessorKey: "refNo",
-			size: 140,
+			size: 120,
 			cell: ({ row }) => <span className="font-medium text-sky-600">{row.original.refNo}</span>,
+		},
+		{
+			header: "Date",
+			accessorKey: "date",
+			size: 130,
+			cell: ({ row }) => formatDisplayDateTime(row.original.date),
+			meta: { bodyClassName: "text-center" },
 		},
 		{
 			header: "Customer",
@@ -76,7 +78,7 @@ export function getInvoiceColumns({
 			meta: { bodyClassName: "text-center", headerClassName: "print:hidden", cellClassName: "print:hidden" },
 			cell: ({ row }) => (
 				<Button
-					variant="ghost"
+					variant="secondary"
 					size="sm"
 					className="h-7 px-2 text-xs print:hidden"
 					onClick={() => onEditOne(row.original)}

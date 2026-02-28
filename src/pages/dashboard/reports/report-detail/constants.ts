@@ -17,7 +17,7 @@ export const DEFAULT_REPORT_SECTIONS: ReportSectionVisibility = {
 export const DEFAULT_REPORT_COLUMNS: ReportColumnVisibility = {
 	refNo: true,
 	category: false,
-	geography: false,
-	address: false,
-	phone: false,
+	geography: true,
+	address: true,
+	phone: true,
 };

@@ -3,15 +3,31 @@ import styled from "styled-components";
 import { Icon } from "@/core/components/icon";
 import { cn } from "@/core/utils";
 import { SaleCategory } from "@/core/domain/sales/entities/sale-category";
+import type { ReactNode } from "react";
 
 interface ChoiceChipsProps {
 	options: SaleCategory[];
 	value: SaleCategory[];
 	onChange: (next: SaleCategory[]) => void;
 	className?: string;
+	selectionMode?: "multiple" | "single";
+	renderLabel?: (option: SaleCategory, isActive: boolean) => ReactNode;
+	activeClassName?: string;
+	inactiveClassName?: string;
+	getChipClassName?: (option: SaleCategory, isActive: boolean) => string | undefined;
 }
 
-export function ChoiceChips({ options, value, onChange, className }: ChoiceChipsProps) {
+export function ChoiceChips({
+	options,
+	value,
+	onChange,
+	className,
+	selectionMode = "multiple",
+	renderLabel,
+	activeClassName,
+	inactiveClassName,
+	getChipClassName,
+}: ChoiceChipsProps) {
 	const scrollRef = useRef<HTMLDivElement>(null);
 	const [canScrollLeft, setCanScrollLeft] = useState(false);
 	const [canScrollRight, setCanScrollRight] = useState(false);
@@ -38,7 +54,10 @@ export function ChoiceChips({ options, value, onChange, className }: ChoiceChips
 	const toggleValue = (id: string) => {
 		const exists = orderedValue.includes(id);
 		let next: SaleCategory[];
-		if (exists) {
+		if (selectionMode === "single") {
+			const found = options.find((cat) => cat.id === id);
+			next = exists ? value : found ? [found] : value;
+		} else if (exists) {
 			next = value.filter((cat) => cat.id !== id);
 		} else {
 			const found = options.find((cat) => cat.id === id);
@@ -62,11 +81,22 @@ export function ChoiceChips({ options, value, onChange, className }: ChoiceChips
 			)}
 
 			<ScrollArea ref={scrollRef} onScroll={handleScroll}>
-				{options.map(({ id, name }) => (
-					<Chip key={id} type="button" $active={orderedValue.includes(id)} onClick={() => toggleValue(id)}>
-						{name}
-					</Chip>
-				))}
+				{options.map(({ id, name }) => {
+					const option = options.find((item) => item.id === id) ?? { id, name, description: "" };
+					const isActive = orderedValue.includes(id);
+
+					return (
+						<Chip
+							key={id}
+							type="button"
+							$active={isActive}
+							onClick={() => toggleValue(id)}
+							className={cn(isActive ? activeClassName : inactiveClassName, getChipClassName?.(option, isActive))}
+						>
+							{renderLabel ? renderLabel(option, isActive) : name}
+						</Chip>
+					);
+				})}
 			</ScrollArea>
 
 			{canScrollRight && (

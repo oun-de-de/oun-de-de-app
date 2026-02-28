@@ -33,9 +33,17 @@ function normalizeInstallmentStatus(value: string): InstallmentStatus {
 }
 
 function normalizeLoan(data: LoanApiResponse): Loan {
+	const monthlyPayment =
+		typeof data.monthlyPayment === "number"
+			? data.monthlyPayment
+			: data.termMonths > 0
+				? Math.ceil(data.principalAmount / data.termMonths)
+				: 0;
+
 	return {
 		...data,
 		borrowerType: normalizeBorrowerType(data.borrowerType),
+		monthlyPayment,
 		createdAt: data.createdAt ?? data.createAt ?? "",
 	};
 }

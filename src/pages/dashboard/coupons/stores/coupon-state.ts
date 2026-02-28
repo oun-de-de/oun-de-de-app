@@ -1,5 +1,5 @@
-import type { BaseState } from "@/core/types/state";
 import type { Coupon } from "@/core/types/coupon";
+import type { BaseState } from "@/core/types/state";
 
 type CouponStateType =
 	| "InitialState"

@@ -42,12 +42,13 @@ export function ListFooter({
 	isCollapsed,
 }: ListFooterProps) {
 	const isMinimal = variant === "minimal";
+	const shouldShowControls = showControls && (hasPrev || hasNext);
 
 	if (isCollapsed) {
 		return (
 			<div className={cn("flex flex-col items-center gap-1 pt-4 mt-auto", className)}>
 				<span className="text-[10px] font-medium">{total} total</span>
-				{showControls && (
+				{shouldShowControls && (
 					<span className="flex items-center gap-1">
 						<Button
 							variant="ghost"
@@ -77,7 +78,7 @@ export function ListFooter({
 		<div className={cn(listFooterVariants({ variant, className }))}>
 			{showCount && !isMinimal && <span>Total {total}</span>}
 
-			{showControls && (
+			{shouldShowControls && (
 				<span className="flex items-center gap-1">
 					<Button
 						variant="ghost"

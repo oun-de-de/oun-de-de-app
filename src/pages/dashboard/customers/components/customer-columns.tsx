@@ -1,7 +1,6 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import type { Customer } from "@/core/types/customer";
 import { Badge } from "@/core/ui/badge";
-import { getDefaultPriceLabel, getDefaultPriceVariant } from "@/core/utils/get-default-price-badge";
 import { getStatusVariant } from "@/core/utils/get-status-variant";
 import { CustomerActions } from "./customer-actions";
 
@@ -16,7 +15,7 @@ export const columns: ColumnDef<Customer>[] = [
 	{
 		header: "Code",
 		accessorKey: "code",
-		size: 100,
+		size: 120,
 		meta: { bodyClassName: "text-center" },
 		cell: ({ row }) => <span className="font-medium text-sky-600">{row.original.code}</span>,
 	},
@@ -33,20 +32,20 @@ export const columns: ColumnDef<Customer>[] = [
 		header: "Customer Type",
 		accessorKey: "referredBy",
 	},
-	{
-		header: "Price Level",
-		accessorKey: "defaultPrice",
-		size: 100,
-		cell: ({ row }) => {
-			const value = row.original.defaultPrice;
-			return (
-				<Badge variant={getDefaultPriceVariant(value)} className="w-full">
-					{getDefaultPriceLabel(value)}
-				</Badge>
-			);
-		},
-		meta: { bodyClassName: "text-center" },
-	},
+	// {
+	// 	header: "Price Level",
+	// 	accessorKey: "defaultPrice",
+	// 	size: 100,
+	// 	cell: ({ row }) => {
+	// 		const value = row.original.defaultPrice;
+	// 		return (
+	// 			<Badge variant={getDefaultPriceVariant(value)} className="w-full">
+	// 				{getDefaultPriceLabel(value)}
+	// 			</Badge>
+	// 		);
+	// 	},
+	// 	meta: { bodyClassName: "text-center" },
+	// },
 	{
 		header: "Status",
 		accessorKey: "status",

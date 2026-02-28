@@ -57,20 +57,10 @@ export const frontendNavData: NavProps["data"] = [
 				],
 			},
 			{
-				title: "Borrow",
+				title: "Loan",
 				path: "/dashboard/borrow",
 				icon: <Icon icon="lucide:clipboard-list" size="24" />,
 				roles: ["SUPER_ADMIN"],
-				actions: [
-					{
-						title: "New Borrowing",
-						path: "/dashboard/borrow/new",
-					},
-					{
-						title: "Payment",
-						path: "/dashboard/borrow/payment",
-					},
-				],
 			},
 			{
 				title: "Equipment",
@@ -90,12 +80,12 @@ export const frontendNavData: NavProps["data"] = [
 				icon: <Icon icon="lucide:settings" size="24" />,
 				roles: ["SUPER_ADMIN"],
 			},
-			{
-				title: "Audit Log",
-				path: "/dashboard/audit-log",
-				icon: <Icon icon="lucide:history" size="24" />,
-				roles: ["SUPER_ADMIN"],
-			},
+			// {
+			// 	title: "Audit Log",
+			// 	path: "/dashboard/audit-log",
+			// 	icon: <Icon icon="lucide:history" size="24" />,
+			// 	roles: ["SUPER_ADMIN"],
+			// },
 		],
 	},
 ];

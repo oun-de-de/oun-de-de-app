@@ -38,7 +38,7 @@ const formGridVariants = cva("gap-6", {
 	},
 });
 
-export type FormPrimitive = string | number | boolean | null | undefined;
+export type FormPrimitive = string | number | boolean | null | undefined | Date;
 export type FormObject = Record<string, FormPrimitive>;
 export type FormValue = FormPrimitive | FormObject | FormObject[];
 export type FormType = "text" | "number" | "select" | "switch" | "textarea" | "date" | "custom";

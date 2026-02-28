@@ -35,7 +35,8 @@ export function CouponSidebar({ activeCouponId, onSelect, onToggle, isCollapsed 
 	});
 
 	const coupons = data?.pages.flatMap((page) => page.list) ?? [];
-	const total = data?.pages[0]?.total ?? 0;
+	const totalFromApi = data?.pages[0]?.total ?? 0;
+	const total = totalFromApi > 0 ? totalFromApi : coupons.length;
 
 	return (
 		<SidebarList>
@@ -76,7 +77,7 @@ export function CouponSidebar({ activeCouponId, onSelect, onToggle, isCollapsed 
 				onNext={() => fetchNextPage()}
 				hasPrev={false}
 				hasNext={!!hasNextPage}
-				showControls={hasNextPage || coupons.length > 0}
+				showControls={!!hasNextPage}
 			/>
 		</SidebarList>
 	);

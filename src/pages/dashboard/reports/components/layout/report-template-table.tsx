@@ -89,24 +89,19 @@ export function ReportTemplateTable({
 	const tableColSpan = Math.max(visibleColumns.length, 1);
 
 	return (
-		<div
-			className={cn(
-				"flex flex-col gap-6 rounded-md border bg-white p-6 print:gap-4 print:rounded-none print:border-0 print:p-0",
-				className,
-			)}
-		>
+		<div className={cn("flex flex-col gap-4 rounded-none border-0 bg-white p-0 text-black", className)}>
 			{showSections?.header !== false &&
 				(headerContent || (
-					<div className="flex flex-col items-center gap-1 text-center print:gap-0.5">
-						<div className="text-lg font-bold text-slate-700 print:text-[22px] print:tracking-[0.02em]">{title}</div>
-						{subtitle && (
-							<div className="pb-2 text-base font-semibold text-slate-600 print:pb-4 print:text-[16px]">{subtitle}</div>
-						)}
+					<div className="flex flex-col items-center gap-1 text-center text-black">
+						<div className="text-[11px] font-normal">{title}</div>
+						<div className="pb-0 text-[22px] font-bold">ហាងចក្រទឹកកក លឹម ច័ន្ទ II</div>
+						<div className="pb-3 text-[13px] font-semibold underline">TEL: 070669898</div>
+						{subtitle && <div className="text-base font-semibold text-slate-600">{subtitle}</div>}
 					</div>
 				))}
 
 			{metaColumns.length > 0 && (
-				<div className="grid grid-cols-1 gap-4 text-xs text-slate-500 md:grid-cols-3">
+				<div className="mb-2 ml-1 grid grid-cols-1 gap-4 text-[13px] font-bold text-black md:grid-cols-3">
 					{metaColumns.map((column) => {
 						const align = column.align ?? "left";
 						return (
@@ -120,18 +115,18 @@ export function ReportTemplateTable({
 				</div>
 			)}
 
-			<div className="w-full overflow-x-auto">
-				<table className="w-full border-collapse border text-xs text-slate-700 print:text-[11px]">
+			<div className="w-full overflow-x-auto px-6">
+				<table className="w-full border-separate border-spacing-0 border-l border-t border-black text-[11px] text-black">
 					<thead>
 						{table.getHeaderGroups().map((headerGroup) => (
-							<tr key={headerGroup.id} className="bg-slate-50 text-slate-600 uppercase">
+							<tr key={headerGroup.id} className="bg-transparent text-black uppercase">
 								{headerGroup.headers.map((header) => {
 									const meta = getColumnMeta(header.column.columnDef);
 									return (
 										<th
 											key={header.id}
 											className={cn(
-												"border p-2.5 font-semibold print:px-2 print:py-1.5",
+												"border-b border-r border-black px-2 py-1.5 font-bold",
 												alignClass[meta?.align ?? "center"],
 												meta?.headerClassName,
 											)}
@@ -147,7 +142,7 @@ export function ReportTemplateTable({
 					<tbody>
 						{rows.length === 0 ? (
 							<tr className="text-slate-400">
-								<td colSpan={tableColSpan} className="p-10 text-center">
+								<td colSpan={tableColSpan} className="border-b border-r border-black p-10 text-center">
 									{emptyText}
 								</td>
 							</tr>
@@ -160,7 +155,7 @@ export function ReportTemplateTable({
 											<td
 												key={cell.id}
 												className={cn(
-													"border p-2.5 print:px-2 print:py-1.5",
+													"border-b border-r border-black px-2 py-1.5",
 													alignClass[meta?.align ?? "center"],
 													meta?.className,
 												)}
@@ -173,21 +168,28 @@ export function ReportTemplateTable({
 							))
 						)}
 					</tbody>
+
+					{summaryRows.length > 0 && (
+						<tfoot>
+							{summaryRows.map((summaryRow) => (
+								<tr key={summaryRow.key} className="text-black">
+									<td
+										colSpan={tableColSpan - 1}
+										className="border-b border-r border-black px-2 py-2 text-right text-[12px] font-bold uppercase whitespace-nowrap"
+									>
+										{summaryRow.label}
+									</td>
+									<td className="border-b border-r border-black px-2 py-2 text-right text-[12px] font-bold whitespace-nowrap">
+										{summaryRow.value}
+									</td>
+								</tr>
+							))}
+						</tfoot>
+					)}
 				</table>
 			</div>
 
-			{summaryRows.length > 0 && (
-				<div className="ml-auto flex flex-col items-end gap-1 text-sm font-semibold text-slate-700 print:mt-2 print:text-[18px]">
-					{summaryRows.map((summaryRow) => (
-						<div key={summaryRow.key}>
-							<span>{summaryRow.label}</span>
-							<span>{summaryRow.value}</span>
-						</div>
-					))}
-				</div>
-			)}
-
-			<div className="flex justify-between text-[10px] text-slate-400 print:mt-3 print:text-[11px]">
+			<div className="mt-3 flex justify-between text-[11px] text-black">
 				<div className="flex flex-col gap-1">
 					{showSections?.signature && <span>Signature: ________________</span>}
 					{showSections?.timestamp !== false && timestampText && <span>{timestampText}</span>}
