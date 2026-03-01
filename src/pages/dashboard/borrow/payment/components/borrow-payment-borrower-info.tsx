@@ -5,6 +5,7 @@ import type { BorrowerType } from "@/core/types/loan";
 import { Button } from "@/core/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/core/ui/select";
 import { FormRow } from "@/pages/dashboard/borrow/components/borrow-form-row";
+import { getEmployeeDisplayName } from "@/pages/dashboard/employees/utils/employee-utils";
 
 interface BorrowPaymentBorrowerInfoProps {
 	borrowerType: BorrowerType;
@@ -35,8 +36,7 @@ export function BorrowPaymentBorrowerInfo({
 		() =>
 			employees.map((employee) => ({
 				value: employee.id,
-				label:
-					employee.firstName && employee.lastName ? `${employee.firstName} ${employee.lastName}` : employee.username,
+				label: getEmployeeDisplayName(employee),
 			})),
 		[employees],
 	);

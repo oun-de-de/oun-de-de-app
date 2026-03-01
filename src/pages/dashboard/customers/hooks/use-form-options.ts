@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { getEmployeeDisplayName } from "@/pages/dashboard/employees/utils/employee-utils";
 import { useGetCustomers } from "./use-get-customers";
 import { useGetEmployees } from "./use-get-employees";
 
@@ -9,7 +10,7 @@ export const useFormOptions = () => {
 	const employeeOptions = useMemo(
 		() =>
 			(employees || []).map((emp) => ({
-				label: emp.firstName && emp.lastName ? `${emp.firstName} ${emp.lastName}` : emp.username,
+				label: getEmployeeDisplayName(emp),
 				value: emp.id,
 			})),
 		[employees],

@@ -35,7 +35,7 @@ export function WarehouseSettingsForm({ customerId, currentWarehouseId }: Wareho
 							Create Warehouse
 						</Link>
 					</Button>
-					<Button onClick={form.handleSave} disabled={form.isSaving} size="sm">
+					<Button type="button" onClick={form.handleSave} disabled={form.isSaving} size="sm">
 						{form.isSaving ? "Saving..." : "Save Settings"}
 					</Button>
 				</div>

@@ -1,18 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { SmartDataTable, SummaryStatCard } from "@/core/components/common";
 import Icon from "@/core/components/icon/icon";
 import type { Cycle } from "@/core/types/cycle";
 import { Button } from "@/core/ui/button";
-import {
-	Combobox,
-	ComboboxContent,
-	ComboboxEmpty,
-	ComboboxInput,
-	ComboboxItem,
-	ComboboxList,
-	useComboboxAnchor,
-} from "@/core/ui/combobox";
+import { Input } from "@/core/ui/input";
 import { Label } from "@/core/ui/label";
 import { Text } from "@/core/ui/typography";
 import { DURATION_OPTIONS } from "../constants/constants";
@@ -27,11 +19,11 @@ type CycleContentProps = {
 };
 
 const sanitizeDurationInput = (value: string) => value.replace(/\D+/g, "");
+const ALL_DURATION_LABEL = "All Duration";
 
 const getDurationDisplayValue = (duration: number) => {
-	const selectedOption = DURATION_OPTIONS.find((option) => option.value === String(duration));
-	if (selectedOption) return selectedOption.label;
-	return duration > 0 ? String(duration) : "";
+	if (duration === 0) return ALL_DURATION_LABEL;
+	return String(duration);
 };
 
 export function CycleContent({ customerId, customerName, onSelectCycle, requireCustomer = false }: CycleContentProps) {
@@ -53,15 +45,8 @@ export function CycleContent({ customerId, customerName, onSelectCycle, requireC
 	} = useCycleTable(customerId, requireCustomer);
 
 	const [durationInput, setDurationInput] = useState(() => getDurationDisplayValue(duration));
-	const durationStr = String(duration);
-	const selectedDurationOption = DURATION_OPTIONS.find((option) => option.value === durationStr) ?? null;
-	const anchorRef = useComboboxAnchor();
 
 	const columns = useMemo(() => getCycleColumns(), []);
-
-	useEffect(() => {
-		setDurationInput(getDurationDisplayValue(duration));
-	}, [duration]);
 
 	if (requireCustomer && !customerId) {
 		return (
@@ -106,29 +91,41 @@ export function CycleContent({ customerId, customerName, onSelectCycle, requireC
 			<div className="flex flex-wrap items-end gap-4 rounded-lg border p-4">
 				<div className="space-y-1.5">
 					<Label>Duration</Label>
-					<Combobox<(typeof DURATION_OPTIONS)[number]>
-						items={DURATION_OPTIONS}
-						value={selectedDurationOption}
-						inputValue={durationInput}
-						onValueChange={(nextValue) => {
-							const nextDuration = Number(nextValue?.value ?? "0");
-							setDurationInput(nextValue?.label ?? getDurationDisplayValue(0));
-							onDurationChange(nextDuration);
+					<Input
+						className="w-[180px] bg-background"
+						value={durationInput}
+						placeholder="Duration"
+						aria-label="Duration"
+						inputMode="numeric"
+						list="cycle-duration-options"
+						onKeyDown={(event) => {
+							if (event.key === "Enter") {
+								event.preventDefault();
+								return;
+							}
+							if (["e", "E", "+", "-", "."].includes(event.key)) {
+								event.preventDefault();
+							}
 						}}
-						onInputValueChange={(nextInputValue) => {
-							const sanitizedValue = sanitizeDurationInput(nextInputValue);
+						onChange={(event) => {
+							if (event.target.value === ALL_DURATION_LABEL) {
+								setDurationInput(ALL_DURATION_LABEL);
+								onDurationChange(0);
+								return;
+							}
+							const sanitizedValue = sanitizeDurationInput(event.target.value);
 							setDurationInput(sanitizedValue);
 							onDurationChange(sanitizedValue === "" ? 0 : Number(sanitizedValue));
 						}}
-					>
-						<div ref={anchorRef} className="w-[180px]">
-							<ComboboxInput className="w-full bg-background" placeholder="Duration" aria-label="Duration" />
-						</div>
-						<ComboboxContent anchor={anchorRef}>
-							<ComboboxEmpty>No matching option.</ComboboxEmpty>
-							<ComboboxList>{(item) => <ComboboxItem value={item}>{item.label}</ComboboxItem>}</ComboboxList>
-						</ComboboxContent>
-					</Combobox>
+					/>
+					<datalist id="cycle-duration-options">
+						<option value={ALL_DURATION_LABEL} />
+						{DURATION_OPTIONS.filter((option) => option.value !== "0").map((option) => (
+							<option key={option.value} value={option.value}>
+								{option.label}
+							</option>
+						))}
+					</datalist>
 				</div>
 
 				{/* <div className="space-y-1.5">

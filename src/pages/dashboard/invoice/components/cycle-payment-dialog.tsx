@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
 import { SmartDataTable } from "@/core/components/common";
@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/core/ui/input";
 import { Label } from "@/core/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/core/ui/tabs";
+import { cn } from "@/core/utils";
 import { useCyclePaymentState } from "../hooks/use-cycle-payment-state";
 import { useCyclePayments } from "../hooks/use-cycle-payments";
 import { formatDisplayDate, formatKHR } from "../utils/formatters";
@@ -44,6 +45,10 @@ function getLocalNowDateTime(): string {
 	return `${year}-${month}-${day}T${hours}:${minutes}`;
 }
 
+function digitsOnly(value: string): string {
+	return value.replace(/\D/g, "");
+}
+
 export function CyclePaymentDialog({
 	open,
 	onOpenChange,
@@ -53,6 +58,7 @@ export function CyclePaymentDialog({
 	historyOnly = false,
 }: CyclePaymentDialogProps) {
 	const navigate = useNavigate();
+	const [amountInputError, setAmountInputError] = useState("");
 	const { payments, isLoadingPayments, createPayment, isCreatingPayment, convertToLoan, isConvertingToLoan } =
 		useCyclePayments(cycle?.id);
 
@@ -65,17 +71,19 @@ export function CyclePaymentDialog({
 		isConvertingToLoan,
 	});
 	const { state, setters, derived } = ui;
+	const { setActiveTab, setAmount, setPaymentDateTime, setTermMonths, setLoanStartDate } = setters;
 
 	useEffect(() => {
 		if (!open) return;
 		const today = getLocalToday();
 		const nowDateTime = getLocalNowDateTime();
-		setters.setActiveTab(defaultTab);
-		setters.setAmount("");
-		setters.setPaymentDateTime(nowDateTime);
-		setters.setTermMonths("1");
-		setters.setLoanStartDate(today);
-	}, [open, defaultTab, setters]);
+		setActiveTab(defaultTab);
+		setAmount("");
+		setAmountInputError("");
+		setPaymentDateTime(nowDateTime);
+		setTermMonths("1");
+		setLoanStartDate(today);
+	}, [open, defaultTab, setActiveTab, setAmount, setPaymentDateTime, setTermMonths, setLoanStartDate]);
 
 	const handleSubmit = async () => {
 		if (!derived.hasCycle) return;
@@ -165,13 +173,21 @@ export function CyclePaymentDialog({
 									<Label htmlFor="cycle-payment-amount">Amount</Label>
 									<Input
 										id="cycle-payment-amount"
-										type="number"
-										min={0}
+										type="text"
+										inputMode="numeric"
+										pattern="[0-9]*"
+										className={cn(amountInputError && "border-red-500 focus-visible:ring-red-500")}
 										value={state.amount}
-										onChange={(e) => setters.setAmount(e.target.value)}
+										onChange={(e) => {
+											const rawValue = e.target.value;
+											const normalizedValue = digitsOnly(rawValue);
+											setters.setAmount(normalizedValue);
+											setAmountInputError(rawValue !== normalizedValue ? "Only numbers are allowed" : "");
+										}}
 										placeholder="Enter payment amount"
 										disabled={isCreatingPayment}
 									/>
+									{amountInputError ? <p className="text-[10px] text-red-500 font-medium">{amountInputError}</p> : null}
 								</div>
 								<div className="space-y-1.5">
 									<Label htmlFor="cycle-payment-date">Payment Date Time</Label>

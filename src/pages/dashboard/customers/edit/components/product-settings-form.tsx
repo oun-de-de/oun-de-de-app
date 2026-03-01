@@ -17,7 +17,7 @@ export function ProductSettingsForm() {
 		<div className="space-y-4">
 			<div className="flex items-center justify-between">
 				<Text className="font-semibold text-sky-600">Product Settings</Text>
-				<Button onClick={form.handleSave} disabled={form.isSaving}>
+				<Button type="button" onClick={form.handleSave} disabled={form.isSaving}>
 					{form.isSaving ? "Saving..." : "Save Settings"}
 				</Button>
 			</div>

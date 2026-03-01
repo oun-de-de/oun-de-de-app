@@ -28,10 +28,13 @@ export default function CreateProductPage() {
 	const handleSubmit = async (data: ProductFormData) => {
 		const productData: CreateProductRequest = {
 			name: data.name as string,
-			unitId: data.unitId as string,
 			defaultQuantity: Number(data.defaultQuantity ?? 0),
 			defaultPrice: Number(data.defaultPrice ?? 0),
 		};
+
+		if (typeof data.unitId === "string" && data.unitId.trim() !== "") {
+			productData.unitId = data.unitId;
+		}
 
 		await createProduct(productData);
 	};

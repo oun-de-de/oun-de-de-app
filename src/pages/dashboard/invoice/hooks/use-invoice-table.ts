@@ -41,18 +41,18 @@ export function useInvoiceTable({ customerName, customerId, cycleId }: UseInvoic
 		queryFn: () => {
 			let searchRefNo: string | undefined;
 			let searchCustomerName: string | undefined;
-
 			let searchType: InvoiceType | undefined;
 
-			if (fieldFilter === "refNo") {
+			if (fieldFilter === "type" && debouncedSearchValue) {
+				const normalized = debouncedSearchValue.toLowerCase();
+				searchType = isInvoiceType(normalized) ? normalized : undefined;
+			} else if (fieldFilter === "refNo") {
 				searchRefNo = debouncedSearchValue;
 			} else if (fieldFilter === "customerName") {
 				searchCustomerName = debouncedSearchValue;
-			} else if (fieldFilter === "all") {
+			} else if (debouncedSearchValue) {
+				searchRefNo = debouncedSearchValue;
 				searchCustomerName = debouncedSearchValue;
-			} else if (fieldFilter === "type" && debouncedSearchValue) {
-				const normalized = debouncedSearchValue.toLowerCase();
-				searchType = isInvoiceType(normalized) ? normalized : undefined;
 			}
 
 			const sortParam = sorting.map((s) => `${s.id},${s.desc ? "desc" : "asc"}`).join(",");

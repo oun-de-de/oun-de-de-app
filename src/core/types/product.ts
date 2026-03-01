@@ -25,7 +25,7 @@ export type Product = {
 
 export type CreateProductRequest = {
 	name: string;
-	unitId: string;
+	unitId?: string;
 	defaultPrice: number;
 	defaultQuantity: number;
 };

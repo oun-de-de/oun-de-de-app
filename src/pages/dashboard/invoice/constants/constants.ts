@@ -6,7 +6,8 @@ const INVOICE_TYPE_FILTER_OPTIONS = [
 export const INVOICE_FILTER_TYPE_OPTIONS = [{ value: "all", label: "All Type" }, ...INVOICE_TYPE_FILTER_OPTIONS];
 
 export const INVOICE_FILTER_FIELD_OPTIONS = [
-	{ value: "all", label: "All Field" },
+	{ value: "refNo", label: "Invoice No" },
+	{ value: "customerName", label: "Customer" },
 	{ value: "type", label: "Type" },
 ];
 

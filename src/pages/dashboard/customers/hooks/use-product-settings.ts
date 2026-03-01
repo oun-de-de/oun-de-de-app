@@ -17,7 +17,7 @@ export const useCreateProductSetting = (customerId?: string) => {
 			});
 		},
 		onError: () => {
-			toast.error("Failed to create product setting");
+			toast.error("Failed to save product settings");
 		},
 	});
 };

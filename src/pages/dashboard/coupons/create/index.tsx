@@ -11,6 +11,7 @@ import type { CreateCouponRequest } from "@/core/types/coupon";
 import { Button } from "@/core/ui/button";
 import { Text } from "@/core/ui/typography";
 import { toUtcIsoStartOfDay } from "@/core/utils/date-utils";
+import { getEmployeeDisplayName } from "@/pages/dashboard/employees/utils/employee-utils";
 import { CouponForm } from "./components/coupon-form";
 import {
 	createInitialRawWeightRecord,
@@ -65,7 +66,7 @@ export default function CreateCouponPage() {
 	});
 
 	const employeeOptions = employees.map((emp) => ({
-		label: emp.firstName && emp.lastName ? `${emp.firstName} ${emp.lastName}` : emp.username,
+		label: getEmployeeDisplayName(emp),
 		value: emp.id,
 	}));
 
@@ -91,7 +92,6 @@ export default function CreateCouponPage() {
 
 	const handleFillSampleData = () => {
 		setDefaultValues({
-			vehicleId: "7e6e290e-693e-4dbe-9a88-8b758d3a5125",
 			driverName: "Nguyen Phu Hoi",
 			remark: "buy 10kg solid ice",
 			couponNo: 19,
