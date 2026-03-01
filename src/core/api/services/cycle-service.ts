@@ -22,7 +22,7 @@ const getCycles = (params: {
 	const queryParams = {
 		page: params.page ? params.page - 1 : 0,
 		size: params.size,
-		sort: params.sort,
+		sort: params.sort ?? "startDate,desc",
 		status: params.status,
 		...(params.customerId ? { customer_id: params.customerId } : {}),
 		...(params.from ? { from: params.from } : {}),
