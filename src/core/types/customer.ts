@@ -1,4 +1,5 @@
 import type { CreateVehicle, Vehicle } from "./vehicle";
+import type { Warehouse } from "./setting";
 
 export interface PaymentTerm {
 	duration: number;
@@ -54,7 +55,7 @@ export interface CustomerDetail
 	customerReference?: {
 		id: string;
 		name: string;
-	};
+	} | null;
 	contact: {
 		id: string;
 		telephone: string;
@@ -72,6 +73,7 @@ export interface CustomerDetail
 		firstName: string | null;
 		lastName: string | null;
 	};
+	warehouse?: Warehouse | null;
 }
 
 export interface CreateCustomer {
@@ -102,7 +104,7 @@ export interface UpdateCustomer {
 	status?: boolean;
 	referredById?: string;
 	defaultPrice?: string;
-	warehouseId?: string;
+	warehouseId?: string | null;
 	memo?: string;
 	profileUrl?: string;
 	shopBannerUrl?: string;
