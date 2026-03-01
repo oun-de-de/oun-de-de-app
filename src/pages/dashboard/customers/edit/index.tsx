@@ -39,9 +39,10 @@ export default function CustomerEditPage() {
 	const cDate = customer?.registerDate;
 	const cPtDur = customer?.paymentTerm?.duration;
 	const cPtDate = customer?.paymentTerm?.startDate;
+	const vSnap = vehicles?.map((v) => `${v.id}:${v.vehicleType}:${v.licensePlate}`).join(",") ?? "";
 	const formResetKey = useMemo(
-		() => [cId ?? "", cName ?? "", cDate ?? "", cPtDur ?? "", cPtDate ?? "", vehicles?.length ?? 0].join("|"),
-		[cId, cName, cDate, cPtDur, cPtDate, vehicles?.length],
+		() => [cId ?? "", cName ?? "", cDate ?? "", cPtDur ?? "", cPtDate ?? "", vSnap].join("|"),
+		[cId, cName, cDate, cPtDur, cPtDate, vSnap],
 	);
 
 	const handleSubmit = async (formData: CustomerFormData) => {
