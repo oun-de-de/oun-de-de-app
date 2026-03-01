@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import cycleService from "@/core/api/services/cycle-service";
 import invoiceService from "@/core/api/services/invoice-service";
 import type { Cycle } from "@/core/types/cycle";
@@ -68,6 +68,8 @@ export function ReportTable({
 }: ReportTableProps) {
 	const definition = getReportDefinition(reportSlug);
 	const isInvoiceListReport = reportSlug === "open-invoice-detail-by-customer";
+	const isReceiptReport = reportSlug === "receipt-detail-by-customer";
+	const isInvoiceBasedReport = isInvoiceListReport || isReceiptReport;
 	const isCycleReport = reportSlug === "open-invoice-on-period-by-group";
 	const { customerId, reportDateFrom, reportDateTo } = normalizeReportFilters(filters);
 
@@ -86,23 +88,27 @@ export function ReportTable({
 	});
 
 	const invoiceQuery = useQuery({
-		queryKey: ["report", "invoice-list", customerId ?? "all", reportDateFrom ?? "", reportDateTo ?? ""],
+		queryKey: ["report", "invoice-list", reportSlug, customerId ?? "all", reportDateFrom ?? "", reportDateTo ?? ""],
 		queryFn: () =>
 			invoiceService.getInvoices({
 				page: 1,
 				size: 10000,
 				sort: "date,desc",
+				type: isReceiptReport ? "receipt" : undefined,
 				customerId,
 				from: reportDateFrom,
 				to: reportDateTo,
 			}),
-		enabled: isInvoiceListReport,
+		enabled: isInvoiceBasedReport,
 	});
-	const invoiceIds = isInvoiceListReport ? (invoiceQuery.data?.list ?? []).map((invoice) => invoice.id) : [];
+	const invoiceIds = useMemo(
+		() => (isInvoiceBasedReport ? (invoiceQuery.data?.list ?? []).map((invoice) => invoice.id) : []),
+		[isInvoiceBasedReport, invoiceQuery.data?.list],
+	);
 	const exportQuery = useQuery({
 		queryKey: ["report", "invoice-export", invoiceIds],
 		queryFn: () => invoiceService.exportInvoice(invoiceIds),
-		enabled: isInvoiceListReport && invoiceIds.length > 0,
+		enabled: isInvoiceBasedReport && invoiceIds.length > 0,
 	});
 
 	useEffect(() => {
@@ -111,7 +117,7 @@ export function ReportTable({
 
 	let sourceRows: ReportTemplateRow[] = [];
 
-	if (isInvoiceListReport) {
+	if (isInvoiceBasedReport) {
 		sourceRows = buildInvoiceReportRows(exportQuery.data ?? []);
 	} else if (isCycleReport) {
 		sourceRows = buildCycleReportRows(cycleQuery.data?.list ?? []);
