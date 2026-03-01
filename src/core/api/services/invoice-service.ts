@@ -76,7 +76,7 @@ export const updateInvoice = (invoiceIds: string[], customerName?: string, type?
 		data: {
 			invoiceIds,
 			...(customerName !== undefined ? { customerName } : {}),
-			...(type ? { type: toApiInvoiceType(type) } : {}),
+			...(type ? { type } : {}),
 		},
 	});
 export default {
