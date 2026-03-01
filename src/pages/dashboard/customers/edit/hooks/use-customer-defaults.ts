@@ -14,7 +14,7 @@ export const useCustomerDefaults = (customer?: CustomerDetail, vehicles?: Vehicl
 			name: customer.name,
 			status: customer.status,
 			defaultPrice: customer.defaultPrice,
-			warehouseId: customer.warehouseId,
+			warehouseId: customer.warehouse?.id ?? customer.warehouseId,
 			memo: customer.memo,
 			profileUrl: customer.profileUrl,
 			shopBannerUrl: customer.shopBannerUrl,

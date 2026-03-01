@@ -1,5 +1,5 @@
 import { cva, type VariantProps } from "class-variance-authority";
-import type { ComponentProps, ReactNode } from "react";
+import { type ComponentProps, type ReactNode, useEffect, useMemo, useRef } from "react";
 import { type DefaultValues, type RegisterOptions, useForm, type ValidationRule } from "react-hook-form";
 import { FormActions, FormProvider, FormSelect, FormSwitch, FormTextarea, FormTextField } from "@/core/components/form";
 import { Text } from "@/core/ui/typography";
@@ -79,6 +79,7 @@ export type DefaultFormProps<TFormData extends DefaultFormData = DefaultFormData
 	inputSize?: "sm" | "md" | "lg";
 	disableWhenClean?: boolean;
 	actionsVariant?: ComponentProps<typeof FormActions>["variant"];
+	resetKey?: string;
 };
 
 export function DefaultForm<TFormData extends DefaultFormData = DefaultFormData>({
@@ -98,6 +99,7 @@ export function DefaultForm<TFormData extends DefaultFormData = DefaultFormData>
 	inputSize = "md",
 	disableWhenClean = false,
 	actionsVariant,
+	resetKey,
 }: DefaultFormProps<TFormData>) {
 	const buildDefaultValues = (): DefaultValues<TFormData> => {
 		const values: Record<string, any> = {};
@@ -108,10 +110,19 @@ export function DefaultForm<TFormData extends DefaultFormData = DefaultFormData>
 		return values as DefaultValues<TFormData>;
 	};
 
+	const resolvedDefaultValues = useMemo(buildDefaultValues, [defaultValues, fields]);
+
 	const methods = useForm<TFormData>({
-		defaultValues: buildDefaultValues(),
+		defaultValues: resolvedDefaultValues,
 		mode: "onBlur",
 	});
+
+	const prevResetKeyRef = useRef(resetKey);
+	useEffect(() => {
+		if (prevResetKeyRef.current === resetKey) return;
+		prevResetKeyRef.current = resetKey;
+		methods.reset(resolvedDefaultValues);
+	}, [methods, resetKey, resolvedDefaultValues]);
 
 	const handleFormSubmit = async (data: TFormData) => {
 		await onSubmit?.(data);

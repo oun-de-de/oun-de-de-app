@@ -4,8 +4,9 @@ import { toast } from "sonner";
 import customerService from "@/core/api/services/customer-service";
 import type { CreateCustomer } from "@/core/types/customer";
 import { Text } from "@/core/ui/typography";
-import { toUtcIsoPreferNowIfToday, toUtcIsoStartOfDay } from "@/core/utils/date-utils";
+import { toUtcIsoPreferNowIfToday } from "@/core/utils/date-utils";
 import { useFormOptions } from "../hooks/use-form-options";
+import { resolvePaymentTermFromInput } from "../utils/payment-term";
 import { CustomerForm, type CustomerFormData } from "./components/customer-form";
 
 export default function CreateCustomerPage() {
@@ -27,18 +28,19 @@ export default function CreateCustomerPage() {
 	});
 
 	const handleSubmit = async (data: CustomerFormData) => {
-		const duration = Number(data.paymentTerm);
-		const parsedStartDateIso = toUtcIsoStartOfDay(data.startDate);
 		const registerDateIso = toUtcIsoPreferNowIfToday(data.registerDate);
 		if (!registerDateIso) {
 			toast.error("Invalid register date");
 			return;
 		}
-		const hasPaymentTermValue = data.paymentTerm !== "" && data.paymentTerm != null;
-		const paymentTerm =
-			hasPaymentTermValue && Number.isFinite(duration) && duration >= 0 && parsedStartDateIso
-				? { duration, startDate: parsedStartDateIso }
-				: undefined;
+		const { paymentTerm, error: paymentTermError } = resolvePaymentTermFromInput({
+			paymentTerm: data.paymentTerm,
+			startDate: data.startDate,
+		});
+		if (paymentTermError) {
+			toast.error(paymentTermError);
+			return;
+		}
 
 		const referredById = data.referredById && data.referredById !== "none" ? data.referredById : undefined;
 

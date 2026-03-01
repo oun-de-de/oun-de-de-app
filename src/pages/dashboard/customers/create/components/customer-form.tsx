@@ -36,6 +36,7 @@ type CustomerFormProps = {
 	showTitle?: boolean;
 	employeeOptions?: { label: string; value: string }[];
 	customerOptions?: { label: string; value: string }[];
+	formResetKey?: string;
 };
 
 export function CustomerForm({
@@ -46,6 +47,7 @@ export function CustomerForm({
 	showTitle = true,
 	employeeOptions = [],
 	customerOptions = [],
+	formResetKey,
 }: CustomerFormProps) {
 	const title = mode === "create" ? "Add Customer" : "Edit Customer";
 
@@ -87,6 +89,7 @@ export function CustomerForm({
 			inputSize="md"
 			columns={2}
 			showTitle={showTitle}
+			resetKey={formResetKey}
 		/>
 	);
 }
