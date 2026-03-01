@@ -1,10 +1,8 @@
 import { GetIt } from "@service-locator";
 import {
-	// DailyIncomeAccountingApiImpl,
-	// DailyIncomePosApiImpl,
-	// DashboardApiImpl,
-	DailyIncomeAccountingMockupImpl,
-	DailyIncomePosMockupImpl,
+	DailyIncomeAccountingApiImpl,
+	DailyIncomePosApiImpl,
+	DashboardApiImpl,
 	DashboardApiMockupImpl,
 } from "./core/api/services/dashboardService";
 import { type AuthRepository, AuthRepositoryImpl } from "./core/domain/auth/repositories";
@@ -128,31 +126,31 @@ class Repository {
 		// Auth Repository
 		Repository.register<AuthRepository>(new AuthRepositoryImpl(AppAuthService.getInstance()));
 
-		// Dashboard - Income POS (mock)
+		// Dashboard - Income POS filters (local fallback)
 		Repository.register<DashboardRepository>(
 			new DashboardRepositoryImpl(new DashboardApiMockupImpl(), "dashboard:selectedFilter:income-pos"),
 			{ instanceName: "Dashboard-Income-Pos" },
 		);
 
-		// Dashboard - Income Accounting (mock)
+		// Dashboard - Income Accounting filters (local fallback)
 		Repository.register<DashboardRepository>(
 			new DashboardRepositoryImpl(new DashboardApiMockupImpl(), "dashboard:selectedFilter:income-accounting"),
 			{ instanceName: "Dashboard-Income-Accounting" },
 		);
 
-		// Daily Income POS (mock)
-		Repository.register<DailyIncomePosRepository>(new DailyIncomePosRepositoryImpl(new DailyIncomePosMockupImpl()));
+		// Daily Income POS
+		Repository.register<DailyIncomePosRepository>(new DailyIncomePosRepositoryImpl(new DailyIncomePosApiImpl()));
 
-		// Daily Income Accounting (mock)
+		// Daily Income Accounting / Daily Report
 		Repository.register<DailyIncomeAccountingRepository>(
-			new DailyIncomeAccountingRepositoryImpl(new DailyIncomeAccountingMockupImpl()),
+			new DailyIncomeAccountingRepositoryImpl(new DailyIncomeAccountingApiImpl()),
 		);
 
-		// Customer Info (mock)
-		Repository.register<CustomerInfoRepository>(new CustomerInfoRepositoryImpl(new DashboardApiMockupImpl()));
+		// Financial Overview
+		Repository.register<CustomerInfoRepository>(new CustomerInfoRepositoryImpl(new DashboardApiImpl()));
 
-		// Performance (mock)
-		Repository.register<PerformanceRepository>(new PerformanceRepositoryImpl(new DashboardApiMockupImpl()));
+		// Performance
+		Repository.register<PerformanceRepository>(new PerformanceRepositoryImpl(new DashboardApiImpl()));
 
 		// Sale Filter (mock)
 		Repository.register<SaleFilterRepository>(new SaleFilterRepositoryImpl(new SaleApiMockupImpl()));

@@ -1,13 +1,12 @@
 import { setupWorker } from "msw/browser";
 import { createCustomerVehicle, customerList, getCustomerVehicleList } from "./handlers/_customer";
-import {
-	customerInfo,
-	dailyIncomeAccounting,
-	dailyIncomePos,
-	dashboardFilters,
-	performance,
-} from "./handlers/_dashboard";
+import { dailyIncomePos, dailyReport, financialOverview, performance } from "./handlers/_dashboard";
 import { mockTokenExpired } from "./handlers/_demo";
+import {
+	createEmployee as createEmployeeMock,
+	employeeList,
+	updateEmployee as updateEmployeeMock,
+} from "./handlers/_employee";
 import { menuList } from "./handlers/_menu";
 import { createProduct, deleteProduct, getProductById, getProductList, updateProduct } from "./handlers/_product";
 import {
@@ -31,10 +30,9 @@ const handlers = [
 	getCustomerVehicleList,
 	createCustomerVehicle,
 	dailyIncomePos,
-	customerInfo,
+	financialOverview,
 	performance,
-	dashboardFilters,
-	dailyIncomeAccounting,
+	dailyReport,
 	saleCustomers,
 	saleEmployees,
 	saleWarehouses,
@@ -51,6 +49,9 @@ const handlers = [
 	createProduct,
 	updateProduct,
 	deleteProduct,
+	employeeList,
+	createEmployeeMock,
+	updateEmployeeMock,
 ];
 
 const worker = setupWorker(...handlers);
