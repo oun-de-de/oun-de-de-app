@@ -11,6 +11,7 @@ import type { CreateCouponRequest } from "@/core/types/coupon";
 import { Button } from "@/core/ui/button";
 import { Text } from "@/core/ui/typography";
 import { toUtcIsoStartOfDay } from "@/core/utils/date-utils";
+import { getEmployeeDisplayName } from "@/pages/dashboard/employees/utils/employee-utils";
 import { CouponForm } from "./components/coupon-form";
 import {
 	createInitialRawWeightRecord,
@@ -65,7 +66,7 @@ export default function CreateCouponPage() {
 	});
 
 	const employeeOptions = employees.map((emp) => ({
-		label: emp.firstName && emp.lastName ? `${emp.firstName} ${emp.lastName}` : emp.username,
+		label: getEmployeeDisplayName(emp),
 		value: emp.id,
 	}));
 

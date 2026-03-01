@@ -1,5 +1,11 @@
 import type { Employee } from "@/core/types/employee";
 
+type EmployeeDisplaySource = {
+	username: string;
+	firstName?: string | null;
+	lastName?: string | null;
+};
+
 export const FILTER_TYPE_OPTIONS = [{ value: "all", label: "All" }];
 
 export const FILTER_FIELD_OPTIONS = [
@@ -8,8 +14,16 @@ export const FILTER_FIELD_OPTIONS = [
 	{ value: "lastName", label: "Last Name" },
 ];
 
-export const getEmployeeDisplayName = (employee: Pick<Employee, "username" | "firstName" | "lastName">) => {
-	const fullName = `${employee.firstName} ${employee.lastName}`.trim();
+const normalizeNamePart = (value: string | null | undefined) => {
+	const normalized = value?.trim();
+	if (!normalized) return "";
+	return normalized.toLowerCase() === "null" ? "" : normalized;
+};
+
+export const getEmployeeDisplayName = (employee: EmployeeDisplaySource) => {
+	const firstName = normalizeNamePart(employee.firstName);
+	const lastName = normalizeNamePart(employee.lastName);
+	const fullName = [firstName, lastName].filter(Boolean).join(" ").trim();
 	return fullName || employee.username;
 };
 
