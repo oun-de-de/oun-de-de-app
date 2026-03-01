@@ -2,6 +2,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 import type { Coupon } from "@/core/types/coupon";
 import { Badge } from "@/core/ui/badge";
 import { formatDisplayDate, formatNumber } from "@/core/utils/formatters";
+import { getEmployeeDisplayName } from "@/pages/dashboard/employees/utils/employee-utils";
 
 const mappingVehicleType: Record<string, string> = {
 	TUK_TUK: "Tuk Tuk",
@@ -60,7 +61,7 @@ export const columns: ColumnDef<Coupon>[] = [
 		cell: ({ row }) => {
 			const emp = row.original.employee;
 			if (!emp) return "-";
-			return emp.firstName && emp.lastName ? `${emp.firstName} ${emp.lastName}` : emp.username;
+			return getEmployeeDisplayName(emp);
 		},
 	},
 	{

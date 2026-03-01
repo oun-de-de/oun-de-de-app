@@ -30,8 +30,8 @@ export function NavVerticalFooter() {
 		}
 	};
 
-	const username = userInfo?.username;
-	const userRole = roles?.[0] ?? "User";
+	const username = userInfo?.username?.trim() || userInfo?.user_id || "Unknown user";
+	const userRole = roles?.[0];
 	const isMini = themeLayout === ThemeLayout.Mini;
 
 	return (
@@ -45,7 +45,7 @@ export function NavVerticalFooter() {
 					<StyledAvatar src={userIcon} alt={username} />
 					<StyledUserInfo>
 						<StyledUsername>{username}</StyledUsername>
-						<StyledUserRole>{userRole}</StyledUserRole>
+						{userRole ? <StyledUserRole>{userRole}</StyledUserRole> : null}
 					</StyledUserInfo>
 					<StyledLogoutButton variant="ghost" size="icon" onClick={handleLogout}>
 						<Icon icon="lucide:log-out" size={16} />
@@ -84,6 +84,9 @@ const StyledAvatar = styled.img`
 	width: 2rem;
 	border-radius: 50%;
 	object-fit: cover;
+	background-color: ${({ theme }) => rgbAlpha(theme.colors.common.white, 0.18)};
+	padding: 0.35rem;
+	border: 1px solid ${({ theme }) => rgbAlpha(theme.colors.common.white, 0.14)};
 `;
 
 // const StyledAvatarPlaceholder = styled.div`
@@ -109,7 +112,7 @@ const StyledUserInfo = styled.div`
 const StyledUsername = styled.span`
 	font-size: 0.875rem;
 	font-weight: 500;
-	color: ${({ theme }) => theme.colors.text.primary};
+	color: ${({ theme }) => theme.colors.common.white};
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
@@ -117,7 +120,7 @@ const StyledUsername = styled.span`
 
 const StyledUserRole = styled.span`
 	font-size: 0.75rem;
-	color: ${({ theme }) => theme.colors.text.secondary};
+	color: ${({ theme }) => rgbAlpha(theme.colors.common.white, 0.72)};
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;

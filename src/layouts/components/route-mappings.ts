@@ -62,7 +62,7 @@ export const ROUTE_TITLE_MAPPINGS = [
 	},
 	{
 		path: "/dashboard/products",
-		title: "Product/Service Center",
+		title: "Product Center",
 	},
 	{
 		path: "/dashboard/coupons",
@@ -79,6 +79,10 @@ export const ROUTE_TITLE_MAPPINGS = [
 	{
 		path: "/dashboard/settings",
 		title: "Settings",
+	},
+	{
+		path: "/dashboard/invoice/export-preview",
+		title: "Export Invoice",
 	},
 	{
 		path: "/dashboard/audit-log",

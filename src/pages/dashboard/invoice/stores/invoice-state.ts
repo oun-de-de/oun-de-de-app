@@ -12,7 +12,7 @@ export type InvoiceState = BaseState<InvoiceType> &
 export const createInvoiceInitialState = (): InvoiceState => ({
 	type: "InitialState",
 	typeFilter: "all",
-	fieldFilter: "all",
+	fieldFilter: "refNo",
 	searchValue: "",
 	page: 1,
 	pageSize: 10,

@@ -1,10 +1,10 @@
 import React from "react";
 import { toast } from "sonner";
 import invoiceService from "@/core/api/services/invoice-service";
+import { buildInvoiceExportBlob } from "@/pages/dashboard/invoice/export-preview/utils/invoice-export-template";
 import { ReportFilterBar } from "../../components/layout/report-filter-bar";
 import { ReportLayout } from "../../components/layout/report-layout";
 import { ReportToolbar } from "../../components/layout/report-toolbar";
-import { buildInvoiceExportBlob } from "@/pages/dashboard/invoice/export-preview/utils/invoice-export-template";
 import { DEFAULT_REPORT_COLUMNS, DEFAULT_REPORT_SECTIONS, REPORT_DEFAULT_DATE_INPUT } from "../constants";
 import { getReportDefinition } from "../report-registry";
 import { ReportFilters, type ReportFiltersValue } from "./report-filters";
@@ -40,7 +40,8 @@ export function ReportDetailView({ reportSlug }: ReportDetailViewProps) {
 	const hasPendingFilterChanges = !areReportFiltersEqual(draftFilters, appliedFilters);
 	const handlePrint = () => window.print();
 	const reportDefinition = React.useMemo(() => getReportDefinition(reportSlug), [reportSlug]);
-	const isInvoiceListReport = reportSlug === "open-invoice-detail-by-customer";
+	const isInvoiceListReport =
+		reportSlug === "open-invoice-detail-by-customer" || reportSlug === "receipt-detail-by-customer";
 	const handleSubmitFilters = () => {
 		if (!draftFilters.fromDate || !draftFilters.toDate) {
 			toast.error("From and To dates are required");

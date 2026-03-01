@@ -25,6 +25,21 @@ export const useCreateWarehouse = () => {
 	});
 };
 
+export const useUpdateWarehouse = () => {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: ({ id, data }: { id: string; data: CreateWarehouse }) => settingService.updateWarehouse(id, data),
+		onSuccess: () => {
+			toast.success("Warehouse updated successfully");
+			queryClient.invalidateQueries({ queryKey: ["warehouse-list"] });
+		},
+		onError: () => {
+			toast.error("Failed to update warehouse");
+		},
+	});
+};
+
 export const useGetUnitList = () => {
 	return useQuery({
 		queryKey: ["unit-list"],
@@ -43,6 +58,21 @@ export const useCreateUnit = () => {
 		},
 		onError: () => {
 			toast.error("Failed to create unit");
+		},
+	});
+};
+
+export const useUpdateUnit = () => {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: ({ id, data }: { id: string; data: CreateUnit }) => settingService.updateUnit(id, data),
+		onSuccess: () => {
+			toast.success("Unit updated successfully");
+			queryClient.invalidateQueries({ queryKey: ["unit-list"] });
+		},
+		onError: () => {
+			toast.error("Failed to update unit");
 		},
 	});
 };

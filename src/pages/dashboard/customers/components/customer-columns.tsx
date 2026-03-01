@@ -8,7 +8,7 @@ import { CustomerActions } from "./customer-actions";
 export const columns: ColumnDef<Customer>[] = [
 	{
 		header: "Register Date",
-		size: 80,
+		size: 100,
 		accessorKey: "registerDate",
 		cell: ({ row }) => formatDisplayDate(row.original.registerDate),
 		meta: { bodyClassName: "text-center" },

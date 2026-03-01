@@ -27,7 +27,8 @@ export function WarehouseSettingsForm({ customerId, currentWarehouseId }: Wareho
 
 	return (
 		<div className="flex flex-col gap-3">
-			<div className="flex items-center justify-end">
+			<div className="flex items-center justify-between">
+				<Text className="font-semibold text-sky-600">Warehouse Settings</Text>
 				<div className="flex items-center gap-2">
 					<Button variant="outline" asChild size="sm">
 						<Link to="/dashboard/settings" state={{ tab: "warehouse" }}>
@@ -35,7 +36,7 @@ export function WarehouseSettingsForm({ customerId, currentWarehouseId }: Wareho
 							Create Warehouse
 						</Link>
 					</Button>
-					<Button onClick={form.handleSave} disabled={form.isSaving} size="sm">
+					<Button type="button" onClick={form.handleSave} disabled={form.isSaving} size="sm">
 						{form.isSaving ? "Saving..." : "Save Settings"}
 					</Button>
 				</div>
