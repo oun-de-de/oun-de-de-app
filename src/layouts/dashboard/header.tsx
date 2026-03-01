@@ -1,12 +1,11 @@
-import { useSettings } from "@/core/store/settingStore";
 import type { ReactNode } from "react";
 import styled from "styled-components";
+import { useSettings } from "@/core/store/settingStore";
 import { rgbAlpha } from "@/core/utils/theme";
 import BreadCrumb from "../components/bread-crumb";
 import NavHistoryMenu from "../components/nav-history-menu";
-import NoticeButton from "../components/notice";
-import SettingButton from "../components/setting-button";
 import ScreenControl from "../components/screen-control";
+import SettingButton from "../components/setting-button";
 
 interface HeaderProps {
 	leftSlot?: ReactNode;
@@ -25,7 +24,7 @@ export default function Header({ leftSlot }: HeaderProps) {
 				<div className="flex items-center gap-2 mr-2 flex-shrink-0">
 					<ScreenControl />
 					<SettingButton />
-					<NoticeButton />
+					{/* <NoticeButton /> */}
 				</div>
 			</StyledTopRow>
 

@@ -26,6 +26,7 @@ export default function AccountDropdown() {
 	const signOut = useSignOut();
 	const { backToLogin } = useLoginStateContext();
 	const { t } = useTranslation();
+	const username = userInfo?.username?.trim() || userInfo?.user_id || "Unknown user";
 
 	const logout = async () => {
 		try {
@@ -49,7 +50,7 @@ export default function AccountDropdown() {
 				<StyledUserInfo>
 					<img className="h-10 w-10 rounded-full" src={userIcon} alt="" />
 					<div className="flex flex-col items-start">
-						<StyledUsername>{userInfo?.username}</StyledUsername>
+						<StyledUsername>{username}</StyledUsername>
 					</div>
 				</StyledUserInfo>
 				<DropdownMenuSeparator />

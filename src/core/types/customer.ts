@@ -1,5 +1,5 @@
-import type { CreateVehicle, Vehicle } from "./vehicle";
 import type { Warehouse } from "./setting";
+import type { CreateVehicle, Vehicle } from "./vehicle";
 
 export interface PaymentTerm {
 	duration: number;

@@ -182,7 +182,7 @@ export function InvoiceContent({
 			};
 		});
 
-		navigate("/dashboard/invoice/export-preview", {
+		navigate(`/dashboard/invoice/export-preview?ids=${selectedInvoiceIds.join(",")}`, {
 			state: {
 				selectedInvoiceIds,
 				previewRows,

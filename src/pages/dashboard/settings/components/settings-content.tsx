@@ -8,7 +8,14 @@ import { Button } from "@/core/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/core/ui/dialog";
 import { Input } from "@/core/ui/input";
 import { Text } from "@/core/ui/typography";
-import { useCreateUnit, useCreateWarehouse, useGetUnitList, useGetWarehouseList } from "../hooks/use-settings";
+import {
+	useCreateUnit,
+	useCreateWarehouse,
+	useGetUnitList,
+	useGetWarehouseList,
+	useUpdateUnit,
+	useUpdateWarehouse,
+} from "../hooks/use-settings";
 import { useFormState, useSettingsSidebarActions } from "../stores";
 import { getColumnsForItem } from "./settings-columns";
 import { SettingsForm } from "./settings-form/settings-form";
@@ -25,7 +32,9 @@ export function SettingsContent({ activeItem }: SettingsContentProps) {
 	const { data: warehouses } = useGetWarehouseList();
 	const { data: units } = useGetUnitList();
 	const { mutateAsync: createWarehouse, isPending: isCreatingWarehouse } = useCreateWarehouse();
+	const { mutateAsync: updateWarehouse, isPending: isUpdatingWarehouse } = useUpdateWarehouse();
 	const { mutateAsync: createUnit, isPending: isCreatingUnit } = useCreateUnit();
+	const { mutateAsync: updateUnit, isPending: isUpdatingUnit } = useUpdateUnit();
 
 	const getData = (): SettingsRow[] => {
 		if (activeItem === "Warehouse") {
@@ -37,7 +46,7 @@ export function SettingsContent({ activeItem }: SettingsContentProps) {
 		return settingsRows;
 	};
 
-	const isSaving = isCreatingWarehouse || isCreatingUnit;
+	const isSaving = isCreatingWarehouse || isUpdatingWarehouse || isCreatingUnit || isUpdatingUnit;
 
 	const data = getData();
 	const filteredRows = data.filter((row) => row.name.toLowerCase().includes(search.toLowerCase()));
@@ -52,14 +61,22 @@ export function SettingsContent({ activeItem }: SettingsContentProps) {
 					descr: (formData.descr as string) || "",
 					location: (formData.location as string) || "",
 				};
-				await createWarehouse(warehouseData);
+				if (formMode === "edit" && editItem?.id) {
+					await updateWarehouse({ id: editItem.id, data: warehouseData });
+				} else {
+					await createWarehouse(warehouseData);
+				}
 			} else if (activeItem === "Unit") {
 				const unitData = {
 					name: formData.name as string,
 					descr: (formData.descr as string) || "",
 					type: formData.type as UnitType,
 				};
-				await createUnit(unitData);
+				if (formMode === "edit" && editItem?.id) {
+					await updateUnit({ id: editItem.id, data: unitData });
+				} else {
+					await createUnit(unitData);
+				}
 			} else {
 				if (formMode === "create") {
 					toast.success(`${activeItem} has been created`);

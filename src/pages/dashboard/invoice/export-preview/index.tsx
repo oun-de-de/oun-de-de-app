@@ -40,7 +40,17 @@ export default function InvoiceExportPreviewPage() {
 	const authUser = useAuthUser();
 	const [isExporting, setIsExporting] = useState(false);
 	const state = (location.state as InvoiceExportPreviewLocationState | null) ?? null;
-	const selectedInvoiceIds = state?.selectedInvoiceIds ?? [];
+	const selectedInvoiceIds = useMemo(() => {
+		if (state?.selectedInvoiceIds?.length) return state.selectedInvoiceIds;
+
+		const idsParam = new URLSearchParams(location.search).get("ids");
+		if (!idsParam) return [];
+
+		return idsParam
+			.split(",")
+			.map((id) => id.trim())
+			.filter(Boolean);
+	}, [state?.selectedInvoiceIds, location.search]);
 	const fallbackRows = state?.previewRows ?? [];
 	const exportQuery = useQuery({
 		queryKey: ["invoice-export-lines", selectedInvoiceIds],

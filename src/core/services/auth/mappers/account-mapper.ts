@@ -12,11 +12,11 @@ import type { AppAuthAccount, AppUserData } from "../models/app-auth-account";
 export interface LoginResponseDTO {
 	access_token: string;
 	refresh_token: string;
-	expires_in: number;
+	expires_in: number | null;
 	type: string;
 
-	user_id: string;
-	username: string;
+	user_id?: string;
+	username?: string;
 	roles: string[] | null;
 }
 
@@ -30,6 +30,14 @@ export class AppAuthAccountMapper implements AuthAccountMapper<AppAuthAccount, A
 		credential?: AuthCredential | null,
 	): AuthAccount<AppUserData> {
 		const raw = dto.data as object as LoginResponseDTO;
+		const accessTokenPayload = decodeJwtPayload(raw.access_token);
+		const username = raw.username ?? accessTokenPayload?.sub ?? credential?.identity ?? "";
+		const userId = raw.user_id ?? accessTokenPayload?.user_id ?? accessTokenPayload?.sub ?? username;
+		const roles = Array.isArray(raw.roles)
+			? raw.roles
+			: Array.isArray(accessTokenPayload?.roles)
+				? accessTokenPayload.roles.filter((role): role is string => typeof role === "string")
+				: [];
 
 		// 1. Tokens
 		const accessToken = normalizeAuthToken(raw.access_token, raw.expires_in, raw?.type);
@@ -38,10 +46,10 @@ export class AppAuthAccountMapper implements AuthAccountMapper<AppAuthAccount, A
 
 		// 2. User mapping
 		const user: AppUserData = {
-			user_id: raw.user_id,
-			username: raw.username,
+			user_id: userId,
+			username,
 			type: raw.type,
-			roles: Array.isArray(raw.roles) ? raw.roles : [],
+			roles,
 			permissions: [],
 		};
 
@@ -95,4 +103,26 @@ function normalizeAuthToken(raw: unknown, expiration: number | null, typeFallbac
 		expiration: null,
 		isValid: false,
 	};
+}
+
+type JwtPayload = {
+	sub?: string;
+	user_id?: string;
+	roles?: unknown[];
+};
+
+function decodeJwtPayload(token?: string): JwtPayload | null {
+	if (!token) return null;
+
+	const payload = token.split(".")[1];
+	if (!payload) return null;
+
+	try {
+		const normalized = payload.replace(/-/g, "+").replace(/_/g, "/");
+		const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, "=");
+		const decoded = atob(padded);
+		return JSON.parse(decoded) as JwtPayload;
+	} catch {
+		return null;
+	}
 }
