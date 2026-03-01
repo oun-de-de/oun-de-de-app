@@ -1,4 +1,4 @@
-import type { CreateProduct, Product } from "@/core/types/product";
+import type { CreateProductRequest, Product, UpdateProduct } from "@/core/types/product";
 import { apiClient } from "../apiClient";
 
 export enum ProductApi {
@@ -11,13 +11,13 @@ const getProductList = (): Promise<Product[]> =>
 		url: ProductApi.List,
 	});
 
-const createProduct = (data: CreateProduct): Promise<Product> =>
+const createProduct = (data: CreateProductRequest): Promise<Product> =>
 	apiClient.post<Product>({
 		url: ProductApi.Create,
 		data,
 	});
 
-const updateProduct = (productId: string, data: Partial<CreateProduct>): Promise<Product> =>
+const updateProduct = (productId: string, data: Partial<UpdateProduct>): Promise<Product> =>
 	apiClient.put<Product>({
 		url: `${ProductApi.Create}/${productId}`,
 		data,

@@ -1,13 +1,44 @@
 import type { FormFieldConfig } from "@/core/components/common";
-import { formatDateToYYYYMMDD } from "@/core/utils/date-utils";
+
+export const CREATE_PRODUCT_FIELDS: FormFieldConfig[] = [
+	{
+		name: "name",
+		label: "Name",
+		type: "text",
+		required: true,
+		placeholder: "Enter product name",
+		className: "col-span-2",
+	},
+	{
+		name: "unitId",
+		label: "Unit",
+		type: "select",
+		required: true,
+		options: [],
+		placeholder: "Select unit",
+	},
+	{
+		name: "defaultPrice",
+		label: "Default Price",
+		type: "number",
+		required: false,
+		placeholder: "0.00",
+	},
+	{
+		name: "defaultQuantity",
+		label: "Default Quantity",
+		type: "number",
+		required: false,
+		placeholder: "0",
+	},
+];
 
 export const PRODUCT_FIELDS: FormFieldConfig[] = [
 	{
 		name: "date",
 		label: "Date",
 		type: "date",
-		required: false,
-		defaultValue: formatDateToYYYYMMDD(new Date()),
+		required: true,
 	},
 	{
 		name: "refNo",
@@ -24,7 +55,7 @@ export const PRODUCT_FIELDS: FormFieldConfig[] = [
 		name: "name",
 		label: "Name",
 		type: "text",
-		required: false,
+		required: true,
 		placeholder: "Enter product name",
 		className: "col-span-2",
 	},
@@ -32,21 +63,21 @@ export const PRODUCT_FIELDS: FormFieldConfig[] = [
 		name: "quantity",
 		label: "Quantity",
 		type: "number",
-		required: false,
+		required: true,
 		placeholder: "Enter quantity",
 	},
 	{
 		name: "cost",
 		label: "Cost",
 		type: "number",
-		required: false,
+		required: true,
 		placeholder: "0.00",
 	},
 	{
 		name: "unitId",
 		label: "Unit",
 		type: "select",
-		required: false,
+		required: true,
 		options: [],
 		placeholder: "Select unit",
 	},
@@ -54,7 +85,7 @@ export const PRODUCT_FIELDS: FormFieldConfig[] = [
 		name: "price",
 		label: "Price",
 		type: "number",
-		required: false,
+		required: true,
 		placeholder: "0.00",
 	},
 	{

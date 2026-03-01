@@ -1,9 +1,9 @@
 import { useMemo } from "react";
 import { DefaultForm, type DefaultFormData, type FormFieldConfig } from "@/core/components/common";
-import type { CreateProduct } from "@/core/types/product";
-import { PRODUCT_FIELDS } from "../constants/product-fields";
+import type { CreateProductRequest, UpdateProduct } from "@/core/types/product";
+import { CREATE_PRODUCT_FIELDS, PRODUCT_FIELDS } from "../constants/product-fields";
 
-export type ProductFormData = DefaultFormData & Partial<CreateProduct>;
+export type ProductFormData = DefaultFormData & Partial<CreateProductRequest & UpdateProduct>;
 
 type ProductFormProps = {
 	onSubmit?: (data: ProductFormData) => Promise<void> | void;
@@ -25,13 +25,14 @@ export function ProductForm({
 	const title = mode === "create" ? "Add Product" : "Edit Product";
 
 	const fields = useMemo<FormFieldConfig[]>(() => {
-		return PRODUCT_FIELDS.map((field) => {
+		const baseFields = mode === "create" ? CREATE_PRODUCT_FIELDS : PRODUCT_FIELDS;
+		return baseFields.map((field) => {
 			if (field.name === "unitId") {
 				return { ...field, options: unitOptions };
 			}
 			return field;
 		});
-	}, [unitOptions]);
+	}, [mode, unitOptions]);
 
 	return (
 		<DefaultForm<ProductFormData>
