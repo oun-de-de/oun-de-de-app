@@ -10,15 +10,27 @@ type SelectedWarehouseItemProps = {
 
 export function SelectedWarehouseItem({ warehouse, onRemove }: SelectedWarehouseItemProps) {
 	return (
-		<div className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
+		<div className="flex items-center justify-between p-3 bg-sky-50/50 border border-sky-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
 			<div className="flex items-center gap-3">
-				<Text variant="body2" className="font-medium">
-					{warehouse.warehouseName}
-				</Text>
+				<div className="flex flex-col">
+					<Text variant="body2" className="font-semibold text-sky-900 leading-tight">
+						{warehouse.warehouseName}
+					</Text>
+					<div className="flex items-center gap-1.5 mt-0.5">
+						<div className="w-1.5 h-1.5 rounded-full bg-sky-500 animate-pulse" />
+						<Text className="text-[9px] text-sky-600 font-bold uppercase tracking-widest">Current Assignment</Text>
+					</div>
+				</div>
 			</div>
-			<div className="flex items-center gap-2">
-				<Button variant="ghost" size="sm" onClick={() => onRemove(warehouse.warehouseId)}>
-					<Icon icon="mdi:trash-can-outline" className="w-4 h-4 text-red-500" />
+			<div className="flex items-center gap-1.5">
+				<Button
+					variant="ghost"
+					size="icon"
+					onClick={() => onRemove(warehouse.warehouseId)}
+					className="text-red-500 hover:text-red-600 hover:bg-red-100 rounded-full h-8 w-8"
+					title="Remove assignment"
+				>
+					<Icon icon="mdi:trash-can-outline" className="w-4 h-4" />
 				</Button>
 			</div>
 		</div>

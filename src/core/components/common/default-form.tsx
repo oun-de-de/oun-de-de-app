@@ -41,7 +41,7 @@ const formGridVariants = cva("gap-6", {
 export type FormPrimitive = string | number | boolean | null | undefined | Date;
 export type FormObject = Record<string, FormPrimitive>;
 export type FormValue = FormPrimitive | FormObject | FormObject[];
-export type FormType = "text" | "number" | "select" | "switch" | "textarea" | "date" | "custom";
+export type FormType = "text" | "number" | "password" | "select" | "switch" | "textarea" | "date" | "custom";
 
 export type FormFieldConfig = {
 	name: string;
@@ -166,7 +166,7 @@ export function DefaultForm<TFormData extends DefaultFormData = DefaultFormData>
 				return (
 					<FormTextField
 						{...textFieldProps}
-						type={field.type === "number" ? "number" : "text"}
+						type={field.type === "number" ? "number" : field.type === "password" ? "password" : "text"}
 						variant={inputVariant}
 						size={inputSize}
 					/>

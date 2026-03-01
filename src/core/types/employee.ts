@@ -1,19 +1,17 @@
 export interface Employee {
 	id: string;
 	username: string;
-	firstName: string | null;
-	lastName: string | null;
+	firstName: string;
+	lastName: string;
 }
 
 export interface CreateEmployee {
-	code: string;
-	name: string;
-	status: boolean;
-	position: string;
-	department: string;
-	telephone: string;
-	email: string;
-	address: string;
-	hireDate: string;
-	profileUrl: string;
+	username: string;
+	password?: string;
+	reEnteredPassword?: string;
+}
+
+export interface UpdateEmployeeProfile {
+	firstName?: string;
+	lastName?: string;
 }

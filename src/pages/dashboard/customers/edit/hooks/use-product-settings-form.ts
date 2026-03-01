@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import productService from "@/core/api/services/product-service";
 import type { CreateProductSettings } from "@/core/types/customer";
@@ -19,8 +19,8 @@ const createProductSettingItem = (
 	values?: Pick<CreateProductSettings, "price" | "quantity">,
 ): ProductSettingItem => ({
 	productId: product.id,
-	price: values?.price ?? product.price,
-	quantity: values?.quantity ?? 0,
+	price: values?.price ?? product.defaultProductSetting?.price ?? product.price ?? 0,
+	quantity: values?.quantity ?? product.defaultProductSetting?.quantity ?? 0,
 	productName: product.name,
 	productRef: product.refNo,
 	unitLabel: getUnitLabel(product),
@@ -40,10 +40,8 @@ const toNumberOrZero = (value: string) => {
 	return Number.isNaN(parsed) ? 0 : parsed;
 };
 
-const getNewSettings = (settings: ProductSettingItem[], existingProductIds: Set<string>) =>
-	settings
-		.filter((setting) => !existingProductIds.has(setting.productId))
-		.map(({ productId, price, quantity }) => ({ productId, price, quantity }));
+const toPayload = (settings: ProductSettingItem[]) =>
+	settings.map(({ productId, price, quantity }) => ({ productId, price, quantity }));
 
 export const useProductSettingsForm = (customerId?: string) => {
 	const { data: products } = useQuery({
@@ -81,31 +79,31 @@ export const useProductSettingsForm = (customerId?: string) => {
 		[products, settings],
 	);
 
-	const handleAdd = (product: Product) => {
+	const handleAdd = useCallback((product: Product) => {
 		setSettings((prev) => [...prev, createProductSettingItem(product)]);
-	};
+	}, []);
 
-	const handleRemove = async (productId: string) => {
-		if (existingProductIds.has(productId)) {
-			toast.info("Delete product setting is not supported yet");
-			return;
-		}
-		setSettings((prev) => prev.filter((item) => item.productId !== productId));
-	};
+	const handleRemove = useCallback(
+		async (productId: string) => {
+			if (existingProductIds.has(productId)) {
+				toast.info("Delete product setting is not supported yet");
+				return;
+			}
+			setSettings((prev) => prev.filter((item) => item.productId !== productId));
+		},
+		[existingProductIds],
+	);
 
-	const handleChange = (productId: string, field: "price" | "quantity", value: string) => {
-		if (existingProductIds.has(productId)) {
-			return;
-		}
+	const handleChange = useCallback((productId: string, field: "price" | "quantity", value: string) => {
 		setSettings((prev) =>
 			prev.map((item) => {
 				if (item.productId !== productId) return item;
 				return { ...item, [field]: toNumberOrZero(value) };
 			}),
 		);
-	};
+	}, []);
 
-	const handleSave = async () => {
+	const handleSave = useCallback(async () => {
 		if (settings.length === 0) {
 			toast.info("No product settings to save");
 			return;
@@ -113,21 +111,15 @@ export const useProductSettingsForm = (customerId?: string) => {
 
 		setIsSaving(true);
 		try {
-			const newSettings = getNewSettings(settings, existingProductIds);
-			if (newSettings.length === 0) {
-				toast.info("Only create product setting is supported. No new products to save.");
-				return;
-			}
-			await Promise.all(
-				newSettings.map(({ productId, price, quantity }) => createSetting({ productId, price, quantity })),
-			);
+			const payload = toPayload(settings);
+			await Promise.all(payload.map((setting) => createSetting(setting)));
 			toast.success("Product settings saved successfully");
 		} catch {
 			toast.error("Failed to save product settings");
 		} finally {
 			setIsSaving(false);
 		}
-	};
+	}, [settings, createSetting]);
 
 	return {
 		settings,

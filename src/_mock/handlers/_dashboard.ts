@@ -1,10 +1,7 @@
 import { faker } from "@faker-js/faker";
 import { format } from "date-fns";
 import { HttpResponse, http } from "msw";
-import type { CustomerSummaryItem } from "@/core/domain/dashboard/entities/customer-info";
 import type { DailyIncomeAccounting, DailyIncomePos } from "@/core/domain/dashboard/entities/daily-income";
-import type { FilterData } from "@/core/domain/dashboard/entities/filter";
-import type { PerformanceItem } from "@/core/domain/dashboard/entities/performance";
 import { ResultStatus } from "@/core/types/enum";
 
 /**
@@ -131,19 +128,13 @@ const dailyIncomeAccounting = http.get("/api/v1/dashboard/daily-income-accountin
 	);
 });
 
-const customerInfo = http.get("/api/v1/dashboard/customer-info", () => {
-	const mock: CustomerSummaryItem[] = [
-		{ id: "deposit", label: "Deposit Balance", value: "0 KHR", variant: "info", icon: "solar:dollar-bold" },
-		{
-			id: "sale-order",
-			label: "Sale Order",
-			value: "0 KHR",
-			variant: "success",
-			icon: "solar:users-group-rounded-bold",
-		},
-		{ id: "invoice", label: "Invoice", value: "398,631,700 KHR", variant: "warning", icon: "solar:bill-list-bold" },
-		{ id: "overdue", label: "Overdue", value: "0 KHR", variant: "destructive", icon: "solar:bill-cross-bold" },
-	];
+const financialOverview = http.get("/api/v1/dashboard/financial-overview", () => {
+	const mock = {
+		invoiceAmount: faker.number.int({ min: 100_000, max: 500_000_000 }),
+		overdueCycles: faker.number.int({ min: 0, max: 20 }),
+		overdueLoanInstallments: faker.number.int({ min: 0, max: 50 }),
+		depositBalance: faker.number.int({ min: 0, max: 100_000_000 }),
+	};
 
 	return HttpResponse.json(
 		{
@@ -158,26 +149,10 @@ const customerInfo = http.get("/api/v1/dashboard/customer-info", () => {
 });
 
 const performance = http.get("/api/v1/dashboard/performance", () => {
-	const mock: PerformanceItem[] = [
-		{
-			id: "income",
-			label: "Income",
-			value: "255,180,200 KHR",
-			variant: "info",
-		},
-		{
-			id: "expenses",
-			label: "Expenses",
-			value: "39,366,200 KHR",
-			variant: "warning",
-		},
-		{
-			id: "net-income",
-			label: "Net Income",
-			value: "215,814,000 KHR",
-			variant: "success",
-		},
-	];
+	const mock = {
+		income: faker.number.int({ min: 50_000_000, max: 300_000_000 }),
+		expenses: faker.number.int({ min: 10_000_000, max: 100_000_000 }),
+	};
 
 	return HttpResponse.json(
 		{
@@ -191,17 +166,32 @@ const performance = http.get("/api/v1/dashboard/performance", () => {
 	);
 });
 
-const dashboardFilters = http.get("/api/v1/dashboard/filters", () => {
-	const mock: FilterData[] = [
-		{ id: "7", value: "Last 7 Days" },
-		{ id: "15", value: "Last 15 Days" },
-		{ id: "30", value: "Last 30 Days" },
-	];
+const dailyReport = http.get("/api/v1/dashboard/daily-report", ({ request }) => {
+	const url = new URL(request.url);
+	const range = url.searchParams.get("range") ?? "30";
+
+	let days: number;
+	switch (range) {
+		case "7":
+			days = 7;
+			break;
+		case "15":
+			days = 15;
+			break;
+		case "30":
+			days = 30;
+			break;
+		default:
+			days = 30;
+			break;
+	}
+
+	const data = generateDailyIncomeAccountingData(days);
 
 	return HttpResponse.json(
 		{
 			message: "",
-			data: mock,
+			data,
 			status: ResultStatus.SUCCESS,
 		},
 		{
@@ -210,4 +200,4 @@ const dashboardFilters = http.get("/api/v1/dashboard/filters", () => {
 	);
 });
 
-export { dailyIncomeAccounting, dailyIncomePos, customerInfo, performance, dashboardFilters };
+export { dailyIncomeAccounting, dailyIncomePos, dailyReport, financialOverview, performance };

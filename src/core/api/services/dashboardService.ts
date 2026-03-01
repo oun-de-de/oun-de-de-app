@@ -1,18 +1,95 @@
-import type { DailyIncomeAccounting, DailyIncomePos } from "@/core/domain/dashboard/entities/daily-income";
 import type { CustomerSummaryItem } from "@/core/domain/dashboard/entities/customer-info";
-import type { VendorSummaryItem } from "@/core/domain/dashboard/entities/vendor-info";
-import type { PerformanceItem } from "@/core/domain/dashboard/entities/performance";
+import type { DailyIncomeAccounting, DailyIncomePos } from "@/core/domain/dashboard/entities/daily-income";
 import type { FilterData } from "@/core/domain/dashboard/entities/filter";
+import type { PerformanceItem } from "@/core/domain/dashboard/entities/performance";
+import type { VendorSummaryItem } from "@/core/domain/dashboard/entities/vendor-info";
+import { formatDisplayDate, formatKHR } from "@/core/utils/formatters";
 import { apiClient } from "../apiClient";
 
 enum DashboardApiPath {
-	DailyIncomePos = "/dashboard/daily-income-pos",
-	DailyIncomeAccounting = "/dashboard/daily-income-accounting",
-	CustomerInfo = "/dashboard/customer-info",
-	VendorInfo = "/dashboard/vendor-info",
+	DailyReport = "/dashboard/daily-report",
+	FinancialOverview = "/dashboard/financial-overview",
 	Performance = "/dashboard/performance",
-	Filters = "/dashboard/filters",
 }
+
+type GetPerformanceResponse = {
+	income: number;
+	expenses: number;
+};
+
+type FinancialOverviewResponse = {
+	invoiceAmount: number;
+	overdueCycles: number;
+	overdueLoanInstallments: number;
+	depositBalance: number;
+};
+
+type DailyReportResponse = {
+	date: string;
+	income: number;
+	expense: number;
+};
+
+const DEFAULT_DASHBOARD_FILTERS: FilterData[] = [
+	{ id: "7", value: "Last 7 Days" },
+	{ id: "15", value: "Last 15 Days" },
+	{ id: "30", value: "Last 30 Days" },
+];
+
+const mapPerformanceToCards = (response: GetPerformanceResponse): PerformanceItem[] => [
+	{ id: "income", label: "Income", value: formatKHR(response.income), variant: "info" },
+	{ id: "expenses", label: "Expenses", value: formatKHR(response.expenses), variant: "warning" },
+	{
+		id: "net-income",
+		label: "Net Income",
+		value: formatKHR(response.income - response.expenses),
+		variant: response.income >= response.expenses ? "success" : "destructive",
+	},
+];
+
+const mapFinancialOverviewToCards = (response: FinancialOverviewResponse): CustomerSummaryItem[] => [
+	{
+		id: "invoice-amount",
+		label: "Invoice Amount",
+		value: formatKHR(response.invoiceAmount),
+		variant: "warning",
+		icon: "solar:bill-list-bold",
+	},
+	{
+		id: "overdue-cycles",
+		label: "Overdue Cycles",
+		value: response.overdueCycles,
+		variant: "destructive",
+		icon: "solar:danger-triangle-bold",
+	},
+	{
+		id: "overdue-installments",
+		label: "Overdue Installments",
+		value: response.overdueLoanInstallments,
+		variant: "info",
+		icon: "solar:clock-circle-bold",
+	},
+	{
+		id: "deposit-balance",
+		label: "Deposit Balance",
+		value: formatKHR(response.depositBalance),
+		variant: "success",
+		icon: "solar:dollar-bold",
+	},
+];
+
+const mapDailyReport = (response: DailyReportResponse[]): DailyIncomeAccounting[] =>
+	response.map((item) => ({
+		date: formatDisplayDate(item.date, item.date),
+		income: item.income,
+		expense: item.expense,
+	}));
+
+const mapDailyReportToDailyIncomePos = (response: DailyReportResponse[]): DailyIncomePos[] =>
+	response.map((item) => ({
+		date: formatDisplayDate(item.date, item.date),
+		amount: item.income,
+	}));
 
 export interface DailyIncomePosApi {
 	getDailyIncomesPos(range: string): Promise<DailyIncomePos[]>;
@@ -31,52 +108,48 @@ export interface DashboardApi {
 
 export class DashboardApiImpl implements DashboardApi {
 	async getCustomerInfo(): Promise<CustomerSummaryItem[]> {
-		const response = await apiClient.get<CustomerSummaryItem[]>({
-			url: DashboardApiPath.CustomerInfo,
+		const response = await apiClient.get<FinancialOverviewResponse>({
+			url: DashboardApiPath.FinancialOverview,
 		});
-		return response;
+		return mapFinancialOverviewToCards(response);
 	}
 
 	async getVendorInfo(): Promise<VendorSummaryItem[]> {
 		const response = await apiClient.get<VendorSummaryItem[]>({
-			url: DashboardApiPath.VendorInfo,
+			url: "/dashboard/vendor-info",
 		});
 		return response;
 	}
 
 	async getPerformance(): Promise<PerformanceItem[]> {
-		const response = await apiClient.get<PerformanceItem[]>({
+		const response = await apiClient.get<GetPerformanceResponse>({
 			url: DashboardApiPath.Performance,
 		});
-		return response;
+		return mapPerformanceToCards(response);
 	}
 
-	async getFiltersByType(type: string): Promise<FilterData[]> {
-		const response = await apiClient.get<FilterData[]>({
-			url: DashboardApiPath.Filters,
-			params: { type },
-		});
-		return response;
+	async getFiltersByType(_type: string): Promise<FilterData[]> {
+		return DEFAULT_DASHBOARD_FILTERS;
 	}
 }
 
 export class DailyIncomePosApiImpl implements DailyIncomePosApi {
 	async getDailyIncomesPos(range: string): Promise<DailyIncomePos[]> {
-		const response = await apiClient.get<DailyIncomePos[]>({
-			url: DashboardApiPath.DailyIncomePos,
+		const response = await apiClient.get<DailyReportResponse[]>({
+			url: DashboardApiPath.DailyReport,
 			params: { range },
 		});
-		return response;
+		return mapDailyReportToDailyIncomePos(response);
 	}
 }
 
 export class DailyIncomeAccountingApiImpl implements DailyIncomeAccountingApi {
 	async getDailyIncomesAccounting(range: string): Promise<DailyIncomeAccounting[]> {
-		const response = await apiClient.get<DailyIncomeAccounting[]>({
-			url: DashboardApiPath.DailyIncomeAccounting,
+		const response = await apiClient.get<DailyReportResponse[]>({
+			url: DashboardApiPath.DailyReport,
 			params: { range },
 		});
-		return response;
+		return mapDailyReport(response);
 	}
 }
 
@@ -145,12 +218,7 @@ export class DashboardApiMockupImpl implements DashboardApi {
 	}
 
 	async getFiltersByType(_type: string): Promise<FilterData[]> {
-		const mock: FilterData[] = [
-			{ id: "7", value: "Last 7 Days" },
-			{ id: "15", value: "Last 15 Days" },
-			{ id: "30", value: "Last 30 Days" },
-		];
-		return Promise.resolve(mock);
+		return Promise.resolve(DEFAULT_DASHBOARD_FILTERS);
 	}
 }
 

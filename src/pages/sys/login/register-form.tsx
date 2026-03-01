@@ -96,14 +96,14 @@ function RegisterForm() {
 					rules={{
 						required: t("sys.login.passwordPlaceholder"),
 						validate: {
-							// minLength: (value) => value.length >= 8 || "Password must be at least 8 characters long",
-							// hasUppercase: (value) => /[A-Z]/.test(value) || "Password must include at least one uppercase letter",
-							// hasLowercase: (value) => /[a-z]/.test(value) || "Password must include at least one lowercase letter",
-							// hasNumber: (value) => /[0-9]/.test(value) || "Password must include at least one number",
-							// hasSpecialChar: (value) =>
-							// 	/[@#$!%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(value) ||
-							// 	"Password must include at least one special character (e.g. @, #, $, !)",
-							// noSpaces: (value) => !/\s/.test(value) || "Spaces are not allowed in password",
+							minLength: (value) => value.length >= 8 || "Password must be at least 8 characters long",
+							hasUppercase: (value) => /[A-Z]/.test(value) || "Password must include at least one uppercase letter",
+							hasLowercase: (value) => /[a-z]/.test(value) || "Password must include at least one lowercase letter",
+							hasNumber: (value) => /[0-9]/.test(value) || "Password must include at least one number",
+							hasSpecialChar: (value) =>
+								/[@#$!%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(value) ||
+								"Password must include at least one special character (e.g. @, #, $, !)",
+							noSpaces: (value) => !/\s/.test(value) || "Spaces are not allowed in password",
 						},
 					}}
 					render={({ field }) => (
