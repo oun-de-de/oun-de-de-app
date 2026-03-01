@@ -1,9 +1,8 @@
-import styled from "styled-components";
-import { rgbAlpha } from "@/core/utils/theme";
-import { Icon } from "@/core/components/icon";
-import NoticeButton from "@/layouts/components/notice";
-import ScreenControl from "@/layouts/components/screen-control";
 import { Link } from "react-router";
+import styled from "styled-components";
+import { Icon } from "@/core/components/icon";
+import { rgbAlpha } from "@/core/utils/theme";
+import ScreenControl from "@/layouts/components/screen-control";
 
 interface SaleHeaderProps {
 	title?: string;
@@ -24,7 +23,7 @@ export default function SaleHeader({ title }: SaleHeaderProps) {
 
 				<div className="flex items-center gap-2 flex-shrink-0 mr-2">
 					<ScreenControl />
-					<NoticeButton />
+					{/* <NoticeButton /> */}
 				</div>
 			</StyledTopRow>
 		</StyledHeader>
