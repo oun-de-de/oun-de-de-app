@@ -23,10 +23,15 @@ export type Product = {
 	defaultProductSetting: DefaultProductSetting;
 };
 
-export type CreateProduct = Omit<Product, "id" | "unit" | "defaultProductSetting"> & {
+export type CreateProductRequest = {
+	name: string;
 	unitId: string;
 	defaultPrice: number;
 	defaultQuantity: number;
 };
 
-export type UpdateProduct = Partial<CreateProduct>;
+export type UpdateProduct = Partial<Omit<Product, "id" | "unit" | "defaultProductSetting">> & {
+	unitId: string;
+	defaultPrice: number;
+	defaultQuantity: number;
+};

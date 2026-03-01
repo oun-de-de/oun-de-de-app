@@ -2,9 +2,8 @@ import { useMutation } from "@tanstack/react-query";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
 import productService from "@/core/api/services/product-service";
-import type { CreateProduct } from "@/core/types/product";
+import type { CreateProductRequest } from "@/core/types/product";
 import { Text } from "@/core/ui/typography";
-import { toUtcIsoPreferNowIfToday } from "@/core/utils/date-utils";
 import { useGetUnitList } from "@/pages/dashboard/settings/hooks/use-settings";
 import { ProductForm, type ProductFormData } from "./components/product-form";
 
@@ -13,7 +12,7 @@ export default function CreateProductPage() {
 	const { data: units = [] } = useGetUnitList();
 
 	const { mutateAsync: createProduct } = useMutation({
-		mutationFn: async (data: CreateProduct) => {
+		mutationFn: async (data: CreateProductRequest) => {
 			return productService.createProduct(data);
 		},
 		onSuccess: () => {
@@ -27,14 +26,8 @@ export default function CreateProductPage() {
 	});
 
 	const handleSubmit = async (data: ProductFormData) => {
-		const productDateIso = toUtcIsoPreferNowIfToday(data.date);
-		const productData: CreateProduct = {
+		const productData: CreateProductRequest = {
 			name: data.name as string,
-			date: productDateIso ?? "",
-			refNo: data.refNo as string,
-			quantity: Number(data.quantity),
-			cost: Number(data.cost),
-			price: Number(data.price),
 			unitId: data.unitId as string,
 			defaultQuantity: Number(data.defaultQuantity ?? 0),
 			defaultPrice: Number(data.defaultPrice ?? 0),

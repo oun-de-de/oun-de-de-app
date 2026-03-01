@@ -1,5 +1,4 @@
-import { useMemo, useState } from "react";
-import { toast } from "sonner";
+import { useCallback, useMemo, useState } from "react";
 import type { Warehouse } from "@/core/types/setting";
 import { useGetWarehouseList } from "@/pages/dashboard/settings/hooks/use-settings";
 import { useUpdateCustomerWarehouse } from "../../hooks/use-update-customer-warehouse";
@@ -39,31 +38,33 @@ export const useWarehouseSettingsForm = (customerId?: string, currentWarehouseId
 		return selectedWarehouse ? warehouses.filter((w) => w.id !== selectedWarehouse.warehouseId) : warehouses;
 	}, [warehouses, selectedWarehouse]);
 
-	const handleAdd = (warehouse: Warehouse) => {
-		setDraftSelection({ scopeKey, warehouseId: warehouse.id });
-	};
+	const handleAdd = useCallback(
+		(warehouse: Warehouse) => {
+			setDraftSelection({ scopeKey, warehouseId: warehouse.id });
+		},
+		[scopeKey],
+	);
 
-	const handleRemove = (warehouseId: string) => {
-		if (selectedWarehouse?.warehouseId === warehouseId) {
-			setDraftSelection({ scopeKey, warehouseId: null });
-		}
-	};
+	const handleRemove = useCallback(
+		(warehouseId: string) => {
+			if (selectedWarehouse?.warehouseId === warehouseId) {
+				setDraftSelection({ scopeKey, warehouseId: null });
+			}
+		},
+		[scopeKey, selectedWarehouse],
+	);
 
-	const handleSave = async () => {
+	const handleSave = useCallback(async () => {
 		if (!customerId) return;
-		if (!selectedWarehouse) {
-			toast.error("Please select a warehouse");
-			return;
-		}
 
 		try {
 			await updateCustomerWarehouse({
-				warehouseId: selectedWarehouse.warehouseId,
+				warehouseId: selectedWarehouse?.warehouseId ?? null,
 			});
 		} catch {
 			// error toast handled in hook
 		}
-	};
+	}, [customerId, selectedWarehouse, updateCustomerWarehouse]);
 
 	return {
 		selectedWarehouse,

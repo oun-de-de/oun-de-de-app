@@ -1,6 +1,5 @@
 import type { UpdateCustomer } from "@/core/types/customer";
 import { toUtcIsoStartOfDay } from "@/core/utils/date-utils";
-import type { CustomerFormData } from "../create/components/customer-form";
 
 export type UpdateCustomerInfoInput = Partial<UpdateCustomer>;
 
@@ -23,36 +22,58 @@ const STRING_FIELDS = [
 ] as const;
 
 export const mapCustomerFormToUpdatePayload = (
-	data: CustomerFormData | Partial<UpdateCustomer>,
+	data: any, // Use any to handle both CustomerFormData and CustomerDetail
 ): UpdateCustomerInfoInput => {
 	const payload: UpdateCustomerInfoInput = {};
 
 	for (const key of STRING_FIELDS) {
 		const value = data[key];
-		if (typeof value === "string") payload[key] = value;
+		if (typeof value === "string") {
+			payload[key] = value;
+		}
 	}
 
-	if (data.status !== undefined) payload.status = Boolean(data.status);
-
-	if (typeof data.referredById === "string" && data.referredById !== "" && data.referredById !== "none") {
-		payload.referredById = data.referredById;
+	// Handle nested contact fields if it's a CustomerDetail object
+	if (data.contact) {
+		for (const key of STRING_FIELDS) {
+			if (key in data.contact && typeof data.contact[key] === "string") {
+				payload[key] = data.contact[key];
+			}
+		}
 	}
 
-	const durationRaw = "paymentTerm" in data ? data.paymentTerm : undefined;
-	const startDateRaw = "startDate" in data ? data.startDate : undefined;
-	const duration = Number(durationRaw);
-	const startDateIso = toUtcIsoStartOfDay(startDateRaw);
+	// Handle nested employee field if it's a CustomerDetail object
+	if (data.employee?.id) {
+		payload.employeeId = data.employee.id;
+	}
+
+	// Handle status
+	if (data.status !== undefined) {
+		payload.status = Boolean(data.status);
+	}
+
+	// Handle referredById
+	const referredById = data.referredById || data.customerReference?.id;
+	if (typeof referredById === "string" && referredById !== "" && referredById !== "none") {
+		payload.referredById = referredById;
+	}
+
+	const durationRaw = data.paymentTerm?.duration ?? ("paymentTerm" in data ? data.paymentTerm : undefined);
+	const startDateRaw = data.paymentTerm?.startDate ?? ("startDate" in data ? data.startDate : undefined);
+
+	const duration = typeof durationRaw === "object" ? durationRaw?.duration : Number(durationRaw);
+	const startDateIso = toUtcIsoStartOfDay(typeof startDateRaw === "object" ? startDateRaw?.startDate : startDateRaw);
 
 	if (
-		durationRaw !== undefined &&
-		durationRaw !== null &&
-		durationRaw !== "" &&
-		Number.isFinite(duration) &&
-		duration >= 0 &&
+		duration !== undefined &&
+		duration !== null &&
+		duration !== "" &&
+		Number.isFinite(Number(duration)) &&
+		Number(duration) >= 0 &&
 		startDateIso
 	) {
 		payload.paymentTerm = {
-			duration,
+			duration: Number(duration),
 			startDate: startDateIso,
 		};
 	}

@@ -17,6 +17,12 @@ export const frontendNavData: NavProps["data"] = [
 				roles: ["SUPER_ADMIN"],
 			},
 			{
+				title: "Employee",
+				path: "/dashboard/employees",
+				icon: <Icon icon="lucide:id-card" size="24" />,
+				roles: ["SUPER_ADMIN"],
+			},
+			{
 				title: "Invoice",
 				path: "/dashboard/invoice",
 				icon: <Icon icon="lucide:file-text" size="24" />,

@@ -11,7 +11,7 @@ export default function Dashboard() {
 	return (
 		<DashboardProviders>
 			<div className="grid grid-cols-1 xl:grid-cols-2 gap-2 lg:gap-2">
-				<DashboardCard title="Customer Info">
+				<DashboardCard title="Financial Overview">
 					<DashboardCustomerInfo />
 				</DashboardCard>
 				<DashboardCard title="Performance">
@@ -29,7 +29,7 @@ export default function Dashboard() {
 					<DashboardIncomePos />
 				</DashboardCard>
 				<DashboardCard
-					title="Daily Income &amp; Expense (Accounting)"
+					title="Daily Report"
 					subheader={
 						<DropdownMenuPromise
 							repoName="Dashboard-Income-Accounting"
