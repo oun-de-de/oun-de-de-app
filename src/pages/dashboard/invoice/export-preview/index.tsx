@@ -22,6 +22,7 @@ import { formatDisplayDateTime, formatNumber } from "../utils/formatters";
 import { EXPORT_PREVIEW_COLUMNS } from "./components/export-preview-columns";
 import { ExportPreviewToolbar } from "./components/export-preview-toolbar";
 import {
+	getPaperSizePageValue,
 	getPaperSizeWrapperClassName,
 	getTemplateClassName,
 	type PaperSizeMode,
@@ -35,6 +36,24 @@ import {
 	sortPreviewRows,
 } from "./utils/export-preview-rows";
 import { buildInvoiceExportBlob } from "./utils/invoice-export-template";
+
+function buildClipboardText(
+	rows: ReturnType<typeof buildReportRows>,
+	visibleColumnIds: string[],
+	columns = EXPORT_PREVIEW_COLUMNS,
+) {
+	const visibleColumns = columns.filter((column) => visibleColumnIds.includes(column.id));
+	const headerRow = visibleColumns.map((column) => (typeof column.header === "string" ? column.header : column.id));
+	const bodyRows = rows.map((row) =>
+		visibleColumns.map((column) => {
+			const cellValue = row.cells[column.id];
+			return typeof cellValue === "string" || typeof cellValue === "number" ? String(cellValue) : "";
+		}),
+	);
+
+	return [headerRow, ...bodyRows].map((cells) => cells.join("\t")).join("\n");
+}
+
 export default function InvoiceExportPreviewPage() {
 	const location = useLocation();
 	const authUser = useAuthUser();
@@ -82,8 +101,13 @@ export default function InvoiceExportPreviewPage() {
 		() => columns.filter((column) => columnVisibility[column.id] === false).map((column) => column.id),
 		[columnVisibility, columns],
 	);
+	const visibleColumnIds = useMemo(
+		() => columns.filter((column) => columnVisibility[column.id] !== false).map((column) => column.id),
+		[columnVisibility, columns],
+	);
 
 	const tableWrapperClassName = useMemo(() => getPaperSizeWrapperClassName(paperSizeMode), [paperSizeMode]);
+	const pageSizeValue = useMemo(() => getPaperSizePageValue(paperSizeMode), [paperSizeMode]);
 	const tableClassName = useMemo(() => getTemplateClassName(templateMode), [templateMode]);
 
 	const reportRows = useMemo(() => buildReportRows(sortedPreviewRows), [sortedPreviewRows]);
@@ -159,6 +183,17 @@ export default function InvoiceExportPreviewPage() {
 		window.print();
 	}, []);
 
+	const handleCopy = useCallback(async () => {
+		const clipboardText = buildClipboardText(reportRows, visibleColumnIds, columns);
+
+		try {
+			await navigator.clipboard.writeText(clipboardText);
+			toast.success("Copied current table to clipboard");
+		} catch {
+			toast.error("Failed to copy table data");
+		}
+	}, [columns, reportRows, visibleColumnIds]);
+
 	useEffect(() => {
 		if (hasAutoPrinted || !state?.autoPrint) return;
 		if (exportQuery.isLoading || previewRows.length === 0) return;
@@ -167,6 +202,21 @@ export default function InvoiceExportPreviewPage() {
 			handlePrint();
 		});
 	}, [hasAutoPrinted, state?.autoPrint, exportQuery.isLoading, previewRows.length, handlePrint]);
+
+	useEffect(() => {
+		const styleId = "invoice-export-page-size-style";
+		let styleEl = document.getElementById(styleId) as HTMLStyleElement | null;
+		if (!styleEl) {
+			styleEl = document.createElement("style");
+			styleEl.id = styleId;
+			document.head.appendChild(styleEl);
+		}
+		styleEl.textContent = `@media print { @page { size: ${pageSizeValue}; margin: 6mm; } }`;
+
+		return () => {
+			styleEl?.remove();
+		};
+	}, [pageSizeValue]);
 
 	return (
 		<div className="invoice-export-preview-page flex h-full flex-col gap-4 p-1 overflow-auto print:block print:h-auto print:p-0">
@@ -188,6 +238,7 @@ export default function InvoiceExportPreviewPage() {
 						}
 						onExport={handleConfirmExport}
 						onPrint={handlePrint}
+						onCopy={handleCopy}
 						isExporting={isExporting}
 						isExportDisabled={selectedInvoiceIds.length === 0 || isExporting || exportQuery.isLoading}
 					/>

@@ -11,6 +11,10 @@ export interface ReportSectionData {
 	items: { slug: string; label: string }[];
 }
 
+function isFavoriteReport(favorites: string[], slug: string, label: string) {
+	return favorites.includes(slug) || favorites.includes(label);
+}
+
 interface ReportSectionProps {
 	section: ReportSectionData;
 	favorites: string[];
@@ -39,7 +43,7 @@ export function ReportSection({ section, favorites, onToggleFavorite, className 
 							key={item.slug}
 							slug={item.slug}
 							label={item.label}
-							isFavorite={favorites.includes(item.slug) || favorites.includes(item.label)}
+							isFavorite={isFavoriteReport(favorites, item.slug, item.label)}
 							onToggleFavorite={onToggleFavorite}
 						/>
 					))}

@@ -336,44 +336,70 @@ export const accountingRows: AccountingRow[] = [
 	},
 ];
 
-export const reportTabs = ["Customer", "Vendor", "Inventory", "Accounting"];
+export const reportTabs = ["Customer", "Inventory", "Accounting"];
 
 export const reportSections = [
+	// ── Customer tab ──────────────────────────────────
 	{
-		title: "Favorite",
-		icon: "mdi:star-outline",
-		items: [
-			{ slug: "open-invoice-detail-by-customer", label: "Open Invoice Detail By Customer", favorite: false },
-			{ slug: "customer-transaction-detail-by-type", label: "Customer Transaction Detail By Type", favorite: false },
-		],
-	},
-	{
+		tab: "Customer",
 		title: "Cash Sale/Invoice",
 		icon: "mdi:cash",
 		items: [
 			{ slug: "sale-detail-by-customer", label: "Sale Detail By Customer", favorite: false },
-			{ slug: "open-invoice-detail-by-customer", label: "Open Invoice Detail By Customer", favorite: true },
-			{ slug: "open-invoice-on-period-by-group", label: "Open Invoice On Period By Group", favorite: false },
-			{ slug: "customer-balance-detail", label: "Customer Balance Detail", favorite: false },
-			{ slug: "sale-transaction-list", label: "Sale Transaction List", favorite: false },
-			{ slug: "collection-invoice-by-customer", label: "Collection Invoice By Customer", favorite: false },
+			{ slug: "open-invoice-detail-by-customer", label: "Open Invoice Detail Report", favorite: true },
+			{ slug: "open-invoice-on-period-by-group", label: "Open Invoice By Period Group", favorite: false },
 		],
 	},
 	{
+		tab: "Customer",
 		title: "Receipt",
 		icon: "mdi:receipt-text-outline",
 		items: [{ slug: "receipt-detail-by-customer", label: "Receipt Detail By Customer", favorite: false }],
 	},
 	{
+		tab: "Customer",
 		title: "List",
 		icon: "mdi:format-list-bulleted",
 		items: [
 			{ slug: "customer-list", label: "Customer List", favorite: false },
-			{ slug: "customer-qr-codes", label: "Customer QR Codes", favorite: false },
-			{ slug: "customer-transaction", label: "Customer Transaction", favorite: false },
-			{ slug: "customer-transaction-detail", label: "Customer Transaction Detail", favorite: false },
-			{ slug: "customer-transaction-detail-by-type", label: "Customer Transaction Detail By Type", favorite: true },
-			{ slug: "customer-transaction-summary-by-type", label: "Customer Transaction Summary By Type", favorite: false },
+			{ slug: "customer-transaction", label: "Customer Loan Register", favorite: false },
+			{ slug: "customer-transaction-detail-by-type", label: "Employee Loan Ledger", favorite: true },
+		],
+	},
+	// ── Inventory tab ────────────────────────────────
+	{
+		tab: "Inventory",
+		title: "Stock",
+		icon: "mdi:package-variant-closed",
+		items: [
+			{ slug: "inventory-valuation-summary", label: "Inventory Valuation Summary", favorite: false },
+			{ slug: "company-asset", label: "Company Asset Register", favorite: false },
+		],
+	},
+	{
+		tab: "Inventory",
+		title: "List",
+		icon: "mdi:format-list-bulleted",
+		items: [{ slug: "product-list", label: "Product List", favorite: false }],
+	},
+	// ── Accounting tab ───────────────────────────────
+	{
+		tab: "Accounting",
+		title: "Ledger",
+		icon: "mdi:book-open-page-variant-outline",
+		items: [
+			{ slug: "general-ledger", label: "General Ledger", favorite: false },
+			{ slug: "trial-balance", label: "Trial Balance", favorite: false },
+		],
+	},
+	{
+		tab: "Accounting",
+		title: "Financial Statements",
+		icon: "mdi:chart-bar",
+		items: [
+			{ slug: "profit-and-loss", label: "Monthly Revenue & Expense", favorite: false },
+			{ slug: "balance-sheet", label: "Income & Expense Ledger", favorite: false },
+			{ slug: "daily-report", label: "Daily Report", favorite: false },
 		],
 	},
 ];

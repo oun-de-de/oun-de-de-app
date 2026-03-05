@@ -1,5 +1,6 @@
 import { type ColumnDef, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
-import type React from "react";
+import React from "react";
+import styled from "styled-components";
 import { cn } from "@/core/utils";
 import type { ReportSectionVisibility } from "./report-toolbar";
 
@@ -11,16 +12,19 @@ const alignClass: Record<CellAlign, string> = {
 	right: "text-right",
 };
 
-const TABLE_WRAPPER_CLASS_NAME = "w-full overflow-x-auto px-2 print:px-0";
-const TABLE_CLASS_NAME =
-	"w-full border-separate border-spacing-0 border-l border-t border-black text-[11px] text-black print:table-fixed print:text-[10px]";
-const HEADER_CELL_CLASS_NAME =
-	"border-b border-r border-black px-2 py-1.5 align-top font-bold break-words print:px-1 print:py-1";
-const BODY_CELL_CLASS_NAME = "border-b border-r border-black px-2 py-1.5 align-top break-words print:px-1 print:py-1";
-const SUMMARY_LABEL_CELL_CLASS_NAME =
-	"border-b border-r border-black px-2 py-2 text-right text-[12px] font-bold uppercase whitespace-nowrap print:px-1 print:py-1";
-const SUMMARY_VALUE_CELL_CLASS_NAME =
-	"border-b border-r border-black px-2 py-2 text-right text-[12px] font-bold whitespace-nowrap print:px-1 print:py-1";
+type ReportTableInstance = ReturnType<typeof useReactTable<ReportTemplateRow>>;
+
+function getAlignClass(align?: CellAlign) {
+	return alignClass[align ?? "center"];
+}
+
+function renderEmptyRow(colSpan: number, emptyText: React.ReactNode) {
+	return (
+		<EmptyRow>
+			<EmptyRowCell colSpan={colSpan}>{emptyText}</EmptyRowCell>
+		</EmptyRow>
+	);
+}
 
 export interface ReportTemplateMetaColumn {
 	key: string;
@@ -71,7 +75,64 @@ function getColumnMeta(columnDef: ColumnDef<ReportTemplateRow, React.ReactNode>)
 	return (columnDef.meta as ReportTemplateColumnMeta | undefined) ?? {};
 }
 
-export function ReportTemplateTable({
+function renderMetaColumns(metaColumns: ReportTemplateMetaColumn[]) {
+	return metaColumns.map((column) => (
+		<MetaColumn key={column.key} className={cn(getAlignClass(column.align ?? "left"), column.className)}>
+			{column.rows.map((row) => (
+				<MetaRow key={`${column.key}:${String(row)}`}>{row}</MetaRow>
+			))}
+		</MetaColumn>
+	));
+}
+
+function renderHeaderGroups(table: ReportTableInstance) {
+	return table.getHeaderGroups().map((headerGroup) => (
+		<TableHeaderRow key={headerGroup.id}>
+			{headerGroup.headers.map((header) => {
+				const meta = getColumnMeta(header.column.columnDef);
+				return (
+					<HeaderCell key={header.id} className={cn(getAlignClass(meta?.align), meta?.headerClassName)}>
+						{header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+					</HeaderCell>
+				);
+			})}
+		</TableHeaderRow>
+	));
+}
+
+function renderRows(table: ReportTableInstance, hasNoRows: boolean, tableColSpan: number, emptyText: React.ReactNode) {
+	if (hasNoRows) {
+		return renderEmptyRow(tableColSpan, emptyText);
+	}
+
+	return table.getRowModel().rows.map((row) => (
+		<tr key={row.id}>
+			{row.getVisibleCells().map((cell) => {
+				const meta = getColumnMeta(cell.column.columnDef);
+				return (
+					<BodyCell key={cell.id} className={cn(getAlignClass(meta?.align), meta?.className)}>
+						{flexRender(cell.column.columnDef.cell, cell.getContext())}
+					</BodyCell>
+				);
+			})}
+		</tr>
+	));
+}
+
+function renderSummaryRows(summaryRows: ReportTemplateSummaryRow[], summaryLabelColSpan: number) {
+	return (
+		<tfoot>
+			{summaryRows.map((summaryRow) => (
+				<SummaryRow key={summaryRow.key}>
+					<SummaryLabelCell colSpan={summaryLabelColSpan}>{summaryRow.label}</SummaryLabelCell>
+					<SummaryValueCell>{summaryRow.value}</SummaryValueCell>
+				</SummaryRow>
+			))}
+		</tfoot>
+	);
+}
+
+export const ReportTemplateTable = React.memo(function ReportTemplateTable({
 	title,
 	subtitle,
 	headerContent,
@@ -86,7 +147,11 @@ export function ReportTemplateTable({
 	footerText,
 	className,
 }: ReportTemplateTableProps) {
-	const columnVisibility = Object.fromEntries(hiddenColumnKeys.map((key) => [key, false]));
+	const columnVisibility = React.useMemo(
+		() => Object.fromEntries(hiddenColumnKeys.map((key) => [key, false])),
+		[hiddenColumnKeys],
+	);
+
 	const table = useReactTable({
 		data: rows,
 		columns,
@@ -98,102 +163,130 @@ export function ReportTemplateTable({
 	});
 	const visibleColumns = table.getVisibleLeafColumns();
 	const tableColSpan = Math.max(visibleColumns.length, 1);
+	const summaryLabelColSpan = Math.max(tableColSpan - 1, 1);
+	const hasNoRows = rows.length === 0;
 
 	return (
-		<div className={cn("flex flex-col gap-4 rounded-none border-0 bg-white p-0 text-black", className)}>
+		<ReportTableRoot className={className}>
 			{showSections?.header !== false &&
 				(headerContent || (
-					<div className="flex flex-col items-center gap-1 text-center text-black">
-						<div className="text-[11px] font-normal">{title}</div>
-						<div className="pb-0 text-[22px] font-bold">ហាងចក្រទឹកកក លឹម ច័ន្ទ II</div>
-						<div className="pb-3 text-[13px] font-semibold underline">TEL: 070669898</div>
-						{subtitle && <div className="text-base font-semibold text-slate-600">{subtitle}</div>}
-					</div>
+					<ReportHeader>
+						<HeaderTopText>{title}</HeaderTopText>
+						<HeaderStoreText>ហាងចក្រទឹកកក លឹម ច័ន្ទ II</HeaderStoreText>
+						<HeaderPhoneText>TEL: 070669898</HeaderPhoneText>
+						{subtitle && <HeaderSubtitle>{subtitle}</HeaderSubtitle>}
+					</ReportHeader>
 				))}
 
-			{metaColumns.length > 0 && (
-				<div className="mb-2 grid grid-cols-1 gap-4 text-[13px] font-bold text-black md:grid-cols-3">
-					{metaColumns.map((column) => {
-						const align = column.align ?? "left";
-						return (
-							<div key={column.key} className={cn("flex flex-col gap-1", alignClass[align], column.className)}>
-								{column.rows.map((row) => (
-									<span key={`${column.key}:${String(row)}`}>{row}</span>
-								))}
-							</div>
-						);
-					})}
-				</div>
-			)}
+			{metaColumns.length > 0 && <MetaContainer>{renderMetaColumns(metaColumns)}</MetaContainer>}
 
-			<div className={TABLE_WRAPPER_CLASS_NAME}>
-				<table className={TABLE_CLASS_NAME}>
-					<thead>
-						{table.getHeaderGroups().map((headerGroup) => (
-							<tr key={headerGroup.id} className="bg-transparent text-black uppercase">
-								{headerGroup.headers.map((header) => {
-									const meta = getColumnMeta(header.column.columnDef);
-									return (
-										<th
-											key={header.id}
-											className={cn(HEADER_CELL_CLASS_NAME, alignClass[meta?.align ?? "center"], meta?.headerClassName)}
-										>
-											{header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-										</th>
-									);
-								})}
-							</tr>
-						))}
-					</thead>
+			<ReportTableWrapper>
+				<ReportTableElement>
+					<thead>{renderHeaderGroups(table)}</thead>
 
-					<tbody>
-						{rows.length === 0 ? (
-							<tr className="text-slate-400">
-								<td colSpan={tableColSpan} className="border-b border-r border-black p-10 text-center">
-									{emptyText}
-								</td>
-							</tr>
-						) : (
-							table.getRowModel().rows.map((row) => (
-								<tr key={row.id}>
-									{row.getVisibleCells().map((cell) => {
-										const meta = getColumnMeta(cell.column.columnDef);
-										return (
-											<td
-												key={cell.id}
-												className={cn(BODY_CELL_CLASS_NAME, alignClass[meta?.align ?? "center"], meta?.className)}
-											>
-												{flexRender(cell.column.columnDef.cell, cell.getContext())}
-											</td>
-										);
-									})}
-								</tr>
-							))
-						)}
-					</tbody>
+					<tbody>{renderRows(table, hasNoRows, tableColSpan, emptyText)}</tbody>
 
-					{summaryRows.length > 0 && (
-						<tfoot>
-							{summaryRows.map((summaryRow) => (
-								<tr key={summaryRow.key} className="text-black">
-									<td colSpan={tableColSpan - 1} className={SUMMARY_LABEL_CELL_CLASS_NAME}>
-										{summaryRow.label}
-									</td>
-									<td className={SUMMARY_VALUE_CELL_CLASS_NAME}>{summaryRow.value}</td>
-								</tr>
-							))}
-						</tfoot>
-					)}
-				</table>
-			</div>
+					{summaryRows.length > 0 && renderSummaryRows(summaryRows, summaryLabelColSpan)}
+				</ReportTableElement>
+			</ReportTableWrapper>
 
-			<div className="mt-3 flex justify-between text-[11px] text-black">
-				<div className="flex flex-col gap-1">
+			<FooterSection>
+				<FooterMetaColumn>
 					{showSections?.signature && <span>Signature: ________________</span>}
 					{showSections?.timestamp !== false && timestampText && <span>{timestampText}</span>}
-				</div>
+				</FooterMetaColumn>
 				{showSections?.footer !== false && footerText && <span>{footerText}</span>}
-			</div>
-		</div>
+			</FooterSection>
+		</ReportTableRoot>
 	);
-}
+});
+
+//#region Styled Components
+
+const ReportTableRoot = styled.div.attrs({
+	className: "flex flex-col gap-4 rounded-none border-0 bg-white p-0 text-black",
+})``;
+
+const ReportHeader = styled.div.attrs({
+	className: "flex flex-col items-center gap-1 text-center text-black",
+})``;
+
+const MetaContainer = styled.div.attrs({
+	className: "mb-2 grid grid-cols-1 gap-4 text-[13px] font-bold text-black md:grid-cols-3",
+})``;
+
+const MetaColumn = styled.div.attrs({
+	className: "flex flex-col gap-1",
+})``;
+
+const MetaRow = styled.span.attrs({
+	className: "whitespace-pre-line",
+})``;
+
+const ReportTableWrapper = styled.div.attrs({
+	className: "w-full overflow-x-auto px-2 print:overflow-visible print:px-0",
+})``;
+
+const ReportTableElement = styled.table.attrs({
+	className:
+		"w-full border-separate border-spacing-0 border-l border-t border-black text-[11px] text-black print:w-full print:text-[10px]",
+})``;
+
+const TableHeaderRow = styled.tr.attrs({
+	className: "bg-transparent text-black uppercase",
+})``;
+
+const HeaderCell = styled.th.attrs({
+	className: "border-b border-r border-black px-2 py-1.5 align-top font-bold break-words print:px-1 print:py-1",
+})``;
+
+const BodyCell = styled.td.attrs({
+	className: "border-b border-r border-black px-2 py-1.5 align-top break-words print:px-1 print:py-1",
+})``;
+
+const EmptyRow = styled.tr.attrs({
+	className: "text-slate-400",
+})``;
+
+const EmptyRowCell = styled.td.attrs({
+	className: "border-b border-r border-black p-10 text-center",
+})``;
+
+const SummaryRow = styled.tr.attrs({
+	className: "text-black",
+})``;
+
+const SummaryLabelCell = styled.td.attrs({
+	className:
+		"border-b border-r border-black px-2 py-2 text-right text-[12px] font-bold uppercase whitespace-nowrap print:px-1 print:py-1",
+})``;
+
+const SummaryValueCell = styled.td.attrs({
+	className:
+		"border-b border-r border-black px-2 py-2 text-right text-[12px] font-bold whitespace-nowrap print:px-1 print:py-1",
+})``;
+
+const FooterSection = styled.div.attrs({
+	className: "mt-3 flex justify-between text-[11px] text-black",
+})``;
+
+const FooterMetaColumn = styled.div.attrs({
+	className: "flex flex-col gap-1",
+})``;
+
+const HeaderTopText = styled.div.attrs({
+	className: "text-[11px] font-normal",
+})``;
+
+const HeaderStoreText = styled.div.attrs({
+	className: "pb-0 text-[22px] font-bold",
+})``;
+
+const HeaderPhoneText = styled.div.attrs({
+	className: "pb-3 text-[13px] font-semibold underline",
+})``;
+
+const HeaderSubtitle = styled.div.attrs({
+	className: "text-base font-semibold text-slate-600",
+})``;
+//#endregion

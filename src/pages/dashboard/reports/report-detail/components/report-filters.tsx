@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import React from "react";
 import customerService from "@/core/api/services/customer-service";
 import { Button } from "@/core/ui/button";
 import { Input } from "@/core/ui/input";
@@ -20,7 +21,13 @@ type ReportFiltersProps = {
 	hasPendingChanges: boolean;
 };
 
-export function ReportFilters({ value, onChange, onSubmit, onReset, hasPendingChanges }: ReportFiltersProps) {
+export const ReportFilters = React.memo(function ReportFilters({
+	value,
+	onChange,
+	onSubmit,
+	onReset,
+	hasPendingChanges,
+}: ReportFiltersProps) {
 	const { data: customersResponse } = useQuery({
 		queryKey: ["report-filters", "customers"],
 		queryFn: () => customerService.getCustomerList({ limit: 1000 }),
@@ -109,4 +116,4 @@ export function ReportFilters({ value, onChange, onSubmit, onReset, hasPendingCh
 			</div>
 		</div>
 	);
-}
+});
