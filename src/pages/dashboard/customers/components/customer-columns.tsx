@@ -65,7 +65,7 @@ export const columns: ColumnDef<Customer>[] = [
 	{
 		header: "Actions",
 		id: "actions",
-		size: 200,
+		size: 150,
 		cell: ({ row }) => <CustomerActions customerId={row.original.id} customerName={row.original.name} />,
 	},
 ];

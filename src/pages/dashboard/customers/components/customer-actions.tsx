@@ -1,6 +1,8 @@
 import { useQueryClient } from "@tanstack/react-query";
+import { EllipsisVertical } from "lucide-react";
 import { useNavigate } from "react-router";
 import { Button } from "@/core/ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/core/ui/dropdown-menu";
 import { customerQueryOptions } from "../hooks/use-get-customer";
 
 type CustomerActionsProps = {
@@ -10,19 +12,19 @@ type CustomerActionsProps = {
 
 export function CustomerActions({ customerId, customerName }: CustomerActionsProps) {
 	const navigate = useNavigate();
-
 	const queryClient = useQueryClient();
 
-	const handleEdit = () => {
-		navigate(`/dashboard/customers/edit/${customerId}`);
-	};
+	const editUrl = `/dashboard/customers/edit/${customerId}`;
+
+	const handleEdit = () => navigate(editUrl);
 
 	const handleViewInvoices = () => {
-		const params = new URLSearchParams({
-			customerId,
-			customerName,
-		});
+		const params = new URLSearchParams({ customerId, customerName });
 		navigate(`/dashboard/invoice?${params.toString()}`);
+	};
+
+	const handleScrollTo = (section: string) => {
+		navigate(editUrl, { state: { scrollTo: section } });
 	};
 
 	// prefetch customer data
@@ -30,35 +32,15 @@ export function CustomerActions({ customerId, customerName }: CustomerActionsPro
 		queryClient.prefetchQuery(customerQueryOptions(customerId));
 	};
 
-	// // soft delete
-	// const { mutateAsync: deleteCustomer } = useMutation({
-	// 	mutationFn: async () => {
-	// 		return customerService.updateCustomer(customerId, { status: false });
-	// 	},
-	// 	onSuccess: () => {
-	// 		toast.success("Customer deleted successfully");
-	// 		queryClient.invalidateQueries({ queryKey: ["customers"] });
-	// 	},
-	// 	onError: (error) => {
-	// 		toast.error("Failed to delete customer");
-	// 		console.error(error);
-	// 	},
-	// });
-
-	// const handleDelete = async () => {
-	// 	if (confirm("Are you sure you want to delete this customer?")) {
-	// 		await deleteCustomer();
-	// 	}
-	// };
-
 	return (
-		<div className="flex gap-1">
-			<Button variant="info" size="sm" className="h-8 gap-1" onClick={handleViewInvoices} title="View invoices">
+		<div className="flex items-center gap-1">
+			<Button variant="info" size="sm" className="h-7 gap-1 text-xs" onClick={handleViewInvoices} title="View invoices">
 				Invoice
 			</Button>
 			<Button
 				variant="warning"
 				size="sm"
+				className="h-7 text-xs"
 				onClick={handleEdit}
 				onMouseEnter={handlePrefetch}
 				onFocus={handlePrefetch}
@@ -66,9 +48,26 @@ export function CustomerActions({ customerId, customerName }: CustomerActionsPro
 			>
 				Edit
 			</Button>
-			{/* <Button variant="destructive" size="sm" onClick={handleDelete} className="text-white" title="Delete">
-				Delete
-			</Button> */}
+			<DropdownMenu>
+				<DropdownMenuTrigger
+					className="h-7 w-7 justify-center border-gray-200 p-0 hover:bg-gray-50"
+					onMouseEnter={handlePrefetch}
+					onFocus={handlePrefetch}
+				>
+					<EllipsisVertical className="size-4 text-gray-500" />
+				</DropdownMenuTrigger>
+				<DropdownMenuContent align="end" className="w-44">
+					<DropdownMenuItem onClick={() => handleScrollTo("product-settings")} className="cursor-pointer">
+						Product Settings
+					</DropdownMenuItem>
+					<DropdownMenuItem onClick={() => handleScrollTo("warehouse-settings")} className="cursor-pointer">
+						Warehouse Settings
+					</DropdownMenuItem>
+					<DropdownMenuItem onClick={() => handleScrollTo("vehicle-settings")} className="cursor-pointer">
+						Vehicle Settings
+					</DropdownMenuItem>
+				</DropdownMenuContent>
+			</DropdownMenu>
 		</div>
 	);
 }

@@ -16,6 +16,7 @@ type CustomerSidebarProps = {
 };
 
 const STATUS_OPTIONS: SelectOption[] = [{ value: "all", label: "All" }];
+const PAGE_SIZE = 10;
 const DEFAULT_ITEM_SIZE = 56;
 const COLLAPSED_ITEM_SIZE = 42;
 const COLLAPSED_ITEM_GAP = 8;
@@ -34,36 +35,27 @@ export function CustomerSidebar({
 	const handlePaymentTermChange = (value: string) => {
 		const nextValue = value.trim().toLowerCase();
 		setPaymentTermInput(nextValue);
-
-		if (!nextValue) {
-			setPaymentTerm("");
-			return;
-		}
-
-		if (/^\d+$/.test(nextValue)) {
-			setPaymentTerm(nextValue);
-			return;
-		}
-
-		setPaymentTerm("");
+		setPaymentTerm(/^\d+$/.test(nextValue) ? nextValue : "");
 	};
 
-	const { data, fetchNextPage, hasNextPage } = useInfiniteQuery({
+	const { data, hasNextPage, fetchNextPage } = useInfiniteQuery({
 		queryKey: ["customers", "sidebar", { name: searchTerm, paymentTerm }],
-		queryFn: ({ pageParam = 1 }) =>
+		queryFn: ({ pageParam }) =>
 			customerService.getCustomerList({
 				page: pageParam,
-				limit: 10000,
+				limit: PAGE_SIZE,
 				name: searchTerm || undefined,
 				paymentTerm: paymentTerm ? Number(paymentTerm) : undefined,
 			}),
 		initialPageParam: 1,
-		getNextPageParam: (lastPage) => (lastPage.page < lastPage.pageCount ? lastPage.page + 1 : undefined),
+		getNextPageParam: (lastPage, allPages) => {
+			const nextPage = allPages.length + 1;
+			return nextPage <= lastPage.pageCount ? nextPage : undefined;
+		},
 	});
 
-	const customers = data?.pages.flatMap((page) => page.list) ?? [];
-	const totalFromApi = data?.pages[0]?.total ?? 0;
-	const total = totalFromApi > 0 ? totalFromApi : customers.length;
+	const customers = data?.pages.flatMap((p) => p.list) ?? [];
+	const total = data?.pages[0]?.total ?? customers.length;
 
 	return (
 		<SidebarList>
@@ -106,11 +98,10 @@ export function CustomerSidebar({
 			<SidebarList.Footer
 				total={total}
 				isCollapsed={isCollapsed}
-				onPrev={() => {}}
 				onNext={() => fetchNextPage()}
 				hasPrev={false}
-				hasNext={!!hasNextPage}
-				showControls={!!hasNextPage}
+				hasNext={hasNextPage}
+				showControls={hasNextPage}
 			/>
 		</SidebarList>
 	);

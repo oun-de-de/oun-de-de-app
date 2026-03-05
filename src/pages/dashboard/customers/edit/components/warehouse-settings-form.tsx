@@ -11,9 +11,10 @@ import { SelectedWarehouseItem } from "./selected-warehouse-item";
 type WarehouseSettingsFormProps = {
 	customerId?: string;
 	currentWarehouseId?: string;
+	anchorId?: string;
 };
 
-export function WarehouseSettingsForm({ customerId, currentWarehouseId }: WarehouseSettingsFormProps) {
+export function WarehouseSettingsForm({ customerId, currentWarehouseId, anchorId }: WarehouseSettingsFormProps) {
 	const form = useWarehouseSettingsForm(customerId, currentWarehouseId);
 	const [searchTerm, setSearchTerm] = useState("");
 
@@ -27,7 +28,7 @@ export function WarehouseSettingsForm({ customerId, currentWarehouseId }: Wareho
 
 	return (
 		<div className="flex flex-col gap-3">
-			<div className="flex items-center justify-between">
+			<div id={anchorId} className="flex items-center justify-between scroll-mt-6">
 				<Text className="font-semibold text-sky-600">Warehouse Settings</Text>
 				<div className="flex items-center gap-2">
 					<Button variant="outline" asChild size="sm">
@@ -37,7 +38,7 @@ export function WarehouseSettingsForm({ customerId, currentWarehouseId }: Wareho
 						</Link>
 					</Button>
 					<Button type="button" onClick={form.handleSave} disabled={form.isSaving} size="sm">
-						{form.isSaving ? "Saving..." : "Save Settings"}
+						{form.isSaving ? "Saving Warehouse Settings..." : "Save Warehouse Settings"}
 					</Button>
 				</div>
 			</div>

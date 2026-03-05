@@ -19,7 +19,7 @@ export function VehicleListField() {
 	});
 
 	return (
-		<div className="space-y-4 col-span-2">
+		<div id="vehicle-settings" className="space-y-4 col-span-2">
 			<div className="flex items-center justify-between">
 				<span className="text-sm font-medium text-gray-700">Vehicles</span>
 				<Button

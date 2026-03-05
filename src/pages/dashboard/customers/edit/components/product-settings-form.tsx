@@ -5,7 +5,11 @@ import { useProductSettingsForm } from "../hooks/use-product-settings-form";
 import { AvailableProductsList } from "./available-products-list";
 import { SelectedProductsList } from "./selected-products-list";
 
-export function ProductSettingsForm() {
+type ProductSettingsFormProps = {
+	anchorId?: string;
+};
+
+export function ProductSettingsForm({ anchorId }: ProductSettingsFormProps) {
 	const { id: customerId } = useParams<{ id: string }>();
 	const form = useProductSettingsForm(customerId);
 
@@ -15,10 +19,10 @@ export function ProductSettingsForm() {
 
 	return (
 		<div className="space-y-4">
-			<div className="flex items-center justify-between">
+			<div id={anchorId} className="flex items-center justify-between scroll-mt-6">
 				<Text className="font-semibold text-sky-600">Product Settings</Text>
 				<Button type="button" onClick={form.handleSave} disabled={form.isSaving}>
-					{form.isSaving ? "Saving..." : "Save Settings"}
+					{form.isSaving ? "Saving Product Settings..." : "Save Product Settings"}
 				</Button>
 			</div>
 

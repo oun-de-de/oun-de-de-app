@@ -1,4 +1,4 @@
-import type { PaginatedResponse } from "@/core/types/common";
+import type { PagePaginatedResponse } from "@/core/types/common";
 import type {
 	CreateCustomer,
 	CreateProductSettings,
@@ -9,7 +9,7 @@ import type {
 } from "@/core/types/customer";
 import type { Pagination } from "@/core/types/pagination";
 import type { CreateVehicle, Vehicle } from "@/core/types/vehicle";
-import { mapPaginatedResponseToPagination } from "@/core/utils/pagination";
+import { mapPagePaginatedResponseToPagination } from "@/core/utils/pagination";
 import { apiClient } from "../apiClient";
 
 export enum CustomerApi {
@@ -27,7 +27,7 @@ const getCustomerList = (params?: {
 	paymentTerm?: number;
 }): Promise<Pagination<Customer>> =>
 	apiClient
-		.get<PaginatedResponse<Customer>>({
+		.get<PagePaginatedResponse<Customer>>({
 			url: CustomerApi.List,
 			params: {
 				page: params?.page ? params.page - 1 : 0,
@@ -38,7 +38,7 @@ const getCustomerList = (params?: {
 				payment_term: params?.paymentTerm,
 			},
 		})
-		.then(mapPaginatedResponseToPagination);
+		.then(mapPagePaginatedResponseToPagination);
 
 const getCustomer = (id: string) =>
 	apiClient.get<CustomerDetail>({
