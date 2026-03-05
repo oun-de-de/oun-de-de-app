@@ -21,6 +21,17 @@ interface InvoiceBulkUpdateDialogProps {
 
 const EMPTY_TYPE = "";
 
+const getOppositeInvoiceType = (type?: InvoiceType): InvoiceType | undefined => {
+	if (type === "invoice") return "receipt";
+	if (type === "receipt") return "invoice";
+	return undefined;
+};
+
+const getSelectableTypes = (initialType?: InvoiceType | ""): InvoiceType[] => {
+	const oppositeType = initialType ? getOppositeInvoiceType(initialType) : undefined;
+	return oppositeType ? [oppositeType] : ["invoice", "receipt"];
+};
+
 const buildUpdatePayload = ({
 	invoiceIds,
 	customerName,
@@ -39,7 +50,7 @@ const buildUpdatePayload = ({
 	const normalizedType = type === EMPTY_TYPE ? undefined : type;
 	const normalizedInitialType = initialType === EMPTY_TYPE ? undefined : initialType;
 	const hasCustomerNameChanged = trimmedCustomerName !== trimmedInitialCustomerName;
-	const hasTypeChanged = normalizedType !== normalizedInitialType;
+	const hasTypeChanged = normalizedType !== undefined && normalizedType !== normalizedInitialType;
 
 	if (!hasCustomerNameChanged && !hasTypeChanged) {
 		return null;
@@ -69,12 +80,15 @@ export function InvoiceBulkUpdateDialog({
 	useEffect(() => {
 		if (open) {
 			setCustomerName(initialCustomerName ?? "");
-			setType(initialType && isInvoiceType(initialType) ? initialType : EMPTY_TYPE);
+			setType(EMPTY_TYPE);
 		}
-	}, [open, initialCustomerName, initialType]);
+	}, [open, initialCustomerName]);
 
 	const normalizedInitialType = initialType && isInvoiceType(initialType) ? initialType : EMPTY_TYPE;
-	const canSubmit = customerName.trim() !== (initialCustomerName?.trim() ?? "") || type !== normalizedInitialType;
+	const selectableTypes = getSelectableTypes(normalizedInitialType);
+	const hasCustomerNameChanged = customerName.trim() !== (initialCustomerName?.trim() ?? "");
+	const hasTypeChanged = type !== EMPTY_TYPE && type !== normalizedInitialType;
+	const canSubmit = hasCustomerNameChanged || hasTypeChanged;
 	const handleTypeChange = (value: string) => {
 		setType(isInvoiceType(value) ? value : EMPTY_TYPE);
 	};
@@ -132,11 +146,16 @@ export function InvoiceBulkUpdateDialog({
 						<Label>Type</Label>
 						<Select value={type} onValueChange={handleTypeChange} disabled={isUpdating}>
 							<SelectTrigger>
-								<SelectValue placeholder="Select type" />
+								<SelectValue
+									placeholder={selectableTypes.length === 1 ? `Change to ${selectableTypes[0]}` : "Select type"}
+								/>
 							</SelectTrigger>
 							<SelectContent>
-								<SelectItem value="invoice">Invoice</SelectItem>
-								<SelectItem value="receipt">Receipt</SelectItem>
+								{selectableTypes.map((selectableType) => (
+									<SelectItem key={selectableType} value={selectableType}>
+										{selectableType === "invoice" ? "Invoice" : "Receipt"}
+									</SelectItem>
+								))}
 							</SelectContent>
 						</Select>
 					</div>
