@@ -32,6 +32,20 @@ export function useBorrowDetail(loanId: string) {
 		},
 	});
 
+	const { mutateAsync: postponeLoan, isPending: isPostponing } = useMutation({
+		mutationFn: () => loanService.postponeLoan(loanId),
+		onSuccess: () => {
+			toast.success("Loan installment postponed successfully");
+			queryClient.invalidateQueries({ queryKey: ["loan-installments", loanId] });
+			queryClient.invalidateQueries({ queryKey: ["loan-details", loanId] });
+			queryClient.invalidateQueries({ queryKey: ["loans"] });
+		},
+		onError: (error) => {
+			toast.error("Failed to postpone installment");
+			console.error("Postpone error:", error);
+		},
+	});
+
 	return {
 		loan: loanQuery.data,
 		isLoading: loanQuery.isLoading || installmentsQuery.isLoading,
@@ -39,5 +53,7 @@ export function useBorrowDetail(loanId: string) {
 		installments: installmentsQuery.data || [],
 		payInstallment,
 		isPaying,
+		postponeLoan,
+		isPostponing,
 	};
 }

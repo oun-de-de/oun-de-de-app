@@ -11,8 +11,8 @@ export function BorrowPaymentView() {
 		setBorrowerId,
 		employeeId,
 		setEmployeeId,
-		termMonths,
-		setTermMonths,
+		monthlyAmount,
+		setMonthlyAmount,
 		depositAmount,
 		setDepositAmount,
 		dueDate,
@@ -38,8 +38,8 @@ export function BorrowPaymentView() {
 						employees={employees}
 					/>
 					<BorrowPaymentRightPanel
-						termMonths={termMonths}
-						setTermMonths={setTermMonths}
+						monthlyAmount={monthlyAmount}
+						setMonthlyAmount={setMonthlyAmount}
 						depositAmount={depositAmount}
 						setDepositAmount={setDepositAmount}
 						dueDate={dueDate}

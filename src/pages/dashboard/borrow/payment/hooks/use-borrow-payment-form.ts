@@ -14,7 +14,7 @@ export function useBorrowPaymentForm() {
 	const [borrowerType, setBorrowerType] = useState<BorrowerType>("customer");
 	const [borrowerId, setBorrowerId] = useState("");
 	const [employeeId, setEmployeeId] = useState("");
-	const [termMonths, setTermMonths] = useState<number>(1);
+	const [monthlyAmount, setMonthlyAmount] = useState<string>("");
 
 	const [depositAmount, setDepositAmount] = useState<string>("");
 	const [dueDate, setDueDate] = useState(getTodayUTC);
@@ -46,8 +46,9 @@ export function useBorrowPaymentForm() {
 			toast.error("Please select a valid borrower");
 			return;
 		}
-		if (termMonths < 1) {
-			toast.error("Term must be at least 1 month");
+		const parsedMonthlyAmount = Number(monthlyAmount);
+		if (!Number.isFinite(parsedMonthlyAmount) || parsedMonthlyAmount <= 0) {
+			toast.error("Monthly amount must be greater than 0");
 			return;
 		}
 		const parsedDepositAmount = Number(depositAmount);
@@ -61,7 +62,7 @@ export function useBorrowPaymentForm() {
 			borrowerType,
 			borrowerId: selectedBorrowerId,
 			principalAmount,
-			termMonths,
+			loanInstallmentAmount: parsedMonthlyAmount,
 			startDate: toUtcIsoPreferNowIfToday(dueDate) ?? dueDate.toISOString(),
 		});
 	};
@@ -73,8 +74,8 @@ export function useBorrowPaymentForm() {
 		setBorrowerId,
 		employeeId,
 		setEmployeeId,
-		termMonths,
-		setTermMonths,
+		monthlyAmount,
+		setMonthlyAmount,
 		depositAmount,
 		setDepositAmount,
 		dueDate,

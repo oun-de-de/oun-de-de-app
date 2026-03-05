@@ -15,7 +15,7 @@ export function useCyclePaymentState(params: {
 	const [activeTab, setActiveTab] = useState("payment");
 	const [amount, setAmount] = useState("");
 	const [paymentDateTime, setPaymentDateTime] = useState("");
-	const [termMonths, setTermMonths] = useState("1");
+	const [monthlyAmount, setMonthlyAmount] = useState("");
 	const [loanStartDate, setLoanStartDate] = useState("");
 
 	//Pagination State for Payment History
@@ -43,26 +43,26 @@ export function useCyclePaymentState(params: {
 	const isAmountExceeded = hasValidAmount && parsedAmount > cycleBalance;
 	const canSubmit = !historyOnly && hasCycle && !isBusy && hasValidAmount && !isAmountExceeded;
 
-	//Loan Conversion Term Validation
-	const parsedTermMonths = Number(termMonths);
-	const hasValidTermMonths = Number.isInteger(parsedTermMonths) && parsedTermMonths > 0;
-	const canConvertToLoan = !historyOnly && hasCycle && cycleBalance > 0 && hasValidTermMonths && !isBusy;
+	//Loan Conversion Validation
+	const parsedMonthlyAmount = Number(monthlyAmount);
+	const hasValidMonthlyAmount = Number.isFinite(parsedMonthlyAmount) && parsedMonthlyAmount > 0;
+	const canConvertToLoan = !historyOnly && hasCycle && cycleBalance > 0 && hasValidMonthlyAmount && !isBusy;
 
 	//Expose State and Derived Values
 	return {
-		state: { activeTab, amount, paymentDateTime, termMonths, loanStartDate, page, pageSize },
-		setters: { setActiveTab, setAmount, setPaymentDateTime, setTermMonths, setLoanStartDate, setPage, setPageSize },
+		state: { activeTab, amount, paymentDateTime, monthlyAmount, loanStartDate, page, pageSize },
+		setters: { setActiveTab, setAmount, setPaymentDateTime, setMonthlyAmount, setLoanStartDate, setPage, setPageSize },
 		derived: {
 			hasCycle,
 			hasValidAmount,
-			hasValidTermMonths,
+			hasValidMonthlyAmount,
 			isBusy,
 			totalPages,
 			pagedData,
 			totalPaidAmount,
 			cycleBalance,
 			parsedAmount,
-			parsedTermMonths,
+			parsedMonthlyAmount,
 			canSubmit,
 			canConvertToLoan,
 			isAmountExceeded,

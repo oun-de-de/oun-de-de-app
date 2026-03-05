@@ -24,6 +24,6 @@ export interface CreatePaymentRequest {
 }
 
 export interface ConvertToLoanRequest {
-	termMonths: number;
+	loanInstallmentAmount: number;
 	startDate: string;
 }

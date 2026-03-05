@@ -12,10 +12,19 @@ type InstallmentsTableProps = {
 	installments: Installment[];
 	onPay: (installmentId: string) => void;
 	isPayPending?: boolean;
+	onPostpone?: () => void;
+	isPostponePending?: boolean;
 };
 
-export function InstallmentsTable({ installments, onPay, isPayPending }: InstallmentsTableProps) {
+export function InstallmentsTable({
+	installments,
+	onPay,
+	isPayPending,
+	onPostpone,
+	isPostponePending,
+}: InstallmentsTableProps) {
 	const [selectedInstallment, setSelectedInstallment] = useState<Installment | null>(null);
+	const [showPostponeConfirm, setShowPostponeConfirm] = useState(false);
 	const [page, setPage] = useState(1);
 	const [pageSize, setPageSize] = useState(10);
 	const sortedInstallments = useMemo(
@@ -40,10 +49,12 @@ export function InstallmentsTable({ installments, onPay, isPayPending }: Install
 		() =>
 			getInstallmentsColumns({
 				isPayPending,
+				isPostponePending,
 				onSelectInstallment: setSelectedInstallment,
+				onPostpone: onPostpone ? () => setShowPostponeConfirm(true) : undefined,
 				allowPayInstallmentId: firstPayableInstallmentId,
 			}),
-		[isPayPending, firstPayableInstallmentId],
+		[isPayPending, isPostponePending, onPostpone, firstPayableInstallmentId],
 	);
 
 	if (installments.length === 0) {
@@ -74,6 +85,7 @@ export function InstallmentsTable({ installments, onPay, isPayPending }: Install
 					},
 				}}
 			/>
+			{/* Pay Confirmation Dialog */}
 			<Dialog open={!!selectedInstallment} onOpenChange={(open) => (!open ? setSelectedInstallment(null) : undefined)}>
 				<DialogContent className="sm:max-w-md">
 					<DialogHeader>
@@ -96,6 +108,36 @@ export function InstallmentsTable({ installments, onPay, isPayPending }: Install
 							disabled={isPayPending}
 						>
 							{isPayPending ? "Paying..." : "Confirm"}
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
+
+			{/* Postpone Confirmation Dialog */}
+			<Dialog open={showPostponeConfirm} onOpenChange={setShowPostponeConfirm}>
+				<DialogContent className="sm:max-w-md">
+					<DialogHeader>
+						<DialogTitle>Confirm Postpone</DialogTitle>
+					</DialogHeader>
+					<div className="text-sm text-slate-600">
+						<p>
+							Are you sure you want to postpone the current installment? This will push all remaining installments
+							forward by one month.
+						</p>
+					</div>
+					<DialogFooter>
+						<Button variant="outline" onClick={() => setShowPostponeConfirm(false)} disabled={isPostponePending}>
+							Cancel
+						</Button>
+						<Button
+							variant="warning"
+							onClick={() => {
+								onPostpone?.();
+								setShowPostponeConfirm(false);
+							}}
+							disabled={isPostponePending}
+						>
+							{isPostponePending ? "Postponing..." : "Postpone"}
 						</Button>
 					</DialogFooter>
 				</DialogContent>

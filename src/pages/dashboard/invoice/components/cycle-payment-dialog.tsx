@@ -23,23 +23,41 @@ type CyclePaymentDialogProps = {
 	historyOnly?: boolean;
 };
 
-function toIsoDateTime(dateTimeLocal: string): string {
-	return new Date(dateTimeLocal).toISOString();
+function normalizeInputValue(value: string): string | undefined {
+	const normalized = value.trim();
+	return normalized || undefined;
+}
+
+function toApiLocalDateTime(dateTimeLocal: string): string | undefined {
+	const normalized = normalizeInputValue(dateTimeLocal);
+	if (!normalized) return undefined;
+	const [datePart, timePart] = normalized.split("T");
+	if (!datePart || !timePart) return undefined;
+	return `${datePart}T${timePart.length === 5 ? `${timePart}:00` : timePart}`;
+}
+
+function toApiLocalDateStart(dateOnly: string): string | undefined {
+	const normalized = normalizeInputValue(dateOnly);
+	if (!normalized) return undefined;
+	return `${normalized}T00:00:00`;
+}
+
+function getLocalDateParts(date = new Date()) {
+	const year = date.getFullYear();
+	const month = String(date.getMonth() + 1).padStart(2, "0");
+	const day = String(date.getDate()).padStart(2, "0");
+	return { year, month, day };
 }
 
 function getLocalToday(): string {
 	const now = new Date();
-	const year = now.getFullYear();
-	const month = String(now.getMonth() + 1).padStart(2, "0");
-	const day = String(now.getDate()).padStart(2, "0");
+	const { year, month, day } = getLocalDateParts(now);
 	return `${year}-${month}-${day}`;
 }
 
 function getLocalNowDateTime(): string {
 	const now = new Date();
-	const year = now.getFullYear();
-	const month = String(now.getMonth() + 1).padStart(2, "0");
-	const day = String(now.getDate()).padStart(2, "0");
+	const { year, month, day } = getLocalDateParts(now);
 	const hours = String(now.getHours()).padStart(2, "0");
 	const minutes = String(now.getMinutes()).padStart(2, "0");
 	return `${year}-${month}-${day}T${hours}:${minutes}`;
@@ -71,7 +89,7 @@ export function CyclePaymentDialog({
 		isConvertingToLoan,
 	});
 	const { state, setters, derived } = ui;
-	const { setActiveTab, setAmount, setPaymentDateTime, setTermMonths, setLoanStartDate } = setters;
+	const { setActiveTab, setAmount, setPaymentDateTime, setMonthlyAmount, setLoanStartDate } = setters;
 
 	useEffect(() => {
 		if (!open) return;
@@ -81,9 +99,9 @@ export function CyclePaymentDialog({
 		setAmount("");
 		setAmountInputError("");
 		setPaymentDateTime(nowDateTime);
-		setTermMonths("1");
+		setMonthlyAmount("");
 		setLoanStartDate(today);
-	}, [open, defaultTab, setActiveTab, setAmount, setPaymentDateTime, setTermMonths, setLoanStartDate]);
+	}, [open, defaultTab, setActiveTab, setAmount, setPaymentDateTime, setMonthlyAmount, setLoanStartDate]);
 
 	const handleSubmit = async () => {
 		if (!derived.hasCycle) return;
@@ -101,9 +119,15 @@ export function CyclePaymentDialog({
 		}
 
 		try {
+			const paymentDate = toApiLocalDateTime(state.paymentDateTime);
+			if (!paymentDate) {
+				toast.error("Payment date is invalid");
+				return;
+			}
+
 			await createPayment({
 				amount: derived.parsedAmount,
-				paymentDate: toIsoDateTime(state.paymentDateTime),
+				paymentDate,
 			});
 			onOpenChange(false);
 		} catch {
@@ -121,15 +145,21 @@ export function CyclePaymentDialog({
 			toast.error("Loan start date is required");
 			return;
 		}
-		if (!derived.hasValidTermMonths) {
-			toast.error("Term months must be greater than 0");
+		if (!derived.hasValidMonthlyAmount) {
+			toast.error("Monthly amount must be greater than 0");
 			return;
 		}
 
 		try {
+			const startDate = toApiLocalDateStart(state.loanStartDate);
+			if (!startDate) {
+				toast.error("Loan start date is invalid");
+				return;
+			}
+
 			const loan = await convertToLoan({
-				termMonths: derived.parsedTermMonths,
-				startDate: new Date(`${state.loanStartDate}T00:00:00.000Z`).toISOString(),
+				loanInstallmentAmount: derived.parsedMonthlyAmount,
+				startDate,
 			});
 			onOpenChange(false);
 			navigate(`/dashboard/loan/${loan.id}`);
@@ -181,7 +211,7 @@ export function CyclePaymentDialog({
 										onChange={(e) => {
 											const rawValue = e.target.value;
 											const normalizedValue = digitsOnly(rawValue);
-											setters.setAmount(normalizedValue);
+											setAmount(normalizedValue);
 											setAmountInputError(rawValue !== normalizedValue ? "Only numbers are allowed" : "");
 										}}
 										placeholder="Enter payment amount"
@@ -210,17 +240,22 @@ export function CyclePaymentDialog({
 							</div>
 							<div className="grid grid-cols-1 md:grid-cols-2 gap-3">
 								<div className="space-y-1.5">
-									<Label htmlFor="cycle-loan-term-months">Loan Term (Months)</Label>
-									<Input
-										id="cycle-loan-term-months"
-										type="number"
-										min={1}
-										step={1}
-										value={state.termMonths}
-										onChange={(e) => setters.setTermMonths(e.target.value)}
-										placeholder="Enter term months"
-										disabled={isConvertingToLoan}
-									/>
+									<Label htmlFor="cycle-loan-monthly-amount">Monthly Amount (៛)</Label>
+									<div className="relative">
+										<span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold pointer-events-none">
+											៛
+										</span>
+										<Input
+											id="cycle-loan-monthly-amount"
+											type="number"
+											min={1}
+											value={state.monthlyAmount}
+											onChange={(e) => setters.setMonthlyAmount(e.target.value)}
+											placeholder="0"
+											disabled={isConvertingToLoan}
+											className="pl-7"
+										/>
+									</div>
 								</div>
 								<div className="space-y-1.5">
 									<Label htmlFor="cycle-loan-start-date">Loan Start Date</Label>

@@ -28,6 +28,6 @@ export type CreateLoanRequest = {
 	borrowerType: BorrowerType;
 	borrowerId: string;
 	principalAmount: number;
-	termMonths: number;
+	loanInstallmentAmount: number;
 	startDate: string;
 };

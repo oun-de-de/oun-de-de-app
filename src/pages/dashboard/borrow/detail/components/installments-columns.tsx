@@ -6,7 +6,9 @@ import { formatDisplayDate, formatKHR } from "@/core/utils/formatters";
 
 type InstallmentsColumnsOptions = {
 	isPayPending?: boolean;
+	isPostponePending?: boolean;
 	onSelectInstallment?: (installment: Installment) => void;
+	onPostpone?: () => void;
 	allowPayInstallmentId?: string;
 };
 
@@ -17,7 +19,9 @@ function isPayableStatus(status: Installment["status"]) {
 
 export function getInstallmentsColumns({
 	isPayPending = false,
+	isPostponePending = false,
 	onSelectInstallment,
+	onPostpone,
 	allowPayInstallmentId,
 }: InstallmentsColumnsOptions = {}): ColumnDef<Installment>[] {
 	return [
@@ -66,20 +70,29 @@ export function getInstallmentsColumns({
 		{
 			id: "action",
 			header: "Action",
-			size: 100,
+			size: 160,
 			cell: ({ row }) => {
-				if (!isPayableStatus(row.original.status) || !onSelectInstallment) return null;
+				if (!isPayableStatus(row.original.status)) return null;
 				const isPayableByOrder = !allowPayInstallmentId || allowPayInstallmentId === row.original.id;
 				return (
-					<Button
-						variant="default"
-						size="sm"
-						onClick={() => onSelectInstallment(row.original)}
-						disabled={isPayPending || !isPayableByOrder}
-						title={isPayableByOrder ? undefined : "Please pay earlier installment first"}
-					>
-						{isPayPending ? "..." : "Pay"}
-					</Button>
+					<div className="flex gap-1">
+						{onSelectInstallment && (
+							<Button
+								variant="default"
+								size="sm"
+								onClick={() => onSelectInstallment(row.original)}
+								disabled={isPayPending || isPostponePending || !isPayableByOrder}
+								title={isPayableByOrder ? undefined : "Please pay earlier installment first"}
+							>
+								{isPayPending ? "..." : "Pay"}
+							</Button>
+						)}
+						{onPostpone && isPayableByOrder && (
+							<Button variant="warning" size="sm" onClick={onPostpone} disabled={isPayPending || isPostponePending}>
+								{isPostponePending ? "..." : "Postpone"}
+							</Button>
+						)}
+					</div>
 				);
 			},
 			meta: { bodyClassName: "text-center" },

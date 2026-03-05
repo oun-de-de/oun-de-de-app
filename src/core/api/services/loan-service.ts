@@ -106,10 +106,18 @@ const payInstallment = (loanId: string, installmentId: string): Promise<Installm
 		})
 		.then(normalizeInstallment);
 
+const postponeLoan = (loanId: string): Promise<Installment[]> =>
+	apiClient
+		.post<InstallmentApiResponse[]>({
+			url: `${LoanApi.Loans}/${loanId}/postpone`,
+		})
+		.then((response) => response.map(normalizeInstallment));
+
 export default {
 	getLoans,
 	createLoan,
 	getLoanDetails,
 	getInstallments,
 	payInstallment,
+	postponeLoan,
 };

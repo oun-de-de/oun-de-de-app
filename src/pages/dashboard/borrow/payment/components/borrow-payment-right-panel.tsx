@@ -5,8 +5,8 @@ import { Label } from "@/core/ui/label";
 import { formatDateToYYYYMMDD } from "@/core/utils/date-utils";
 
 interface BorrowPaymentRightPanelProps {
-	termMonths: number;
-	setTermMonths: (value: number) => void;
+	monthlyAmount: string;
+	setMonthlyAmount: (value: string) => void;
 	depositAmount: string;
 	setDepositAmount: (value: string) => void;
 	dueDate: Date;
@@ -16,8 +16,8 @@ interface BorrowPaymentRightPanelProps {
 }
 
 export function BorrowPaymentRightPanel({
-	termMonths,
-	setTermMonths,
+	monthlyAmount,
+	setMonthlyAmount,
 	depositAmount,
 	setDepositAmount,
 	dueDate,
@@ -48,17 +48,25 @@ export function BorrowPaymentRightPanel({
 					</div>
 
 					<div className="flex gap-4 w-full">
-						<div className="space-y-2 flex-[1]">
-							<Label className="font-medium text-gray-500">Term (Month)</Label>
-							<Input
-								type="number"
-								min={1}
-								value={termMonths}
-								onChange={(e) => setTermMonths(Number(e.target.value) || 1)}
-								className="h-11 border-slate-200 font-medium rounded-lg text-center bg-slate-50/50"
-							/>
+						<div className="space-y-2 flex-[1.5]">
+							<Label className="font-medium text-gray-500">
+								<span className="text-rose-500">*</span>Monthly Amount (៛)
+							</Label>
+							<div className="relative">
+								<span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold pointer-events-none">
+									៛
+								</span>
+								<Input
+									type="number"
+									min={1}
+									value={monthlyAmount}
+									onChange={(e) => setMonthlyAmount(e.target.value)}
+									className="h-11 pl-7 border-slate-200 font-medium rounded-lg bg-slate-50/50"
+									placeholder="0"
+								/>
+							</div>
 						</div>
-						<div className="space-y-2 flex-[2.5]">
+						<div className="space-y-2 flex-[2]">
 							<Label className="font-medium text-gray-500">Start Date</Label>
 							<Input
 								type="date"

@@ -13,7 +13,8 @@ export default function BorrowDetailPage() {
 	const { id } = useParams<{ id: string }>();
 	const router = useRouter();
 
-	const { loan, isLoading, isError, installments, payInstallment, isPaying } = useBorrowDetail(id || "");
+	const { loan, isLoading, isError, installments, payInstallment, isPaying, postponeLoan, isPostponing } =
+		useBorrowDetail(id || "");
 
 	if (isLoading) {
 		return (
@@ -118,7 +119,13 @@ export default function BorrowDetailPage() {
 					<Text variant="subTitle1" className="font-semibold mb-4">
 						Installments
 					</Text>
-					<InstallmentsTable installments={installments} onPay={payInstallment} isPayPending={isPaying} />
+					<InstallmentsTable
+						installments={installments}
+						onPay={payInstallment}
+						isPayPending={isPaying}
+						onPostpone={postponeLoan}
+						isPostponePending={isPostponing}
+					/>
 				</div>
 			</div>
 		</div>
