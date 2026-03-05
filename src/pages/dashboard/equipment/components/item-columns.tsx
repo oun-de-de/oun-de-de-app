@@ -1,6 +1,8 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import type { InventoryItem } from "@/core/types/inventory";
 import { Badge } from "@/core/ui/badge";
+import { Button } from "@/core/ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/core/ui/dropdown-menu";
 
 export type ItemRow = {
 	id: string;
@@ -10,6 +12,11 @@ export type ItemRow = {
 	unit: string;
 	quantityOnHand: number;
 	alertThreshold: number;
+};
+
+type ItemRowActionHandlers = {
+	onUpdateStock: (itemId: string) => void;
+	onBorrowings: (itemId: string) => void;
 };
 
 export function mapItemsToRows(items: InventoryItem[]): ItemRow[] {
@@ -67,7 +74,7 @@ export function paginateItemRows(
 	};
 }
 
-export function itemColumns(): ColumnDef<ItemRow>[] {
+export function itemColumns({ onUpdateStock, onBorrowings }: ItemRowActionHandlers): ColumnDef<ItemRow>[] {
 	return [
 		{ accessorKey: "code", header: "Code" },
 		{ accessorKey: "name", header: "Name" },
@@ -101,6 +108,70 @@ export function itemColumns(): ColumnDef<ItemRow>[] {
 			header: "Alert Threshold",
 			cell: ({ row }) => row.original.alertThreshold ?? "-",
 			meta: { bodyClassName: "text-right" },
+		},
+		{
+			id: "actions",
+			header: "Actions",
+			size: 180,
+			cell: ({ row }) => (
+				<div className="flex items-center justify-center gap-2">
+					<div className="hidden sm:flex gap-2">
+						<Button
+							type="button"
+							size="sm"
+							onClick={(event) => {
+								event.stopPropagation();
+								onUpdateStock(row.original.id);
+							}}
+						>
+							Update
+						</Button>
+						{row.original.type === "EQUIPMENT" && (
+							<Button
+								type="button"
+								size="sm"
+								variant="warning"
+								onClick={(event) => {
+									event.stopPropagation();
+									onBorrowings(row.original.id);
+								}}
+							>
+								Borrowings
+							</Button>
+						)}
+					</div>
+					<div className="sm:hidden">
+						<DropdownMenu>
+							<DropdownMenuTrigger asChild>
+								<Button type="button" size="sm" variant="ghost">
+									⋮
+								</Button>
+							</DropdownMenuTrigger>
+							<DropdownMenuContent align="end">
+								<DropdownMenuItem
+									onClick={(event) => {
+										event.stopPropagation();
+										onUpdateStock(row.original.id);
+									}}
+								>
+									Update
+								</DropdownMenuItem>
+								{row.original.type === "EQUIPMENT" && (
+									<DropdownMenuItem
+										onClick={(event) => {
+											event.stopPropagation();
+											onBorrowings(row.original.id);
+										}}
+									>
+										Borrowings
+									</DropdownMenuItem>
+								)}
+							</DropdownMenuContent>
+						</DropdownMenu>
+					</div>
+				</div>
+			),
+			meta: { bodyClassName: "text-center" },
 		},
 	];
 }

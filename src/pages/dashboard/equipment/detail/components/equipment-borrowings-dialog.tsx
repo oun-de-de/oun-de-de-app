@@ -17,21 +17,37 @@ import { useCreateBorrowing, useReturnBorrowing } from "../../hooks/use-inventor
 type EquipmentBorrowingsDialogProps = {
 	itemId: string;
 	customers: Customer[];
+	open?: boolean;
+	onOpenChange?: (open: boolean) => void;
 };
 
-export function EquipmentBorrowingsDialog({ itemId, customers }: EquipmentBorrowingsDialogProps) {
-	const [open, setOpen] = useState(false);
+export function EquipmentBorrowingsDialog({
+	itemId,
+	customers,
+	open: controlledOpen,
+	onOpenChange,
+}: EquipmentBorrowingsDialogProps) {
+	const [internalOpen, setInternalOpen] = useState(false);
 	const [customerId, setCustomerId] = useState("");
 	const [quantity, setQuantity] = useState("1");
 	const [expectedReturnDate, setExpectedReturnDate] = useState("");
 	const [memo, setMemo] = useState("");
 	const [isHistoryDialogOpen, setIsHistoryDialogOpen] = useState(false);
-	const [historyPage, setHistoryPage] = useState(1);
+	const [historyPage, setHistoryDialogPage] = useState(1);
 	const [historyPageSize, setHistoryPageSize] = useState(10);
 
 	const { data: borrowings = [], isLoading } = useInventoryBorrowings(itemId);
 	const createBorrowing = useCreateBorrowing(itemId);
 	const returnBorrowing = useReturnBorrowing(itemId);
+	const isControlled = onOpenChange !== undefined;
+	const open = isControlled ? (controlledOpen ?? false) : internalOpen;
+	const setOpen = (nextOpen: boolean) => {
+		if (isControlled) {
+			onOpenChange?.(nextOpen);
+			return;
+		}
+		setInternalOpen(nextOpen);
+	};
 	const previewBorrowings = borrowings.slice(0, 5);
 	const totalHistoryPages = Math.max(1, Math.ceil(borrowings.length / historyPageSize));
 	const pagedBorrowings = borrowings.slice((historyPage - 1) * historyPageSize, historyPage * historyPageSize);
@@ -141,7 +157,7 @@ export function EquipmentBorrowingsDialog({ itemId, customers }: EquipmentBorrow
 		<div className="contents">
 			<Dialog open={open} onOpenChange={handleOpenChange}>
 				<DialogTrigger asChild>
-					<Button size="sm" variant="secondary">
+					<Button size="sm" variant="warning" className="gap-1">
 						Borrowings
 					</Button>
 				</DialogTrigger>
@@ -195,7 +211,7 @@ export function EquipmentBorrowingsDialog({ itemId, customers }: EquipmentBorrow
 									size="sm"
 									variant="secondary"
 									onClick={() => {
-										setHistoryPage(1);
+										setHistoryDialogPage(1);
 										setIsHistoryDialogOpen(true);
 									}}
 								>
@@ -229,10 +245,10 @@ export function EquipmentBorrowingsDialog({ itemId, customers }: EquipmentBorrow
 							totalItems: borrowings.length,
 							totalPages: totalHistoryPages,
 							paginationItems: Array.from({ length: totalHistoryPages }, (_, index) => index + 1),
-							onPageChange: setHistoryPage,
+							onPageChange: setHistoryDialogPage,
 							onPageSizeChange: (pageSize) => {
 								setHistoryPageSize(pageSize);
-								setHistoryPage(1);
+								setHistoryDialogPage(1);
 							},
 						}}
 					/>

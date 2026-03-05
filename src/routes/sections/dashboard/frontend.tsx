@@ -34,6 +34,7 @@ export function getFrontendDashboardRoutes(): RouteObject[] {
 		...createLoanRoutes("dashboard/borrow"),
 		...createLoanRoutes("dashboard/loan"),
 		{ path: "dashboard/equipment", element: Component("/pages/dashboard/equipment") },
+		{ path: "dashboard/equipment/print-preview", element: Component("/pages/dashboard/equipment/export-preview") },
 		{ path: "dashboard/equipment/:id", element: Component("/pages/dashboard/equipment/detail") },
 	];
 	return frontendDashboardRoutes;

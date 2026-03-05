@@ -14,9 +14,11 @@ type UpdateStockDialogProps = {
 	quantity: string;
 	reason: string;
 	memo: string;
+	expense: string;
 	onQuantityChange: (value: string) => void;
 	onReasonChange: (value: string) => void;
 	onMemoChange: (value: string) => void;
+	onExpenseChange: (value: string) => void;
 	onSubmit: () => void;
 	isPending?: boolean;
 };
@@ -55,9 +57,11 @@ export function UpdateStockDialog({
 	quantity,
 	reason,
 	memo,
+	expense,
 	onQuantityChange,
 	onReasonChange,
 	onMemoChange,
+	onExpenseChange,
 	onSubmit,
 	isPending = false,
 }: UpdateStockDialogProps) {
@@ -112,6 +116,22 @@ export function UpdateStockDialog({
 					<div className="space-y-1.5">
 						<Label>Quantity</Label>
 						<Input type="number" min={1} value={quantity} onChange={(e) => onQuantityChange(e.target.value)} />
+					</div>
+					<div className="space-y-1.5">
+						<Label>Expense (៛)</Label>
+						<div className="relative">
+							<span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold pointer-events-none">
+								៛
+							</span>
+							<Input
+								type="number"
+								min={0}
+								value={expense}
+								onChange={(e) => onExpenseChange(e.target.value)}
+								placeholder="0"
+								className="pl-7"
+							/>
+						</div>
 					</div>
 					<div className="space-y-1.5">
 						<Label>Description</Label>

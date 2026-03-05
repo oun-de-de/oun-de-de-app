@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { useSearchParams } from "react-router";
 import customerService from "@/core/api/services/customer-service";
 import { SmartDataTable } from "@/core/components/common";
 import Icon from "@/core/components/icon/icon";
@@ -12,10 +13,24 @@ import { EquipmentInfoCard } from "./components/equipment-info-card";
 import { UpdateStockDialog } from "./components/update-stock-dialog";
 import { useEquipmentDetail } from "./hooks/use-equipment-detail";
 
+const TYPE_OPTIONS = [
+	{ value: "all", label: "All Type" },
+	{ value: "IN", label: "Stock In" },
+	{ value: "OUT", label: "Stock Out" },
+];
+
+const FIELD_OPTIONS = [
+	{ value: "reason", label: "Reason" },
+	{ value: "memo", label: "Memo" },
+];
+
 export default function EquipmentDetailPage() {
 	const router = useRouter();
 	const { activeItem, isItemLoading, stockUpdate, table } = useEquipmentDetail();
 	const [isUpdateStockOpen, setIsUpdateStockOpen] = useState(false);
+	const [isBorrowingsOpen, setIsBorrowingsOpen] = useState(false);
+	const [searchParams, setSearchParams] = useSearchParams();
+	const action = searchParams.get("action");
 	const { data: customerPage } = useQuery({
 		queryKey: ["equipment-borrow-customers"],
 		queryFn: () => customerService.getCustomerList({ limit: 1000 }),
@@ -28,6 +43,31 @@ export default function EquipmentDetailPage() {
 		}
 		setIsUpdateStockOpen(open);
 	};
+	const clearActionParam = useCallback(() => {
+		setSearchParams(
+			(prev) => {
+				const next = new URLSearchParams(prev);
+				next.delete("action");
+				return next;
+			},
+			{ replace: true },
+		);
+	}, [setSearchParams]);
+
+	useEffect(() => {
+		if (!activeItem) {
+			return;
+		}
+
+		if (action === "stock") {
+			setIsUpdateStockOpen(true);
+			clearActionParam();
+		}
+		if (action === "borrowings") {
+			setIsBorrowingsOpen(true);
+			clearActionParam();
+		}
+	}, [activeItem, action, clearActionParam]);
 
 	if (isItemLoading) {
 		return (
@@ -76,13 +116,22 @@ export default function EquipmentDetailPage() {
 						quantity={stockUpdate.qty}
 						reason={stockUpdate.reason}
 						memo={stockUpdate.memo}
+						expense={stockUpdate.expense}
 						onQuantityChange={stockUpdate.setQty}
 						onReasonChange={stockUpdate.setReason}
 						onMemoChange={stockUpdate.setMemo}
+						onExpenseChange={stockUpdate.setExpense}
 						onSubmit={() => stockUpdate.submit(() => handleUpdateStockOpenChange(false))}
 						isPending={stockUpdate.isPending}
 					/>
-					{isEquipment && <EquipmentBorrowingsDialog itemId={activeItem.id} customers={customers} />}
+					{isEquipment && (
+						<EquipmentBorrowingsDialog
+							itemId={activeItem.id}
+							customers={customers}
+							open={isBorrowingsOpen}
+							onOpenChange={setIsBorrowingsOpen}
+						/>
+					)}
 				</div>
 			</div>
 
@@ -95,15 +144,8 @@ export default function EquipmentDetailPage() {
 					data={table.pagedRows}
 					columns={table.columns}
 					filterConfig={{
-						typeOptions: [
-							{ value: "all", label: "All Type" },
-							{ value: "IN", label: "Stock In" },
-							{ value: "OUT", label: "Stock Out" },
-						],
-						fieldOptions: [
-							{ value: "reason", label: "Reason" },
-							{ value: "memo", label: "Memo" },
-						],
+						typeOptions: TYPE_OPTIONS,
+						fieldOptions: FIELD_OPTIONS,
 						typeValue: table.typeFilter,
 						fieldValue: table.fieldFilter,
 						searchValue: table.searchValue,

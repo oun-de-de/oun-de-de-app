@@ -74,14 +74,14 @@ export function EquipmentInfoCard({ item, onUpdate }: EquipmentInfoCardProps) {
 								</Badge>
 							</div>
 							<Text variant="body2" className="text-slate-500 mt-1">
-								{item.code} • <Badge variant="outline">{item.type}</Badge>
+								{item.code} • <Badge variant={item.type === "EQUIPMENT" ? "success" : "info"}>{item.type}</Badge>
 							</Text>
 						</div>
 					)}
 				</div>
 				<div className="flex items-center justify-center gap-2">
 					{!isEditing && onUpdate && (
-						<Button size="sm" variant="secondary" onClick={() => setIsEditing(true)}>
+						<Button size="sm" variant="warning" onClick={() => setIsEditing(true)}>
 							Edit
 						</Button>
 					)}

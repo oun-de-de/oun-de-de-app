@@ -33,6 +33,7 @@ export interface UpdateStockRequest {
 	quantity: number;
 	reason: string;
 	memo: string;
+	expense?: number;
 }
 
 export interface InventoryTransaction {
@@ -42,6 +43,7 @@ export interface InventoryTransaction {
 	type: InventoryTransactionType;
 	reason: InventoryTransactionReason;
 	memo: string;
+	expense?: number;
 	createdAt: string;
 	equipmentBorrowId: string;
 	createdById: string;

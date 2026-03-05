@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
+import { useNavigate } from "react-router";
 import { toUtcIsoStartOfDay } from "@/core/utils/date-utils";
 import type { ItemRow } from "../components/item-columns";
 import { filterItemRows, itemColumns, mapItemsToRows, paginateItemRows } from "../components/item-columns";
@@ -7,6 +8,7 @@ import { useCreateBorrowing, useCreateItem, useUpdateStock } from "./use-invento
 
 export function useEquipmentContent(activeItemId: string | null) {
 	const itemId = activeItemId ?? undefined;
+	const navigate = useNavigate();
 
 	// --- API data ---
 	const { data: items = [] } = useInventoryItems();
@@ -20,19 +22,27 @@ export function useEquipmentContent(activeItemId: string | null) {
 	const [stockInQty, setStockInQty] = useState("1");
 	const [stockInNote, setStockInNote] = useState("");
 	const [stockInReason, setStockInReason] = useState("purchase");
+	const [stockInExpense, setStockInExpense] = useState("");
 
 	const handleStockIn = useCallback(() => {
+		const parsedExpense = Number(stockInExpense);
 		updateStockMutation.mutate(
-			{ quantity: Number(stockInQty), reason: stockInReason, memo: stockInNote },
+			{
+				quantity: Number(stockInQty),
+				reason: stockInReason,
+				memo: stockInNote,
+				...(Number.isFinite(parsedExpense) && parsedExpense > 0 ? { expense: parsedExpense } : {}),
+			},
 			{
 				onSuccess: () => {
 					setStockInQty("1");
 					setStockInNote("");
 					setStockInReason("purchase");
+					setStockInExpense("");
 				},
 			},
 		);
-	}, [updateStockMutation, stockInQty, stockInReason, stockInNote]);
+	}, [updateStockMutation, stockInQty, stockInReason, stockInNote, stockInExpense]);
 
 	// --- Borrow form ---
 	const [borrowQty, setBorrowQty] = useState("1");
@@ -80,7 +90,14 @@ export function useEquipmentContent(activeItemId: string | null) {
 		() => paginateItemRows(filteredRows, tablePage, tablePageSize),
 		[filteredRows, tablePage, tablePageSize],
 	);
-	const columns = useMemo(() => itemColumns(), []);
+	const columns = useMemo(
+		() =>
+			itemColumns({
+				onUpdateStock: (itemId) => navigate(`/dashboard/equipment/${itemId}?action=stock`),
+				onBorrowings: (itemId) => navigate(`/dashboard/equipment/${itemId}?action=borrowings`),
+			}),
+		[navigate],
+	);
 
 	// --- Summary cards ---
 	const summaryCards = useMemo(() => {
@@ -108,9 +125,11 @@ export function useEquipmentContent(activeItemId: string | null) {
 			qty: stockInQty,
 			note: stockInNote,
 			reason: stockInReason,
+			expense: stockInExpense,
 			setQty: setStockInQty,
 			setNote: setStockInNote,
 			setReason: setStockInReason,
+			setExpense: setStockInExpense,
 			submit: handleStockIn,
 			isPending: updateStockMutation.isPending,
 		},
