@@ -117,7 +117,7 @@ const StyledPopoverItem = styled.li`
 const StyledPopoverButton = styled.button`
 	display: block;
 	width: 100%;
-	padding: 0.5rem 0.75rem;
+	padding: 0.5rem 0;
 	color: ${({ theme }) => theme.colors.common.black};
 	text-decoration: none;
 	font-size: 0.875rem;
