@@ -63,6 +63,7 @@ const getColumns = (
 					onChange(row.original.productId, "quantity", e.target.value)
 				}
 				className="w-full h-8"
+				disabled={!row.original.isPackagedByQuantity}
 			/>
 		),
 	},

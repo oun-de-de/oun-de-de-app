@@ -20,19 +20,7 @@ import {
 } from "../../reports/components/layout/report-template-table";
 import { formatReportTimestamp } from "../../reports/report-detail/constants";
 import { LoanPaymentsTable } from "./components/loan-payments-table";
-import { type LoanDueWarning, useBorrowDetail } from "./hooks/use-borrow-detail";
-
-function getWarningLabel(warning: LoanDueWarning) {
-	if (warning === "overdue") return "Overdue";
-	if (warning === "due-soon") return "Due soon";
-	return null;
-}
-
-function getWarningVariant(warning: LoanDueWarning) {
-	if (warning === "overdue") return "destructive";
-	if (warning === "due-soon") return "warning";
-	return "secondary";
-}
+import { useBorrowDetail } from "./hooks/use-borrow-detail";
 
 function formatLoanStatusLabel(status?: "normal" | "due" | "complete") {
 	if (status === "due") return "Due";
@@ -56,6 +44,7 @@ export default function BorrowDetailPage() {
 	const router = useRouter();
 	const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
 	const [shouldUpdateDueDate, setShouldUpdateDueDate] = useState(true);
+	const [paymentAmount, setPaymentAmount] = useState("");
 	const [isBorrowMoreDialogOpen, setIsBorrowMoreDialogOpen] = useState(false);
 	const [additionalAmount, setAdditionalAmount] = useState("");
 	const {
@@ -64,7 +53,6 @@ export default function BorrowDetailPage() {
 		isError,
 		payments,
 		currentDue,
-		dueWarning,
 		createPayment,
 		isCreatingPayment,
 		postponeLoan,
@@ -73,11 +61,8 @@ export default function BorrowDetailPage() {
 		isExtendingLoan,
 	} = useBorrowDetail(id || "");
 
-	const nextPaymentAmount = currentDue?.amount ?? 0;
 	const paidTotal = loan?.paidAmount ?? 0;
 	const remainingBalance = loan ? Math.max(loan.principalAmount - paidTotal, 0) : 0;
-	const warningLabel =
-		dueWarning === "due-soon" ? `Due in ${loan?.dueWarningDays ?? 5} days` : getWarningLabel(dueWarning);
 	const printColumns = useMemo<ReportTemplateColumn[]>(
 		() => [
 			{
@@ -158,12 +143,14 @@ export default function BorrowDetailPage() {
 	const printTimestamp = useMemo(() => formatReportTimestamp("administrator", new Date()), []);
 
 	const handleCreatePayment = async () => {
-		if (!currentDue) return;
+		const parsedAmount = Number(paymentAmount);
+		if (!currentDue || !Number.isFinite(parsedAmount) || parsedAmount <= 0) return;
 		await createPayment({
-			amount: currentDue.amount,
+			amount: parsedAmount,
 			shouldUpdateDueDate,
 		});
 		setIsPaymentDialogOpen(false);
+		setPaymentAmount(currentDue ? String(currentDue.amount) : "");
 	};
 
 	const handleBorrowMore = async () => {
@@ -230,7 +217,11 @@ export default function BorrowDetailPage() {
 					<Button
 						size="sm"
 						className="bg-sky-600 text-white shadow-sm hover:bg-sky-700"
-						onClick={() => setIsPaymentDialogOpen(true)}
+						onClick={() => {
+							setPaymentAmount(currentDue ? String(currentDue.amount) : "");
+							setShouldUpdateDueDate(true);
+							setIsPaymentDialogOpen(true);
+						}}
 						disabled={!currentDue || isCreatingPayment}
 					>
 						Create Payment
@@ -318,22 +309,11 @@ export default function BorrowDetailPage() {
 								Loan Status
 							</Text>
 							<Badge
-								variant={loan.status === "complete" ? "success" : loan.status === "due" ? "destructive" : "secondary"}
+								variant={loan.status === "complete" ? "success" : loan.status === "due" ? "destructive" : "success"}
 							>
 								{formatLoanStatusLabel(loan.status)}
 							</Badge>
 						</div>
-						{warningLabel ? (
-							<>
-								<Separator />
-								<div className="flex items-center justify-between">
-									<Text variant="body2" className="text-slate-500">
-										Status
-									</Text>
-									<Badge variant={getWarningVariant(dueWarning)}>{warningLabel}</Badge>
-								</div>
-							</>
-						) : null}
 						<Separator />
 						<div className="flex items-center justify-between">
 							<Text variant="body2" className="text-slate-500">
@@ -383,20 +363,43 @@ export default function BorrowDetailPage() {
 			</ReportLayout>
 
 			<Dialog open={isPaymentDialogOpen} onOpenChange={setIsPaymentDialogOpen}>
-				<DialogContent className="sm:max-w-md">
+				<DialogContent className="sm:max-w-lg">
 					<DialogHeader>
 						<DialogTitle>Create Loan Payment</DialogTitle>
-						<DialogDescription>
-							Mark the current loan payment as received. Payments are collected every 30 days.
-						</DialogDescription>
+						<DialogDescription>Record a payment for this loan.</DialogDescription>
 					</DialogHeader>
-					<div className="grid gap-3 text-sm">
-						<div className="rounded-md border bg-slate-50 p-3">
-							<div>Borrower: {loan.borrowerName}</div>
-							<div>Due date: {currentDue ? formatDisplayDate(currentDue.dueDate) : "-"}</div>
-							<div>Amount: {formatKHR(nextPaymentAmount)}</div>
+					<div className="grid gap-4 text-sm">
+						<div className="rounded-md border bg-slate-50 px-4 py-3">
+							<div className="flex items-center justify-between gap-4">
+								<span className="text-slate-500">Borrower</span>
+								<span className="font-medium text-slate-900">{loan.borrowerName}</span>
+							</div>
+							<div className="mt-2 flex items-center justify-between gap-4">
+								<span className="text-slate-500">Due date</span>
+								<span className="font-medium text-slate-900">
+									{currentDue ? formatDisplayDate(currentDue.dueDate) : "-"}
+								</span>
+							</div>
 						</div>
-						<div className="flex items-start gap-3 rounded-md border p-3">
+						<div className="space-y-1.5">
+							<Label htmlFor="loan-payment-amount">Amount</Label>
+							<div className="relative">
+								<Input
+									id="loan-payment-amount"
+									type="text"
+									inputMode="numeric"
+									value={paymentAmount}
+									onChange={(event) => setPaymentAmount(event.target.value.replace(/[^\d.]/g, ""))}
+									placeholder="Enter amount"
+									disabled={isCreatingPayment}
+									className="pr-14"
+								/>
+								<span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs font-medium text-slate-400">
+									KHR
+								</span>
+							</div>
+						</div>
+						<div className="flex items-start gap-3 rounded-md border px-4 py-3">
 							<Checkbox
 								id="loan-payment-update-due-date"
 								checked={shouldUpdateDueDate}
@@ -406,13 +409,8 @@ export default function BorrowDetailPage() {
 								<Label htmlFor="loan-payment-update-due-date" className="cursor-pointer">
 									Update next due date after receiving this payment
 								</Label>
-								<Text variant="caption" className="text-slate-500">
-									When enabled, the request sends <code>shouldUpdateDueDate: true</code> to
-									<code>
-										{" "}
-										/api/v1/loans/{"{"}loanId{"}"}/pay
-									</code>
-									.
+								<Text variant="caption" className="leading-5 text-slate-500">
+									Use this when the payment should also move the next due date forward.
 								</Text>
 							</div>
 						</div>
@@ -423,12 +421,21 @@ export default function BorrowDetailPage() {
 							onClick={() => {
 								setIsPaymentDialogOpen(false);
 								setShouldUpdateDueDate(true);
+								setPaymentAmount(currentDue ? String(currentDue.amount) : "");
 							}}
 							disabled={isCreatingPayment}
 						>
 							Cancel
 						</Button>
-						<Button onClick={handleCreatePayment} disabled={!currentDue || isCreatingPayment}>
+						<Button
+							onClick={handleCreatePayment}
+							disabled={
+								!currentDue ||
+								isCreatingPayment ||
+								!Number.isFinite(Number(paymentAmount)) ||
+								Number(paymentAmount) <= 0
+							}
+						>
 							{isCreatingPayment ? "Creating..." : "Create Payment"}
 						</Button>
 					</DialogFooter>
@@ -436,7 +443,7 @@ export default function BorrowDetailPage() {
 			</Dialog>
 
 			<Dialog open={isBorrowMoreDialogOpen} onOpenChange={setIsBorrowMoreDialogOpen}>
-				<DialogContent className="sm:max-w-md">
+				<DialogContent className="sm:max-w-lg">
 					<DialogHeader>
 						<DialogTitle>Add More Borrowed Amount</DialogTitle>
 						<DialogDescription>
