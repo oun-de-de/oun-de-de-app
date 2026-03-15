@@ -30,6 +30,7 @@ export default function CreateProductPage() {
 			name: data.name as string,
 			defaultQuantity: Number(data.defaultQuantity ?? 0),
 			defaultPrice: Number(data.defaultPrice ?? 0),
+			isPackagedByQuantity: Boolean(data.isPackagedByQuantity),
 		};
 
 		if (typeof data.unitId === "string" && data.unitId.trim() !== "") {
