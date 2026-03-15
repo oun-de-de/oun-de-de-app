@@ -17,6 +17,8 @@ export function BorrowPaymentView() {
 		setDepositAmount,
 		dueDate,
 		setDueDate,
+		dueWarningDays,
+		setDueWarningDays,
 		confirm,
 		isPending,
 		customers,
@@ -44,6 +46,8 @@ export function BorrowPaymentView() {
 						setDepositAmount={setDepositAmount}
 						dueDate={dueDate}
 						setDueDate={setDueDate}
+						dueWarningDays={dueWarningDays}
+						setDueWarningDays={setDueWarningDays}
 						onConfirm={confirm}
 						isPending={isPending}
 					/>
