@@ -17,6 +17,7 @@ export function useCyclePaymentState(params: {
 	const [paymentDateTime, setPaymentDateTime] = useState("");
 	const [monthlyAmount, setMonthlyAmount] = useState("");
 	const [loanStartDate, setLoanStartDate] = useState("");
+	const [dueWarningDays, setDueWarningDays] = useState("5");
 
 	//Pagination State for Payment History
 	const [page, setPage] = useState(1);
@@ -41,21 +42,43 @@ export function useCyclePaymentState(params: {
 	const parsedAmount = Number(amount);
 	const hasValidAmount = Number.isFinite(parsedAmount) && parsedAmount > 0;
 	const isAmountExceeded = hasValidAmount && parsedAmount > cycleBalance;
-	const canSubmit = !historyOnly && hasCycle && !isBusy && hasValidAmount && !isAmountExceeded;
+	const hasPaymentDateTime = paymentDateTime.trim().length > 0;
+	const canSubmit = !historyOnly && hasCycle && !isBusy && hasValidAmount && !isAmountExceeded && hasPaymentDateTime;
 
 	//Loan Conversion Validation
 	const parsedMonthlyAmount = Number(monthlyAmount);
 	const hasValidMonthlyAmount = Number.isFinite(parsedMonthlyAmount) && parsedMonthlyAmount > 0;
-	const canConvertToLoan = !historyOnly && hasCycle && cycleBalance > 0 && hasValidMonthlyAmount && !isBusy;
+	const parsedDueWarningDays = Number(dueWarningDays);
+	const hasValidDueWarningDays = Number.isFinite(parsedDueWarningDays) && parsedDueWarningDays >= 0;
+	const hasLoanStartDate = loanStartDate.trim().length > 0;
+	const canConvertToLoan =
+		!historyOnly &&
+		hasCycle &&
+		cycleBalance > 0 &&
+		hasValidMonthlyAmount &&
+		hasValidDueWarningDays &&
+		hasLoanStartDate &&
+		!isBusy;
 
 	//Expose State and Derived Values
 	return {
-		state: { activeTab, amount, paymentDateTime, monthlyAmount, loanStartDate, page, pageSize },
-		setters: { setActiveTab, setAmount, setPaymentDateTime, setMonthlyAmount, setLoanStartDate, setPage, setPageSize },
+		state: { activeTab, amount, paymentDateTime, monthlyAmount, loanStartDate, dueWarningDays, page, pageSize },
+		setters: {
+			setActiveTab,
+			setAmount,
+			setPaymentDateTime,
+			setMonthlyAmount,
+			setLoanStartDate,
+			setDueWarningDays,
+			setPage,
+			setPageSize,
+		},
 		derived: {
 			hasCycle,
 			hasValidAmount,
 			hasValidMonthlyAmount,
+			hasValidDueWarningDays,
+			hasLoanStartDate,
 			isBusy,
 			totalPages,
 			pagedData,
@@ -63,6 +86,7 @@ export function useCyclePaymentState(params: {
 			cycleBalance,
 			parsedAmount,
 			parsedMonthlyAmount,
+			parsedDueWarningDays,
 			canSubmit,
 			canConvertToLoan,
 			isAmountExceeded,
