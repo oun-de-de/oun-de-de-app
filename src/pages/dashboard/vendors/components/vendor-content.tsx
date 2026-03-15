@@ -8,7 +8,7 @@ import { columns } from "./vendor-columns";
 
 type VendorContentProps = {
 	activeVendorId: string | null;
-	listState: any; // Ideally import store state type
+	listState: any;
 	updateState: (state: any) => void;
 	pagedTransactions: VendorTransactionRow[];
 	totalItems: number;
@@ -46,7 +46,7 @@ export function VendorContent({
 
 	return (
 		<>
-			<div className="flex flex-wrap items-center justify-between gap-2">
+			<div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-2">
 				<div className="flex items-center gap-2">
 					<Button size="sm" className="gap-1">
 						<Icon icon="mdi:truck-delivery-outline" />
@@ -62,7 +62,6 @@ export function VendorContent({
 					<Icon icon="mdi:chevron-down" />
 				</Button>
 			</div>
-
 			<div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
 				{summaryCards.map((card) => (
 					<SummaryStatCard key={card.label} {...card} />

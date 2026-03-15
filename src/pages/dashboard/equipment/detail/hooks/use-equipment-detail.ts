@@ -26,7 +26,7 @@ const DEFAULT_TABLE_FILTERS = {
 	field: "reason",
 	search: "",
 	page: 1,
-	pageSize: 10,
+	pageSize: 20,
 } as const;
 
 function buildPreviewUrl(itemId: string, txId: string) {

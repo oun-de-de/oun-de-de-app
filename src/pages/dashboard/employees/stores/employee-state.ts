@@ -15,7 +15,7 @@ export const createEmployeeInitialState = (): EmployeeState => ({
 	fieldFilter: "username",
 	searchValue: "",
 	page: 1,
-	pageSize: 10,
+	pageSize: 20,
 	sorting: [],
 });
 

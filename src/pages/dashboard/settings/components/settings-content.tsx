@@ -92,7 +92,7 @@ export function SettingsContent({ activeItem }: SettingsContentProps) {
 
 	return (
 		<>
-			<div className="flex flex-wrap items-center justify-between gap-2">
+			<div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-2">
 				<Text variant="body2" className="font-semibold text-base text-sky-600">
 					{activeItem}
 				</Text>
@@ -108,7 +108,6 @@ export function SettingsContent({ activeItem }: SettingsContentProps) {
 					/>
 				</div>
 			</div>
-
 			<SmartDataTable
 				className="flex-1 min-h-0"
 				maxBodyHeight="100%"

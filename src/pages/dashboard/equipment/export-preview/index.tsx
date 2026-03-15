@@ -196,7 +196,7 @@ const StyledReportToolbar = styled(ReportToolbar).attrs({
 })``;
 
 const PrintTableWrapper = styled.div.attrs<{ $paperSizeMode: PaperSizeMode }>(({ $paperSizeMode }) => ({
-	className: getPaperSizeWrapperClassName($paperSizeMode),
+	className: getPaperSizeWrapperClassName($paperSizeMode, "portrait"),
 }))``;
 
 const StyledReportTemplateTable = styled(ReportTemplateTable).attrs<{ $templateMode: TemplateMode }>(

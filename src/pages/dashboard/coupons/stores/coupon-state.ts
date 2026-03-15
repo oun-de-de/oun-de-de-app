@@ -23,7 +23,7 @@ export const CouponInitialState = (): CouponState => ({
 	type: "InitialState",
 	list: [],
 	page: 1,
-	pageSize: 10,
+	pageSize: 20,
 	total: 0,
 	pageCount: 1,
 	searchValue: "",
