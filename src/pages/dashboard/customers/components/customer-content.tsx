@@ -1,6 +1,7 @@
 import { SmartDataTable } from "@/core/components/common";
 import type { Customer } from "@/core/types/customer";
 import { Text } from "@/core/ui/typography";
+import { useNavigate } from "react-router";
 import type { ListState } from "../stores/customer-list-store";
 import { FILTER_FIELD_OPTIONS, FILTER_TYPE_OPTIONS } from "../utils/customer-utils";
 import CustomerButtonActions from "./customer-button-actions";
@@ -28,12 +29,13 @@ export function CustomerContent({
 	currentPage,
 	paginationItems,
 }: CustomerContentProps) {
+	const navigate = useNavigate();
 	// const summaryStats = getSummaryStats(activeCustomer);
 	const searchPlaceholder = listState.fieldFilter === "payment_term" ? "Enter payment term in days" : "Search...";
 
 	return (
 		<>
-			<div className="flex flex-wrap items-center justify-between gap-2">
+			<div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-2">
 				<div className="flex items-center gap-2">
 					{/* <Button size="sm" className="gap-1">
 						<Icon icon="mdi:account-multiple-outline" />
@@ -45,7 +47,6 @@ export function CustomerContent({
 				</div>
 				<CustomerButtonActions />
 			</div>
-
 			{/* <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
 				{summaryStats.map((card) => (
 					<SummaryStatCard key={card.label} {...card} />
@@ -57,6 +58,7 @@ export function CustomerContent({
 				maxBodyHeight="100%"
 				data={pagedData}
 				columns={columns}
+				onRowClick={(customer) => navigate(`/dashboard/customers/edit/${customer.id}`)}
 				filterConfig={{
 					showTypeFilter: false,
 					typeOptions: FILTER_TYPE_OPTIONS,
