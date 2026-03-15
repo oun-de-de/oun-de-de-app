@@ -1,9 +1,8 @@
-import { CalendarDays, Bookmark, Trash2 } from "lucide-react";
+import { CalendarDays, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
 import { BackButton, SplitButton } from "@/core/components/common";
-import Icon from "@/core/components/icon/icon";
 import { Button } from "@/core/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/core/ui/card";
 import { Input } from "@/core/ui/input";
@@ -83,13 +82,13 @@ function formatLocalDateTime(date = new Date()) {
 
 export default function CreateJournalPage() {
 	const navigate = useNavigate();
-	const [refNo] = useState("1255");
+	const [refNo] = useState("");
 	const [date] = useState(formatLocalDateTime());
 	const [employeeId, setEmployeeId] = useState("");
 	const [journalType, setJournalType] = useState("general");
 	const [currency, setCurrency] = useState("KHR");
 	const [memo, setMemo] = useState("");
-	const [lines, setLines] = useState<JournalLine[]>([createEmptyLine(0), createEmptyLine(1), createEmptyLine(2)]);
+	const [lines, setLines] = useState<JournalLine[]>([createEmptyLine(0)]);
 
 	const totalDr = useMemo(() => lines.reduce((sum, line) => sum + (Number(line.dr) || 0), 0), [lines]);
 	const totalCr = useMemo(() => lines.reduce((sum, line) => sum + (Number(line.cr) || 0), 0), [lines]);
@@ -116,7 +115,6 @@ export default function CreateJournalPage() {
 			<div className="flex items-center gap-3 border-b border-slate-200 pb-2">
 				<BackButton onClick={() => navigate("/dashboard/accounting")} />
 				<div className="flex items-center gap-2 text-slate-700">
-					<Icon icon="mdi:notebook-edit-outline" size={18} />
 					<span className="text-base font-semibold">Create Journal</span>
 				</div>
 			</div>
@@ -124,10 +122,6 @@ export default function CreateJournalPage() {
 			<Card className="gap-0 py-0">
 				<CardHeader className="justify-between border-b px-4 py-3">
 					<CardTitle className="text-left text-base font-semibold text-slate-700">Journal</CardTitle>
-					<Button variant="info" className="gap-2">
-						<Bookmark className="size-4" />
-						Choose from Template
-					</Button>
 				</CardHeader>
 				<CardContent className="space-y-4 px-4 py-4">
 					<div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-6">
