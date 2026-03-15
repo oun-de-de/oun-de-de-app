@@ -67,7 +67,7 @@ export function BorrowContent({ activeCustomerId, activeCustomerName, listState,
 
 	return (
 		<>
-			<div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+			<div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-2">
 				<div className="flex items-center gap-2">
 					<Text variant="body2" className="text-slate-400">
 						{activeCustomerId ? `${activeCustomerName || activeCustomerId} selected` : "All Customers"}
@@ -75,16 +75,11 @@ export function BorrowContent({ activeCustomerId, activeCustomerName, listState,
 				</div>
 
 				<div className="flex gap-2">
-					<Button
-						size="sm"
-						onClick={newBorrowMainAction.onClick}
-						className="bg-emerald-400 text-white hover:bg-emerald-500"
-					>
+					<Button size="sm" onClick={newBorrowMainAction.onClick}>
 						{newBorrowMainAction.label}
 					</Button>
 				</div>
 			</div>
-
 			<div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4 mb-4">
 				{summaryCards.map((card) => (
 					<SummaryStatCard key={card.label} {...card} />
