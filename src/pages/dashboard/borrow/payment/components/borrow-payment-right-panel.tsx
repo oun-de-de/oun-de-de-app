@@ -11,6 +11,8 @@ interface BorrowPaymentRightPanelProps {
 	setDepositAmount: (value: string) => void;
 	dueDate: Date;
 	setDueDate: (value: Date) => void;
+	dueWarningDays: string;
+	setDueWarningDays: (value: string) => void;
 	onConfirm: () => void;
 	isPending: boolean;
 }
@@ -22,6 +24,8 @@ export function BorrowPaymentRightPanel({
 	setDepositAmount,
 	dueDate,
 	setDueDate,
+	dueWarningDays,
+	setDueWarningDays,
 	onConfirm,
 	isPending,
 }: BorrowPaymentRightPanelProps) {
@@ -47,8 +51,8 @@ export function BorrowPaymentRightPanel({
 						</div>
 					</div>
 
-					<div className="flex gap-4 w-full">
-						<div className="space-y-2 flex-[1.5]">
+					<div className="flex w-full gap-4">
+						<div className="flex-[1.3] space-y-2">
 							<Label className="font-medium text-gray-500">
 								<span className="text-rose-500">*</span>Monthly Amount (៛)
 							</Label>
@@ -66,7 +70,18 @@ export function BorrowPaymentRightPanel({
 								/>
 							</div>
 						</div>
-						<div className="space-y-2 flex-[2]">
+						<div className="flex-1 space-y-2">
+							<Label className="font-medium text-gray-500">Due Warning Days</Label>
+							<Input
+								type="number"
+								min={0}
+								value={dueWarningDays}
+								onChange={(e) => setDueWarningDays(e.target.value)}
+								className="h-11 border-slate-200 font-medium rounded-lg bg-slate-50/50"
+								placeholder="7"
+							/>
+						</div>
+						<div className="flex-[1.6] space-y-2">
 							<Label className="font-medium text-gray-500">Start Date</Label>
 							<Input
 								type="date"
@@ -85,7 +100,7 @@ export function BorrowPaymentRightPanel({
 			<div className="pt-8 mt-auto">
 				<Button
 					disabled={isPending}
-					className="w-full h-12 text-sm font-bold uppercase tracking-wide bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-600/20 rounded-xl transition-all"
+					className="w-full h-12 text-sm font-bold uppercase tracking-wide shadow-lg shadow-blue-600/20 rounded-xl transition-all"
 					onClick={onConfirm}
 				>
 					{isPending ? <Loader2 className="w-5 h-5 mr-2 animate-spin" /> : <Check className="w-5 h-5 mr-2" />}

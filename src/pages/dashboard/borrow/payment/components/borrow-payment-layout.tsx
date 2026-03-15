@@ -1,8 +1,7 @@
+import { BackButton } from "@/core/components/common";
+import { Text } from "@/core/ui/typography";
 import type { ReactNode } from "react";
 import { useNavigate } from "react-router";
-import { BackButton } from "@/core/components/common";
-import { Button } from "@/core/ui/button";
-import { Text } from "@/core/ui/typography";
 
 interface BorrowPaymentLayoutProps {
 	children: ReactNode;
@@ -17,11 +16,8 @@ export function BorrowPaymentLayout({ children }: BorrowPaymentLayoutProps) {
 			<div className="flex flex-wrap items-center justify-between gap-3">
 				<div className="flex items-center gap-2">
 					<BackButton appearance="icon" onClick={() => navigate("/dashboard/loan")} />
-					<Button size="sm" className="gap-1 pointer-events-none">
+					<Text variant="body2" className="text-slate-500">
 						Create Loan
-					</Button>
-					<Text variant="body2" className="text-slate-400">
-						Dashboard / Loan / Create
 					</Text>
 				</div>
 			</div>

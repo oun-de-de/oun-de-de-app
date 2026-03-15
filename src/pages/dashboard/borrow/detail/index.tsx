@@ -1,5 +1,3 @@
-import { useMemo, useState } from "react";
-import { useParams } from "react-router";
 import { BackButton } from "@/core/components/common";
 import { Badge } from "@/core/ui/badge";
 import { Button } from "@/core/ui/button";
@@ -11,6 +9,8 @@ import { Separator } from "@/core/ui/separator";
 import { Text } from "@/core/ui/typography";
 import { formatDisplayDate, formatDisplayDateTime, formatKHR } from "@/core/utils/formatters";
 import { useRouter } from "@/routes/hooks/use-router";
+import { useMemo, useState } from "react";
+import { useParams } from "react-router";
 import { ReportLayout } from "../../reports/components/layout/report-layout";
 import {
 	type ReportTemplateColumn,
@@ -47,6 +47,9 @@ export default function BorrowDetailPage() {
 	const [paymentAmount, setPaymentAmount] = useState("");
 	const [isBorrowMoreDialogOpen, setIsBorrowMoreDialogOpen] = useState(false);
 	const [additionalAmount, setAdditionalAmount] = useState("");
+	// const [isEditTermsDialogOpen, setIsEditTermsDialogOpen] = useState(false);
+	// const [installmentAmountInput, setInstallmentAmountInput] = useState("");
+	// const [dueWarningDaysInput, setDueWarningDaysInput] = useState("");
 	const {
 		loan,
 		isLoading,
@@ -59,6 +62,8 @@ export default function BorrowDetailPage() {
 		isPostponing,
 		extendLoan,
 		isExtendingLoan,
+		// updateLoan,
+		// isUpdatingLoan,
 	} = useBorrowDetail(id || "");
 
 	const paidTotal = loan?.paidAmount ?? 0;
@@ -161,6 +166,26 @@ export default function BorrowDetailPage() {
 		setAdditionalAmount("");
 	};
 
+	// const handleOpenEditTermsDialog = () => {
+	// 	if (!loan) return;
+	// 	setInstallmentAmountInput(String(loan.installmentAmount ?? ""));
+	// 	setDueWarningDaysInput(String(loan.dueWarningDays ?? 5));
+	// 	setIsEditTermsDialogOpen(true);
+	// };
+
+	// const handleUpdateLoanTerms = async () => {
+	// 	const parsedInstallmentAmount = Number(installmentAmountInput);
+	// 	const parsedDueWarningDays = Number(dueWarningDaysInput);
+	// 	if (!Number.isFinite(parsedInstallmentAmount) || parsedInstallmentAmount <= 0) return;
+	// 	if (!Number.isFinite(parsedDueWarningDays) || parsedDueWarningDays < 0) return;
+	//
+	// 	await updateLoan({
+	// 		installmentAmount: parsedInstallmentAmount,
+	// 		dueWarningDays: parsedDueWarningDays,
+	// 	});
+	// 	setIsEditTermsDialogOpen(false);
+	// };
+
 	const handleExportPayments = () => {
 		if (!loan || payments.length === 0) return;
 		const csv = buildPaymentExportCsv(payments, loan.borrowerName);
@@ -249,9 +274,14 @@ export default function BorrowDetailPage() {
 
 			<div className="grid min-h-0 flex-1 grid-cols-1 gap-6 print:hidden lg:grid-cols-3">
 				<div className="col-span-1 flex flex-col gap-4 rounded-lg border bg-white p-6 shadow-sm">
-					<Text variant="subTitle1" className="border-b pb-2 font-semibold">
-						Information
-					</Text>
+					<div className="flex items-center justify-between gap-3 border-b pb-2">
+						<Text variant="subTitle1" className="font-semibold">
+							Information
+						</Text>
+						{/* <Button size="sm" variant="secondary" onClick={handleOpenEditTermsDialog}>
+							Edit Terms
+						</Button> */}
+					</div>
 					<div className="space-y-4">
 						<div className="flex items-center justify-between">
 							<Text variant="body2" className="text-slate-500">
@@ -297,6 +327,15 @@ export default function BorrowDetailPage() {
 						<Separator />
 						<div className="flex items-center justify-between">
 							<Text variant="body2" className="text-slate-500">
+								Installment Amount
+							</Text>
+							<Text variant="body2" className="font-medium">
+								{formatKHR(loan.installmentAmount)}
+							</Text>
+						</div>
+						<Separator />
+						<div className="flex items-center justify-between">
+							<Text variant="body2" className="text-slate-500">
 								Remaining Balance
 							</Text>
 							<Text variant="body2" className="font-medium">
@@ -313,6 +352,15 @@ export default function BorrowDetailPage() {
 							>
 								{formatLoanStatusLabel(loan.status)}
 							</Badge>
+						</div>
+						<Separator />
+						<div className="flex items-center justify-between">
+							<Text variant="body2" className="text-slate-500">
+								Due Warning Days
+							</Text>
+							<Text variant="body2" className="font-medium">
+								{loan.dueWarningDays}
+							</Text>
 						</div>
 						<Separator />
 						<div className="flex items-center justify-between">
@@ -484,6 +532,58 @@ export default function BorrowDetailPage() {
 					</DialogFooter>
 				</DialogContent>
 			</Dialog>
+
+			{/* <Dialog open={isEditTermsDialogOpen} onOpenChange={setIsEditTermsDialogOpen}>
+				<DialogContent className="sm:max-w-lg">
+					<DialogHeader>
+						<DialogTitle>Update Loan Terms</DialogTitle>
+						<DialogDescription>Adjust the installment amount and due warning period for this loan.</DialogDescription>
+					</DialogHeader>
+					<div className="space-y-3">
+						<div className="space-y-1.5">
+							<Label htmlFor="loan-installment-amount">Installment Amount</Label>
+							<Input
+								id="loan-installment-amount"
+								type="number"
+								min={1}
+								value={installmentAmountInput}
+								onChange={(event) => setInstallmentAmountInput(event.target.value)}
+								placeholder="Enter installment amount"
+								disabled={isUpdatingLoan}
+							/>
+						</div>
+						<div className="space-y-1.5">
+							<Label htmlFor="loan-due-warning-days">Due Warning Days</Label>
+							<Input
+								id="loan-due-warning-days"
+								type="number"
+								min={0}
+								value={dueWarningDaysInput}
+								onChange={(event) => setDueWarningDaysInput(event.target.value)}
+								placeholder="Enter due warning days"
+								disabled={isUpdatingLoan}
+							/>
+						</div>
+					</div>
+					<DialogFooter>
+						<Button variant="outline" onClick={() => setIsEditTermsDialogOpen(false)} disabled={isUpdatingLoan}>
+							Cancel
+						</Button>
+						<Button
+							onClick={handleUpdateLoanTerms}
+							disabled={
+								isUpdatingLoan ||
+								!Number.isFinite(Number(installmentAmountInput)) ||
+								Number(installmentAmountInput) <= 0 ||
+								!Number.isFinite(Number(dueWarningDaysInput)) ||
+								Number(dueWarningDaysInput) < 0
+							}
+						>
+							{isUpdatingLoan ? "Updating..." : "Save Changes"}
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog> */}
 		</div>
 	);
 }

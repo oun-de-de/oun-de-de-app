@@ -94,7 +94,8 @@ export function CyclePaymentDialog({
 		isConvertingToLoan,
 	});
 	const { state, setters, derived } = ui;
-	const { setActiveTab, setAmount, setPaymentDateTime, setMonthlyAmount, setLoanStartDate } = setters;
+	const { setActiveTab, setAmount, setPaymentDateTime, setMonthlyAmount, setLoanStartDate, setDueWarningDays } =
+		setters;
 	const paymentColumns = useMemo(
 		() =>
 			getPaymentColumns({
@@ -114,7 +115,17 @@ export function CyclePaymentDialog({
 		setPaymentDateTime(nowDateTime);
 		setMonthlyAmount("");
 		setLoanStartDate(today);
-	}, [open, defaultTab, setActiveTab, setAmount, setPaymentDateTime, setMonthlyAmount, setLoanStartDate]);
+		setDueWarningDays("5");
+	}, [
+		open,
+		defaultTab,
+		setActiveTab,
+		setAmount,
+		setPaymentDateTime,
+		setMonthlyAmount,
+		setLoanStartDate,
+		setDueWarningDays,
+	]);
 
 	const handleSubmit = async () => {
 		if (!derived.hasCycle) return;
@@ -162,6 +173,10 @@ export function CyclePaymentDialog({
 			toast.error("Monthly amount must be greater than 0");
 			return;
 		}
+		if (!derived.hasValidDueWarningDays) {
+			toast.error("Due date warning days must be 0 or greater");
+			return;
+		}
 
 		try {
 			const startDate = toApiLocalDateStart(state.loanStartDate);
@@ -173,6 +188,7 @@ export function CyclePaymentDialog({
 			const loan = await convertToLoan({
 				loanInstallmentAmount: derived.parsedMonthlyAmount,
 				startDate,
+				dueWarningDays: derived.parsedDueWarningDays,
 			});
 			onOpenChange(false);
 			navigate(`/dashboard/loan/${loan.id}`);
@@ -251,7 +267,7 @@ export function CyclePaymentDialog({
 							<div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
 								Remaining balance: <span className="font-semibold">{formatKHR(derived.cycleBalance)}</span>
 							</div>
-							<div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+							<div className="grid grid-cols-1 gap-3 md:grid-cols-3">
 								<div className="space-y-1.5">
 									<Label htmlFor="cycle-loan-monthly-amount">Monthly Amount (៛)</Label>
 									<div className="relative">
@@ -277,6 +293,18 @@ export function CyclePaymentDialog({
 										type="date"
 										value={state.loanStartDate}
 										onChange={(e) => setters.setLoanStartDate(e.target.value)}
+										disabled={isConvertingToLoan}
+									/>
+								</div>
+								<div className="space-y-1.5">
+									<Label htmlFor="cycle-loan-due-warning-days">Due Date Warning Days</Label>
+									<Input
+										id="cycle-loan-due-warning-days"
+										type="number"
+										min={0}
+										value={state.dueWarningDays}
+										onChange={(e) => setDueWarningDays(e.target.value)}
+										placeholder="Enter warning days"
 										disabled={isConvertingToLoan}
 									/>
 								</div>
