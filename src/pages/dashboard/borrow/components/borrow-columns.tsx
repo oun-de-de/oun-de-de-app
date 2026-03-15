@@ -3,6 +3,12 @@ import type { Loan } from "@/core/types/loan";
 import { Badge } from "@/core/ui/badge";
 import { formatDisplayDate, formatKHR } from "@/core/utils/formatters";
 
+function getLoanStatusLabel(status: Loan["status"]) {
+	if (status === "due") return "Due";
+	if (status === "complete") return "Complete";
+	return "Normal";
+}
+
 export const borrowColumns: ColumnDef<Loan>[] = [
 	{ accessorKey: "borrowerName", header: "Borrower Name" },
 	{
@@ -16,6 +22,24 @@ export const borrowColumns: ColumnDef<Loan>[] = [
 				className="capitalize"
 			>
 				{row.original.borrowerType}
+			</Badge>
+		),
+		meta: {
+			bodyClassName: "text-center",
+		},
+	},
+	{
+		accessorKey: "status",
+		size: 100,
+		header: "Status",
+		cell: ({ row }) => (
+			<Badge
+				variant={
+					row.original.status === "complete" ? "success" : row.original.status === "due" ? "destructive" : "success"
+				}
+				shape="square"
+			>
+				{getLoanStatusLabel(row.original.status)}
 			</Badge>
 		),
 		meta: {

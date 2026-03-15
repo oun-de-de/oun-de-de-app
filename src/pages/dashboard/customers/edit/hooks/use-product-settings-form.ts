@@ -10,6 +10,7 @@ export interface ProductSettingItem extends CreateProductSettings {
 	productName: string;
 	productRef: string;
 	unitLabel: string;
+	isPackagedByQuantity: boolean;
 }
 
 const getUnitLabel = (product: Product): string => product.unit?.name ?? "-";
@@ -20,10 +21,11 @@ const createProductSettingItem = (
 ): ProductSettingItem => ({
 	productId: product.id,
 	price: values?.price ?? product.defaultProductSetting?.price ?? product.price ?? 0,
-	quantity: values?.quantity ?? product.defaultProductSetting?.quantity ?? 0,
+	quantity: product.isPackagedByQuantity ? (values?.quantity ?? product.defaultProductSetting?.quantity ?? 0) : 0,
 	productName: product.name,
 	productRef: product.refNo,
 	unitLabel: getUnitLabel(product),
+	isPackagedByQuantity: Boolean(product.isPackagedByQuantity),
 });
 
 const mapExistingSettings = (
@@ -41,7 +43,11 @@ const toNumberOrZero = (value: string) => {
 };
 
 const toPayload = (settings: ProductSettingItem[]) =>
-	settings.map(({ productId, price, quantity }) => ({ productId, price, quantity }));
+	settings.map(({ productId, price, quantity, isPackagedByQuantity }) => ({
+		productId,
+		price,
+		quantity: isPackagedByQuantity ? quantity : 0,
+	}));
 
 export const useProductSettingsForm = (customerId?: string) => {
 	const { data: products } = useQuery({
@@ -98,6 +104,9 @@ export const useProductSettingsForm = (customerId?: string) => {
 		setSettings((prev) =>
 			prev.map((item) => {
 				if (item.productId !== productId) return item;
+				if (field === "quantity" && !item.isPackagedByQuantity) {
+					return { ...item, quantity: 0 };
+				}
 				return { ...item, [field]: toNumberOrZero(value) };
 			}),
 		);
