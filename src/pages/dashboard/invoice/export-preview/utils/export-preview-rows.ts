@@ -113,3 +113,17 @@ export function calculateTotalBalance(previewRows: InvoiceExportPreviewRow[]): n
 		return sum + nextBalance;
 	}, 0);
 }
+
+export function calculateTotalReceived(previewRows: InvoiceExportPreviewRow[]): number {
+	const paidByRefNo = new Map<string, number>();
+
+	for (const row of previewRows) {
+		const key = row.refNo?.trim();
+		const paid = row.paid ?? 0;
+		if (!key) continue;
+
+		paidByRefNo.set(key, Math.max(paidByRefNo.get(key) ?? 0, paid));
+	}
+
+	return [...paidByRefNo.values()].reduce((sum, paid) => sum + paid, 0);
+}
