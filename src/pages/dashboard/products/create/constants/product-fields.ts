@@ -31,6 +31,13 @@ export const CREATE_PRODUCT_FIELDS: FormFieldConfig[] = [
 		required: false,
 		placeholder: "0",
 	},
+	{
+		name: "isPackagedByQuantity",
+		label: "Packaged By Quantity",
+		type: "switch",
+		required: false,
+		defaultValue: false,
+	},
 ];
 
 export const PRODUCT_FIELDS: FormFieldConfig[] = [
@@ -80,5 +87,12 @@ export const PRODUCT_FIELDS: FormFieldConfig[] = [
 		type: "number",
 		required: false,
 		placeholder: "0.00",
+	},
+	{
+		name: "isPackagedByQuantity",
+		label: "Packaged By Quantity",
+		type: "switch",
+		required: false,
+		defaultValue: false,
 	},
 ];

@@ -76,7 +76,7 @@ export function useEquipmentContent(activeItemId: string | null) {
 	const [tableFieldFilter, setTableFieldFilter] = useState("name");
 	const [tableSearchValue, setTableSearchValue] = useState("");
 	const [tablePage, setTablePage] = useState(1);
-	const [tablePageSize, setTablePageSize] = useState(10);
+	const [tablePageSize, setTablePageSize] = useState(20);
 
 	// --- Derived data ---
 	const activeItem = activeItemId ? (items.find((item) => item.id === activeItemId) ?? null) : null;

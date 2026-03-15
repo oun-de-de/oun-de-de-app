@@ -5,13 +5,11 @@ const createInitialState = (): ListState => ({
 	fieldFilter: "field-name",
 	searchValue: "",
 	page: 1,
-	pageSize: 10,
+	pageSize: 20,
 });
 
 const useVendorsListStore = createListStore(createInitialState());
 
-export const useVendorsList = () =>
-	useVendorsListStore((store) => store.state);
+export const useVendorsList = () => useVendorsListStore((store) => store.state);
 
-export const useVendorsListActions = () =>
-	useVendorsListStore((store) => store.actions);
+export const useVendorsListActions = () => useVendorsListStore((store) => store.actions);

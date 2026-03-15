@@ -26,7 +26,7 @@ export function InstallmentsTable({
 	const [selectedInstallment, setSelectedInstallment] = useState<Installment | null>(null);
 	const [showPostponeConfirm, setShowPostponeConfirm] = useState(false);
 	const [page, setPage] = useState(1);
-	const [pageSize, setPageSize] = useState(10);
+	const [pageSize, setPageSize] = useState(20);
 	const sortedInstallments = useMemo(
 		() => [...installments].sort((a, b) => a.monthIndex - b.monthIndex),
 		[installments],

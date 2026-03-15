@@ -1,11 +1,9 @@
-export type InvoiceType = "invoice" | "receipt";
-
 export interface Invoice {
 	id: string;
 	refNo: string;
 	customerName: string;
 	date: string;
-	type: string;
+	type?: string;
 
 	// Report Fields
 	couponId?: string;
@@ -49,9 +47,11 @@ export interface InvoiceExportPreviewRow {
 
 export interface InvoiceExportPreviewLocationState {
 	selectedInvoiceIds: string[];
-	previewRows: InvoiceExportPreviewRow[];
+	previewRows?: InvoiceExportPreviewRow[];
 	customerId?: string;
 	customerName?: string;
 	cycleId?: string;
 	autoPrint?: boolean;
+	initialPaperSizeMode?: "a4" | "a5" | "letter";
+	initialOrientationMode?: "portrait" | "landscape";
 }

@@ -38,6 +38,39 @@ const getCycles = (params: {
 		.then(mapPagePaginatedResponseToPagination);
 };
 
+const getAllCycles = async (params: {
+	customerId?: string;
+	from?: string;
+	to?: string;
+	duration?: number;
+	status?: CycleStatus;
+	sort?: string;
+	size?: number;
+}): Promise<Cycle[]> => {
+	const pageSize = params.size ?? 1000;
+	const firstPage = await getCycles({
+		...params,
+		page: 1,
+		size: pageSize,
+	});
+
+	if (firstPage.pageCount <= 1) {
+		return firstPage.list;
+	}
+
+	const restPages = await Promise.all(
+		Array.from({ length: firstPage.pageCount - 1 }, (_, index) =>
+			getCycles({
+				...params,
+				page: index + 2,
+				size: pageSize,
+			}),
+		),
+	);
+
+	return [firstPage, ...restPages].flatMap((page) => page.list);
+};
+
 const getPayments = (cycleId: string): Promise<CyclePayment[]> =>
 	apiClient.get<CyclePayment[]>({
 		url: `${CycleApi.List}/${cycleId}/payments`,
@@ -62,6 +95,7 @@ const convertToLoan = (cycleId: string, data: ConvertToLoanRequest): Promise<Loa
 
 export default {
 	getCycles,
+	getAllCycles,
 	getCycle,
 	getPayments,
 	createPayment,

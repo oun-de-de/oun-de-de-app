@@ -11,7 +11,7 @@ type DashboardSplitViewProps = {
 
 export function DashboardSplitView({ sidebar, content, className = "", sidebarClassName }: DashboardSplitViewProps) {
 	return (
-		<div className={cn("flex h-full w-full min-w-0 flex-col gap-3 xl:gap-4 lg:flex-row", className)}>
+		<div className={cn("flex h-full w-full min-w-0 flex-col gap-2 md:gap-3 lg:flex-row", className)}>
 			{sidebar && (
 				<Card
 					className={cn(
@@ -24,7 +24,7 @@ export function DashboardSplitView({ sidebar, content, className = "", sidebarCl
 			)}
 
 			<Card className="h-full w-full min-w-0 flex-1 overflow-hidden print:border-none print:shadow-none">
-				<CardContent className="flex h-full min-h-0 flex-col gap-3 overflow-y-auto p-3 print:overflow-visible print:p-0 xl:gap-4 xl:p-4">
+				<CardContent className="flex h-full min-h-0 flex-col gap-3 overflow-y-auto p-2 print:overflow-visible print:p-0 xl:gap-4 xl:p-3">
 					{content}
 				</CardContent>
 			</Card>

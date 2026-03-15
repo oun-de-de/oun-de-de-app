@@ -16,6 +16,7 @@ export type Product = {
 	name: string;
 	date: string;
 	refNo: string;
+	isPackagedByQuantity?: boolean;
 	quantity: number;
 	cost: number;
 	price: number;
@@ -28,10 +29,12 @@ export type CreateProductRequest = {
 	unitId?: string;
 	defaultPrice: number;
 	defaultQuantity: number;
+	isPackagedByQuantity?: boolean;
 };
 
 export type UpdateProduct = Partial<Omit<Product, "id" | "unit" | "defaultProductSetting">> & {
 	unitId: string;
 	defaultPrice: number;
 	defaultQuantity: number;
+	isPackagedByQuantity?: boolean;
 };

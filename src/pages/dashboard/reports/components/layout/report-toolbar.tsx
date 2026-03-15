@@ -10,6 +10,8 @@ import {
 } from "@/core/ui/dropdown-menu";
 import { cn } from "@/core/utils";
 import {
+	ORIENTATION_LABELS,
+	type OrientationMode,
 	PAPER_SIZE_LABELS,
 	type PaperSizeMode,
 	SORT_LABELS,
@@ -51,6 +53,8 @@ interface ReportToolbarProps {
 	onTemplateModeChange?: (mode: TemplateMode) => void;
 	paperSizeMode?: PaperSizeMode;
 	onPaperSizeModeChange?: (mode: PaperSizeMode) => void;
+	orientationMode?: OrientationMode;
+	onOrientationModeChange?: (mode: OrientationMode) => void;
 	sortMode?: SortMode;
 	onSortModeChange?: (mode: SortMode) => void;
 }
@@ -73,6 +77,8 @@ function ReportToolbarComponent({
 	onTemplateModeChange,
 	paperSizeMode,
 	onPaperSizeModeChange,
+	orientationMode,
+	onOrientationModeChange,
 	sortMode,
 	onSortModeChange,
 }: ReportToolbarProps) {
@@ -225,6 +231,35 @@ function ReportToolbarComponent({
 								</DropdownMenu>
 							)}
 
+							{orientationMode && onOrientationModeChange && (
+								<DropdownMenu>
+									<DropdownMenuTrigger asChild className="border-none">
+										<Button
+											variant="ghost"
+											size="sm"
+											className="h-8 gap-1.5 px-2 text-sky-600 hover:text-sky-700 hover:bg-sky-50"
+										>
+											<Icon
+												icon={orientationMode === "landscape" ? "mdi:page-layout-sidebar-right" : "mdi:crop-portrait"}
+												size="1.2em"
+											/>
+											<span className="text-xs font-medium">Orientation: {ORIENTATION_LABELS[orientationMode]}</span>
+										</Button>
+									</DropdownMenuTrigger>
+									<DropdownMenuContent align="start" className="w-44">
+										{(Object.keys(ORIENTATION_LABELS) as OrientationMode[]).map((mode) => (
+											<DropdownMenuItem key={mode} onClick={() => onOrientationModeChange(mode)}>
+												<Icon
+													icon={orientationMode === mode ? "mdi:radiobox-marked" : "mdi:radiobox-blank"}
+													size="1em"
+												/>
+												{ORIENTATION_LABELS[mode]}
+											</DropdownMenuItem>
+										))}
+									</DropdownMenuContent>
+								</DropdownMenu>
+							)}
+
 							{sortMode && onSortModeChange && (
 								<DropdownMenu>
 									<DropdownMenuTrigger asChild className="border-none">
@@ -327,6 +362,70 @@ function ReportToolbarComponent({
 											label={option.label}
 											active={showColumns?.[option.key] ?? true}
 											onClick={() => toggleColumn(option.key, !(showColumns?.[option.key] ?? true))}
+										/>
+									))}
+								</div>
+							</div>
+						)}
+
+						{templateMode && onTemplateModeChange && (
+							<div className="space-y-2">
+								<div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Template</div>
+								<div className="flex flex-wrap gap-2">
+									{(Object.keys(TEMPLATE_LABELS) as TemplateMode[]).map((mode) => (
+										<ToolbarToggleButton
+											key={mode}
+											label={TEMPLATE_LABELS[mode]}
+											active={templateMode === mode}
+											onClick={() => onTemplateModeChange(mode)}
+										/>
+									))}
+								</div>
+							</div>
+						)}
+
+						{paperSizeMode && onPaperSizeModeChange && (
+							<div className="space-y-2">
+								<div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Paper Size</div>
+								<div className="flex flex-wrap gap-2">
+									{(Object.keys(PAPER_SIZE_LABELS) as PaperSizeMode[]).map((mode) => (
+										<ToolbarToggleButton
+											key={mode}
+											label={PAPER_SIZE_LABELS[mode]}
+											active={paperSizeMode === mode}
+											onClick={() => onPaperSizeModeChange(mode)}
+										/>
+									))}
+								</div>
+							</div>
+						)}
+
+						{orientationMode && onOrientationModeChange && (
+							<div className="space-y-2">
+								<div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Orientation</div>
+								<div className="flex flex-wrap gap-2">
+									{(Object.keys(ORIENTATION_LABELS) as OrientationMode[]).map((mode) => (
+										<ToolbarToggleButton
+											key={mode}
+											label={ORIENTATION_LABELS[mode]}
+											active={orientationMode === mode}
+											onClick={() => onOrientationModeChange(mode)}
+										/>
+									))}
+								</div>
+							</div>
+						)}
+
+						{sortMode && onSortModeChange && (
+							<div className="space-y-2">
+								<div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Sort</div>
+								<div className="flex flex-wrap gap-2">
+									{(Object.keys(SORT_LABELS) as SortMode[]).map((mode) => (
+										<ToolbarToggleButton
+											key={mode}
+											label={SORT_LABELS[mode]}
+											active={sortMode === mode}
+											onClick={() => onSortModeChange(mode)}
 										/>
 									))}
 								</div>

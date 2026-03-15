@@ -36,7 +36,7 @@ export function EquipmentContent({ activeItemId }: Props) {
 	return (
 		<>
 			{/* Header */}
-			<div className="flex flex-wrap items-center justify-between gap-2">
+			<div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-2">
 				<div className="flex items-center gap-2">
 					<BackButton appearance="default" onClick={handleBack} />
 					<Text variant="body2" className="text-slate-400">
@@ -47,7 +47,6 @@ export function EquipmentContent({ activeItemId }: Props) {
 					<CreateItemDialog onSubmit={(data) => createItem.mutate(data)} isPending={createItem.isPending} />
 				</div>
 			</div>
-
 			{/* Summary */}
 			<div className="grid grid-cols-1 gap-3 md:grid-cols-3">
 				{summaryCards.map((card) => (

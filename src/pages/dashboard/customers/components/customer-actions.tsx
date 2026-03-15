@@ -1,8 +1,7 @@
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/core/ui/dropdown-menu";
 import { useQueryClient } from "@tanstack/react-query";
 import { EllipsisVertical } from "lucide-react";
 import { useNavigate } from "react-router";
-import { Button } from "@/core/ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/core/ui/dropdown-menu";
 import { customerQueryOptions } from "../hooks/use-get-customer";
 
 type CustomerActionsProps = {
@@ -33,8 +32,13 @@ export function CustomerActions({ customerId, customerName }: CustomerActionsPro
 	};
 
 	return (
-		<div className="flex items-center gap-1">
-			<Button variant="info" size="sm" className="h-7 gap-1 text-xs" onClick={handleViewInvoices} title="View invoices">
+		<div
+			className="flex items-center gap-1"
+			onClick={(event) => {
+				event.stopPropagation();
+			}}
+		>
+			{/* <Button variant="info" size="sm" className="h-7 gap-1 text-xs" onClick={handleViewInvoices} title="View invoices">
 				Invoice
 			</Button>
 			<Button
@@ -47,7 +51,7 @@ export function CustomerActions({ customerId, customerName }: CustomerActionsPro
 				title="Edit"
 			>
 				Edit
-			</Button>
+			</Button> */}
 			<DropdownMenu>
 				<DropdownMenuTrigger
 					className="h-7 w-7 justify-center border-gray-200 p-0 hover:bg-gray-50"
@@ -57,6 +61,12 @@ export function CustomerActions({ customerId, customerName }: CustomerActionsPro
 					<EllipsisVertical className="size-4 text-gray-500" />
 				</DropdownMenuTrigger>
 				<DropdownMenuContent align="end" className="w-44">
+					<DropdownMenuItem onClick={handleEdit} className="cursor-pointer">
+						Edit Customer
+					</DropdownMenuItem>
+					<DropdownMenuItem onClick={handleViewInvoices} className="cursor-pointer">
+						View Invoices
+					</DropdownMenuItem>
 					<DropdownMenuItem onClick={() => handleScrollTo("product-settings")} className="cursor-pointer">
 						Product Settings
 					</DropdownMenuItem>

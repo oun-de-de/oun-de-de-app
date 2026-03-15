@@ -5,8 +5,9 @@ type BadgeVariant = "default" | "secondary" | "destructive" | "outline" | "info"
  * @param status - The status string (case-insensitive).
  * @returns The corresponding Badge variant.
  */
-export const getStatusVariant = (status: string): BadgeVariant => {
-	const normalizedStatus = status.toLowerCase();
+export const getStatusVariant = (status?: string | null): BadgeVariant => {
+	const normalizedStatus = status?.toLowerCase();
+	if (!normalizedStatus) return "outline";
 
 	switch (normalizedStatus) {
 		case "active":
@@ -51,8 +52,9 @@ export const getStatusVariant = (status: string): BadgeVariant => {
 			return "outline";
 	}
 };
-export const getInvoiceTypeVariant = (type: string): BadgeVariant => {
-	const normalizedType = type.toLowerCase();
+export const getInvoiceTypeVariant = (type?: string | null): BadgeVariant => {
+	const normalizedType = type?.toLowerCase();
+	if (!normalizedType) return "default";
 
 	switch (normalizedType) {
 		case "invoice":

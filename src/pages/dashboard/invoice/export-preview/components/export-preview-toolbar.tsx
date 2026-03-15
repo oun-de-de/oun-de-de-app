@@ -12,6 +12,8 @@ import type { ReportTemplateColumn } from "@/pages/dashboard/reports/components/
 import type { ReportSectionVisibility } from "@/pages/dashboard/reports/components/layout/report-toolbar";
 import { ReportToolbar } from "../../../reports/components/layout/report-toolbar";
 import {
+	ORIENTATION_LABELS,
+	type OrientationMode,
 	PAPER_SIZE_LABELS,
 	type PaperSizeMode,
 	SORT_LABELS,
@@ -29,6 +31,8 @@ type ExportPreviewToolbarProps = {
 	onTemplateModeChange: (mode: TemplateMode) => void;
 	paperSizeMode: PaperSizeMode;
 	onPaperSizeModeChange: (mode: PaperSizeMode) => void;
+	orientationMode: OrientationMode;
+	onOrientationModeChange: (mode: OrientationMode) => void;
 	sortMode: SortMode;
 	onSortModeChange: (mode: SortMode) => void;
 	columns: ReportTemplateColumn[];
@@ -48,6 +52,8 @@ export function ExportPreviewToolbar({
 	onTemplateModeChange,
 	paperSizeMode,
 	onPaperSizeModeChange,
+	orientationMode,
+	onOrientationModeChange,
 	sortMode,
 	onSortModeChange,
 	columns,
@@ -141,6 +147,26 @@ export function ExportPreviewToolbar({
 						<DropdownMenu>
 							<DropdownMenuTrigger asChild className="border-none">
 								<Button variant="ghost" size="sm" className={toolbarButtonClassName}>
+									<Icon
+										icon={orientationMode === "landscape" ? "mdi:page-layout-sidebar-right" : "mdi:crop-portrait"}
+										size="1.2em"
+									/>
+									<span className="text-xs font-medium">Orientation: {ORIENTATION_LABELS[orientationMode]}</span>
+								</Button>
+							</DropdownMenuTrigger>
+							<DropdownMenuContent align="start" className="w-44">
+								{(Object.keys(ORIENTATION_LABELS) as OrientationMode[]).map((mode) => (
+									<DropdownMenuItem key={mode} onClick={() => onOrientationModeChange(mode)}>
+										<Icon icon={orientationMode === mode ? "mdi:radiobox-marked" : "mdi:radiobox-blank"} size="1em" />
+										{ORIENTATION_LABELS[mode]}
+									</DropdownMenuItem>
+								))}
+							</DropdownMenuContent>
+						</DropdownMenu>
+
+						<DropdownMenu>
+							<DropdownMenuTrigger asChild className="border-none">
+								<Button variant="ghost" size="sm" className={toolbarButtonClassName}>
 									<Icon icon="mdi:view-column-outline" size="1.2em" />
 									<span className="text-xs font-medium">Fields</span>
 								</Button>
@@ -195,7 +221,7 @@ export function ExportPreviewToolbar({
 							disabled={isExportDisabled}
 						>
 							<Icon icon="mdi:file-excel-outline" size="1.2em" />
-							<span className="text-xs font-medium">{isExporting ? "Exporting..." : "Export Excel"}</span>
+							<span className="text-xs font-medium">{isExporting ? "Exporting…" : "Export Excel"}</span>
 						</Button>
 						<Button variant="ghost" size="sm" type="button" className={toolbarButtonClassName} onClick={onPrint}>
 							<Icon icon="mdi:printer-outline" size="1.2em" />
@@ -273,6 +299,22 @@ export function ExportPreviewToolbar({
 										onClick={() => onPaperSizeModeChange(mode)}
 									>
 										{PAPER_SIZE_LABELS[mode]}
+									</Button>
+								))}
+							</div>
+						</div>
+
+						<div className="space-y-2">
+							<div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Orientation</div>
+							<div className="flex flex-wrap gap-2">
+								{(Object.keys(ORIENTATION_LABELS) as OrientationMode[]).map((mode) => (
+									<Button
+										key={mode}
+										variant={orientationMode === mode ? "secondary" : "outline"}
+										size="sm"
+										onClick={() => onOrientationModeChange(mode)}
+									>
+										{ORIENTATION_LABELS[mode]}
 									</Button>
 								))}
 							</div>

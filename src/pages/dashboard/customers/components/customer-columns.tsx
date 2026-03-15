@@ -5,6 +5,8 @@ import { formatDisplayDate } from "@/core/utils/formatters";
 import { getStatusVariant } from "@/core/utils/get-status-variant";
 import { CustomerActions } from "./customer-actions";
 
+const getCustomerPaymentType = (customer: Customer) => (customer.paymentTerm ? "credit" : "cash_sale");
+
 export const columns: ColumnDef<Customer>[] = [
 	{
 		header: "Register Date",
@@ -18,7 +20,7 @@ export const columns: ColumnDef<Customer>[] = [
 		accessorKey: "code",
 		size: 120,
 		meta: { bodyClassName: "text-center" },
-		cell: ({ row }) => <span className="font-medium text-sky-600">{row.original.code}</span>,
+		cell: ({ row }) => <Badge variant="info">{row.original.code}</Badge>,
 	},
 	{
 		header: "Name",
@@ -28,6 +30,20 @@ export const columns: ColumnDef<Customer>[] = [
 		header: "Phone",
 		size: 100,
 		accessorKey: "telephone",
+	},
+	{
+		header: "Payment Type",
+		size: 120,
+		id: "paymentType",
+		meta: { bodyClassName: "text-center" },
+		cell: ({ row }) => {
+			const paymentType = getCustomerPaymentType(row.original);
+			return (
+				<Badge variant={paymentType === "credit" ? "success" : "info"} className="w-full h-6.5">
+					{paymentType}
+				</Badge>
+			);
+		},
 	},
 	{
 		header: "Customer Type",
@@ -56,16 +72,17 @@ export const columns: ColumnDef<Customer>[] = [
 			const status = row.original.status ? "Active" : "Inactive";
 			const variant = getStatusVariant(status);
 			return (
-				<Badge variant={variant} className="w-full">
+				<Badge variant={variant} className="w-full h-6.5">
 					{status}
 				</Badge>
 			);
 		},
 	},
 	{
-		header: "Actions",
+		header: "",
 		id: "actions",
-		size: 150,
+		size: 40,
 		cell: ({ row }) => <CustomerActions customerId={row.original.id} customerName={row.original.name} />,
+		meta: { bodyClassName: "text-center" },
 	},
 ];

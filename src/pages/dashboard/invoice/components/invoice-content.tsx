@@ -3,31 +3,28 @@ import { useCallback, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { SmartDataTable, SummaryStatCard } from "@/core/components/common";
 import Icon from "@/core/components/icon/icon";
+import invoiceService from "@/core/api/services/invoice-service";
 import type { SummaryStatCardData } from "@/core/types/common";
-import type { Cycle } from "@/core/types/cycle";
+import type { Cycle, CyclePayment } from "@/core/types/cycle";
 import type { Invoice, InvoiceExportPreviewRow } from "@/core/types/invoice";
 import { BackButton } from "@/core/components/common";
 import { Button } from "@/core/ui/button";
 import { Text } from "@/core/ui/typography";
 import { formatFlexibleDisplayDate } from "@/core/utils/date-display";
-import {
-	INVOICE_FILTER_FIELD_OPTIONS,
-	INVOICE_FILTER_TYPE_OPTIONS,
-	INVOICE_TYPE_OPTIONS,
-} from "../constants/constants";
+import { toast } from "sonner";
+import { INVOICE_FILTER_FIELD_OPTIONS } from "../constants/constants";
 import { useCyclePayments } from "../hooks/use-cycle-payments";
 import { useInvoiceSelection } from "../hooks/use-invoice-selection";
 import { formatKHR } from "../utils/formatters";
 import { CyclePaymentDialog } from "./cycle-payment-dialog";
 import { InvoiceBulkUpdateDialog } from "./invoice-bulk-update-dialog";
 import { getInvoiceColumns } from "./invoice-columns";
-import { PAYMENT_COLUMNS } from "./payment-columns";
+import { getPaymentColumns } from "./payment-columns";
 
 type InvoiceContentProps = {
 	pagedData: Invoice[];
 	summaryCards: SummaryStatCardData[];
 	activeInvoiceLabel?: string | null;
-	typeFilter: string;
 	fieldFilter: string;
 	searchValue: string;
 	currentPage: number;
@@ -35,7 +32,6 @@ type InvoiceContentProps = {
 	totalItems: number;
 	totalPages: number;
 	paginationItems: Array<number | "...">;
-	onTypeFilterChange: (value: string) => void;
 	onFieldFilterChange: (value: string) => void;
 	onSearchChange: (value: string) => void;
 	onPageChange: (value: number) => void;
@@ -48,17 +44,12 @@ type InvoiceContentProps = {
 };
 
 const resolveBulkUpdateInitialValues = (invoices: Invoice[]) => {
-	// set initial values for bulk update form
 	const firstInvoice = invoices[0];
-	// check if has same customer name
 	const hasSameCustomerName =
 		invoices.length > 0 && invoices.every((invoice) => invoice.customerName === firstInvoice?.customerName);
-	// check if has same type
-	const hasSameType = invoices.length > 0 && invoices.every((invoice) => invoice.type === firstInvoice?.type);
 
 	return {
 		customerName: hasSameCustomerName ? firstInvoice?.customerName : undefined,
-		type: hasSameType ? firstInvoice?.type : undefined,
 	};
 };
 
@@ -90,7 +81,6 @@ export function InvoiceContent({
 	pagedData,
 	summaryCards,
 	activeInvoiceLabel,
-	typeFilter,
 	fieldFilter,
 	searchValue,
 	currentPage,
@@ -98,7 +88,6 @@ export function InvoiceContent({
 	totalItems,
 	totalPages,
 	paginationItems,
-	onTypeFilterChange,
 	onFieldFilterChange,
 	onSearchChange,
 	onPageChange,
@@ -112,10 +101,11 @@ export function InvoiceContent({
 	const navigate = useNavigate();
 	const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false);
 	const [updateTargetIds, setUpdateTargetIds] = useState<string[]>([]);
-	const [updateInitialValues, setUpdateInitialValues] = useState<{ customerName?: string; type?: Invoice["type"] }>({});
+	const [updateInitialValues, setUpdateInitialValues] = useState<{ customerName?: string }>({});
 	const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
 	const [isPaymentHistoryDialogOpen, setIsPaymentHistoryDialogOpen] = useState(false);
 	const [isConvertDialogOpen, setIsConvertDialogOpen] = useState(false);
+	const [exportingPaymentId, setExportingPaymentId] = useState<string | null>(null);
 	const { payments, isLoadingPayments } = useCyclePayments(activeCycle?.id);
 	const {
 		selectedInvoiceIds,
@@ -149,10 +139,26 @@ export function InvoiceContent({
 		setUpdateTargetIds([invoice.id]);
 		setUpdateInitialValues({
 			customerName: invoice.customerName,
-			type: invoice.type,
 		});
 		setIsUpdateDialogOpen(true);
 	}, []);
+
+	const handlePrintInvoiceA5 = useCallback(
+		(invoice: Invoice) => {
+			navigate(`/dashboard/invoice/export-preview?ids=${invoice.id}&paper=a5`, {
+				state: {
+					selectedInvoiceIds: [invoice.id],
+					customerId: activeCycle?.customerId,
+					customerName: activeCycle?.customerName,
+					cycleId: activeCycle?.id,
+					autoPrint: true,
+					initialPaperSizeMode: "a5",
+					initialOrientationMode: "landscape",
+				},
+			});
+		},
+		[activeCycle, navigate],
+	);
 
 	const handleUpdateDialogChange = useCallback((open: boolean) => {
 		setIsUpdateDialogOpen(open);
@@ -171,8 +177,17 @@ export function InvoiceContent({
 				onToggleAll,
 				onToggleOne,
 				onEditOne: handleOpenSingleUpdate,
+				onPrintA5One: handlePrintInvoiceA5,
 			}),
-		[allSelected, partiallySelected, selectedIdSet, onToggleAll, onToggleOne, handleOpenSingleUpdate],
+		[
+			allSelected,
+			partiallySelected,
+			selectedIdSet,
+			onToggleAll,
+			onToggleOne,
+			handleOpenSingleUpdate,
+			handlePrintInvoiceA5,
+		],
 	);
 	const cycleSummaryCards = useMemo<SummaryStatCardData[]>(
 		() =>
@@ -194,13 +209,13 @@ export function InvoiceContent({
 						{
 							label: "Start Date",
 							value: formatFlexibleDisplayDate(activeCycle.startDate),
-							color: "bg-violet-500",
+							color: "bg-slate-500",
 							icon: "mdi:calendar-range",
 						},
 						{
 							label: "End Date",
 							value: formatFlexibleDisplayDate(activeCycle.endDate),
-							color: "bg-violet-500",
+							color: "bg-slate-500",
 							icon: "mdi:calendar-range",
 						},
 					]
@@ -210,7 +225,7 @@ export function InvoiceContent({
 	const allSummaryCards = useMemo(() => [...summaryCards, ...cycleSummaryCards], [summaryCards, cycleSummaryCards]);
 
 	const openExportPreview = useCallback(
-		(invoices: Invoice[]) => {
+		(invoices: Invoice[], options?: { autoPrint?: boolean }) => {
 			if (invoices.length === 0) return;
 
 			const exportState = {
@@ -218,6 +233,7 @@ export function InvoiceContent({
 				customerId: activeCycle?.customerId,
 				customerName: activeCycle?.customerName,
 				cycleId: activeCycle?.id,
+				autoPrint: options?.autoPrint ?? false,
 			};
 			navigate(`/dashboard/invoice/export-preview?ids=${exportState.selectedInvoiceIds.join(",")}`, {
 				state: exportState,
@@ -236,10 +252,41 @@ export function InvoiceContent({
 		},
 		[openExportPreview],
 	);
+	const handleExportPaymentReceipt = useCallback(
+		async (payment: CyclePayment) => {
+			if (!activeCycle) return;
+
+			try {
+				setExportingPaymentId(payment.id);
+				const invoices = await invoiceService.getAllInvoices({
+					size: 1000,
+					customerId: activeCycle.customerId,
+					cycleId: activeCycle.id,
+					sort: "date,desc",
+				});
+				if (invoices.length === 0) {
+					toast.error("No invoices found for this cycle");
+					return;
+				}
+				openExportPreview(invoices, { autoPrint: true });
+			} finally {
+				setExportingPaymentId(null);
+			}
+		},
+		[activeCycle, openExportPreview],
+	);
+	const paymentColumns = useMemo(
+		() =>
+			getPaymentColumns({
+				onExportReceipt: activeCycle ? handleExportPaymentReceipt : undefined,
+				exportingPaymentId,
+			}),
+		[activeCycle, handleExportPaymentReceipt, exportingPaymentId],
+	);
 
 	return (
 		<div className={`flex w-full flex-col gap-4 ${isLoading ? "opacity-60 pointer-events-none" : ""}`}>
-			<div className="flex flex-wrap items-center justify-between gap-2 shrink-0">
+			<div className="flex flex-wrap items-center justify-between gap-2 shrink-0 border-b border-slate-200 pb-2">
 				<div className="flex items-center gap-2">
 					{onBack && <BackButton onClick={onBack} />}
 					<Button size="sm" className="gap-1">
@@ -294,13 +341,11 @@ export function InvoiceContent({
 					</Button>
 				</div>
 			</div>
-
 			<InvoiceBulkUpdateDialog
 				open={isUpdateDialogOpen}
 				onOpenChange={handleUpdateDialogChange}
 				selectedIds={updateTargetIds}
 				initialCustomerName={updateInitialValues.customerName}
-				initialType={updateInitialValues.type}
 				onSuccess={() => onToggleAll(false)}
 			/>
 
@@ -310,12 +355,16 @@ export function InvoiceContent({
 				cycle={activeCycle}
 				defaultTab="payment"
 				hideTabSwitch
+				onExportReceipt={handleExportPaymentReceipt}
+				exportingPaymentId={exportingPaymentId}
 			/>
 			<CyclePaymentDialog
 				open={isPaymentHistoryDialogOpen}
 				onOpenChange={setIsPaymentHistoryDialogOpen}
 				cycle={activeCycle}
 				historyOnly
+				onExportReceipt={handleExportPaymentReceipt}
+				exportingPaymentId={exportingPaymentId}
 			/>
 			<CyclePaymentDialog
 				open={isConvertDialogOpen}
@@ -346,7 +395,7 @@ export function InvoiceContent({
 						maxBodyHeight="280px"
 						variant="borderless"
 						data={displayedPayments}
-						columns={PAYMENT_COLUMNS}
+						columns={paymentColumns}
 					/>
 					{isLoadingPayments && <Text className="text-xs text-slate-500">Loading payments...</Text>}
 				</div>
@@ -359,18 +408,13 @@ export function InvoiceContent({
 				columns={columns}
 				onRowClick={handleOpenInvoiceExportPreview}
 				filterConfig={{
-					showFieldFilter: false,
-					typeOptions: INVOICE_FILTER_TYPE_OPTIONS,
+					showTypeFilter: false,
+					showFieldFilter: true,
 					fieldOptions: INVOICE_FILTER_FIELD_OPTIONS,
-					typeValue: typeFilter,
 					fieldValue: fieldFilter,
 					searchValue,
-					onTypeChange: onTypeFilterChange,
 					onFieldChange: onFieldFilterChange,
 					onSearchChange,
-					optionsByField: {
-						type: INVOICE_TYPE_OPTIONS,
-					},
 				}}
 				sortingConfig={{
 					sorting,

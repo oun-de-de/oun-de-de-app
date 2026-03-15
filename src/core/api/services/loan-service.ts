@@ -1,13 +1,25 @@
 import type { PaginatedResponse } from "@/core/types/common";
-import type { BorrowerType, CreateLoanRequest, Installment, InstallmentStatus, Loan } from "@/core/types/loan";
+import type {
+	BorrowerType,
+	CreateLoanPaymentRequest,
+	CreateLoanRequest,
+	ExtendLoanRequest,
+	Installment,
+	InstallmentStatus,
+	Loan,
+	LoanPayment,
+	LoanStatus,
+	UpdateLoanRequest,
+} from "@/core/types/loan";
 import { apiClient } from "../apiClient";
 
 export enum LoanApi {
 	Loans = "/loans",
 }
 
-type LoanApiResponse = Omit<Loan, "createdAt" | "borrowerType"> & {
+type LoanApiResponse = Omit<Loan, "borrowerType" | "createdAt" | "status"> & {
 	borrowerType: string;
+	status: string;
 	createdAt?: string;
 	createAt?: string;
 };
@@ -37,18 +49,20 @@ function normalizeInstallmentStatus(value: string): InstallmentStatus {
 	return "unpaid";
 }
 
-function normalizeLoan(data: LoanApiResponse): Loan {
-	// const monthlyPayment =
-	// 	typeof data.monthlyPayment === "number"
-	// 		? data.monthlyPayment
-	// 		: data.termMonths > 0
-	// 			? Math.ceil(data.principalAmount / data.termMonths)
-	// 			: 0;
+function normalizeLoanStatus(value: string): LoanStatus {
+	const normalizedValue = value.toLowerCase();
+	if (normalizedValue === "due") return "due";
+	if (normalizedValue === "complete") return "complete";
+	return "normal";
+}
 
+function normalizeLoan(data: LoanApiResponse): Loan {
 	return {
 		...data,
 		borrowerType: normalizeBorrowerType(data.borrowerType),
-		// monthlyPayment,
+		status: normalizeLoanStatus(data.status),
+		monthlyPayment: data.installmentAmount,
+		termMonths: data.termMonths ?? 0,
 		createdAt: data.createdAt ?? data.createAt ?? "",
 	};
 }
@@ -87,7 +101,10 @@ const createLoan = (data: CreateLoanRequest): Promise<Loan> =>
 	apiClient
 		.post<LoanApiResponse>({
 			url: LoanApi.Loans,
-			data,
+			data: {
+				...data,
+				borrowerType: toApiBorrowerType(data.borrowerType),
+			},
 		})
 		.then(normalizeLoan);
 
@@ -98,12 +115,23 @@ const getLoanDetails = (loanId: string): Promise<Loan> =>
 		})
 		.then(normalizeLoan);
 
+const listLoanPayments = (loanId: string): Promise<LoanPayment[]> =>
+	apiClient.get<LoanPayment[]>({
+		url: `${LoanApi.Loans}/${loanId}/payments`,
+	});
+
 const getInstallments = (loanId: string): Promise<Installment[]> =>
 	apiClient
 		.get<InstallmentApiResponse[]>({
 			url: `${LoanApi.Loans}/${loanId}/installments`,
 		})
 		.then((response) => response.map(normalizeInstallment));
+
+const createPayment = (loanId: string, data: CreateLoanPaymentRequest): Promise<LoanPayment> =>
+	apiClient.post<LoanPayment>({
+		url: `${LoanApi.Loans}/${loanId}/pay`,
+		data,
+	});
 
 const payInstallment = (loanId: string, installmentId: string): Promise<Installment> =>
 	apiClient
@@ -112,18 +140,38 @@ const payInstallment = (loanId: string, installmentId: string): Promise<Installm
 		})
 		.then(normalizeInstallment);
 
-const postponeLoan = (loanId: string): Promise<Installment[]> =>
+const postponeLoan = (loanId: string): Promise<Loan> =>
 	apiClient
-		.post<InstallmentApiResponse[]>({
+		.post<LoanApiResponse>({
 			url: `${LoanApi.Loans}/${loanId}/postpone`,
 		})
-		.then((response) => response.map(normalizeInstallment));
+		.then(normalizeLoan);
+
+const extendLoan = (loanId: string, data: ExtendLoanRequest): Promise<Loan> =>
+	apiClient
+		.post<LoanApiResponse>({
+			url: `${LoanApi.Loans}/${loanId}/extend-loan`,
+			data,
+		})
+		.then(normalizeLoan);
+
+const updateLoan = (loanId: string, data: UpdateLoanRequest): Promise<Loan> =>
+	apiClient
+		.put<LoanApiResponse>({
+			url: `${LoanApi.Loans}/${loanId}`,
+			data,
+		})
+		.then(normalizeLoan);
 
 export default {
 	getLoans,
 	createLoan,
 	getLoanDetails,
+	listLoanPayments,
 	getInstallments,
+	createPayment,
 	payInstallment,
 	postponeLoan,
+	extendLoan,
+	updateLoan,
 };

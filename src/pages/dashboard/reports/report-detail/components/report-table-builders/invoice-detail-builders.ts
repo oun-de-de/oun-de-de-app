@@ -4,6 +4,7 @@ import { formatNumber } from "@/core/utils/formatters";
 import type { ReportTemplateRow } from "../../../components/layout/report-template-table";
 import {
 	buildInvoiceTypeMap,
+	getCustomerSaleType,
 	getNotificationText,
 	getOpenInvoiceMetrics,
 	getProductCategory,
@@ -57,7 +58,7 @@ export function buildCustomerTransactionRows(invoices: Invoice[]): ReportTemplat
 			date: formatFlexibleDisplayDate(invoice.date),
 			refNo: invoice.refNo ?? "-",
 			customer: invoice.customerName ?? "-",
-			type: invoice.type ?? "-",
+			type: getCustomerSaleType(invoice),
 			amount: formatNumber(invoice.amount ?? 0),
 			memo: "-",
 		}),
@@ -68,8 +69,7 @@ export function buildSaleDetailRows(invoices: Invoice[], exportLines: InvoiceExp
 	const typeByRefNo = buildInvoiceTypeMap(invoices);
 
 	return exportLines.map((line, index) => {
-		const invoiceType = (typeByRefNo.get(line.refNo ?? "") ?? "").trim().toLowerCase();
-		const displayType = invoiceType === "receipt" ? "Receipt" : invoiceType === "invoice" ? "Invoice" : "-";
+		const displayType = typeByRefNo.get(line.refNo ?? "") ?? "cash_sale";
 
 		return createIndexedReportRow(`${line.refNo ?? "sale"}-${line.productName ?? index}`, index, {
 			date: formatFlexibleDisplayDate(line.date),

@@ -1,17 +1,9 @@
-const INVOICE_TYPE_FILTER_OPTIONS = [
-	{ value: "invoice", label: "Invoice" },
-	{ value: "receipt", label: "Receipt" },
-] as const;
-
-export const INVOICE_FILTER_TYPE_OPTIONS = [{ value: "all", label: "All Type" }, ...INVOICE_TYPE_FILTER_OPTIONS];
+import { CYCLE_STATUS_OPTIONS } from "@/core/types/cycle";
 
 export const INVOICE_FILTER_FIELD_OPTIONS = [
 	{ value: "refNo", label: "Invoice No" },
 	{ value: "customerName", label: "Customer" },
-	{ value: "type", label: "Type" },
 ];
-
-export const INVOICE_TYPE_OPTIONS = [...INVOICE_TYPE_FILTER_OPTIONS];
 
 export const DURATION_OPTIONS = [
 	{ value: "0", label: "All Duration" },
@@ -26,9 +18,4 @@ export const DURATION_OPTIONS = [
 	{ value: "45", label: "45 Days" },
 ] as const;
 
-export const CYCLE_STATUS_OPTIONS = [
-	{ value: "all", label: "All Status" },
-	{ value: "OPEN", label: "Open" },
-	{ value: "CLOSED", label: "Closed" },
-	{ value: "OVERDUE", label: "Overdue" },
-] as const;
+export { CYCLE_STATUS_OPTIONS };

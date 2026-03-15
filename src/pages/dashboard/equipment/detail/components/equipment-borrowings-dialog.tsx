@@ -34,7 +34,7 @@ export function EquipmentBorrowingsDialog({
 	const [memo, setMemo] = useState("");
 	const [isHistoryDialogOpen, setIsHistoryDialogOpen] = useState(false);
 	const [historyPage, setHistoryDialogPage] = useState(1);
-	const [historyPageSize, setHistoryPageSize] = useState(10);
+	const [historyPageSize, setHistoryPageSize] = useState(20);
 
 	const { data: borrowings = [], isLoading } = useInventoryBorrowings(itemId);
 	const createBorrowing = useCreateBorrowing(itemId);

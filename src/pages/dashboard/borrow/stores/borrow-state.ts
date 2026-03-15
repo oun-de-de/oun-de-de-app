@@ -15,7 +15,7 @@ export const createBorrowInitialState = (): BorrowState => ({
 	typeFilter: "all",
 	searchValue: "",
 	page: 1,
-	pageSize: 10,
+	pageSize: 20,
 	activeView: "all",
 });
 

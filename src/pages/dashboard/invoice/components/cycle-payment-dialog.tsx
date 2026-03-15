@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
 import { SmartDataTable } from "@/core/components/common";
-import type { Cycle } from "@/core/types/cycle";
+import type { Cycle, CyclePayment } from "@/core/types/cycle";
 import { Button } from "@/core/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/core/ui/dialog";
 import { Input } from "@/core/ui/input";
@@ -13,7 +13,7 @@ import { formatFlexibleDisplayDate } from "@/core/utils/date-display";
 import { useCyclePaymentState } from "../hooks/use-cycle-payment-state";
 import { useCyclePayments } from "../hooks/use-cycle-payments";
 import { formatKHR } from "../utils/formatters";
-import { PAYMENT_COLUMNS } from "./payment-columns";
+import { getPaymentColumns } from "./payment-columns";
 
 type CyclePaymentDialogProps = {
 	open: boolean;
@@ -22,6 +22,8 @@ type CyclePaymentDialogProps = {
 	defaultTab?: "payment" | "loan";
 	hideTabSwitch?: boolean;
 	historyOnly?: boolean;
+	onExportReceipt?: (payment: CyclePayment) => void;
+	exportingPaymentId?: string | null;
 };
 
 function normalizeInputValue(value: string): string | undefined {
@@ -75,6 +77,8 @@ export function CyclePaymentDialog({
 	defaultTab = "payment",
 	hideTabSwitch = false,
 	historyOnly = false,
+	onExportReceipt,
+	exportingPaymentId,
 }: CyclePaymentDialogProps) {
 	const navigate = useNavigate();
 	const [amountInputError, setAmountInputError] = useState("");
@@ -91,6 +95,14 @@ export function CyclePaymentDialog({
 	});
 	const { state, setters, derived } = ui;
 	const { setActiveTab, setAmount, setPaymentDateTime, setMonthlyAmount, setLoanStartDate } = setters;
+	const paymentColumns = useMemo(
+		() =>
+			getPaymentColumns({
+				onExportReceipt,
+				exportingPaymentId,
+			}),
+		[onExportReceipt, exportingPaymentId],
+	);
 
 	useEffect(() => {
 		if (!open) return;
@@ -280,7 +292,7 @@ export function CyclePaymentDialog({
 						maxBodyHeight="320px"
 						variant="borderless"
 						data={derived.pagedData}
-						columns={PAYMENT_COLUMNS}
+						columns={paymentColumns}
 						paginationConfig={{
 							page: state.page,
 							pageSize: state.pageSize,

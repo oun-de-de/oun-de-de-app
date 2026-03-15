@@ -5,13 +5,11 @@ const createInitialState = (): ListState => ({
 	fieldFilter: "field-name",
 	searchValue: "",
 	page: 1,
-	pageSize: 10,
+	pageSize: 20,
 });
 
 const useAccountingListStore = createListStore(createInitialState());
 
-export const useAccountingList = () =>
-	useAccountingListStore((store) => store.state);
+export const useAccountingList = () => useAccountingListStore((store) => store.state);
 
-export const useAccountingListActions = () =>
-	useAccountingListStore((store) => store.actions);
+export const useAccountingListActions = () => useAccountingListStore((store) => store.actions);
