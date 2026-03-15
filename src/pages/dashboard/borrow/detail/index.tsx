@@ -318,7 +318,7 @@ export default function BorrowDetailPage() {
 								Loan Status
 							</Text>
 							<Badge
-								variant={loan.status === "complete" ? "success" : loan.status === "due" ? "destructive" : "secondary"}
+								variant={loan.status === "complete" ? "success" : loan.status === "due" ? "destructive" : "success"}
 							>
 								{formatLoanStatusLabel(loan.status)}
 							</Badge>

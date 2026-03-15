@@ -1,6 +1,7 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { useNavigate } from "react-router";
 import type { Product } from "@/core/types/product";
+import { Badge } from "@/core/ui/badge";
 import { Button } from "@/core/ui/button";
 import { formatDisplayDate, formatNumber } from "@/core/utils/formatters";
 
@@ -38,6 +39,17 @@ export const columns: ColumnDef<Product>[] = [
 		id: "defaultPrice",
 		cell: ({ row }) => formatNumber(row.original.defaultProductSetting?.price, "-"),
 		meta: { bodyClassName: "text-right" },
+	},
+	{
+		header: "Packaged By Qty",
+		size: 110,
+		id: "isPackagedByQuantity",
+		cell: ({ row }) => (
+			<Badge variant={row.original.isPackagedByQuantity ? "success" : "destructive"} className=" h-6.5">
+				{row.original.isPackagedByQuantity ? "Yes" : "No"}
+			</Badge>
+		),
+		meta: { bodyClassName: "text-center" },
 	},
 	{
 		header: "Actions",
