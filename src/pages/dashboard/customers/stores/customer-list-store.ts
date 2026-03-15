@@ -5,7 +5,7 @@ const createInitialListState = (): ListState => ({
 	fieldFilter: "name",
 	searchValue: "",
 	page: 1,
-	pageSize: 10,
+	pageSize: 20,
 });
 
 export const useCustomerListStore = createListStore(createInitialListState());

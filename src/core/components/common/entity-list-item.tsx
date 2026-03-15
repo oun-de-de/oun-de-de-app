@@ -1,8 +1,8 @@
-import { cva, type VariantProps } from "class-variance-authority";
-import { memo } from "react";
 import type { EntityListItemData } from "@/core/types/common";
 import { Button } from "@/core/ui/button";
 import { cn } from "@/core/utils";
+import { cva, type VariantProps } from "class-variance-authority";
+import { memo } from "react";
 
 const entityListItemVariants = cva(
 	"flex w-full min-w-0 items-center justify-between text-left transition cursor-pointer whitespace-nowrap",
@@ -70,7 +70,7 @@ export const EntityListItem = memo(function EntityListItem({
 			style={style}
 		>
 			<span className={cn("font-semibold", isActive ? "text-white" : "text-black")}>{entity.name}</span>
-			<span
+			{/* <span
 				className={cn(
 					"hidden md:inline text-xs opacity-70 pr-2",
 					isActive ? "text-white" : "text-muted-foreground",
@@ -78,7 +78,7 @@ export const EntityListItem = memo(function EntityListItem({
 				)}
 			>
 				{entity.code}
-			</span>
+			</span> */}
 		</Button>
 	);
 });

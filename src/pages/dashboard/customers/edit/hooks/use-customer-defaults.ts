@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import type { CustomerDetail } from "@/core/types/customer";
-import type { Vehicle } from "@/core/types/vehicle";
+import { normalizeVehicleType, type Vehicle } from "@/core/types/vehicle";
 import { formatDateToYYYYMMDD } from "@/core/utils/date-utils";
 import type { CustomerFormData } from "../../create/components/customer-form";
 
@@ -33,7 +33,7 @@ export const useCustomerDefaults = (customer?: CustomerDetail, vehicles?: Vehicl
 			vehicles:
 				vehicles?.map((v) => ({
 					...v,
-					vehicleType: v.vehicleType.toLowerCase(),
+					vehicleType: normalizeVehicleType(v.vehicleType),
 				})) || [],
 		};
 	}, [customer, vehicles]);

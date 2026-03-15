@@ -1,5 +1,4 @@
 import { SmartDataTable } from "@/core/components/common";
-import Icon from "@/core/components/icon/icon";
 import type { Product } from "@/core/types/product";
 import { Button } from "@/core/ui/button";
 import { Text } from "@/core/ui/typography";
@@ -36,7 +35,7 @@ export function ProductContent({
 
 	return (
 		<>
-			<div className="flex flex-wrap items-center justify-between gap-2">
+			<div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-2">
 				<div className="flex items-center gap-2">
 					<Text variant="body2" className="text-muted-foreground">
 						{activeProduct ? `${activeProduct.name} selected` : "No item selected"}
@@ -44,12 +43,10 @@ export function ProductContent({
 				</div>
 				<div className="flex gap-2">
 					<Button size="sm" className="gap-2" onClick={() => navigate("/dashboard/products/create")}>
-						<Icon icon="mdi:plus" />
 						Create Product
 					</Button>
 				</div>
 			</div>
-
 			{/* <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
 				{summaryCards.map((card) => (
 					<SummaryStatCard key={card.label} {...card} />

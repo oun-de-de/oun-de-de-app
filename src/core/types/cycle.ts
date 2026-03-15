@@ -1,5 +1,23 @@
 export type CycleStatus = "OPEN" | "CLOSED" | "OVERDUE";
 
+export const CYCLE_STATUS_OPTIONS = [
+	{ value: "all", label: "All Status" },
+	{ value: "OPEN", label: "Open" },
+	{ value: "CLOSED", label: "Closed" },
+	{ value: "OVERDUE", label: "Overdue" },
+] as const;
+
+export function getCycleStatusLabel(status: CycleStatus): string {
+	switch (status) {
+		case "OPEN":
+			return "Open";
+		case "CLOSED":
+			return "Closed";
+		case "OVERDUE":
+			return "Overdue";
+	}
+}
+
 export interface Cycle {
 	id: string;
 	customerId: string;

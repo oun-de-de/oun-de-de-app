@@ -11,13 +11,7 @@ export interface CreateWarehouse {
 	location: string;
 }
 
-export enum UnitType {
-	COUNT = "count",
-	LENGTH = "length",
-	WEIGHT = "weight",
-	VOLUME = "volume",
-	TIME = "time",
-}
+export type UnitType = "count" | "length" | "weight" | "volume" | "time";
 
 export interface Unit {
 	id: string;

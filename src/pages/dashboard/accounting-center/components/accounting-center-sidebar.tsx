@@ -6,7 +6,7 @@ import { useSidebarPagination } from "@/core/hooks/use-sidebar-pagination";
 import { cn } from "@/core/utils";
 import { normalizeToken } from "@/core/utils/dashboard-utils";
 
-type CashTransactionSidebarProps = {
+type AccountingCenterSidebarProps = {
 	activeCounterpartyId: string | null;
 	counterparties: CashTransactionCounterparty[];
 	onSelect: (id: string | null) => void;
@@ -18,13 +18,13 @@ const DEFAULT_ITEM_SIZE = 56;
 const COLLAPSED_ITEM_SIZE = 42;
 const COLLAPSED_ITEM_GAP = 8;
 
-export function CashTransactionSidebar({
+export function AccountingCenterSidebar({
 	activeCounterpartyId,
 	counterparties,
 	onSelect,
 	onToggle,
 	isCollapsed,
-}: CashTransactionSidebarProps) {
+}: AccountingCenterSidebarProps) {
 	const [searchTerm, setSearchTerm] = useState("");
 	const isLgUp = useMediaQuery(up("lg"));
 

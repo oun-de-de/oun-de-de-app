@@ -1,5 +1,6 @@
 import { customerSummaryCards } from "@/_mock/data/dashboard";
 import type { Customer } from "@/core/types/customer";
+import { VEHICLE_TYPE_OPTIONS as CORE_VEHICLE_TYPE_OPTIONS } from "@/core/types/vehicle";
 import { formatKHR } from "@/core/utils/formatters";
 
 export const FILTER_TYPE_OPTIONS = [{ value: "all", label: "All" }];
@@ -19,11 +20,7 @@ export const PAYMENT_TERM_FILTER_OPTIONS = [
 	{ value: "45", label: "45 days" },
 ];
 
-export const VEHICLE_TYPE_OPTIONS = [
-	{ value: "truck", label: "Truck" },
-	{ value: "tuk_tuk", label: "Tuk Tuk" },
-	{ value: "others", label: "Others" },
-];
+export const VEHICLE_TYPE_OPTIONS = [...CORE_VEHICLE_TYPE_OPTIONS];
 
 export const DEFAULT_PRICE_OPTIONS = [
 	{ value: "retail_price", label: "Retail Price" },

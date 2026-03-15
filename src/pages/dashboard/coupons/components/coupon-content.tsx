@@ -52,7 +52,7 @@ export function CouponContent({
 
 	return (
 		<>
-			<div className="flex flex-wrap items-center justify-between gap-2">
+			<div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-2">
 				<div className="flex items-center gap-2">
 					<Text variant="body2" className="text-muted-foreground">
 						{activeCustomerName ? `${activeCustomerName} selected` : "No customer selected"}
@@ -64,7 +64,6 @@ export function CouponContent({
 					</Button>
 				</div>
 			</div>
-
 			<div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3 pb-2">
 				{summaryCards.map((card) => (
 					<SummaryStatCard key={card.label} {...card} />

@@ -4,7 +4,6 @@ import { toast } from "sonner";
 import productService from "@/core/api/services/product-service";
 import type { UpdateProduct } from "@/core/types/product";
 import { Text } from "@/core/ui/typography";
-import { toUtcIsoPreferNowIfToday } from "@/core/utils/date-utils";
 import { useGetUnitList } from "@/pages/dashboard/settings/hooks/use-settings";
 import { ProductForm, type ProductFormData } from "../create/components/product-form";
 
@@ -38,14 +37,12 @@ export default function EditProductPage() {
 	});
 
 	const handleSubmit = async (data: ProductFormData) => {
-		const productDateIso = toUtcIsoPreferNowIfToday(data.date);
 		const productData: Partial<UpdateProduct> = {
 			name: data.name as string,
-			date: productDateIso ?? "",
-			refNo: data.refNo as string,
 			unitId: data.unitId as string,
 			defaultQuantity: Number(data.defaultQuantity ?? 0),
 			defaultPrice: Number(data.defaultPrice ?? 0),
+			isPackagedByQuantity: Boolean(data.isPackagedByQuantity),
 		};
 
 		await updateProduct(productData);
@@ -74,6 +71,7 @@ export default function EditProductPage() {
 		date: product.date.split("T")[0],
 		defaultQuantity: product.defaultProductSetting?.quantity || 0,
 		defaultPrice: product.defaultProductSetting?.price || 0,
+		isPackagedByQuantity: product.isPackagedByQuantity ?? false,
 	};
 
 	return (

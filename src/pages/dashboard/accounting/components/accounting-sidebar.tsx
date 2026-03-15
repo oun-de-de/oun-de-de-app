@@ -17,6 +17,9 @@ type AccountingSidebarProps = {
 const MAIN_TYPE_OPTIONS = [
 	{ value: "asset", label: "Asset" },
 	{ value: "liability", label: "Liability" },
+	{ value: "equity", label: "Equity" },
+	{ value: "revenue", label: "Revenue" },
+	{ value: "expense", label: "Expense" },
 ];
 
 export function AccountingSidebar({ activeAccountId, onSelect, onToggle, isCollapsed }: AccountingSidebarProps) {
@@ -27,13 +30,10 @@ export function AccountingSidebar({ activeAccountId, onSelect, onToggle, isColla
 
 	const filteredAccounts = useMemo(() => {
 		return accountingAccountList.filter((account) => {
-			// Type filter
-			if (typeFilter !== "type") {
-				// account.type (if it exists) check or other logic
-				// For now assuming simplistic match or ignoring if property missing
+			if (typeFilter !== "type" && account.type !== typeFilter) {
+				return false;
 			}
 
-			// Search filter
 			if (searchValue) {
 				const query = searchValue.toLowerCase();
 				if (!account.name.toLowerCase().includes(query) && !account.id.includes(query)) {
@@ -41,9 +41,8 @@ export function AccountingSidebar({ activeAccountId, onSelect, onToggle, isColla
 				}
 			}
 
-			// Status filter
-			if (statusFilter !== "active") {
-				// Mock logic for status
+			if (statusFilter !== "all" && (account.status ?? "active") !== statusFilter) {
+				return false;
 			}
 			return true;
 		});

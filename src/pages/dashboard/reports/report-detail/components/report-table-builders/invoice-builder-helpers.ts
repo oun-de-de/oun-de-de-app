@@ -9,7 +9,6 @@ import type { ReportTemplateRow } from "../../../components/layout/report-templa
 
 const PREMIUM_PRODUCT_KEYWORDS = ["premium", "solid ice", "អនាម័យ"] as const;
 const ICE_CUBE_KEYWORDS = ["cube", "ដើម"] as const;
-
 export function mapExportLinesToPreviewRows(exportLines: InvoiceExportLineApi[]): InvoiceExportPreviewRow[] {
 	// Reuse the invoice preview row shape so report/export logic works from one normalized source.
 	return exportLines.map(toInvoiceExportPreviewRow);
@@ -92,8 +91,27 @@ function includesAnyKeyword(value: string, keywords: readonly string[]) {
 	return keywords.some((keyword) => value.includes(keyword));
 }
 
-function isReceiptType(type: string | undefined): boolean {
-	return normalizeText(type) === "receipt";
+function isReceiptInvoice(invoice: Pick<Invoice, "refNo" | "type">): boolean {
+	const normalizedType = normalizeText(invoice.type);
+	if (normalizedType === "receipt") return true;
+
+	const normalizedRefNo = normalizeText(invoice.refNo);
+	return normalizedRefNo.startsWith("rec") || normalizedRefNo.startsWith("rcp") || normalizedRefNo.startsWith("rc");
+}
+
+export function getCustomerSaleType(
+	invoice: Pick<Invoice, "refNo" | "type" | "paymentTerm">,
+): "cash_sale" | "invoice" | "receipt" {
+	if (isReceiptInvoice(invoice)) return "receipt";
+	const normalizedType = normalizeText(invoice.type);
+	if (normalizedType === "invoice") return "invoice";
+	if (normalizedType === "cash_sale" || normalizedType === "cash sale") return "cash_sale";
+
+	const normalizedRefNo = normalizeText(invoice.refNo);
+	if (normalizedRefNo.startsWith("in")) return "invoice";
+	if (normalizedRefNo.startsWith("cs")) return "cash_sale";
+
+	return invoice.paymentTerm ? "invoice" : "cash_sale";
 }
 
 export function getProductCategory(productName: string | null | undefined): string {
@@ -103,18 +121,18 @@ export function getProductCategory(productName: string | null | undefined): stri
 	return "General";
 }
 
-export function buildInvoiceTypeMap(invoices: Invoice[]): Map<string, string> {
-	return new Map(invoices.map((invoice) => [invoice.refNo ?? "", invoice.type ?? ""]));
+export function buildInvoiceTypeMap(invoices: Invoice[]): Map<string, "cash_sale" | "invoice" | "receipt"> {
+	return new Map(invoices.map((invoice) => [invoice.refNo ?? "", getCustomerSaleType(invoice)]));
 }
 
 export function splitPreviewRowsIntoCashAndCredit(invoices: Invoice[], previewRows: InvoiceExportPreviewRow[]) {
 	const typeByRefNo = buildInvoiceTypeMap(invoices);
 	return previewRows.reduce<{ cashRows: InvoiceExportPreviewRow[]; creditRows: InvoiceExportPreviewRow[] }>(
 		(acc, row) => {
-			if (isReceiptType(typeByRefNo.get(row.refNo))) {
-				acc.cashRows.push(row);
-			} else {
+			if (typeByRefNo.get(row.refNo) === "invoice") {
 				acc.creditRows.push(row);
+			} else {
+				acc.cashRows.push(row);
 			}
 			return acc;
 		},

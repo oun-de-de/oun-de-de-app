@@ -41,6 +41,10 @@ export const ROUTE_TITLE_MAPPINGS = [
 		title: "Create Customer",
 	},
 	{
+		path: "/dashboard/customers/receipt-print-preview",
+		title: "Receipt Print Preview",
+	},
+	{
 		path: "/dashboard/employees",
 		title: "Employee Center",
 	},
@@ -66,11 +70,19 @@ export const ROUTE_TITLE_MAPPINGS = [
 	},
 	{
 		path: "/dashboard/cash-transactions",
-		title: "Cash Transaction Center",
+		title: "Accounting Center",
+	},
+	{
+		path: "/dashboard/accounting-center",
+		title: "Accounting Center",
 	},
 	{
 		path: "/dashboard/accounting",
 		title: "Accounting Center",
+	},
+	{
+		path: "/dashboard/accounting/edit-chart-account",
+		title: "Edit Chart Account",
 	},
 	{
 		path: "/dashboard/reports",

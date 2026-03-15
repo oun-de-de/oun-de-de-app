@@ -1,9 +1,7 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import type { Invoice } from "@/core/types/invoice";
-import { Badge } from "@/core/ui/badge";
 import { Button } from "@/core/ui/button";
 import { Checkbox } from "@/core/ui/checkbox";
-import { getInvoiceTypeVariant } from "@/core/utils/get-status-variant";
 import { formatDisplayDateTime } from "../utils/formatters";
 
 type InvoiceColumnsOptions = {
@@ -13,6 +11,7 @@ type InvoiceColumnsOptions = {
 	onToggleAll: (checked: boolean) => void;
 	onToggleOne: (id: string, checked: boolean) => void;
 	onEditOne: (invoice: Invoice) => void;
+	onPrintA5One: (invoice: Invoice) => void;
 };
 
 export function getInvoiceColumns({
@@ -22,6 +21,7 @@ export function getInvoiceColumns({
 	onToggleAll,
 	onToggleOne,
 	onEditOne,
+	onPrintA5One,
 }: InvoiceColumnsOptions): ColumnDef<Invoice>[] {
 	return [
 		{
@@ -67,29 +67,35 @@ export function getInvoiceColumns({
 			accessorKey: "customerName",
 		},
 		{
-			header: "Type",
-			size: 80,
-			accessorKey: "type",
-			cell: ({ row }) => <Badge variant={getInvoiceTypeVariant(row.original.type)}>{row.original.type}</Badge>,
-			meta: { bodyClassName: "text-center capitalize" },
-		},
-		{
 			header: "Actions",
 			id: "actions",
-			size: 80,
+			size: 170,
 			meta: { bodyClassName: "text-center", headerClassName: "print:hidden", cellClassName: "print:hidden" },
 			cell: ({ row }) => (
-				<Button
-					variant="warning"
-					size="sm"
-					className="h-7 px-2 text-xs print:hidden"
-					onClick={(event) => {
-						event.stopPropagation();
-						onEditOne(row.original);
-					}}
-				>
-					Edit
-				</Button>
+				<div className="flex items-center justify-center gap-2 print:hidden">
+					<Button
+						variant="warning"
+						size="sm"
+						className="h-7 px-2 text-xs"
+						onClick={(event) => {
+							event.stopPropagation();
+							onEditOne(row.original);
+						}}
+					>
+						Edit
+					</Button>
+					<Button
+						variant="info"
+						size="sm"
+						className="h-7 px-2 text-xs"
+						onClick={(event) => {
+							event.stopPropagation();
+							onPrintA5One(row.original);
+						}}
+					>
+						Print A5
+					</Button>
+				</div>
 			),
 		},
 	];

@@ -4,10 +4,8 @@ import isEqual from "fast-deep-equal";
 import { useCallback, useEffect, useMemo } from "react";
 import invoiceService from "@/core/api/services/invoice-service";
 import { useDebounce } from "@/core/hooks/use-debounce";
-import type { InvoiceType } from "@/core/types/invoice";
 import { buildPagination } from "@/core/utils/dashboard-utils";
 import { getInvoiceState, useInvoiceActions, useInvoiceState } from "../stores/invoice-store";
-import { isInvoiceType } from "../utils/formatters";
 
 type UseInvoiceTableParams = {
 	customerName?: string | null;
@@ -18,10 +16,11 @@ type UseInvoiceTableParams = {
 const getCurrentListState = () => getInvoiceState();
 
 export function useInvoiceTable({ customerName, customerId, cycleId }: UseInvoiceTableParams = {}) {
-	const { page, pageSize, typeFilter, fieldFilter, searchValue, sorting } = useInvoiceState();
+	const { page, pageSize, fieldFilter, searchValue, sorting } = useInvoiceState();
 	const { updateState } = useInvoiceActions();
 
 	const debouncedSearchValue = useDebounce(searchValue, 300);
+	const isSearching = debouncedSearchValue.trim() !== "";
 
 	const query = useQuery({
 		queryKey: [
@@ -29,7 +28,6 @@ export function useInvoiceTable({ customerName, customerId, cycleId }: UseInvoic
 			{
 				page,
 				size: pageSize,
-				type: typeFilter,
 				search: debouncedSearchValue,
 				field: fieldFilter,
 				customerName,
@@ -39,31 +37,28 @@ export function useInvoiceTable({ customerName, customerId, cycleId }: UseInvoic
 			},
 		],
 		queryFn: () => {
-			let searchRefNo: string | undefined;
-			let searchCustomerName: string | undefined;
-			let searchType: InvoiceType | undefined;
-
-			if (fieldFilter === "type" && debouncedSearchValue) {
-				const normalized = debouncedSearchValue.toLowerCase();
-				searchType = isInvoiceType(normalized) ? normalized : undefined;
-			} else if (fieldFilter === "refNo") {
-				searchRefNo = debouncedSearchValue;
-			} else if (fieldFilter === "customerName") {
-				searchCustomerName = debouncedSearchValue;
-			} else if (debouncedSearchValue) {
-				searchRefNo = debouncedSearchValue;
-				searchCustomerName = debouncedSearchValue;
-			}
-
 			const sortParam = sorting.map((s) => `${s.id},${s.desc ? "desc" : "asc"}`).join(",");
-			const selectedType = isInvoiceType(typeFilter) ? typeFilter : undefined;
+
+			if (isSearching) {
+				return invoiceService
+					.getAllInvoices({
+						size: 1000,
+						customerId: customerId || undefined,
+						cycleId: cycleId || undefined,
+						sort: sortParam || "date,desc",
+					})
+					.then((list) => ({
+						list,
+						page: 1,
+						pageSize: list.length || pageSize,
+						pageCount: 1,
+						total: list.length,
+					}));
+			}
 
 			return invoiceService.getInvoices({
 				page: page,
 				size: pageSize,
-				type: searchType ?? selectedType,
-				refNo: searchRefNo,
-				customerName: (customerName ?? searchCustomerName) || undefined,
 				customerId: customerId || undefined,
 				cycleId: cycleId || undefined,
 				sort: sortParam || "date,desc",
@@ -72,8 +67,22 @@ export function useInvoiceTable({ customerName, customerId, cycleId }: UseInvoic
 	});
 
 	const invoicePage = query.data;
-	const invoices = invoicePage?.list ?? [];
-	const totalPages = Math.max(1, invoicePage?.pageCount ?? 0);
+	const invoices = useMemo(() => {
+		const list = invoicePage?.list ?? [];
+		const query = debouncedSearchValue.trim().toLowerCase();
+		if (!query) return list;
+
+		return list.filter((invoice) => {
+			const refNo = (invoice.refNo ?? "").toLowerCase();
+			const nextCustomerName = (invoice.customerName ?? "").toLowerCase();
+
+			if (fieldFilter === "refNo") return refNo.includes(query);
+			if (fieldFilter === "customerName") return nextCustomerName.includes(query);
+			return refNo.includes(query) || nextCustomerName.includes(query);
+		});
+	}, [debouncedSearchValue, fieldFilter, invoicePage?.list]);
+	const searchTotalPages = Math.max(1, Math.ceil(invoices.length / pageSize));
+	const totalPages = isSearching ? searchTotalPages : Math.max(1, invoicePage?.pageCount ?? 0);
 	const currentPage = Math.min(page, totalPages);
 
 	useEffect(() => {
@@ -82,27 +91,18 @@ export function useInvoiceTable({ customerName, customerId, cycleId }: UseInvoic
 		}
 	}, [page, totalPages, updateState]);
 
-	const pagedData = useMemo(() => invoices, [invoices]);
+	const pagedData = useMemo(() => {
+		if (!isSearching) return invoices;
+
+		const start = (currentPage - 1) * pageSize;
+		return invoices.slice(start, start + pageSize);
+	}, [currentPage, invoices, isSearching, pageSize]);
 
 	const summaryCards = useMemo(() => {
-		const totalInvoice = invoicePage?.total ?? invoices.length;
+		const totalInvoice = isSearching ? invoices.length : (invoicePage?.total ?? invoices.length);
 
 		return [{ label: "Total Invoice", value: totalInvoice, color: "bg-sky-500", icon: "mdi:file-document-outline" }];
-	}, [invoicePage?.total, invoices]);
-
-	const onTypeFilterChange = useCallback(
-		(value: string) => {
-			const current = getCurrentListState();
-			const shouldResetSearch = value === "all" && current.searchValue !== "";
-			if (value === current.typeFilter && current.page === 1 && !shouldResetSearch) return;
-			updateState({
-				typeFilter: value,
-				searchValue: value === "all" ? "" : current.searchValue,
-				page: 1,
-			});
-		},
-		[updateState],
-	);
+	}, [invoicePage?.total, invoices, isSearching]);
 
 	const onFieldFilterChange = useCallback(
 		(value: string) => {
@@ -154,16 +154,14 @@ export function useInvoiceTable({ customerName, customerId, cycleId }: UseInvoic
 	return {
 		pagedData,
 		summaryCards,
-		typeFilter,
 		fieldFilter,
 		searchValue,
 		currentPage,
 		pageSize,
-		totalItems: invoicePage?.total ?? 0,
+		totalItems: isSearching ? invoices.length : (invoicePage?.total ?? 0),
 		totalPages,
 		paginationItems: buildPagination(currentPage, totalPages),
 		sorting,
-		onTypeFilterChange,
 		onFieldFilterChange,
 		onSearchChange,
 		onPageChange,

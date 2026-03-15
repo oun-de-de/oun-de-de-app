@@ -6,15 +6,27 @@ import type { ReportTemplateRow } from "../../../components/layout/report-templa
 import { createIndexedReportRow, createLedgerCells, createReportRow } from "./report-row-helpers";
 
 function getLoanPaymentTotals(loan: Loan, installments: Installment[] = []) {
-	const collected = installments
-		.filter((installment) => installment.status === "paid" || installment.paidAt)
-		.reduce((sum, installment) => sum + installment.amount, 0);
+	const collected =
+		installments.length > 0
+			? installments
+					.filter((installment) => installment.status === "paid" || installment.paidAt)
+					.reduce((sum, installment) => sum + installment.amount, 0)
+			: (loan.paidAmount ?? 0);
 	const balance = Math.max(loan.principalAmount - collected, 0);
 
 	return { collected, balance };
 }
 
-function getInstallmentSummary(installments: Installment[] = []) {
+function getInstallmentSummary(loan: Loan, installments: Installment[] = []) {
+	if (installments.length === 0) {
+		return {
+			hasDetailedSchedule: false,
+			paidCount: null,
+			overdueCount: loan.status === "due" ? null : 0,
+			nextDue: loan.status === "complete" ? "-" : formatFlexibleDisplayDate(loan.dueDate),
+		};
+	}
+
 	const paidCount = installments.filter((installment) => installment.status === "paid" || installment.paidAt).length;
 	const overdueCount = installments.filter((installment) => installment.status === "overdue").length;
 	const nextDue = installments
@@ -22,6 +34,7 @@ function getInstallmentSummary(installments: Installment[] = []) {
 		.sort((left, right) => left.monthIndex - right.monthIndex)[0];
 
 	return {
+		hasDetailedSchedule: true,
 		paidCount,
 		overdueCount,
 		nextDue: nextDue ? formatFlexibleDisplayDate(nextDue.dueDate) : "-",
@@ -29,29 +42,43 @@ function getInstallmentSummary(installments: Installment[] = []) {
 }
 
 function getCustomerLoanPurpose(loan: Loan, customer?: Customer) {
-	if (loan.termMonths >= 12) return "Vehicle or long-term equipment purchase";
-	if (loan.termMonths >= 6) return "Tank or equipment purchase";
+	const termMonths = loan.termMonths ?? 0;
+	if (termMonths >= 12) return "Vehicle or long-term equipment purchase";
+	if (termMonths >= 6) return "Tank or equipment purchase";
 	if (customer?.name) return `Customer financing for ${customer.name}`;
 	return "Customer loan / installment";
 }
 
 function getCustomerPaymentTerm(loan: Loan, installments: Installment[] = []) {
-	const { paidCount, overdueCount, nextDue } = getInstallmentSummary(installments);
-	return `${loan.termMonths} months | Paid ${paidCount}/${Math.max(loan.termMonths, installments.length || 0)} | Next due ${nextDue}${
-		overdueCount > 0 ? ` | Overdue ${overdueCount}` : ""
-	}`;
+	const { hasDetailedSchedule, paidCount, overdueCount, nextDue } = getInstallmentSummary(loan, installments);
+	const termMonths = loan.termMonths ?? installments.length ?? 0;
+	const parts = [`${termMonths} months`, `Next due ${nextDue}`];
+	if (hasDetailedSchedule && paidCount != null) {
+		parts.splice(1, 0, `Paid ${paidCount}/${Math.max(termMonths, installments.length || 0)}`);
+	}
+	if (overdueCount && overdueCount > 0) {
+		parts.push(`Overdue ${overdueCount}`);
+	}
+	if (!hasDetailedSchedule && loan.status === "due") {
+		parts.push("Overdue");
+	}
+	return parts.join(" | ");
 }
 
 function getCustomerOtherText(loan: Loan, installments: Installment[] = []) {
-	const { overdueCount } = getInstallmentSummary(installments);
+	const { hasDetailedSchedule, overdueCount } = getInstallmentSummary(loan, installments);
 	const monthlyPayment = loan.monthlyPayment ?? 0;
 	const monthlyText = monthlyPayment > 0 ? `${formatNumber(monthlyPayment)}/month` : "-";
-	return overdueCount > 0 ? `${monthlyText} | ${overdueCount} overdue` : monthlyText;
+	if (overdueCount && overdueCount > 0) return `${monthlyText} | ${overdueCount} overdue`;
+	if (!hasDetailedSchedule && loan.status === "due") return `${monthlyText} | overdue`;
+	return monthlyText;
 }
 
 function getEmployeeLoanMemo(loan: Loan, installments: Installment[] = []) {
-	const { paidCount, nextDue } = getInstallmentSummary(installments);
-	return `${loan.borrowerName} loan account | Paid ${paidCount} installments | Next due ${nextDue}`;
+	const { hasDetailedSchedule, paidCount, nextDue } = getInstallmentSummary(loan, installments);
+	return hasDetailedSchedule && paidCount != null
+		? `${loan.borrowerName} loan account | Paid ${paidCount} installments | Next due ${nextDue}`
+		: `${loan.borrowerName} loan account | Next due ${nextDue}`;
 }
 
 export function buildCustomerLoanRows(
@@ -73,7 +100,7 @@ export function buildCustomerLoanRows(
 			debit: formatNumber(loan.principalAmount),
 			credit: formatNumber(collected),
 			balance: formatNumber(balance),
-			qty: loan.termMonths,
+			qty: loan.termMonths ?? 0,
 			paymentTerm: getCustomerPaymentTerm(loan, installments),
 			other: getCustomerOtherText(loan, installments),
 		});

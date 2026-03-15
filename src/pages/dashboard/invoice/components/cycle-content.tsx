@@ -55,6 +55,8 @@ export function CycleContent({ customerId, customerName, onSelectCycle, requireC
 	const {
 		cycles,
 		summaryCards,
+		searchValue,
+		setSearchValue,
 		duration,
 		status,
 		fromDate,
@@ -112,7 +114,7 @@ export function CycleContent({ customerId, customerName, onSelectCycle, requireC
 	return (
 		<div className={`flex w-full flex-col gap-4 ${isLoading ? "opacity-60 pointer-events-none" : ""}`}>
 			{/* Header */}
-			<div className="flex flex-wrap items-center justify-between gap-2">
+			<div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-2">
 				<div className="flex items-center gap-2">
 					<Text variant="body2" className="text-muted-foreground">
 						{customerName ? `${customerName} selected` : "Select a customer"}
@@ -124,7 +126,6 @@ export function CycleContent({ customerId, customerName, onSelectCycle, requireC
 					</Button>
 				</div>
 			</div>
-
 			{/* Summary */}
 			<div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
 				{summaryCards.map((card) => (
@@ -132,8 +133,19 @@ export function CycleContent({ customerId, customerName, onSelectCycle, requireC
 				))}
 			</div>
 
-			{/* Filters: Duration + Status + Date Range */}
+			{/* Filters: Search + Duration + Status + Date Range */}
 			<div className="flex flex-wrap items-center justify gap-2 rounded-lg border p-4">
+				<div className="space-y-1.5">
+					<Label>Search</Label>
+					<Input
+						type="text"
+						value={searchValue}
+						onChange={(e) => setSearchValue(e.target.value)}
+						placeholder="Search customer..."
+						className="w-[220px]"
+					/>
+				</div>
+
 				<div className="space-y-1.5">
 					<Label>Duration</Label>
 					<Combobox<(typeof durationOptions)[number]>

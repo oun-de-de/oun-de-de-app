@@ -3,14 +3,14 @@ import type { CashTransaction } from "@/core/types/cash-transaction";
 import { formatNumber } from "@/core/utils/formatters";
 
 const formatAmount = (value: number) => (value > 0 ? formatNumber(value, "-") : "-");
-const formatCashTransactionDate = (value?: string | null) => value?.trim() || "-";
+const formatAccountingCenterDate = (value?: string | null) => value?.trim() || "-";
 
-export const cashTransactionColumns: ColumnDef<CashTransaction>[] = [
+export const accountingCenterColumns: ColumnDef<CashTransaction>[] = [
 	{
 		header: "Date",
 		accessorKey: "date",
 		size: 110,
-		cell: ({ row }) => formatCashTransactionDate(row.original.date),
+		cell: ({ row }) => formatAccountingCenterDate(row.original.date),
 	},
 	{
 		header: "Ref No",

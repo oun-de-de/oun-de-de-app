@@ -3,14 +3,16 @@ import { BackButton } from "@/core/components/common";
 import { cn } from "@/core/utils";
 import {
 	getPaperSizePageValue,
+	getPaperSizeWrapperClassName,
 	getTemplateClassName,
+	type OrientationMode,
 	type PaperSizeMode,
 	type SortMode,
 	type TemplateMode,
 } from "@/pages/dashboard/invoice/export-preview/constants";
 import { buildInvoiceExportBlob } from "@/pages/dashboard/invoice/export-preview/utils/invoice-export-template";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 import { toast } from "sonner";
 import { ReportFilterBar } from "../../components/layout/report-filter-bar";
 import { ReportLayout } from "../../components/layout/report-layout";
@@ -43,14 +45,39 @@ function areReportFiltersEqual(left: ReportFiltersValue, right: ReportFiltersVal
 }
 
 export function ReportDetailView({ reportSlug }: ReportDetailViewProps) {
+	const location = useLocation();
 	const navigate = useNavigate();
+	const searchParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
 	const [showSections, setShowSections] = useState(DEFAULT_REPORT_SECTIONS);
 	const [showColumns, setShowColumns] = useState(DEFAULT_REPORT_COLUMNS);
 	const [exportInvoiceIds, setExportInvoiceIds] = useState<string[]>([]);
 	const [isExporting, setIsExporting] = useState(false);
-	const [templateMode, setTemplateMode] = useState<TemplateMode>("standard");
-	const [paperSizeMode, setPaperSizeMode] = useState<PaperSizeMode>("a4");
-	const [sortMode, setSortMode] = useState<SortMode>("default");
+	const initialTemplateMode =
+		searchParams.get("template") === "standard" ||
+		searchParams.get("template") === "compact" ||
+		searchParams.get("template") === "detailed"
+			? (searchParams.get("template") as TemplateMode)
+			: "standard";
+	const initialPaperSizeMode =
+		searchParams.get("paper") === "a5" || searchParams.get("paper") === "a4" || searchParams.get("paper") === "letter"
+			? (searchParams.get("paper") as PaperSizeMode)
+			: "a4";
+	const initialOrientationMode =
+		searchParams.get("orientation") === "portrait" || searchParams.get("orientation") === "landscape"
+			? (searchParams.get("orientation") as OrientationMode)
+			: "portrait";
+	const initialSortMode =
+		searchParams.get("sort") === "default" ||
+		searchParams.get("sort") === "date-desc" ||
+		searchParams.get("sort") === "date-asc" ||
+		searchParams.get("sort") === "customer-asc" ||
+		searchParams.get("sort") === "balance-desc"
+			? (searchParams.get("sort") as SortMode)
+			: "default";
+	const [templateMode, setTemplateMode] = useState<TemplateMode>(initialTemplateMode);
+	const [paperSizeMode, setPaperSizeMode] = useState<PaperSizeMode>(initialPaperSizeMode);
+	const [orientationMode, setOrientationMode] = useState<OrientationMode>(initialOrientationMode);
+	const [sortMode, setSortMode] = useState<SortMode>(initialSortMode);
 	const [tableData, setTableData] = useState<{
 		rows: ReportTemplateRow[];
 		columns: ReportTemplateColumn[];
@@ -75,7 +102,10 @@ export function ReportDetailView({ reportSlug }: ReportDetailViewProps) {
 	const reportDefinition = useMemo(() => getReportDefinition(reportSlug), [reportSlug]);
 	const isExcelExportReport =
 		reportSlug === "open-invoice-detail-by-customer" || reportSlug === "receipt-detail-by-customer";
-	// const tableWrapperClassName = useMemo(() => getPaperSizeWrapperClassName(paperSizeMode), [paperSizeMode]);
+	const tableWrapperClassName = useMemo(
+		() => getPaperSizeWrapperClassName(paperSizeMode, orientationMode),
+		[paperSizeMode, orientationMode],
+	);
 	const pageSizeValue = useMemo(() => getPaperSizePageValue(paperSizeMode), [paperSizeMode]);
 	const tableClassName = useMemo(() => getTemplateClassName(templateMode), [templateMode]);
 	const hasVisibleFilters = hasVisibleReportFilters(reportDefinition.filterConfig);
@@ -95,12 +125,23 @@ export function ReportDetailView({ reportSlug }: ReportDetailViewProps) {
 			styleEl.id = styleId;
 			document.head.appendChild(styleEl);
 		}
-		styleEl.textContent = `@media print { @page { size: ${pageSizeValue}; margin: 6mm; } }`;
+		styleEl.textContent = `@media print { @page { size: ${pageSizeValue} ${orientationMode}; margin: 6mm; } }`;
 
 		return () => {
 			styleEl?.remove();
 		};
-	}, [pageSizeValue]);
+	}, [pageSizeValue, orientationMode]);
+
+	useEffect(() => {
+		const nextSearchParams = new URLSearchParams(location.search);
+		nextSearchParams.set("template", templateMode);
+		nextSearchParams.set("paper", paperSizeMode);
+		nextSearchParams.set("orientation", orientationMode);
+		nextSearchParams.set("sort", sortMode);
+		const nextSearch = `?${nextSearchParams.toString()}`;
+		if (nextSearch === location.search) return;
+		navigate(`${location.pathname}${nextSearch}`, { replace: true });
+	}, [location.pathname, location.search, navigate, orientationMode, paperSizeMode, sortMode, templateMode]);
 
 	const handleCopy = useCallback(async () => {
 		const visibleColumns = tableData.columns.filter((column) => !tableData.hiddenColumnKeys.includes(column.id));
@@ -161,7 +202,7 @@ export function ReportDetailView({ reportSlug }: ReportDetailViewProps) {
 
 		try {
 			setIsExporting(true);
-			const exportLines = await invoiceService.exportInvoice(exportInvoiceIds);
+			const exportLines = await invoiceService.listInvoiceDetails(exportInvoiceIds);
 			const blob = buildInvoiceExportBlob(exportLines);
 			const url = window.URL.createObjectURL(blob);
 			const link = document.createElement("a");
@@ -210,6 +251,8 @@ export function ReportDetailView({ reportSlug }: ReportDetailViewProps) {
 					onTemplateModeChange={setTemplateMode}
 					paperSizeMode={paperSizeMode}
 					onPaperSizeModeChange={setPaperSizeMode}
+					orientationMode={orientationMode}
+					onOrientationModeChange={setOrientationMode}
 					sortMode={sortMode}
 					onSortModeChange={setSortMode}
 					onPrint={handlePrint}
@@ -219,8 +262,7 @@ export function ReportDetailView({ reportSlug }: ReportDetailViewProps) {
 					className="rounded-b-none border-b-0 print:hidden"
 				/>
 
-				{/* <div className={cn("w-full", tableWrapperClassName)}> */}
-				<div className="w-full">
+				<div className={cn("w-full", tableWrapperClassName)}>
 					<ReportTable
 						columns={reportColumns}
 						showSections={showSections}
