@@ -1,15 +1,10 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import type { Coupon } from "@/core/types/coupon";
+import { getVehicleTypeLabel } from "@/core/types/vehicle";
 import { Badge } from "@/core/ui/badge";
 import { Button } from "@/core/ui/button";
 import { formatDisplayDate, formatNumber } from "@/core/utils/formatters";
 import { getEmployeeDisplayName } from "@/pages/dashboard/employees/utils/employee-utils";
-
-const mappingVehicleType: Record<string, string> = {
-	TUK_TUK: "Tuk Tuk",
-	TRUCK: "Truck",
-	OTHER: "Other",
-};
 
 type CouponColumnsOptions = {
 	onViewWeightRecords: (coupon: Coupon) => void;
@@ -52,7 +47,7 @@ export const getCouponColumns = ({ onViewWeightRecords }: CouponColumnsOptions):
 		accessorFn: (row) => row.vehicle?.vehicleType,
 		cell: ({ row }) => {
 			const vehicleType = row.original.vehicle?.vehicleType;
-			return vehicleType ? (mappingVehicleType[vehicleType] ?? vehicleType) : "-";
+			return getVehicleTypeLabel(vehicleType);
 		},
 		meta: {
 			bodyClassName: "text-center",
