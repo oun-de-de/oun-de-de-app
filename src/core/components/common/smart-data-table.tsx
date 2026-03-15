@@ -10,6 +10,7 @@ import {
 import { useCallback, useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 import { Icon } from "@/core/components/icon";
+import { Skeleton } from "@/core/ui/skeleton";
 import { cn } from "@/core/utils";
 import { TableFilterBar } from "./table-filter-bar";
 import { TablePagination } from "./table-pagination";
@@ -117,6 +118,10 @@ type SmartDataTableProps<T> = {
 	 * If undefined, defaults to true if filterConfig is provided.
 	 */
 	enableFilterBar?: boolean;
+	/** Show loading skeleton rows while data is resolving */
+	loading?: boolean;
+	/** Number of skeleton rows to render when loading */
+	loadingRowCount?: number;
 };
 
 /**
@@ -171,6 +176,8 @@ export function SmartDataTable<T extends object>({
 	onRowClick,
 	variant = "default",
 	enableFilterBar = true,
+	loading = false,
+	loadingRowCount = 12,
 }: SmartDataTableProps<T>) {
 	const scrollRef = useRef<HTMLDivElement>(null);
 	const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -350,7 +357,24 @@ export function SmartDataTable<T extends object>({
 								))}
 							</TableHead>
 							<TableBody>
-								{table.getRowModel().rows.length === 0 ? (
+								{loading ? (
+									Array.from({ length: loadingRowCount }).map((_, rowIndex) => (
+										<TableRow key={`skeleton-row-${rowIndex}`}>
+											{table.getAllLeafColumns().map((column) => {
+												const classNames = cn(
+													"px-3 py-2 border-r border-gray-300 last:border-r-0",
+													column.columnDef.meta?.bodyClassName,
+												);
+												const sizeStyle = getColumnSizeStyle(column.columnDef.size);
+												return (
+													<td key={`${column.id}-skeleton-${rowIndex}`} className={classNames} style={sizeStyle}>
+														<Skeleton className="h-4 w-full rounded-sm" />
+													</td>
+												);
+											})}
+										</TableRow>
+									))
+								) : table.getRowModel().rows.length === 0 ? (
 									<tr>
 										<td colSpan={table.getAllLeafColumns().length} className="px-3 py-6 text-center text-gray-500">
 											No data
