@@ -15,9 +15,9 @@ export function useBorrowPaymentForm() {
 	const [borrowerId, setBorrowerId] = useState("");
 	const [employeeId, setEmployeeId] = useState("");
 	const [monthlyAmount, setMonthlyAmount] = useState<string>("");
-
 	const [depositAmount, setDepositAmount] = useState<string>("");
 	const [dueDate, setDueDate] = useState(getTodayUTC);
+	const [dueWarningDays, setDueWarningDays] = useState<string>("7");
 
 	// Fetch Customers
 	const { data: customers = [] } = useQuery({
@@ -51,6 +51,11 @@ export function useBorrowPaymentForm() {
 			toast.error("Monthly amount must be greater than 0");
 			return;
 		}
+		const parsedDueWarningDays = Number(dueWarningDays);
+		if (!Number.isFinite(parsedDueWarningDays) || parsedDueWarningDays < 0) {
+			toast.error("Due warning days must be 0 or greater");
+			return;
+		}
 		const parsedDepositAmount = Number(depositAmount);
 		const principalAmount = depositAmount.trim() === "" || Number.isNaN(parsedDepositAmount) ? 0 : parsedDepositAmount;
 		if (principalAmount <= 0) {
@@ -63,6 +68,7 @@ export function useBorrowPaymentForm() {
 			borrowerId: selectedBorrowerId,
 			principalAmount,
 			loanInstallmentAmount: parsedMonthlyAmount,
+			dueWarningDays: parsedDueWarningDays,
 			startDate: toUtcIsoPreferNowIfToday(dueDate) ?? dueDate.toISOString(),
 		});
 	};
@@ -80,6 +86,8 @@ export function useBorrowPaymentForm() {
 		setDepositAmount,
 		dueDate,
 		setDueDate,
+		dueWarningDays,
+		setDueWarningDays,
 		confirm,
 		isPending,
 		customers,
