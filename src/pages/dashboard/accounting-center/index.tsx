@@ -3,20 +3,20 @@ import { DashboardSplitView } from "@/core/components/common/dashboard-split-vie
 import { useSidebarCollapse } from "@/core/hooks/use-sidebar-collapse";
 import type { CashTransactionSummary } from "@/core/types/cash-transaction";
 import { buildPagination, normalizeToken } from "@/core/utils/dashboard-utils";
-import { CashTransactionContent } from "./components/cash-transaction-content";
-import { CashTransactionSidebar } from "./components/cash-transaction-sidebar";
-import { useCashTransactions } from "./hooks/use-cash-transactions";
-import { useCashTransactionList, useCashTransactionListActions } from "./stores/cash-transaction-list-store";
+import { AccountingCenterContent } from "./components/accounting-center-content";
+import { AccountingCenterSidebar } from "./components/accounting-center-sidebar";
+import { useAccountingCenter } from "./hooks/use-accounting-center";
+import { useAccountingCenterList, useAccountingCenterListActions } from "./stores/accounting-center-list-store";
 
 const DEFAULT_TYPE_OPTIONS = [{ value: "all", label: "All" }];
 const DEFAULT_SUMMARY: CashTransactionSummary = { count: 0, debit: 0, credit: 0, balance: 0 };
 
-export default function CashTransactionsPage() {
+export default function AccountingCenterPage() {
 	const [activeCounterpartyId, setActiveCounterpartyId] = useState<string | null>(null);
-	const listState = useCashTransactionList();
-	const { updateState } = useCashTransactionListActions();
+	const listState = useAccountingCenterList();
+	const { updateState } = useAccountingCenterListActions();
 	const { isCollapsed, handleToggle } = useSidebarCollapse();
-	const { data } = useCashTransactions();
+	const { data } = useAccountingCenter();
 
 	const transactions = data?.rows ?? [];
 	const counterparties = data?.counterparties ?? [];
@@ -96,7 +96,7 @@ export default function CashTransactionsPage() {
 		<DashboardSplitView
 			sidebarClassName={isCollapsed ? "lg:w-20 xl:w-20" : "lg:w-[16rem] xl:w-1/5"}
 			sidebar={
-				<CashTransactionSidebar
+				<AccountingCenterSidebar
 					activeCounterpartyId={activeCounterpartyId}
 					counterparties={counterparties}
 					onSelect={setActiveCounterpartyId}
@@ -105,7 +105,7 @@ export default function CashTransactionsPage() {
 				/>
 			}
 			content={
-				<CashTransactionContent
+				<AccountingCenterContent
 					accountLabel={data?.accountLabel ?? "Cash on hand"}
 					activeCounterpartyName={activeCounterpartyName}
 					listState={listState}

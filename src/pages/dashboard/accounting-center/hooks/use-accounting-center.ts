@@ -330,9 +330,9 @@ const CASH_TRANSACTION_DATASET: CashTransactionDataset = {
 	summary,
 };
 
-export function useCashTransactions() {
+export function useAccountingCenter() {
 	return useQuery({
-		queryKey: ["cash-transactions"],
+		queryKey: ["accounting-center"],
 		queryFn: async () => CASH_TRANSACTION_DATASET,
 		staleTime: Infinity,
 	});

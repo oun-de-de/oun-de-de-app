@@ -33,27 +33,28 @@ export const backendNavData: NavProps["data"] = convert(convertFlatToTree(DB_MEN
 
 export const newActions = [
 	{
-		title: "Sales",
+		title: "Customers",
 		items: [
-			{ title: "Create Coupon", href: "/dashboard/coupons/create" },
+			{ title: "Create Cash Sale", href: "/sale/new/cash-sale" },
+			{ title: "Create Invoice", href: "/dashboard/invoice" },
 			{ title: "Create Receipt", href: "/dashboard/customers/create-receipt" },
 		],
 	},
 	{
-		title: "Users",
+		title: "Vendors",
 		items: [
-			{ title: "New Customer", href: "/dashboard/customers/create" },
-			{ title: "New Employee", href: "/dashboard/employees/create" },
-			{ title: "Loan Request", href: "/dashboard/loan/new" },
+			{ title: "Create Cash Purchase", href: "/dashboard/vendors" },
+			{ title: "Create Bill", href: "/dashboard/vendors" },
+			{ title: "Create Payment", href: "/dashboard/vendors" },
 		],
 	},
 	{
 		title: "Accounting",
 		items: [
-			{ title: "General Ledger", href: "/dashboard/reports/detail/general-ledger" },
-			{ title: "Trial Balance", href: "/dashboard/reports/detail/trial-balance" },
-			{ title: "Income & Expense", href: "/dashboard/reports/detail/balance-sheet" },
-			{ title: "Daily Report", href: "/dashboard/reports/detail/daily-report" },
+			{ title: "Create Journal", href: "/dashboard/accounting/create-journal" },
+			{ title: "Create Cash Transaction", href: "/dashboard/accounting-center/create" },
+			{ title: "Create Cash Revenue", href: "/dashboard/accounting/create-revenue" },
+			{ title: "Create Cash Expense", href: "/dashboard/accounting/create-expense" },
 		],
 	},
 ] as const;

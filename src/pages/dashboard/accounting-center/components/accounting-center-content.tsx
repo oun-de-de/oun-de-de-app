@@ -1,11 +1,12 @@
-import { SmartDataTable, SummaryStatCard } from "@/core/components/common";
+import { SmartDataTable, SplitButton, SummaryStatCard } from "@/core/components/common";
 import type { CashTransaction, CashTransactionSummary } from "@/core/types/cash-transaction";
 import { formatKHR, formatNumber } from "@/core/utils/formatters";
 import { Text } from "@/core/ui/typography";
 import type { ListState } from "@/core/store/createListStore";
-import { cashTransactionColumns } from "./cash-transaction-columns";
+import { useNavigate } from "react-router";
+import { accountingCenterColumns } from "./accounting-center-columns";
 
-type CashTransactionContentProps = {
+type AccountingCenterContentProps = {
 	accountLabel: string;
 	activeCounterpartyName: string | null;
 	listState: ListState;
@@ -26,7 +27,7 @@ const FIELD_OPTIONS = [
 	{ value: "memo", label: "Memo" },
 ];
 
-export function CashTransactionContent({
+export function AccountingCenterContent({
 	accountLabel,
 	activeCounterpartyName,
 	listState,
@@ -38,7 +39,8 @@ export function CashTransactionContent({
 	paginationItems,
 	typeOptions,
 	summary,
-}: CashTransactionContentProps) {
+}: AccountingCenterContentProps) {
+	const navigate = useNavigate();
 	const summaryCards = [
 		{
 			label: "Transactions",
@@ -53,7 +55,7 @@ export function CashTransactionContent({
 
 	return (
 		<>
-			<div className="flex flex-wrap items-center justify-between gap-2">
+			<div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-2">
 				<div className="flex flex-col gap-1">
 					<Text variant="body2" className="text-slate-400">
 						{activeCounterpartyName ? `${activeCounterpartyName} selected` : "All counterparties"}
@@ -62,8 +64,18 @@ export function CashTransactionContent({
 						{accountLabel}
 					</Text>
 				</div>
+				<SplitButton
+					size="sm"
+					mainAction={{
+						label: "Create Cash Transaction",
+						onClick: () => navigate("/dashboard/accounting-center/create"),
+					}}
+					options={[
+						{ label: "Create Cash Expense", onClick: () => navigate("/dashboard/accounting/create-expense") },
+						{ label: "Create Cash Revenue", onClick: () => navigate("/dashboard/accounting/create-revenue") },
+					]}
+				/>
 			</div>
-
 			<div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
 				{summaryCards.map((card) => (
 					<SummaryStatCard key={card.label} {...card} />
@@ -74,7 +86,7 @@ export function CashTransactionContent({
 				className="flex-1 min-h-0"
 				maxBodyHeight="100%"
 				data={pagedTransactions}
-				columns={cashTransactionColumns}
+				columns={accountingCenterColumns}
 				filterConfig={{
 					typeOptions,
 					fieldOptions: FIELD_OPTIONS,
@@ -83,7 +95,7 @@ export function CashTransactionContent({
 					searchValue: listState.searchValue,
 					typePlaceholder: "Transaction Type",
 					fieldPlaceholder: "Search Field",
-					searchPlaceholder: "Search cash transactions...",
+					searchPlaceholder: "Search accounting entries...",
 					onTypeChange: (value: string) => updateState({ typeFilter: value, page: 1 }),
 					onFieldChange: (value: string) => updateState({ fieldFilter: value, page: 1 }),
 					onSearchChange: (value: string) => updateState({ searchValue: value, page: 1 }),
