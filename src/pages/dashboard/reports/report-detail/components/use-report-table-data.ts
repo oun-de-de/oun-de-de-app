@@ -34,6 +34,26 @@ import {
 import { mapExportLinesToPreviewRows } from "./report-table-builders";
 import { normalizeReportFilters, sortReportRows } from "./report-table-utils";
 
+function normalizeInvoiceType(value: string | null | undefined) {
+	return (value ?? "").trim().toLowerCase();
+}
+
+function isReceiptRefNo(refNo: string | null | undefined) {
+	return /^(rec|rcp|rc)/i.test((refNo ?? "").trim());
+}
+
+function matchesInvoiceType(
+	invoice: { refNo?: string | null; type?: string | null },
+	expectedType: "invoice" | "receipt",
+) {
+	const normalizedType = normalizeInvoiceType(invoice.type);
+	if (normalizedType === "receipt" || normalizedType === "invoice") {
+		return normalizedType === expectedType;
+	}
+
+	return expectedType === "receipt" ? isReceiptRefNo(invoice.refNo) : !isReceiptRefNo(invoice.refNo);
+}
+
 interface UseReportTableDataParams {
 	reportSlug: string;
 	filters?: ReportFiltersValue;
@@ -81,23 +101,11 @@ export function useReportTableData({ reportSlug, filters, sortMode }: UseReportT
 				page: 1,
 				size: 10000,
 				sort: "date,desc",
-				type: definition.invoiceType,
 				customerId,
 				from: reportDateFrom,
 				to: reportDateTo,
 			}),
 		enabled: isInvoiceExport,
-	});
-
-	const invoiceIds = useMemo(
-		() => (isInvoiceExport ? (invoiceQuery.data?.list ?? []).map((invoice) => invoice.id) : []),
-		[isInvoiceExport, invoiceQuery.data?.list],
-	);
-
-	const exportQuery = useQuery({
-		queryKey: ["report", "invoice-export", invoiceIds],
-		queryFn: () => invoiceService.exportInvoice(invoiceIds),
-		enabled: isInvoiceExport && invoiceIds.length > 0,
 	});
 
 	const customerQuery = useQuery({
@@ -172,7 +180,24 @@ export function useReportTableData({ reportSlug, filters, sortMode }: UseReportT
 		[loanInstallmentQueries, loanQuery.data?.content],
 	);
 
-	const invoices = invoiceQuery.data ? invoiceQuery.data.list : fallbackReportInvoices;
+	const invoices = useMemo(() => {
+		if (!invoiceQuery.data) return fallbackReportInvoices;
+		const invoiceType = definition.invoiceType;
+		if (!invoiceType) return invoiceQuery.data.list;
+
+		return invoiceQuery.data.list.filter((invoice) => matchesInvoiceType(invoice, invoiceType));
+	}, [definition.invoiceType, invoiceQuery.data]);
+
+	const invoiceIds = useMemo(
+		() => (isInvoiceExport ? invoices.map((invoice) => invoice.id).filter(Boolean) : []),
+		[invoices, isInvoiceExport],
+	);
+
+	const exportQuery = useQuery({
+		queryKey: ["report", "invoice-export", invoiceIds],
+		queryFn: () => invoiceService.listInvoiceDetails(invoiceIds),
+		enabled: isInvoiceExport && invoiceIds.length > 0,
+	});
 	const exportLines = exportQuery.data ?? (invoiceQuery.data ? [] : fallbackReportExportLines);
 	const products = productQuery.data ?? fallbackReportProducts;
 	const loanContent = loanQuery.data ? loanQuery.data.content : fallbackReportLoans;
