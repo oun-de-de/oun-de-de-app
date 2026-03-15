@@ -30,13 +30,14 @@ fi
 
 echo "🚀 Uploading to server..."
 lftp -c "
-  open ftp://$FTP_USER:$FTP_PASS@$FTP_HOST
+  open -u $FTP_USER,$FTP_PASS ftp://$FTP_HOST
   set ftp:passive-mode yes
   set net:timeout 30
   set net:max-retries 3
+  set ssl:verify-certificate no
   mirror --reverse --delete --verbose \
-    --exclude .git \
-    --exclude node_modules \
+    --exclude .git/ \
+    --exclude node_modules/ \
     ./dist/ $FTP_REMOTE_DIR
 "
 
