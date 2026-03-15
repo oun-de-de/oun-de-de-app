@@ -4,7 +4,6 @@ import { DashboardSplitView } from "@/core/components/common/dashboard-split-vie
 import { useSidebarCollapse } from "@/core/hooks/use-sidebar-collapse";
 import type { Customer } from "@/core/types/customer";
 import type { Cycle } from "@/core/types/cycle";
-import { formatFlexibleDisplayDate } from "@/core/utils/date-display";
 import { CustomerSidebar } from "@/pages/dashboard/customers/components/customer-sidebar";
 import { CycleContent } from "./components/cycle-content";
 import { InvoiceContent } from "./components/invoice-content";
@@ -50,6 +49,8 @@ export default function InvoicePage() {
 	const handleBackToCycles = useCallback(() => {
 		setActiveCycleSnapshot(null);
 		setActiveCycleId(null);
+		setActiveCustomerId(null);
+		setActiveCustomerName(null);
 	}, []);
 
 	// Invoice table — only used when a cycle is selected
@@ -59,9 +60,7 @@ export default function InvoicePage() {
 		cycleId: activeCycleId ?? activeCycle?.id ?? null,
 	});
 
-	const activeInvoiceLabel = activeCycle
-		? `${activeCustomerName ?? activeCycle.customerName} — ${formatFlexibleDisplayDate(activeCycle.startDate)} ~ ${formatFlexibleDisplayDate(activeCycle.endDate)}`
-		: null;
+	const activeInvoiceLabel = activeCycle ? `${activeCustomerName ?? activeCycle.customerName}` : null;
 
 	return (
 		<DashboardSplitView

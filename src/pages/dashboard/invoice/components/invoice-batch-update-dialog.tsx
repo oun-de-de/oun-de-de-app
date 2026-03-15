@@ -4,12 +4,11 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { Input } from "@/core/ui/input";
 import { Label } from "@/core/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/core/ui/select";
-import { INVOICE_TYPE_OPTIONS } from "../constants/constants";
 
 interface InvoiceBatchUpdateDialogProps {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
-	onUpdate: (data: { customerName?: string; type?: string; status?: string }) => void;
+	onUpdate: (data: { customerName?: string; status?: string }) => void;
 	isUpdating?: boolean;
 	selectedCount: number;
 }
@@ -27,29 +26,25 @@ export function InvoiceBatchUpdateDialog({
 	selectedCount,
 }: InvoiceBatchUpdateDialogProps) {
 	const [customerName, setCustomerName] = useState("");
-	const [type, setType] = useState("");
 	const [status, setStatus] = useState("");
 
 	useEffect(() => {
 		if (open) {
 			setCustomerName("");
-			setType("");
 			setStatus("");
 		}
 	}, [open]);
 
-	const canSubmit = Boolean(customerName.trim()) || Boolean(type.trim()) || Boolean(status.trim());
+	const canSubmit = Boolean(customerName.trim()) || Boolean(status.trim());
 
 	const handleUpdate = () => {
 		const normalizedCustomerName = toOptional(customerName);
-		const normalizedType = toOptional(type);
 		const normalizedStatus = toOptional(status);
 		const payload = {
 			...(normalizedCustomerName ? { customerName: normalizedCustomerName } : {}),
-			...(normalizedType ? { type: normalizedType } : {}),
 			...(normalizedStatus ? { status: normalizedStatus } : {}),
 		};
-		if (!normalizedCustomerName && !normalizedType && !normalizedStatus) return;
+		if (!normalizedCustomerName && !normalizedStatus) return;
 		onUpdate(payload);
 	};
 
@@ -71,24 +66,6 @@ export function InvoiceBatchUpdateDialog({
 							className="col-span-3"
 							placeholder="Leave empty to keep current"
 						/>
-					</div>
-					<div className="grid grid-cols-4 items-center gap-4">
-						<Label htmlFor="type" className="text-right">
-							Type
-						</Label>
-						<Select value={type} onValueChange={setType}>
-							<SelectTrigger className="col-span-3">
-								<SelectValue placeholder="Select type" />
-							</SelectTrigger>
-							<SelectContent>
-								<SelectItem value=" ">Keep current</SelectItem>
-								{INVOICE_TYPE_OPTIONS.map((option) => (
-									<SelectItem key={option.value} value={option.value}>
-										{option.label}
-									</SelectItem>
-								))}
-							</SelectContent>
-						</Select>
 					</div>
 					<div className="grid grid-cols-4 items-center gap-4">
 						<Label htmlFor="status" className="text-right">

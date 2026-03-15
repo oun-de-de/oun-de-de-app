@@ -1,5 +1,5 @@
 import type { ColumnDef } from "@tanstack/react-table";
-import type { Cycle } from "@/core/types/cycle";
+import { getCycleStatusLabel, type Cycle } from "@/core/types/cycle";
 import { formatFlexibleDisplayDate } from "@/core/utils/date-display";
 import { Badge } from "@/core/ui/badge";
 import { formatKHR } from "../utils/formatters";
@@ -45,7 +45,9 @@ export function getCycleColumns(): ColumnDef<Cycle>[] {
 			accessorKey: "status",
 			header: "Status",
 			size: 100,
-			cell: ({ row }) => <Badge variant={getCycleStatusVariant(row.original.status)}>{row.original.status}</Badge>,
+			cell: ({ row }) => (
+				<Badge variant={getCycleStatusVariant(row.original.status)}>{getCycleStatusLabel(row.original.status)}</Badge>
+			),
 			meta: { bodyClassName: "text-center" },
 		},
 		{
