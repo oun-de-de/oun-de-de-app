@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
+import { useLocation } from "react-router";
 
 import couponService from "@/core/api/services/coupon-service";
 import { DashboardSplitView } from "@/core/components/common/dashboard-split-view";
@@ -10,8 +11,14 @@ import { CustomerSidebar } from "@/pages/dashboard/customers/components/customer
 import { CouponContent } from "./components/coupon-content";
 import { useCouponsList, useCouponsListActions } from "./stores/coupons-store";
 
+type CouponsLocationState = {
+	activeCustomer?: Customer | null;
+};
+
 export default function CouponsPage() {
-	const [activeCustomer, setActiveCustomer] = useState<Customer | null>(null);
+	const location = useLocation();
+	const locationState = location.state as CouponsLocationState | null;
+	const [activeCustomer, setActiveCustomer] = useState<Customer | null>(locationState?.activeCustomer ?? null);
 
 	const listState = useCouponsList();
 	const { updateState } = useCouponsListActions();
@@ -67,6 +74,7 @@ export default function CouponsPage() {
 			content={
 				<CouponContent
 					activeCustomerName={activeCustomer?.name}
+					activeCustomer={activeCustomer}
 					listState={listState}
 					updateState={updateState}
 					pagedCoupons={pagedCoupons}

@@ -3,16 +3,19 @@ import { useMemo, useState } from "react";
 import { couponSummaryCards } from "@/_mock/data/dashboard";
 import { SmartDataTable, SummaryStatCard } from "@/core/components/common";
 import couponService from "@/core/api/services/coupon-service";
+import type { Customer } from "@/core/types/customer";
 import type { Coupon } from "@/core/types/coupon";
 import { Button } from "@/core/ui/button";
 import { Text } from "@/core/ui/typography";
 import { useNavigate } from "react-router";
 import type { CouponState } from "../stores/coupon-state";
 import { getCouponColumns } from "./coupon-columns";
+import { CouponDeleteDialog } from "./coupon-delete-dialog";
 import { CouponWeightRecordsDialog } from "./coupon-weight-records-dialog";
 
 type CouponContentProps = {
 	activeCustomerName: string | null | undefined;
+	activeCustomer?: Customer | null;
 	listState: CouponState;
 	updateState: (state: Partial<CouponState>) => void;
 	pagedCoupons: Coupon[];
@@ -27,6 +30,7 @@ const summaryCards = couponSummaryCards;
 
 export function CouponContent({
 	activeCustomerName,
+	activeCustomer,
 	listState,
 	updateState,
 	pagedCoupons,
@@ -37,12 +41,21 @@ export function CouponContent({
 }: CouponContentProps) {
 	const navigate = useNavigate();
 	const [selectedCoupon, setSelectedCoupon] = useState<Coupon | null>(null);
+	const [deletingCoupon, setDeletingCoupon] = useState<Coupon | null>(null);
 	const columns = useMemo(
 		() =>
 			getCouponColumns({
 				onViewWeightRecords: setSelectedCoupon,
+				onEditCoupon: (coupon) =>
+					navigate(`/dashboard/coupons/edit/${coupon.id}`, {
+						state: {
+							coupon,
+							activeCustomer,
+						},
+					}),
+				onDeleteCoupon: setDeletingCoupon,
 			}),
-		[],
+		[navigate, activeCustomer],
 	);
 	const { data: weightRecords = [], isLoading: isWeightRecordsLoading } = useQuery({
 		queryKey: ["coupon-weight-records", selectedCoupon?.id],
@@ -95,6 +108,13 @@ export function CouponContent({
 				coupon={selectedCoupon}
 				weightRecords={weightRecords}
 				isLoading={isWeightRecordsLoading}
+			/>
+			<CouponDeleteDialog
+				open={Boolean(deletingCoupon)}
+				onOpenChange={(open) => {
+					if (!open) setDeletingCoupon(null);
+				}}
+				coupon={deletingCoupon}
 			/>
 		</>
 	);

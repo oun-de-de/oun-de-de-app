@@ -57,17 +57,6 @@ export const COUPON_FIELDS: FormFieldConfig[] = [
 		placeholder: "Optional accounting reference",
 	},
 	{
-		name: "delAccNo",
-		label: "Delivery Accounting No",
-		type: "text",
-		placeholder: "Optional delivery accounting number",
-	},
-	{
-		name: "delDate",
-		label: "Delivery Date",
-		type: "date",
-	},
-	{
 		name: "weightRecordsBuilder",
 		label: "Weight Records",
 		type: "custom",

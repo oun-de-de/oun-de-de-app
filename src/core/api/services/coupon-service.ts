@@ -1,5 +1,11 @@
 import type { PagePaginatedResponse } from "@/core/types/common";
-import type { Coupon, CreateCouponRequest, WeightRecord } from "@/core/types/coupon";
+import type {
+	Coupon,
+	CreateCouponRequest,
+	CouponWeightRecordResult,
+	DeleteCouponRequest,
+	UpdateCouponRequest,
+} from "@/core/types/coupon";
 import type { Pagination } from "@/core/types/pagination";
 import { mapPagePaginatedResponseToPagination } from "@/core/utils/pagination";
 import { apiClient } from "../apiClient";
@@ -31,13 +37,27 @@ const getCouponList = (params?: {
 
 const createCoupon = (coupon: CreateCouponRequest) => apiClient.post<Coupon>({ url: CouponApi.Create, data: coupon });
 
+const updateCouponByCouponNo = (couponNo: number, data: UpdateCouponRequest): Promise<Coupon> =>
+	apiClient.put<Coupon>({
+		url: `${CouponApi.List}/by-coupon-no/${couponNo}`,
+		data,
+	});
+
+const deleteCouponByCouponNo = (couponNo: number, data: DeleteCouponRequest): Promise<Record<string, unknown>> =>
+	apiClient.delete<Record<string, unknown>>({
+		url: `${CouponApi.List}/by-coupon-no/${couponNo}`,
+		data,
+	});
+
 const getCouponWeightRecords = (couponId: string) =>
-	apiClient.get<WeightRecord[]>({
+	apiClient.get<CouponWeightRecordResult[]>({
 		url: getCouponWeightRecordsUrl(couponId),
 	});
 
 export default {
 	getCouponList,
 	createCoupon,
+	updateCouponByCouponNo,
+	deleteCouponByCouponNo,
 	getCouponWeightRecords,
 };
