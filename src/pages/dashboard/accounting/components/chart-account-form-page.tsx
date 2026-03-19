@@ -1,30 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
-import { accountingAccountList } from "@/_mock/data/dashboard";
 import { BackButton, SplitButton } from "@/core/components/common";
 import { Button } from "@/core/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/core/ui/card";
 import { Input } from "@/core/ui/input";
 import { Label } from "@/core/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/core/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/core/ui/select";
 import { Textarea } from "@/core/ui/textarea";
-
-const ACCOUNT_TYPE_OPTIONS = [
-	{ value: "current-asset", label: "Current Asset" },
-	{ value: "asset", label: "Asset" },
-	{ value: "liability", label: "Liability" },
-	{ value: "equity", label: "Equity" },
-	{ value: "revenue", label: "Revenue" },
-	{ value: "expense", label: "Expense" },
-];
-
-const PARENT_ACCOUNT_OPTIONS = [
-	{ value: "12226A", label: "12226A : Parent Account" },
-	{ value: "12110", label: "12110 : Accounts Receivable" },
-	{ value: "10115A", label: "10115A : ABA Bank" },
-];
+import { ACCOUNTING_UI_TEXT } from "../constants";
+import { useCreateChartAccount } from "../hooks/use-create-chart-account";
+import { useAccountingReferenceData } from "../hooks/use-accounting-reference-data";
 
 type ChartAccountFormPageProps = {
 	mode: "create" | "edit";
@@ -33,13 +19,13 @@ type ChartAccountFormPageProps = {
 export function ChartAccountFormPage({ mode }: ChartAccountFormPageProps) {
 	const navigate = useNavigate();
 	const { id } = useParams<{ id: string }>();
+	const { accountTypeOptions, chartAccounts, isLoading } = useAccountingReferenceData();
+	const { mutateAsync: createChartAccount, isPending: isCreating } = useCreateChartAccount();
 	const selectedAccount = useMemo(
-		() => (mode === "edit" && id ? accountingAccountList.find((account) => account.id === id) : undefined),
-		[id, mode],
+		() => (mode === "edit" && id ? chartAccounts.find((account) => account.id === id) : undefined),
+		[chartAccounts, id, mode],
 	);
-	const [accountType, setAccountType] = useState("current-asset");
-	const [parentAccount, setParentAccount] = useState("");
-	const [status, setStatus] = useState("active");
+	const [accountTypeId, setAccountTypeId] = useState("");
 	const [accountCode, setAccountCode] = useState("");
 	const [accountName, setAccountName] = useState("");
 	const [memo, setMemo] = useState("");
@@ -47,62 +33,75 @@ export function ChartAccountFormPage({ mode }: ChartAccountFormPageProps) {
 	useEffect(() => {
 		if (mode !== "edit" || !selectedAccount) return;
 
-		const [nextCode = "", ...nameParts] = selectedAccount.name.split(" : ");
-		setAccountCode(nextCode);
-		setAccountName(nameParts.join(" : "));
-		setAccountType(selectedAccount.type || "current-asset");
-		setStatus(selectedAccount.status === "inactive" ? "inactive" : "active");
+		setAccountCode(selectedAccount.code);
+		setAccountName(selectedAccount.name);
+		setAccountTypeId(selectedAccount.accountTypeId);
+		setMemo(selectedAccount.descr ?? "");
 	}, [mode, selectedAccount]);
 
-	const isEdit = mode === "edit";
-	const pageTitle = isEdit ? "Edit Chart Account" : "Create Chart Account";
-	const cardTitle = isEdit ? "Chart of account" : "Chart of account";
-	const successMessage = isEdit ? "Chart account updated" : "Chart account draft saved";
+	useEffect(() => {
+		if (mode !== "create" || accountTypeId || accountTypeOptions.length === 0) return;
+		setAccountTypeId(accountTypeOptions[0].value);
+	}, [accountTypeId, accountTypeOptions, mode]);
 
-	const handleSave = () => {
-		toast.success(successMessage);
-		navigate("/dashboard/accounting");
+	const isEdit = mode === "edit";
+	const isReadOnly = isEdit;
+	const isFormValid = accountTypeId.trim() !== "" && accountCode.trim() !== "" && accountName.trim() !== "";
+
+	const handleSave = async () => {
+		if (!isFormValid) {
+			toast.error(ACCOUNTING_UI_TEXT.formIncomplete);
+			return;
+		}
+
+		try {
+			await createChartAccount({
+				accountTypeId,
+				code: accountCode.trim(),
+				name: accountName.trim(),
+				descr: memo.trim() || undefined,
+			});
+			toast.success(ACCOUNTING_UI_TEXT.createSuccess);
+			navigate("/dashboard/accounting");
+		} catch {
+			toast.error(ACCOUNTING_UI_TEXT.createError);
+		}
 	};
 
 	return (
 		<div className="flex h-full flex-col gap-4 p-3 md:p-4">
 			<div className="flex items-center gap-3 border-b border-slate-200 pb-2">
 				<BackButton onClick={() => navigate("/dashboard/accounting")} />
-				<span className="text-base font-semibold text-slate-700">{pageTitle}</span>
+				<span className="text-base font-semibold text-slate-700">
+					{isReadOnly ? ACCOUNTING_UI_TEXT.viewPageTitle : ACCOUNTING_UI_TEXT.createPageTitle}
+				</span>
 			</div>
 
 			<Card className="gap-0 py-0">
 				<CardHeader className="justify-start border-b px-4 py-3">
-					<CardTitle className="text-left text-base font-semibold text-slate-700">{cardTitle}</CardTitle>
+					<CardTitle className="text-left text-base font-semibold text-slate-700">
+						{ACCOUNTING_UI_TEXT.cardTitle}
+					</CardTitle>
 				</CardHeader>
 				<CardContent className="space-y-4 px-4 py-4">
+					{isReadOnly ? (
+						<div className="rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+							{ACCOUNTING_UI_TEXT.viewOnlyNotice}
+						</div>
+					) : null}
+
 					<div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.15fr_1fr] lg:gap-6">
 						<div className="space-y-3">
 							<div className="grid gap-3 sm:grid-cols-[220px_minmax(0,1fr)] sm:items-center">
 								<Label className="text-slate-600">
 									<span className="text-rose-500">*</span> Account type
 								</Label>
-								<Select value={accountType} onValueChange={setAccountType}>
-									<SelectTrigger>
+								<Select value={accountTypeId} onValueChange={setAccountTypeId}>
+									<SelectTrigger disabled={isLoading || isReadOnly}>
 										<SelectValue placeholder="Select type" />
 									</SelectTrigger>
 									<SelectContent>
-										{ACCOUNT_TYPE_OPTIONS.map((option) => (
-											<SelectItem key={option.value} value={option.value}>
-												{option.label}
-											</SelectItem>
-										))}
-									</SelectContent>
-								</Select>
-							</div>
-							<div className="grid gap-3 sm:grid-cols-[220px_minmax(0,1fr)] sm:items-center">
-								<Label className="text-slate-600">Parent Account</Label>
-								<Select value={parentAccount} onValueChange={setParentAccount}>
-									<SelectTrigger>
-										<SelectValue placeholder="Select parent account" />
-									</SelectTrigger>
-									<SelectContent>
-										{PARENT_ACCOUNT_OPTIONS.map((option) => (
+										{accountTypeOptions.map((option) => (
 											<SelectItem key={option.value} value={option.value}>
 												{option.label}
 											</SelectItem>
@@ -114,57 +113,58 @@ export function ChartAccountFormPage({ mode }: ChartAccountFormPageProps) {
 								<Label className="text-slate-600">
 									<span className="text-rose-500">*</span> Account code
 								</Label>
-								<Input value={accountCode} onChange={(event) => setAccountCode(event.target.value)} />
+								<Input
+									value={accountCode}
+									onChange={(event) => setAccountCode(event.target.value)}
+									disabled={isCreating || isReadOnly}
+								/>
 							</div>
 							<div className="grid gap-3 sm:grid-cols-[220px_minmax(0,1fr)] sm:items-center">
 								<Label className="text-slate-600">
 									<span className="text-rose-500">*</span> Account name
 								</Label>
-								<Input value={accountName} onChange={(event) => setAccountName(event.target.value)} />
+								<Input
+									value={accountName}
+									onChange={(event) => setAccountName(event.target.value)}
+									disabled={isCreating || isReadOnly}
+								/>
 							</div>
 						</div>
 
 						<div className="space-y-3">
-							<div className="grid gap-3 sm:grid-cols-[220px_minmax(0,1fr)] sm:items-center">
-								<Label className="text-slate-600">
-									<span className="text-rose-500">*</span> Status
-								</Label>
-								<RadioGroup value={status} onValueChange={setStatus} className="flex items-center gap-8">
-									<div className="flex items-center gap-2">
-										<RadioGroupItem value="active" id={`chart-account-active-${mode}`} />
-										<Label htmlFor={`chart-account-active-${mode}`} className="cursor-pointer text-slate-700">
-											Active
-										</Label>
-									</div>
-									<div className="flex items-center gap-2">
-										<RadioGroupItem value="inactive" id={`chart-account-inactive-${mode}`} />
-										<Label htmlFor={`chart-account-inactive-${mode}`} className="cursor-pointer text-slate-700">
-											Inactive
-										</Label>
-									</div>
-								</RadioGroup>
-							</div>
 							<div className="grid gap-3 sm:grid-cols-[220px_minmax(0,1fr)] sm:items-start">
 								<Label className="text-slate-600">Memo</Label>
-								<Textarea value={memo} onChange={(event) => setMemo(event.target.value)} className="min-h-24" />
+								<Textarea
+									value={memo}
+									onChange={(event) => setMemo(event.target.value)}
+									className="min-h-24"
+									disabled={isCreating || isReadOnly}
+								/>
 							</div>
 						</div>
 					</div>
 
 					<div className="flex items-center justify-end gap-3">
-						<Button variant="outline" onClick={() => navigate("/dashboard/accounting")}>
-							Cancel
+						<Button variant="outline" onClick={() => navigate("/dashboard/accounting")} disabled={isCreating}>
+							{isReadOnly ? ACCOUNTING_UI_TEXT.close : ACCOUNTING_UI_TEXT.cancel}
 						</Button>
-						<SplitButton
-							variant="info"
-							mainAction={{ label: "Save & Close", onClick: handleSave }}
-							options={[
-								{
-									label: isEdit ? "Save & Keep Editing" : "Save & New",
-									onClick: () => toast.success(successMessage),
-								},
-							]}
-						/>
+						{isReadOnly ? null : (
+							<SplitButton
+								variant="info"
+								mainAction={{
+									label: ACCOUNTING_UI_TEXT.saveAndClose,
+									onClick: handleSave,
+									disabled: isCreating || !isFormValid,
+								}}
+								options={[
+									{
+										label: ACCOUNTING_UI_TEXT.saveAndNew,
+										onClick: handleSave,
+										disabled: isCreating || !isFormValid,
+									},
+								]}
+							/>
+						)}
 					</div>
 				</CardContent>
 			</Card>

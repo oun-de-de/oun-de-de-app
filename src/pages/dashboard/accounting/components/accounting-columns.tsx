@@ -4,29 +4,39 @@ import { Badge } from "@/core/ui/badge";
 
 const columnHelper = createColumnHelper<AccountingRow>();
 
+const formatTypeLabel = (value: string) =>
+	value
+		.replace(/_/g, " ")
+		.split(" ")
+		.filter(Boolean)
+		.map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+		.join(" ");
+
 const TYPE_BADGE_CLASSNAME: Record<string, string> = {
-	Cash_Sale: "bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-200",
-	Revenue: "bg-sky-50 text-sky-700 ring-1 ring-inset ring-sky-200",
-	Receipt: "bg-yellow-50 text-yellow-700 ring-1 ring-inset ring-yellow-200",
-	Expense: "bg-rose-50 text-rose-700 ring-1 ring-inset ring-rose-200",
-	Journal: "bg-violet-50 text-violet-700 ring-1 ring-inset ring-violet-200",
-	Invoice: "bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-200",
+	Cash_Sale: "border border-amber-200 bg-amber-50 text-amber-700",
+	Revenue: "border border-sky-200 bg-sky-50 text-sky-700",
+	Receipt: "border border-yellow-200 bg-yellow-50 text-yellow-700",
+	Expense: "border border-cyan-200 bg-cyan-50 text-cyan-700",
+	Journal: "border border-violet-200 bg-violet-50 text-violet-700",
+	Invoice: "border border-emerald-200 bg-emerald-50 text-emerald-700",
 };
 
 export const columns = [
 	columnHelper.accessor("date", {
 		header: "Date",
+		size: 110,
 		cell: (info) => <span>{info.getValue()}</span>,
 	}),
 	columnHelper.accessor("refNo", {
 		header: "Ref No.",
+		size: 170,
 		cell: (info) => <span className="text-sky-600">{info.getValue()}</span>,
 	}),
 	columnHelper.accessor("type", {
 		header: "Type",
 		cell: (info) => (
-			<Badge className={TYPE_BADGE_CLASSNAME[info.getValue()] ?? "bg-slate-100 text-slate-700"}>
-				{info.getValue()}
+			<Badge className={TYPE_BADGE_CLASSNAME[info.getValue()] ?? "border border-slate-200 bg-slate-50 text-slate-700"}>
+				{formatTypeLabel(info.getValue())}
 			</Badge>
 		),
 	}),

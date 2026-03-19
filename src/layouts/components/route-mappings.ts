@@ -69,20 +69,48 @@ export const ROUTE_TITLE_MAPPINGS = [
 		title: "Coupon Center",
 	},
 	{
+		path: "/dashboard/coupons/create",
+		title: "Create Coupon",
+	},
+	{
+		path: "/dashboard/coupons/edit",
+		title: "Edit Coupon",
+	},
+	{
 		path: "/dashboard/cash-transactions",
-		title: "Accounting Center",
+		title: "Accounting",
 	},
 	{
 		path: "/dashboard/accounting-center",
-		title: "Accounting Center",
+		title: "Accounting",
 	},
 	{
 		path: "/dashboard/accounting",
-		title: "Accounting Center",
+		title: "Accounting",
+	},
+	{
+		path: "/dashboard/accounting/create-journal",
+		title: "Create Journal",
+	},
+	{
+		path: "/dashboard/accounting/create-expense",
+		title: "Create Cash Expense",
+	},
+	{
+		path: "/dashboard/accounting/create-revenue",
+		title: "Create Cash Revenue",
+	},
+	{
+		path: "/dashboard/accounting/create-chart-account",
+		title: "Create Chart Account",
 	},
 	{
 		path: "/dashboard/accounting/edit-chart-account",
-		title: "Edit Chart Account",
+		title: "View Chart Account",
+	},
+	{
+		path: "/dashboard/accounting-center/create",
+		title: "Create Cash Transaction",
 	},
 	{
 		path: "/dashboard/reports",

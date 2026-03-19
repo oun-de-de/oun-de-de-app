@@ -4,6 +4,7 @@ import { formatKHR, formatNumber } from "@/core/utils/formatters";
 import { Text } from "@/core/ui/typography";
 import type { ListState } from "@/core/store/createListStore";
 import { useNavigate } from "react-router";
+import { ACCOUNTING_UI_TEXT } from "@/pages/dashboard/accounting/constants";
 import { accountingCenterColumns } from "./accounting-center-columns";
 
 type AccountingCenterContentProps = {
@@ -67,12 +68,18 @@ export function AccountingCenterContent({
 				<SplitButton
 					size="sm"
 					mainAction={{
-						label: "Create Cash Transaction",
+						label: `Create Cash Transaction (${ACCOUNTING_UI_TEXT.draftOptionSuffix})`,
 						onClick: () => navigate("/dashboard/accounting-center/create"),
 					}}
 					options={[
-						{ label: "Create Cash Expense", onClick: () => navigate("/dashboard/accounting/create-expense") },
-						{ label: "Create Cash Revenue", onClick: () => navigate("/dashboard/accounting/create-revenue") },
+						{
+							label: `Create Cash Expense (${ACCOUNTING_UI_TEXT.draftOptionSuffix})`,
+							onClick: () => navigate("/dashboard/accounting/create-expense"),
+						},
+						{
+							label: `Create Cash Revenue (${ACCOUNTING_UI_TEXT.draftOptionSuffix})`,
+							onClick: () => navigate("/dashboard/accounting/create-revenue"),
+						},
 					]}
 				/>
 			</div>
