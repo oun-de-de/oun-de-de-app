@@ -97,8 +97,7 @@ export default function CreateCouponPage() {
 			couponNo: 19,
 			couponId: 19,
 			accNo: "string",
-			delAccNo: "string",
-			delDate: toDateInputValue("2026-02-10T07:42:55.196Z"),
+			date: toDateInputValue("2026-02-10T07:42:55.196Z"),
 		});
 
 		setWeightRecords([
@@ -149,6 +148,7 @@ export default function CreateCouponPage() {
 			}
 
 			const couponData: CreateCouponRequest = {
+				date: toIsoDateOrUndefined(data.date),
 				vehicleId: data.vehicleId as string,
 				driverName: (data.driverName as string) || undefined,
 				employeeId: data.employeeId as string,
@@ -156,8 +156,6 @@ export default function CreateCouponPage() {
 				couponNo: toNumberOrUndefined(data.couponNo),
 				couponId: toNumberOrUndefined(data.couponId),
 				accNo: (data.accNo as string) || undefined,
-				delAccNo: (data.delAccNo as string) || undefined,
-				delDate: toIsoDateOrUndefined(data.delDate),
 				weightRecords: weightRecords.map((record) => ({
 					productName: record.productName,
 					unit: record.unit,

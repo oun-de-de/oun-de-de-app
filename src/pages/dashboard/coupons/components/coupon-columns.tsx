@@ -8,9 +8,15 @@ import { getEmployeeDisplayName } from "@/pages/dashboard/employees/utils/employ
 
 type CouponColumnsOptions = {
 	onViewWeightRecords: (coupon: Coupon) => void;
+	onDeleteCoupon: (coupon: Coupon) => void;
+	onEditCoupon: (coupon: Coupon) => void;
 };
 
-export const getCouponColumns = ({ onViewWeightRecords }: CouponColumnsOptions): ColumnDef<Coupon>[] => [
+export const getCouponColumns = ({
+	onViewWeightRecords,
+	onDeleteCoupon,
+	onEditCoupon,
+}: CouponColumnsOptions): ColumnDef<Coupon>[] => [
 	{
 		header: "Coupon No.",
 		accessorKey: "couponNo",
@@ -93,6 +99,32 @@ export const getCouponColumns = ({ onViewWeightRecords }: CouponColumnsOptions):
 		},
 		meta: {
 			bodyClassName: "text-right",
+		},
+	},
+	{
+		header: "Actions",
+		cell: ({ row }) => (
+			<div className="flex items-center justify-center gap-2">
+				<Button
+					size="sm"
+					variant="outline"
+					onClick={() => onEditCoupon(row.original)}
+					disabled={!row.original.couponNo}
+				>
+					Edit
+				</Button>
+				<Button
+					size="sm"
+					variant="destructive"
+					onClick={() => onDeleteCoupon(row.original)}
+					disabled={!row.original.couponNo}
+				>
+					Delete
+				</Button>
+			</div>
+		),
+		meta: {
+			bodyClassName: "text-center",
 		},
 	},
 ];
