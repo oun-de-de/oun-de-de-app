@@ -7,6 +7,12 @@ import { CustomerActions } from "./customer-actions";
 
 const getCustomerPaymentType = (customer: Customer) => (customer.paymentTerm ? "credit" : "cash_sale");
 
+const formatPaymentTypeLabel = (value: string) =>
+	value
+		.split("_")
+		.map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+		.join(" ");
+
 export const columns: ColumnDef<Customer>[] = [
 	{
 		header: "Register Date",
@@ -40,7 +46,7 @@ export const columns: ColumnDef<Customer>[] = [
 			const paymentType = getCustomerPaymentType(row.original);
 			return (
 				<Badge variant={paymentType === "credit" ? "success" : "info"} className="w-full h-6.5">
-					{paymentType}
+					{formatPaymentTypeLabel(paymentType)}
 				</Badge>
 			);
 		},
@@ -49,20 +55,6 @@ export const columns: ColumnDef<Customer>[] = [
 		header: "Customer Type",
 		accessorKey: "referredBy",
 	},
-	// {
-	// 	header: "Price Level",
-	// 	accessorKey: "defaultPrice",
-	// 	size: 100,
-	// 	cell: ({ row }) => {
-	// 		const value = row.original.defaultPrice;
-	// 		return (
-	// 			<Badge variant={getDefaultPriceVariant(value)} className="w-full">
-	// 				{getDefaultPriceLabel(value)}
-	// 			</Badge>
-	// 		);
-	// 	},
-	// 	meta: { bodyClassName: "text-center" },
-	// },
 	{
 		header: "Status",
 		accessorKey: "status",

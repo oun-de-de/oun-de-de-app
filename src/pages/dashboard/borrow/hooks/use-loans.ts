@@ -11,7 +11,6 @@ import type {
 export const LOAN_QUERY_KEYS = {
 	loans: (params?: Record<string, unknown>) => ["loans", params] as const,
 	loan: (loanId: string) => ["loan", loanId] as const,
-	installments: (loanId: string) => ["loan-installments", loanId] as const,
 	payments: (loanId: string) => ["loan-payments", loanId] as const,
 };
 
@@ -34,14 +33,6 @@ export function useLoanDetails(loanId?: string) {
 	return useQuery({
 		queryKey: LOAN_QUERY_KEYS.loan(loanId ?? ""),
 		queryFn: () => loanService.getLoanDetails(loanId ?? ""),
-		enabled: !!loanId,
-	});
-}
-
-export function useInstallments(loanId?: string) {
-	return useQuery({
-		queryKey: LOAN_QUERY_KEYS.installments(loanId ?? ""),
-		queryFn: () => loanService.getInstallments(loanId ?? ""),
 		enabled: !!loanId,
 	});
 }
@@ -114,21 +105,6 @@ export function useUpdateLoan(loanId?: string) {
 			if (loanId) {
 				queryClient.invalidateQueries({ queryKey: LOAN_QUERY_KEYS.loan(loanId) });
 				queryClient.invalidateQueries({ queryKey: LOAN_QUERY_KEYS.payments(loanId) });
-				queryClient.invalidateQueries({ queryKey: LOAN_QUERY_KEYS.installments(loanId) });
-			}
-			queryClient.invalidateQueries({ queryKey: ["loans"] });
-		},
-	});
-}
-
-export function usePayInstallment(loanId?: string) {
-	const queryClient = useQueryClient();
-	return useMutation({
-		mutationFn: (installmentId: string) => loanService.payInstallment(loanId ?? "", installmentId),
-		onSuccess: () => {
-			if (loanId) {
-				queryClient.invalidateQueries({ queryKey: LOAN_QUERY_KEYS.installments(loanId) });
-				queryClient.invalidateQueries({ queryKey: LOAN_QUERY_KEYS.loan(loanId) });
 			}
 			queryClient.invalidateQueries({ queryKey: ["loans"] });
 		},

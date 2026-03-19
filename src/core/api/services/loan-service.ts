@@ -4,8 +4,6 @@ import type {
 	CreateLoanPaymentRequest,
 	CreateLoanRequest,
 	ExtendLoanRequest,
-	Installment,
-	InstallmentStatus,
 	Loan,
 	LoanPayment,
 	LoanStatus,
@@ -24,10 +22,6 @@ type LoanApiResponse = Omit<Loan, "borrowerType" | "createdAt" | "status"> & {
 	createAt?: string;
 };
 
-type InstallmentApiResponse = Omit<Installment, "status"> & {
-	status: string;
-};
-
 function toApiBorrowerType(value?: BorrowerType): string | undefined {
 	if (!value) return undefined;
 	return value.toUpperCase();
@@ -40,13 +34,6 @@ function normalizeBorrowerType(value: string): BorrowerType {
 	}
 	console.warn(`Unknown borrowerType received from API: ${value}. Fallback to customer.`);
 	return "customer";
-}
-
-function normalizeInstallmentStatus(value: string): InstallmentStatus {
-	const normalizedValue = value.toLowerCase();
-	if (normalizedValue === "paid") return "paid";
-	if (normalizedValue === "overdue") return "overdue";
-	return "unpaid";
 }
 
 function normalizeLoanStatus(value: string): LoanStatus {
@@ -64,13 +51,6 @@ function normalizeLoan(data: LoanApiResponse): Loan {
 		monthlyPayment: data.installmentAmount,
 		termMonths: data.termMonths ?? 0,
 		createdAt: data.createdAt ?? data.createAt ?? "",
-	};
-}
-
-function normalizeInstallment(data: InstallmentApiResponse): Installment {
-	return {
-		...data,
-		status: normalizeInstallmentStatus(data.status),
 	};
 }
 
@@ -120,25 +100,11 @@ const listLoanPayments = (loanId: string): Promise<LoanPayment[]> =>
 		url: `${LoanApi.Loans}/${loanId}/payments`,
 	});
 
-const getInstallments = (loanId: string): Promise<Installment[]> =>
-	apiClient
-		.get<InstallmentApiResponse[]>({
-			url: `${LoanApi.Loans}/${loanId}/installments`,
-		})
-		.then((response) => response.map(normalizeInstallment));
-
 const createPayment = (loanId: string, data: CreateLoanPaymentRequest): Promise<LoanPayment> =>
 	apiClient.post<LoanPayment>({
 		url: `${LoanApi.Loans}/${loanId}/pay`,
 		data,
 	});
-
-const payInstallment = (loanId: string, installmentId: string): Promise<Installment> =>
-	apiClient
-		.post<InstallmentApiResponse>({
-			url: `${LoanApi.Loans}/${loanId}/installments/${installmentId}/pay`,
-		})
-		.then(normalizeInstallment);
 
 const postponeLoan = (loanId: string): Promise<Loan> =>
 	apiClient
@@ -168,9 +134,7 @@ export default {
 	createLoan,
 	getLoanDetails,
 	listLoanPayments,
-	getInstallments,
 	createPayment,
-	payInstallment,
 	postponeLoan,
 	extendLoan,
 	updateLoan,
