@@ -18,8 +18,6 @@ type CustomerSidebarProps = {
 const STATUS_OPTIONS: SelectOption[] = [{ value: "all", label: "All" }];
 const PAGE_SIZE = 10;
 const DEFAULT_ITEM_SIZE = 56;
-const COLLAPSED_ITEM_SIZE = 42;
-const COLLAPSED_ITEM_GAP = 8;
 
 export function CustomerSidebar({
 	activeCustomerId,
@@ -72,37 +70,41 @@ export function CustomerSidebar({
 				isCollapsed={isCollapsed}
 			/>
 
-			<SidebarList.Body
-				key={isCollapsed ? "collapsed" : "expanded"}
-				className={cn("mt-2 flex-1 min-h-0", !isCollapsed && "divide-y divide-border-gray-300")}
-				data={customers}
-				estimateSize={isCollapsed ? COLLAPSED_ITEM_SIZE : DEFAULT_ITEM_SIZE}
-				gap={isCollapsed ? COLLAPSED_ITEM_GAP : 0}
-				height="100%"
-				renderItem={(customer: Customer, style) => (
-					<EntityListItem
-						key={customer.id}
-						entity={{
-							id: customer.id,
-							name: customer.name,
-							code: customer.code,
-						}}
-						isActive={customer.id === activeCustomerId}
-						onSelect={() => onSelect(customer.id === activeCustomerId ? null : customer)}
-						style={style}
-						isCollapsed={isCollapsed}
+			{isCollapsed ? (
+				<SidebarList.CollapsedHint text="Click to expand customer list" onClick={onToggle} />
+			) : (
+				<>
+					<SidebarList.Body
+						key="expanded"
+						className={cn("mt-2 flex-1 min-h-0 divide-y divide-border-gray-300")}
+						data={customers}
+						estimateSize={DEFAULT_ITEM_SIZE}
+						height="100%"
+						renderItem={(customer: Customer, style) => (
+							<EntityListItem
+								key={customer.id}
+								entity={{
+									id: customer.id,
+									name: customer.name,
+									code: customer.code,
+								}}
+								isActive={customer.id === activeCustomerId}
+								onSelect={() => onSelect(customer.id === activeCustomerId ? null : customer)}
+								style={style}
+							/>
+						)}
 					/>
-				)}
-			/>
 
-			<SidebarList.Footer
-				total={total}
-				isCollapsed={isCollapsed}
-				onNext={() => fetchNextPage()}
-				hasPrev={false}
-				hasNext={hasNextPage}
-				showControls={hasNextPage}
-			/>
+					<SidebarList.Footer
+						total={total}
+						isCollapsed={false}
+						onNext={() => fetchNextPage()}
+						hasPrev={false}
+						hasNext={hasNextPage}
+						showControls={hasNextPage}
+					/>
+				</>
+			)}
 		</SidebarList>
 	);
 }
