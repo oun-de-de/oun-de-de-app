@@ -9,13 +9,10 @@ import { Label } from "@/core/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/core/ui/select";
 import { Textarea } from "@/core/ui/textarea";
 import { formatNumber } from "@/core/utils/formatters";
-import {
-	ACCOUNTING_CURRENCY_OPTIONS,
-	ACCOUNTING_DRAFT_FORM_TEXT,
-	ACCOUNTING_JOURNAL_NAME_OPTIONS,
-	ACCOUNTING_UI_TEXT,
-} from "../constants";
+import { ACCOUNTING_DRAFT_FORM_TEXT, ACCOUNTING_JOURNAL_NAME_OPTIONS } from "../constants";
+import { AccountingCreateMenuButton } from "../components/accounting-create-menu-button";
 import { useAccountingReferenceData } from "../hooks/use-accounting-reference-data";
+import { useGetCurrencyList } from "@/pages/dashboard/settings/hooks/use-settings";
 import { saveAccountingDraft } from "../utils/accounting-draft-actions";
 import { createEmptyJournalLine, type JournalLine } from "../utils/accounting-line-factories";
 import { formatLocalDateTime } from "../utils/format-local-date-time";
@@ -23,22 +20,33 @@ import { formatLocalDateTime } from "../utils/format-local-date-time";
 export default function CreateJournalPage() {
 	const navigate = useNavigate();
 	const { chartAccountOptions, employeeOptions, isLoading, journalClassOptions, journalTypeOptions } =
-		useAccountingReferenceData();
+		useAccountingReferenceData({
+			accountTypesEnabled: false,
+			customersEnabled: false,
+		});
+	const { data: currencies = [], isLoading: isLoadingCurrencies } = useGetCurrencyList();
 	const [refNo] = useState("");
 	const [date] = useState(formatLocalDateTime());
 	const [employeeId, setEmployeeId] = useState("");
 	const [journalType, setJournalType] = useState("");
-	const [currency, setCurrency] = useState("KHR");
+	const [currencyId, setCurrencyId] = useState("");
 	const [memo, setMemo] = useState("");
 	const [lines, setLines] = useState<JournalLine[]>([createEmptyJournalLine(0)]);
 
 	const totalDr = useMemo(() => lines.reduce((sum, line) => sum + (Number(line.dr) || 0), 0), [lines]);
 	const totalCr = useMemo(() => lines.reduce((sum, line) => sum + (Number(line.cr) || 0), 0), [lines]);
+	const currencyOptions = useMemo(() => currencies.map((item) => ({ value: item.id, label: item.name })), [currencies]);
 
 	useEffect(() => {
 		if (journalType || journalTypeOptions.length === 0) return;
 		setJournalType(journalTypeOptions[0].value);
 	}, [journalType, journalTypeOptions]);
+
+	useEffect(() => {
+		if (!currencyId && currencies.length > 0) {
+			setCurrencyId(currencies[0].id);
+		}
+	}, [currencies, currencyId]);
 
 	const updateLine = <K extends keyof JournalLine>(id: string, field: K, value: JournalLine[K]) => {
 		setLines((prev) => prev.map((line) => (line.id === id ? { ...line, [field]: value } : line)));
@@ -62,7 +70,7 @@ export default function CreateJournalPage() {
 
 	return (
 		<div className="flex h-full flex-col gap-4 p-3 md:p-4">
-			<div className="flex items-center gap-3 border-b border-slate-200 pb-2">
+			<div className="flex items-center gap-3 pb-2">
 				<BackButton onClick={() => navigate("/dashboard/accounting")} />
 				<div className="flex items-center gap-2 text-slate-700">
 					<span className="text-base font-semibold">{ACCOUNTING_DRAFT_FORM_TEXT.journal.pageTitle}</span>
@@ -138,12 +146,12 @@ export default function CreateJournalPage() {
 								<Label className="text-slate-600">
 									<span className="text-rose-500">*</span> Currency
 								</Label>
-								<Select value={currency} onValueChange={setCurrency}>
-									<SelectTrigger>
+								<Select value={currencyId} onValueChange={setCurrencyId}>
+									<SelectTrigger disabled={isLoadingCurrencies}>
 										<SelectValue placeholder="Select currency" />
 									</SelectTrigger>
 									<SelectContent>
-										{ACCOUNTING_CURRENCY_OPTIONS.map((option) => (
+										{currencyOptions.map((option) => (
 											<SelectItem key={option.value} value={option.value}>
 												{option.label}
 											</SelectItem>
@@ -272,24 +280,11 @@ export default function CreateJournalPage() {
 						</div>
 						<div className="border-t px-4 py-4">
 							<div className="flex items-center justify-between gap-3">
-								<SplitButton
+								<AccountingCreateMenuButton
 									variant="info"
 									size="sm"
 									mainAction={{ label: "+ New", onClick: addLine }}
-									options={[
-										{
-											label: `Create Journal (${ACCOUNTING_UI_TEXT.draftOptionSuffix})`,
-											onClick: () => navigate("/dashboard/accounting/create-journal"),
-										},
-										{
-											label: `Create Cash Transaction (${ACCOUNTING_UI_TEXT.draftOptionSuffix})`,
-											onClick: () => navigate("/dashboard/accounting-center/create"),
-										},
-										{
-											label: `Create Cash Expense (${ACCOUNTING_UI_TEXT.draftOptionSuffix})`,
-											onClick: () => navigate("/dashboard/accounting/create-expense"),
-										},
-									]}
+									optionLabels={["Create Journal", "Create Cash Transaction", "Create Expense"]}
 								/>
 								<div className="flex gap-3">
 									<div className="flex min-w-[300px] items-center justify-between rounded-md border bg-white px-4 py-3">

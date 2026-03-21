@@ -43,8 +43,9 @@ export type ChartOfAccountResult = {
 	id: string;
 	name: string;
 	descr?: string;
-	accountTypeId: string;
 	code: string;
+	accountTypeId?: string;
+	accountType?: AccountTypeResult;
 };
 
 export type CreateChartOfAccountRequest = {
@@ -60,6 +61,7 @@ export type ChartOfAccountListParams = {
 	name?: string;
 	code?: string;
 	accountTypeId?: string;
+	loadAccountType?: boolean;
 	sort?: string;
 };
 

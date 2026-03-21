@@ -1,6 +1,5 @@
-import { SmartDataTable, SplitButton } from "@/core/components/common";
+import { SmartDataTable } from "@/core/components/common";
 import Icon from "@/core/components/icon/icon";
-import { useAccountingList, useAccountingListActions } from "@/core/store/accountingListStore";
 import { Button } from "@/core/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/core/ui/dialog";
 import { Text } from "@/core/ui/typography";
@@ -11,23 +10,33 @@ import {
 	ACCOUNTING_TABLE_FIELD_OPTIONS,
 	ACCOUNTING_TABLE_TYPE_OPTIONS,
 	ACCOUNTING_UI_TEXT,
+	createAccountingCreateMainAction,
 } from "../constants";
+import { AccountingCreateMenuButton } from "./accounting-create-menu-button";
 import { useAccountingContentState } from "../hooks/use-accounting-content-state";
+import { useAccountingList, useAccountingListActions } from "../stores/accounting-list-store";
 import type { AccountingAccountListItem } from "../types";
+import type { AccountingRow } from "@/core/types/common";
 
 type AccountingContentProps = {
 	accounts: AccountingAccountListItem[];
+	rows: AccountingRow[];
+	totalItems: number;
+	totalPages: number;
 	activeAccountId: string | null;
 	listState: ReturnType<typeof useAccountingList>;
 };
 
-export function AccountingContent({ accounts, activeAccountId, listState }: AccountingContentProps) {
+export function AccountingContent({
+	accounts,
+	rows,
+	totalItems: serverTotalItems,
+	totalPages: serverTotalPages,
+	activeAccountId,
+	listState,
+}: AccountingContentProps) {
 	const navigate = useNavigate();
 	const { updateState } = useAccountingListActions();
-	const createOptions = ACCOUNTING_CREATE_OPTION_TARGETS.map((option) => ({
-		label: option.isDraftOnly ? `${option.label} (${ACCOUNTING_UI_TEXT.draftOptionSuffix})` : option.label,
-		onClick: () => navigate(option.path),
-	}));
 	const {
 		activeAccount,
 		handleConfirmInactive,
@@ -39,6 +48,9 @@ export function AccountingContent({ accounts, activeAccountId, listState }: Acco
 		totalPages,
 	} = useAccountingContentState({
 		accounts,
+		rows,
+		totalItems: serverTotalItems,
+		totalPages: serverTotalPages,
 		activeAccountId,
 		listState,
 	});
@@ -51,7 +63,7 @@ export function AccountingContent({ accounts, activeAccountId, listState }: Acco
 						<Button
 							type="button"
 							size="sm"
-							className="h-9 rounded-r-none bg-sky-600 px-3 text-sm font-medium text-white hover:bg-sky-700"
+							className="rounded-r-none px-3 text-sm font-medium"
 							onClick={() => navigate("/dashboard/accounting/create-chart-account")}
 							title={ACCOUNTING_UI_TEXT.createChartAccount}
 						>
@@ -72,7 +84,7 @@ export function AccountingContent({ accounts, activeAccountId, listState }: Acco
 					<Button
 						variant="outline"
 						size="icon"
-						className="h-9 w-9 shrink-0"
+						className="shrink-0"
 						disabled={!activeAccount}
 						onClick={() => setShowInactiveConfirm(true)}
 						aria-label={ACCOUNTING_UI_TEXT.inactivateSelectedAccountTitle}
@@ -89,13 +101,10 @@ export function AccountingContent({ accounts, activeAccountId, listState }: Acco
 						</Text>
 					</div>
 				</div>
-				<SplitButton
+				<AccountingCreateMenuButton
 					size="sm"
-					mainAction={{
-						label: ACCOUNTING_UI_TEXT.createChartAccountPrimary,
-						onClick: () => navigate("/dashboard/accounting/create-chart-account"),
-					}}
-					options={createOptions}
+					mainAction={createAccountingCreateMainAction("Create Cash Transaction", navigate)}
+					optionLabels={ACCOUNTING_CREATE_OPTION_TARGETS.map((option) => option.label)}
 					mainButtonClassName="gap-2"
 					triggerButtonClassName="px-2"
 				/>

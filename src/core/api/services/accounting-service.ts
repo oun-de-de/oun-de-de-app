@@ -53,6 +53,7 @@ const listChartOfAccounts = (params?: ChartOfAccountListParams): Promise<ChartOf
 				name: params?.name,
 				code: params?.code,
 				account_type_id: params?.accountTypeId,
+				load_account_type: params?.loadAccountType,
 				sort: params?.sort,
 			},
 		})
