@@ -50,6 +50,11 @@ const returnBorrowing = (itemId: string, borrowingId: string): Promise<Inventory
 		url: `${InventoryApi.Items}/${itemId}/borrowings/${borrowingId}/return`,
 	});
 
+const sellBorrowing = (itemId: string, borrowingId: string): Promise<InventoryTransaction> =>
+	apiClient.post<InventoryTransaction>({
+		url: `${InventoryApi.Items}/${itemId}/borrowings/${borrowingId}/sell`,
+	});
+
 const getTransactions = (itemId: string): Promise<InventoryTransaction[]> =>
 	apiClient.get<InventoryTransaction[]>({
 		url: `${InventoryApi.Items}/${itemId}/transactions`,
@@ -63,5 +68,6 @@ export default {
 	getBorrowings,
 	createBorrowing,
 	returnBorrowing,
+	sellBorrowing,
 	getTransactions,
 };

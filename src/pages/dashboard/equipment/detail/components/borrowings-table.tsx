@@ -8,14 +8,29 @@ import { Button } from "@/core/ui/button";
 import { Text } from "@/core/ui/typography";
 import { formatDisplayDate } from "@/core/utils/formatters";
 
+function getBorrowingStatusVariant(status: InventoryBorrowing["status"]) {
+	if (status === "BORROWED") return "warning" as const;
+	if (status === "SOLD") return "destructive" as const;
+	return "success" as const;
+}
+
 type BorrowingsTableProps = {
 	borrowings: InventoryBorrowing[];
 	onReturn: (borrowingId: string) => void;
+	onSell: (borrowingId: string) => void;
 	onPay: (customerId: string) => void;
 	isReturnPending?: boolean;
+	isSellPending?: boolean;
 };
 
-export function BorrowingsTable({ borrowings, onReturn, onPay, isReturnPending }: BorrowingsTableProps) {
+export function BorrowingsTable({
+	borrowings,
+	onReturn,
+	onSell,
+	onPay,
+	isReturnPending,
+	isSellPending,
+}: BorrowingsTableProps) {
 	const columns = useMemo<ColumnDef<InventoryBorrowing>[]>(
 		() => [
 			{
@@ -43,7 +58,7 @@ export function BorrowingsTable({ borrowings, onReturn, onPay, isReturnPending }
 				accessorKey: "status",
 				header: "Status",
 				cell: ({ row }) => (
-					<Badge variant={row.original.status === "BORROWED" ? "warning" : "success"}>{row.original.status}</Badge>
+					<Badge variant={getBorrowingStatusVariant(row.original.status)}>{row.original.status}</Badge>
 				),
 			},
 			{
@@ -56,17 +71,21 @@ export function BorrowingsTable({ borrowings, onReturn, onPay, isReturnPending }
 								<Icon icon="mdi:cash" className="mr-1" />
 								Pay
 							</Button>
+							<Button variant="outline" size="sm" onClick={() => onSell(row.original.id)} disabled={isSellPending}>
+								<Icon icon="mdi:tag" className="mr-1" />
+								{isSellPending ? "..." : "Sell"}
+							</Button>
 							<Button variant="outline" size="sm" onClick={() => onReturn(row.original.id)} disabled={isReturnPending}>
 								<Icon icon="mdi:keyboard-return" className="mr-1" />
 								{isReturnPending ? "..." : "Return"}
 							</Button>
 						</div>
 					) : (
-						<span className="text-slate-400 text-xs">Returned</span>
+						<span className="text-slate-400 text-xs">{row.original.status === "SOLD" ? "Sold" : "Returned"}</span>
 					),
 			},
 		],
-		[onPay, onReturn, isReturnPending],
+		[onPay, onReturn, onSell, isReturnPending, isSellPending],
 	);
 
 	if (borrowings.length === 0) {

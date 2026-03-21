@@ -1,8 +1,8 @@
 export type InventoryItemType = "CONSUMABLE" | "EQUIPMENT";
 export type InventoryUnitType = "COUNT";
 export type InventoryTransactionType = "IN" | "OUT";
-export type InventoryTransactionReason = "PURCHASE" | "CONSUME" | "BORROW" | "RETURN";
-export type InventoryBorrowingStatus = "BORROWED" | "RETURNED";
+export type InventoryTransactionReason = "PURCHASE" | "CONSUME" | "BORROW" | "RETURN" | "SOLD";
+export type InventoryBorrowingStatus = "BORROWED" | "RETURNED" | "SOLD";
 
 export interface InventoryUnit {
 	id: string;
