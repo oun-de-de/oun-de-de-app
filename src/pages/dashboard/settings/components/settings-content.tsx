@@ -25,8 +25,10 @@ export function SettingsContent({ activeItem }: SettingsContentProps) {
 		filteredRows,
 		formKind,
 		page,
+		pageSize,
 		search,
 		setPage,
+		setPageSize,
 		setSearch,
 		totalPages,
 	} = useSettingsModule({
@@ -39,7 +41,6 @@ export function SettingsContent({ activeItem }: SettingsContentProps) {
 		editItem,
 		onAfterSave: closeForm,
 	});
-	const pageSize = 20;
 	const pagedRows = filteredRows.slice((page - 1) * pageSize, page * pageSize);
 
 	return (
@@ -86,7 +87,7 @@ export function SettingsContent({ activeItem }: SettingsContentProps) {
 							totalPages,
 							paginationItems: buildPagination(page, totalPages),
 							onPageChange: setPage,
-							onPageSizeChange: () => {},
+							onPageSizeChange: setPageSize,
 						}}
 					/>
 				</div>

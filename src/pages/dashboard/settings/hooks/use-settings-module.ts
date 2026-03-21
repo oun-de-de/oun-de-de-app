@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { useAccountingReferenceData } from "@/pages/dashboard/accounting/hooks/use-accounting-reference-data";
 import { useGetCurrencyList, useGetUnitList, useGetWarehouseList } from "./use-settings";
 import { getColumnsForItem } from "../components/settings-columns";
@@ -10,6 +10,7 @@ import {
 	isAccountingSettingsItem,
 } from "../components/settings-content-helpers";
 import { getSettingsItemConfig, hasSettingsQueryRequirement } from "../settings-module-config";
+import { useSettingsListState, useSettingsUiActions } from "../stores";
 
 type UseSettingsModuleParams = {
 	activeItem: string;
@@ -17,8 +18,8 @@ type UseSettingsModuleParams = {
 };
 
 export function useSettingsModule({ activeItem, showForm }: UseSettingsModuleParams) {
-	const [page, setPage] = useState(1);
-	const [search, setSearch] = useState("");
+	const { page, pageSize, search } = useSettingsListState();
+	const { setPage, setPageSize, setSearch } = useSettingsUiActions();
 	const itemConfig = getSettingsItemConfig(activeItem);
 	const accountingItem = isAccountingSettingsItem(activeItem);
 	const accountingPlaceholderItem = isAccountingPlaceholderItem(activeItem);
@@ -50,7 +51,7 @@ export function useSettingsModule({ activeItem, showForm }: UseSettingsModulePar
 	useEffect(() => {
 		setPage(1);
 		setSearch("");
-	}, [activeItem]);
+	}, [activeItem, setPage, setSearch]);
 
 	const data = useMemo(
 		() =>
@@ -72,12 +73,20 @@ export function useSettingsModule({ activeItem, showForm }: UseSettingsModulePar
 		() => getAccountingFormFields(activeItem, accountTypeOptions),
 		[activeItem, accountTypeOptions],
 	);
-	const totalPages = Math.ceil(filteredRows.length / 20) || 1;
+	const totalPages = Math.ceil(filteredRows.length / pageSize) || 1;
+
+	useEffect(() => {
+		if (page > totalPages) {
+			setPage(totalPages);
+		}
+	}, [page, totalPages]);
 
 	return {
 		page,
+		pageSize,
 		search,
 		setPage,
+		setPageSize,
 		setSearch,
 		accountingItem,
 		accountingPlaceholderItem,
