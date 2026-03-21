@@ -16,7 +16,14 @@ const PRICE_RULE_TYPE_OPTIONS = [
 export const SETTINGS_FIELDS: Record<string, FormFieldConfig[]> = {
 	Unit: [
 		{ name: "name", label: "Name", type: "text", placeholder: "Enter unit name", required: true },
-		{ name: "descr", label: "Description", type: "text", placeholder: "Enter description" },
+		{
+			name: "descr",
+			label: "Description",
+			type: "textarea",
+			placeholder: "Enter description",
+			className: "md:col-span-2",
+			rows: 5,
+		},
 		{
 			name: "type",
 			label: "Type",
@@ -67,8 +74,26 @@ export const SETTINGS_FIELDS: Record<string, FormFieldConfig[]> = {
 	],
 	Warehouse: [
 		{ name: "name", label: "Name", type: "text", placeholder: "Enter warehouse name", required: true },
-		{ name: "descr", label: "Description", type: "text", placeholder: "Enter description" },
+		{
+			name: "descr",
+			label: "Description",
+			type: "textarea",
+			placeholder: "Enter description",
+			className: "md:col-span-2",
+			rows: 5,
+		},
 		{ name: "location", label: "Location", type: "text", placeholder: "Enter location" },
+	],
+	Currency: [
+		{ name: "name", label: "Name", type: "text", placeholder: "Enter currency name", required: true },
+		{
+			name: "descr",
+			label: "Description",
+			type: "textarea",
+			placeholder: "Enter description",
+			className: "md:col-span-2",
+			rows: 5,
+		},
 	],
 };
 

@@ -1,12 +1,20 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import settingService from "@/core/api/services/setting-service";
-import type { CreateUnit, CreateWarehouse } from "@/core/types/setting";
+import type { CreateCurrency, CreateUnit, CreateWarehouse } from "@/core/types/setting";
 
-export const useGetWarehouseList = () => {
+type SettingsQueryOptions = {
+	enabled?: boolean;
+};
+
+const SETTINGS_STALE_TIME = 5 * 60 * 1000;
+
+export const useGetWarehouseList = (options?: SettingsQueryOptions) => {
 	return useQuery({
 		queryKey: ["warehouse-list"],
 		queryFn: settingService.getWarehouseList,
+		enabled: options?.enabled ?? true,
+		staleTime: SETTINGS_STALE_TIME,
 	});
 };
 
@@ -40,10 +48,12 @@ export const useUpdateWarehouse = () => {
 	});
 };
 
-export const useGetUnitList = () => {
+export const useGetUnitList = (options?: SettingsQueryOptions) => {
 	return useQuery({
 		queryKey: ["unit-list"],
 		queryFn: settingService.getUnitList,
+		enabled: options?.enabled ?? true,
+		staleTime: SETTINGS_STALE_TIME,
 	});
 };
 
@@ -73,6 +83,30 @@ export const useUpdateUnit = () => {
 		},
 		onError: () => {
 			toast.error("Failed to update unit");
+		},
+	});
+};
+
+export const useGetCurrencyList = (options?: SettingsQueryOptions) => {
+	return useQuery({
+		queryKey: ["currency-list"],
+		queryFn: settingService.getCurrencyList,
+		enabled: options?.enabled ?? true,
+		staleTime: SETTINGS_STALE_TIME,
+	});
+};
+
+export const useCreateCurrency = () => {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: (data: CreateCurrency) => settingService.createCurrency(data),
+		onSuccess: () => {
+			toast.success("Currency created successfully");
+			queryClient.invalidateQueries({ queryKey: ["currency-list"] });
+		},
+		onError: () => {
+			toast.error("Failed to create currency");
 		},
 	});
 };

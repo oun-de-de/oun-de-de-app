@@ -1,17 +1,16 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
-import { settingsLeftMenu } from "@/_mock/data/dashboard";
 import type { BaseStore } from "@/core/interfaces/base-store";
 import type { SettingsRow } from "@/core/types/common";
 import { StorageEnum } from "@/core/types/enum";
 import { createBoundStore } from "@/core/utils/create-bound-store";
+import { SETTINGS_MENU_BY_TAB, SETTINGS_TOP_TABS } from "../constants";
 import { _SettingsState, SettingsInitialState, type SettingsState } from "./settings-state";
 import { SettingsSelectItemLoadingState, SettingsSelectItemSuccessState } from "./states/select-item-state";
 
 type SettingsActions = {
 	selectItem: (item: string) => void;
 	reset: () => void;
-	// Form actions
 	openCreateForm: () => void;
 	openEditForm: (item: SettingsRow) => void;
 	closeForm: () => void;
@@ -21,6 +20,8 @@ export interface SettingsStore extends BaseStore<SettingsState, SettingsActions>
 	state: SettingsState;
 	actions: SettingsActions;
 }
+
+const DEFAULT_SETTINGS_ITEMS = SETTINGS_MENU_BY_TAB[SETTINGS_TOP_TABS[0]];
 
 const createSettingsStore = (items: string[]) =>
 	create<SettingsStore>()(
@@ -35,7 +36,6 @@ const createSettingsStore = (items: string[]) =>
 					reset() {
 						set({ state: SettingsInitialState(items) });
 					},
-					// Form actions
 					openCreateForm() {
 						set({
 							state: _SettingsState({
@@ -96,16 +96,15 @@ const createSettingsStore = (items: string[]) =>
 		),
 	);
 
-export const settingsBoundStore = createBoundStore<SettingsStore>({
-	createStore: () => createSettingsStore(settingsLeftMenu),
+export const settingsUiBoundStore = createBoundStore<SettingsStore>({
+	createStore: () => createSettingsStore(DEFAULT_SETTINGS_ITEMS),
 });
 
-// Convenience hooks
-export const useSettingsState = () => settingsBoundStore.useState();
-export const useSettingsActions = () => settingsBoundStore.useAction();
-export const useActiveItem = () => settingsBoundStore.useState().activeItem;
+export const useSettingsState = () => settingsUiBoundStore.useState();
+export const useSettingsActions = () => settingsUiBoundStore.useAction();
+export const useActiveItem = () => settingsUiBoundStore.useState().activeItem;
 export const useFormState = () => {
-	const state = settingsBoundStore.useState();
+	const state = settingsUiBoundStore.useState();
 	return {
 		showForm: state.showForm,
 		editItem: state.editItem,
@@ -113,4 +112,4 @@ export const useFormState = () => {
 	};
 };
 
-export const getSettingsActions = () => settingsBoundStore.getStoreApi().getState().actions;
+export const getSettingsActions = () => settingsUiBoundStore.getStoreApi().getState().actions;

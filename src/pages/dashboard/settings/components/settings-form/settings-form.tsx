@@ -31,8 +31,9 @@ export function SettingsForm({
 			submitLabel={mode === "create" ? "Create" : "Save"}
 			variant="compact"
 			inputVariant="default"
-			inputSize="md"
+			inputSize="lg"
 			columns={2}
+			className="gap-4 space-y-4"
 			showTitle={showTitle}
 		/>
 	);
