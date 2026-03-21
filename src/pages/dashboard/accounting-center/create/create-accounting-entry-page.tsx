@@ -12,10 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/core/ui/textarea";
 import { formatNumber } from "@/core/utils/formatters";
 import { cn } from "@/core/utils";
-import {
-	ACCOUNTING_DRAFT_FORM_TEXT,
-	ACCOUNTING_TRANSACTION_PAY_METHOD_OPTIONS,
-} from "@/pages/dashboard/accounting/constants";
+import { ACCOUNTING_DRAFT_FORM_TEXT } from "@/pages/dashboard/accounting/constants";
 import { AccountingCreateMenuButton } from "@/pages/dashboard/accounting/components/accounting-create-menu-button";
 import { useAccountingReferenceData } from "@/pages/dashboard/accounting/hooks/use-accounting-reference-data";
 import {
@@ -360,7 +357,6 @@ export default function CreateAccountingEntryPage() {
 										<th className="px-3 py-2 font-medium">No</th>
 										<th className="px-3 py-2 font-medium">Account</th>
 										<th className="px-3 py-2 font-medium">Memo</th>
-										<th className="px-3 py-2 font-medium">Pay Method</th>
 										<th className="px-3 py-2 font-medium text-right">Amount</th>
 										<th className="px-3 py-2 font-medium">Customer</th>
 										<th className="px-3 py-2 font-medium">Class</th>
@@ -399,23 +395,6 @@ export default function CreateAccountingEntryPage() {
 													placeholder="Memo"
 													disabled={isSubmitting}
 												/>
-											</td>
-											<td className="px-3 py-2 min-w-[160px]">
-												<Select
-													value={line.payMethod}
-													onValueChange={(value) => updateLine(line.id, "payMethod", value)}
-												>
-													<SelectTrigger disabled={isSubmitting}>
-														<SelectValue placeholder="Select" />
-													</SelectTrigger>
-													<SelectContent>
-														{ACCOUNTING_TRANSACTION_PAY_METHOD_OPTIONS.map((option) => (
-															<SelectItem key={option.value} value={option.value}>
-																{option.label}
-															</SelectItem>
-														))}
-													</SelectContent>
-												</Select>
 											</td>
 											<td className="px-3 py-2 min-w-[140px]">
 												<Input
