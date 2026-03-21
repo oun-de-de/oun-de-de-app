@@ -11,16 +11,22 @@ type SidebarListProps = {
 	className?: string;
 };
 
+type SidebarCollapsedHintProps = {
+	text: string;
+	onClick?: () => void;
+	className?: string;
+};
+
 // Root Component
 export function SidebarList({ children, className }: SidebarListProps) {
-	return <div className={cn("flex flex-col h-full", className)}>{children}</div>;
+	return <div className={cn("relative flex h-full flex-col", className)}>{children}</div>;
 }
 
 // Shared Toggle Button Component
 type SidebarToggleButtonProps = {
 	onClick?: () => void;
 	isCollapsed?: boolean;
-	variant?: "ghost" | "outline" | "info";
+	variant?: "ghost" | "outline" | "info" | "default";
 	className?: string;
 };
 
@@ -53,9 +59,26 @@ function SidebarListToggle({ onToggle, isCollapsed, className, variant }: Sideba
 	);
 }
 
+function SidebarCollapsedHint({ text, onClick, className }: SidebarCollapsedHintProps) {
+	return (
+		<button
+			type="button"
+			onClick={onClick}
+			className={cn(
+				"flex min-h-0 flex-1 items-center justify-center px-1 py-3 text-center text-xs text-slate-500 transition-colors hover:text-slate-700",
+				className,
+			)}
+			title={text}
+		>
+			<span className="[writing-mode:vertical-rl] [text-orientation:mixed]">{text}</span>
+		</button>
+	);
+}
+
 // Subcomponents attached to the namespace
 SidebarList.Header = SidebarListHeader;
 SidebarList.Body = VirtualList;
 SidebarList.Footer = ListFooter;
 SidebarList.Toggle = SidebarListToggle;
 SidebarList.ToggleButton = SidebarToggleButton;
+SidebarList.CollapsedHint = SidebarCollapsedHint;

@@ -64,7 +64,8 @@ export default function InvoicePage() {
 
 	return (
 		<DashboardSplitView
-			sidebarClassName={isCollapsed ? "lg:w-20 xl:w-20" : "lg:w-[16rem] xl:w-1/5"}
+			isSidebarCollapsed={isCollapsed}
+			sidebarClassName={isCollapsed ? "lg:w-14 xl:w-14" : "lg:w-[16rem] xl:w-1/5"}
 			sidebar={
 				<CustomerSidebar
 					activeCustomerId={activeCustomerId ?? null}

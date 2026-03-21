@@ -21,8 +21,6 @@ const matchSearch = (item: InventoryItem, normalizedQuery: string) =>
 	item.code.toLowerCase().includes(normalizedQuery);
 
 const DEFAULT_ITEM_SIZE = 56;
-const COLLAPSED_ITEM_SIZE = 42;
-const COLLAPSED_ITEM_GAP = 8;
 
 export function EquipmentSidebar({ activeItemId, onSelect, onToggle, isCollapsed }: Props) {
 	const [searchTerm, setSearchTerm] = useState("");
@@ -63,34 +61,38 @@ export function EquipmentSidebar({ activeItemId, onSelect, onToggle, isCollapsed
 				isCollapsed={isCollapsed}
 			/>
 
-			<SidebarList.Body
-				key={isCollapsed ? "collapsed" : "expanded"}
-				className={cn("mt-2 flex-1 min-h-0", !isCollapsed && "divide-y divide-border-gray-300")}
-				data={sidebarData}
-				estimateSize={isCollapsed ? COLLAPSED_ITEM_SIZE : DEFAULT_ITEM_SIZE}
-				gap={isCollapsed ? COLLAPSED_ITEM_GAP : 0}
-				height="100%"
-				renderItem={(item, style) => (
-					<EntityListItem
-						key={item.id}
-						entity={item}
-						isActive={item.id === activeItemId}
-						onSelect={handleSelect}
-						style={style}
-						isCollapsed={isCollapsed}
+			{isCollapsed ? (
+				<SidebarList.CollapsedHint text="Click to expand equipment list" onClick={onToggle} />
+			) : (
+				<>
+					<SidebarList.Body
+						key="expanded"
+						className={cn("mt-2 flex-1 min-h-0 divide-y divide-border-gray-300")}
+						data={sidebarData}
+						estimateSize={DEFAULT_ITEM_SIZE}
+						height="100%"
+						renderItem={(item, style) => (
+							<EntityListItem
+								key={item.id}
+								entity={item}
+								isActive={item.id === activeItemId}
+								onSelect={handleSelect}
+								style={style}
+							/>
+						)}
 					/>
-				)}
-			/>
 
-			<SidebarList.Footer
-				total={pagination.total}
-				isCollapsed={isCollapsed}
-				onPrev={pagination.handlePrev}
-				onNext={pagination.handleNext}
-				hasPrev={pagination.hasPrev}
-				hasNext={pagination.hasNext}
-				showControls={!isLgUp && pagination.totalPages > 1}
-			/>
+					<SidebarList.Footer
+						total={pagination.total}
+						isCollapsed={false}
+						onPrev={pagination.handlePrev}
+						onNext={pagination.handleNext}
+						hasPrev={pagination.hasPrev}
+						hasNext={pagination.hasNext}
+						showControls={!isLgUp && pagination.totalPages > 1}
+					/>
+				</>
+			)}
 		</SidebarList>
 	);
 }

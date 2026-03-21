@@ -14,8 +14,6 @@ type EmployeeSidebarProps = {
 };
 
 const DEFAULT_ITEM_SIZE = 56;
-const COLLAPSED_ITEM_SIZE = 42;
-const COLLAPSED_ITEM_GAP = 8;
 
 export function EmployeeSidebar({ activeEmployeeId, onSelect, onToggle, isCollapsed }: EmployeeSidebarProps) {
 	const [searchTerm, setSearchTerm] = useState("");
@@ -42,30 +40,34 @@ export function EmployeeSidebar({ activeEmployeeId, onSelect, onToggle, isCollap
 				isCollapsed={isCollapsed}
 			/>
 
-			<SidebarList.Body
-				key={isCollapsed ? "collapsed" : "expanded"}
-				className={cn("mt-2 flex-1 min-h-0", !isCollapsed && "divide-y divide-border-gray-300")}
-				data={filteredEmployees}
-				estimateSize={isCollapsed ? COLLAPSED_ITEM_SIZE : DEFAULT_ITEM_SIZE}
-				gap={isCollapsed ? COLLAPSED_ITEM_GAP : 0}
-				height="100%"
-				renderItem={(employee: Employee, style) => (
-					<EntityListItem
-						key={employee.id}
-						entity={{
-							id: employee.id,
-							name: getEmployeeDisplayName(employee),
-							code: employee.username,
-						}}
-						isActive={employee.id === activeEmployeeId}
-						onSelect={() => onSelect(employee.id === activeEmployeeId ? null : employee)}
-						style={style}
-						isCollapsed={isCollapsed}
+			{isCollapsed ? (
+				<SidebarList.CollapsedHint text="Click to expand employee list" onClick={onToggle} />
+			) : (
+				<>
+					<SidebarList.Body
+						key="expanded"
+						className={cn("mt-2 flex-1 min-h-0 divide-y divide-border-gray-300")}
+						data={filteredEmployees}
+						estimateSize={DEFAULT_ITEM_SIZE}
+						height="100%"
+						renderItem={(employee: Employee, style) => (
+							<EntityListItem
+								key={employee.id}
+								entity={{
+									id: employee.id,
+									name: getEmployeeDisplayName(employee),
+									code: employee.username,
+								}}
+								isActive={employee.id === activeEmployeeId}
+								onSelect={() => onSelect(employee.id === activeEmployeeId ? null : employee)}
+								style={style}
+							/>
+						)}
 					/>
-				)}
-			/>
 
-			<SidebarList.Footer total={filteredEmployees.length} isCollapsed={isCollapsed} showControls={false} />
+					<SidebarList.Footer total={filteredEmployees.length} isCollapsed={false} showControls={false} />
+				</>
+			)}
 		</SidebarList>
 	);
 }
