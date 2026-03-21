@@ -26,11 +26,11 @@ export function DashboardSplitView({
 	contentClassName,
 }: DashboardSplitViewProps) {
 	return (
-		<div className={cn("flex h-full w-full min-w-0 flex-col gap-2 md:gap-3 lg:flex-row", className)}>
+		<div className={cn("flex h-full min-h-0 w-full min-w-0 flex-col gap-2 md:flex-row md:gap-3", className)}>
 			{sidebar && (
 				<Card
 					className={cn(
-						"h-full w-full min-w-0 shrink-0 transition-all duration-300 print:hidden lg:w-[16rem] xl:w-1/5",
+						"h-full min-h-0 w-full min-w-0 shrink-0 overflow-hidden transition-all duration-300 print:hidden md:w-[16rem] xl:w-1/5",
 						sidebarClassName,
 						sidebarCardClassName,
 					)}

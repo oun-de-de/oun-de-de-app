@@ -65,7 +65,7 @@ function SettingsView() {
 			<DashboardSplitView
 				className="gap-0"
 				isSidebarCollapsed={isCollapsed}
-				sidebarClassName={isCollapsed ? "lg:w-14 xl:w-14" : "lg:w-[16rem] xl:w-1/5"}
+				sidebarClassName={isCollapsed ? "md:w-14 xl:w-14" : "md:w-[16rem] xl:w-1/5"}
 				sidebarCardClassName="border-0 shadow-none rounded-none"
 				sidebarContentClassName="p-0"
 				contentCardClassName="border-0 shadow-none rounded-none"

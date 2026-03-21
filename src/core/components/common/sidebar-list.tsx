@@ -19,7 +19,7 @@ type SidebarCollapsedHintProps = {
 
 // Root Component
 export function SidebarList({ children, className }: SidebarListProps) {
-	return <div className={cn("relative flex h-full flex-col", className)}>{children}</div>;
+	return <div className={cn("relative flex h-full min-h-0 flex-col", className)}>{children}</div>;
 }
 
 // Shared Toggle Button Component
