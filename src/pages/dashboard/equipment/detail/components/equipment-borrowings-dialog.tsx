@@ -6,13 +6,27 @@ import type { Customer } from "@/core/types/customer";
 import type { InventoryBorrowing } from "@/core/types/inventory";
 import { Badge } from "@/core/ui/badge";
 import { Button } from "@/core/ui/button";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/core/ui/dialog";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+	DialogTrigger,
+} from "@/core/ui/dialog";
 import { Input } from "@/core/ui/input";
 import { Label } from "@/core/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/core/ui/select";
 import { formatDisplayDate } from "@/core/utils/formatters";
 import { useInventoryBorrowings } from "../../hooks/use-inventory-items";
-import { useCreateBorrowing, useReturnBorrowing } from "../../hooks/use-inventory-mutations";
+import { useCreateBorrowing, useReturnBorrowing, useSellBorrowing } from "../../hooks/use-inventory-mutations";
+
+function getBorrowingStatusVariant(status: InventoryBorrowing["status"]) {
+	if (status === "BORROWED") return "warning" as const;
+	if (status === "SOLD") return "destructive" as const;
+	return "success" as const;
+}
 
 type EquipmentBorrowingsDialogProps = {
 	itemId: string;
@@ -20,6 +34,11 @@ type EquipmentBorrowingsDialogProps = {
 	open?: boolean;
 	onOpenChange?: (open: boolean) => void;
 };
+
+type PendingBorrowingAction =
+	| { type: "sell"; borrowingId: string; customerName: string }
+	| { type: "return"; borrowingId: string; customerName: string }
+	| null;
 
 export function EquipmentBorrowingsDialog({
 	itemId,
@@ -35,10 +54,12 @@ export function EquipmentBorrowingsDialog({
 	const [isHistoryDialogOpen, setIsHistoryDialogOpen] = useState(false);
 	const [historyPage, setHistoryDialogPage] = useState(1);
 	const [historyPageSize, setHistoryPageSize] = useState(20);
+	const [pendingAction, setPendingAction] = useState<PendingBorrowingAction>(null);
 
 	const { data: borrowings = [], isLoading } = useInventoryBorrowings(itemId);
 	const createBorrowing = useCreateBorrowing(itemId);
 	const returnBorrowing = useReturnBorrowing(itemId);
+	const sellBorrowing = useSellBorrowing(itemId);
 	const isControlled = onOpenChange !== undefined;
 	const open = isControlled ? (controlledOpen ?? false) : internalOpen;
 	const setOpen = (nextOpen: boolean) => {
@@ -61,22 +82,23 @@ export function EquipmentBorrowingsDialog({
 		(nextOpen: boolean) => {
 			if (!nextOpen) {
 				resetBorrowingForm();
+				setPendingAction(null);
 			}
 			setOpen(nextOpen);
 		},
 		[resetBorrowingForm],
 	);
-	const handleReturnBorrowing = useCallback(
-		(borrowingId: string) => {
-			returnBorrowing.mutate(borrowingId, {
-				onSuccess: () => {
-					handleOpenChange(false);
-					setIsHistoryDialogOpen(false);
-				},
-			});
-		},
-		[returnBorrowing, handleOpenChange],
-	);
+	const handleConfirmPendingAction = useCallback(() => {
+		if (!pendingAction) return;
+
+		const mutation = pendingAction.type === "sell" ? sellBorrowing : returnBorrowing;
+
+		mutation.mutate(pendingAction.borrowingId, {
+			onSuccess: () => {
+				setPendingAction(null);
+			},
+		});
+	}, [pendingAction, returnBorrowing, sellBorrowing]);
 
 	const columns = useMemo<ColumnDef<InventoryBorrowing>[]>(
 		() => [
@@ -100,7 +122,7 @@ export function EquipmentBorrowingsDialog({
 				accessorKey: "status",
 				header: "Status",
 				cell: ({ row }) => (
-					<Badge variant={row.original.status === "BORROWED" ? "warning" : "success"}>{row.original.status}</Badge>
+					<Badge variant={getBorrowingStatusVariant(row.original.status)}>{row.original.status}</Badge>
 				),
 			},
 			{
@@ -108,18 +130,40 @@ export function EquipmentBorrowingsDialog({
 				header: "Action",
 				cell: ({ row }) =>
 					row.original.status === "BORROWED" && (
-						<Button
-							variant="secondary"
-							className="text-xs"
-							onClick={() => handleReturnBorrowing(row.original.id)}
-							disabled={returnBorrowing.isPending}
-						>
-							Return
-						</Button>
+						<div className="flex items-center gap-2">
+							<Button
+								variant="secondary"
+								className="text-xs"
+								onClick={() =>
+									setPendingAction({
+										type: "sell",
+										borrowingId: row.original.id,
+										customerName: row.original.customerName,
+									})
+								}
+								disabled={sellBorrowing.isPending || returnBorrowing.isPending}
+							>
+								Sell
+							</Button>
+							<Button
+								variant="secondary"
+								className="text-xs"
+								onClick={() =>
+									setPendingAction({
+										type: "return",
+										borrowingId: row.original.id,
+										customerName: row.original.customerName,
+									})
+								}
+								disabled={returnBorrowing.isPending || sellBorrowing.isPending}
+							>
+								Return
+							</Button>
+						</div>
 					),
 			},
 		],
-		[returnBorrowing, handleReturnBorrowing],
+		[returnBorrowing.isPending, sellBorrowing.isPending],
 	);
 
 	const handleCreateBorrowing = () => {
@@ -171,7 +215,7 @@ export function EquipmentBorrowingsDialog({
 							<Label>Customer</Label>
 							<Select value={customerId} onValueChange={setCustomerId}>
 								<SelectTrigger>
-									<SelectValue placeholder="Select customer" />
+									<SelectValue placeholder="Select customer…" />
 								</SelectTrigger>
 								<SelectContent>
 									{customers.map((customer) => (
@@ -194,12 +238,12 @@ export function EquipmentBorrowingsDialog({
 
 					<div className="space-y-2">
 						<Label>Memo</Label>
-						<Input value={memo} onChange={(e) => setMemo(e.target.value)} placeholder="Additional notes" />
+						<Input value={memo} onChange={(e) => setMemo(e.target.value)} placeholder="Additional notes…" />
 					</div>
 
 					<DialogFooter>
 						<Button onClick={handleCreateBorrowing} disabled={createBorrowing.isPending}>
-							{createBorrowing.isPending ? "Saving..." : "Create Borrowing"}
+							{createBorrowing.isPending ? "Saving…" : "Create Borrowing"}
 						</Button>
 					</DialogFooter>
 
@@ -215,7 +259,7 @@ export function EquipmentBorrowingsDialog({
 										setIsHistoryDialogOpen(true);
 									}}
 								>
-									View more
+									View More
 								</Button>
 							)}
 						</div>
@@ -225,7 +269,7 @@ export function EquipmentBorrowingsDialog({
 							data={previewBorrowings}
 							columns={columns}
 						/>
-						{isLoading && <p className="text-xs text-slate-500">Loading borrowings...</p>}
+						{isLoading && <p className="text-xs text-slate-500">Loading borrowings…</p>}
 					</div>
 				</DialogContent>
 			</Dialog>
@@ -252,6 +296,33 @@ export function EquipmentBorrowingsDialog({
 							},
 						}}
 					/>
+				</DialogContent>
+			</Dialog>
+			<Dialog open={pendingAction !== null} onOpenChange={(open) => !open && setPendingAction(null)}>
+				<DialogContent className="sm:max-w-md">
+					<DialogHeader>
+						<DialogTitle>{pendingAction?.type === "sell" ? "Confirm Sale" : "Confirm Return"}</DialogTitle>
+						<DialogDescription>
+							{pendingAction?.type === "sell"
+								? `Mark this borrowing for ${pendingAction.customerName} as sold?`
+								: `Mark this borrowing for ${pendingAction?.customerName} as returned?`}
+						</DialogDescription>
+					</DialogHeader>
+					<DialogFooter>
+						<Button
+							variant="outline"
+							onClick={() => setPendingAction(null)}
+							disabled={sellBorrowing.isPending || returnBorrowing.isPending}
+						>
+							Cancel
+						</Button>
+						<Button
+							onClick={handleConfirmPendingAction}
+							disabled={sellBorrowing.isPending || returnBorrowing.isPending}
+						>
+							{sellBorrowing.isPending || returnBorrowing.isPending ? "Saving…" : "Confirm"}
+						</Button>
+					</DialogFooter>
 				</DialogContent>
 			</Dialog>
 		</div>

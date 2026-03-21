@@ -91,3 +91,15 @@ export function useReturnBorrowing(itemId?: string) {
 		errorMessage: "Failed to return borrowing",
 	});
 }
+
+export function useSellBorrowing(itemId?: string) {
+	return useInventoryMutation<string>({
+		itemId,
+		mutationFn: (borrowingId: string) => {
+			const requiredItemId = assertItemId(itemId);
+			return inventoryService.sellBorrowing(requiredItemId, borrowingId);
+		},
+		successMessage: "Borrowing sold successfully",
+		errorMessage: "Failed to sell borrowing",
+	});
+}

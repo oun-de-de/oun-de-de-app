@@ -13,6 +13,7 @@ function getQuantityDelta(reason: string, quantity: number) {
 			return quantity;
 		case "consume":
 		case "borrow":
+		case "sold":
 			return -quantity;
 		default:
 			return 0;
