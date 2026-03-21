@@ -39,6 +39,8 @@ export function SettingsContent({ activeItem }: SettingsContentProps) {
 		editItem,
 		onAfterSave: closeForm,
 	});
+	const pageSize = 20;
+	const pagedRows = filteredRows.slice((page - 1) * pageSize, page * pageSize);
 
 	return (
 		<div className="flex h-full min-h-0 flex-col gap-3">
@@ -75,12 +77,12 @@ export function SettingsContent({ activeItem }: SettingsContentProps) {
 					<SmartDataTable
 						className="flex-1 min-h-0"
 						maxBodyHeight="100%"
-						data={filteredRows}
+						data={pagedRows}
 						columns={columns}
 						paginationConfig={{
 							page,
 							totalItems: filteredRows.length,
-							pageSize: 20,
+							pageSize,
 							totalPages,
 							paginationItems: buildPagination(page, totalPages),
 							onPageChange: setPage,
