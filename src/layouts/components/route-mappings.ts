@@ -109,7 +109,7 @@ export const ROUTE_TITLE_MAPPINGS = [
 		title: "View Chart Account",
 	},
 	{
-		path: "/dashboard/accounting-center/create",
+		path: "/dashboard/accounting/create-cash-transaction",
 		title: "Create Cash Transaction",
 	},
 	{

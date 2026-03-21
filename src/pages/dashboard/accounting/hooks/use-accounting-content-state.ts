@@ -1,16 +1,26 @@
 import { useMemo, useState } from "react";
-import { accountingRows } from "@/_mock/data/dashboard";
+import type { AccountingRow } from "@/core/types/common";
 import { getPaginationItems } from "@/core/utils/pagination";
-import { useAccountingList } from "@/core/store/accountingListStore";
+import { useAccountingList } from "../stores/accounting-list-store";
 import type { AccountingAccountListItem } from "../types";
 
 type UseAccountingContentStateParams = {
 	accounts: AccountingAccountListItem[];
+	rows: AccountingRow[];
+	totalItems: number;
+	totalPages: number;
 	activeAccountId: string | null;
 	listState: ReturnType<typeof useAccountingList>;
 };
 
-export function useAccountingContentState({ accounts, activeAccountId, listState }: UseAccountingContentStateParams) {
+export function useAccountingContentState({
+	accounts,
+	rows,
+	totalItems,
+	totalPages,
+	activeAccountId,
+	listState,
+}: UseAccountingContentStateParams) {
 	const [inactiveAccountIds, setInactiveAccountIds] = useState<string[]>([]);
 	const [showInactiveConfirm, setShowInactiveConfirm] = useState(false);
 
@@ -20,10 +30,9 @@ export function useAccountingContentState({ accounts, activeAccountId, listState
 	);
 
 	const isActiveAccountInactive = !!activeAccountId && inactiveAccountIds.includes(activeAccountId);
-	const tableData = useMemo(() => (isActiveAccountInactive ? [] : accountingRows), [isActiveAccountInactive]);
-	const totalItems = tableData.length;
-	const totalPages = Math.max(1, Math.ceil(totalItems / listState.pageSize));
-	const paginationItems = getPaginationItems(listState.page, totalPages);
+	const tableData = isActiveAccountInactive ? [] : rows;
+	const resolvedTotalPages = Math.max(1, totalPages);
+	const paginationItems = getPaginationItems(listState.page, resolvedTotalPages);
 
 	const handleConfirmInactive = () => {
 		if (!activeAccountId) return;
@@ -36,8 +45,8 @@ export function useAccountingContentState({ accounts, activeAccountId, listState
 		showInactiveConfirm,
 		setShowInactiveConfirm,
 		tableData,
-		totalItems,
-		totalPages,
+		totalItems: isActiveAccountInactive ? 0 : totalItems,
+		totalPages: isActiveAccountInactive ? 1 : resolvedTotalPages,
 		paginationItems,
 		handleConfirmInactive,
 	};

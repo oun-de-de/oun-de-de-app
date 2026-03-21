@@ -14,11 +14,16 @@ export function buildAccountTypeMap(accountTypes: AccountTypeResult[]) {
 	}, {});
 }
 
+export function getChartAccountAccountTypeId(account: ChartOfAccountResult) {
+	return account.accountTypeId ?? account.accountType?.id ?? "";
+}
+
 export function mapChartOfAccountToListItem(
 	account: ChartOfAccountResult,
 	accountType?: AccountTypeResult,
 ): AccountingAccountListItem {
 	const code = account.code?.trim() ?? "";
+	const resolvedAccountTypeId = getChartAccountAccountTypeId(account);
 
 	return {
 		id: account.id,
@@ -26,7 +31,7 @@ export function mapChartOfAccountToListItem(
 		code,
 		type: accountType?.nature?.toLowerCase(),
 		status: "active",
-		accountTypeId: account.accountTypeId,
+		accountTypeId: resolvedAccountTypeId,
 		descr: account.descr,
 	};
 }

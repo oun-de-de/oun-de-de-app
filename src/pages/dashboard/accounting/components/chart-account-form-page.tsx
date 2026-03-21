@@ -11,6 +11,7 @@ import { Textarea } from "@/core/ui/textarea";
 import { ACCOUNTING_UI_TEXT } from "../constants";
 import { useCreateChartAccount } from "../hooks/use-create-chart-account";
 import { useAccountingReferenceData } from "../hooks/use-accounting-reference-data";
+import { getChartAccountAccountTypeId } from "../utils/map-chart-account-result";
 
 type ChartAccountFormPageProps = {
 	mode: "create" | "edit";
@@ -19,7 +20,14 @@ type ChartAccountFormPageProps = {
 export function ChartAccountFormPage({ mode }: ChartAccountFormPageProps) {
 	const navigate = useNavigate();
 	const { id } = useParams<{ id: string }>();
-	const { accountTypeOptions, chartAccounts, isLoading } = useAccountingReferenceData();
+	const { accountTypeOptions, chartAccounts, isLoading } = useAccountingReferenceData({
+		journalTypesEnabled: false,
+		journalClassesEnabled: false,
+		employeesEnabled: false,
+		customersEnabled: false,
+		chartAccountsEnabled: mode === "edit",
+		loadChartAccountType: mode === "edit",
+	});
 	const { mutateAsync: createChartAccount, isPending: isCreating } = useCreateChartAccount();
 	const selectedAccount = useMemo(
 		() => (mode === "edit" && id ? chartAccounts.find((account) => account.id === id) : undefined),
@@ -35,7 +43,7 @@ export function ChartAccountFormPage({ mode }: ChartAccountFormPageProps) {
 
 		setAccountCode(selectedAccount.code);
 		setAccountName(selectedAccount.name);
-		setAccountTypeId(selectedAccount.accountTypeId);
+		setAccountTypeId(getChartAccountAccountTypeId(selectedAccount));
 		setMemo(selectedAccount.descr ?? "");
 	}, [mode, selectedAccount]);
 
@@ -46,7 +54,8 @@ export function ChartAccountFormPage({ mode }: ChartAccountFormPageProps) {
 
 	const isEdit = mode === "edit";
 	const isReadOnly = isEdit;
-	const isFormValid = accountTypeId.trim() !== "" && accountCode.trim() !== "" && accountName.trim() !== "";
+	const normalizedAccountTypeId = accountTypeId.trim();
+	const isFormValid = normalizedAccountTypeId !== "" && accountCode.trim() !== "" && accountName.trim() !== "";
 
 	const handleSave = async () => {
 		if (!isFormValid) {
@@ -56,7 +65,7 @@ export function ChartAccountFormPage({ mode }: ChartAccountFormPageProps) {
 
 		try {
 			await createChartAccount({
-				accountTypeId,
+				accountTypeId: normalizedAccountTypeId,
 				code: accountCode.trim(),
 				name: accountName.trim(),
 				descr: memo.trim() || undefined,
@@ -70,7 +79,7 @@ export function ChartAccountFormPage({ mode }: ChartAccountFormPageProps) {
 
 	return (
 		<div className="flex h-full flex-col gap-4 p-3 md:p-4">
-			<div className="flex items-center gap-3 border-b border-slate-200 pb-2">
+			<div className="flex items-center gap-3 pb-2">
 				<BackButton onClick={() => navigate("/dashboard/accounting")} />
 				<span className="text-base font-semibold text-slate-700">
 					{isReadOnly ? ACCOUNTING_UI_TEXT.viewPageTitle : ACCOUNTING_UI_TEXT.createPageTitle}

@@ -16,15 +16,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/core/ui/textarea";
 import { formatNumber } from "@/core/utils/formatters";
 import { CalendarDays, Trash2 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
-import {
-	ACCOUNTING_CURRENCY_OPTIONS,
-	ACCOUNTING_DRAFT_FORM_TEXT,
-	ACCOUNTING_EXPENSE_NAME_OPTIONS,
-	ACCOUNTING_UI_TEXT,
-} from "../constants";
+import { ACCOUNTING_DRAFT_FORM_TEXT, ACCOUNTING_EXPENSE_NAME_OPTIONS } from "../constants";
+import { AccountingCreateMenuButton } from "../components/accounting-create-menu-button";
 import { useAccountingReferenceData } from "../hooks/use-accounting-reference-data";
+import { useGetCurrencyList } from "@/pages/dashboard/settings/hooks/use-settings";
 import { saveAccountingDraft } from "../utils/accounting-draft-actions";
 import { createEmptyExpenseLine, type ExpenseLine } from "../utils/accounting-line-factories";
 import { formatLocalDateTime } from "../utils/format-local-date-time";
@@ -69,16 +66,28 @@ function ExpenseNameCombobox({
 
 export default function CreateExpensePage() {
 	const navigate = useNavigate();
-	const { chartAccountOptions, employeeOptions, isLoading, journalClassOptions } = useAccountingReferenceData();
+	const { chartAccountOptions, employeeOptions, isLoading, journalClassOptions } = useAccountingReferenceData({
+		accountTypesEnabled: false,
+		journalTypesEnabled: false,
+		customersEnabled: false,
+	});
+	const { data: currencies = [], isLoading: isLoadingCurrencies } = useGetCurrencyList();
 	const [refNo] = useState("EXPXXXXXXXXXX");
 	const [date] = useState(formatLocalDateTime());
-	const [currency, setCurrency] = useState("USD");
+	const [currencyId, setCurrencyId] = useState("");
 	const [cashAccount, setCashAccount] = useState("");
 	const [employeeId, setEmployeeId] = useState("");
 	const [memo, setMemo] = useState("");
 	const [lines, setLines] = useState<ExpenseLine[]>([createEmptyExpenseLine(0)]);
 
 	const totalAmount = useMemo(() => lines.reduce((sum, line) => sum + (Number(line.amount) || 0), 0), [lines]);
+	const currencyOptions = useMemo(() => currencies.map((item) => ({ value: item.id, label: item.name })), [currencies]);
+
+	useEffect(() => {
+		if (!currencyId && currencies.length > 0) {
+			setCurrencyId(currencies[0].id);
+		}
+	}, [currencies, currencyId]);
 
 	const updateLine = <K extends keyof ExpenseLine>(id: string, field: K, value: ExpenseLine[K]) => {
 		setLines((prev) => prev.map((line) => (line.id === id ? { ...line, [field]: value } : line)));
@@ -102,7 +111,7 @@ export default function CreateExpensePage() {
 
 	return (
 		<div className="flex h-full flex-col gap-4 p-3 md:p-4">
-			<div className="flex items-center gap-3 border-b border-slate-200 pb-2">
+			<div className="flex items-center gap-3 pb-2">
 				<BackButton onClick={() => navigate("/dashboard/accounting")} />
 				<div className="flex items-center gap-2 text-slate-700">
 					<span className="text-base font-semibold">{ACCOUNTING_DRAFT_FORM_TEXT.expense.pageTitle}</span>
@@ -143,12 +152,12 @@ export default function CreateExpensePage() {
 								<Label className="text-slate-600">
 									<span className="text-rose-500">*</span> Currency
 								</Label>
-								<Select value={currency} onValueChange={setCurrency}>
-									<SelectTrigger>
+								<Select value={currencyId} onValueChange={setCurrencyId}>
+									<SelectTrigger disabled={isLoadingCurrencies}>
 										<SelectValue placeholder="Select currency" />
 									</SelectTrigger>
 									<SelectContent>
-										{ACCOUNTING_CURRENCY_OPTIONS.map((option) => (
+										{currencyOptions.map((option) => (
 											<SelectItem key={option.value} value={option.value}>
 												{option.label}
 											</SelectItem>
@@ -305,24 +314,11 @@ export default function CreateExpensePage() {
 							</table>
 						</div>
 						<div className="flex items-center justify-between gap-3 border-t px-4 py-4">
-							<SplitButton
+							<AccountingCreateMenuButton
 								variant="info"
 								size="sm"
 								mainAction={{ label: "+ New", onClick: addLine }}
-								options={[
-									{
-										label: `Create Cash Expense (${ACCOUNTING_UI_TEXT.draftOptionSuffix})`,
-										onClick: () => navigate("/dashboard/accounting/create-expense"),
-									},
-									{
-										label: `Create Journal (${ACCOUNTING_UI_TEXT.draftOptionSuffix})`,
-										onClick: () => navigate("/dashboard/accounting/create-journal"),
-									},
-									{
-										label: `Create Cash Transaction (${ACCOUNTING_UI_TEXT.draftOptionSuffix})`,
-										onClick: () => navigate("/dashboard/accounting-center/create"),
-									},
-								]}
+								optionLabels={["Create Expense", "Create Journal", "Create Cash Transaction"]}
 							/>
 							<div className="flex min-w-[260px] items-center justify-between rounded-md border bg-white px-4 py-3">
 								<span className="text-base font-semibold text-slate-700">Total:</span>

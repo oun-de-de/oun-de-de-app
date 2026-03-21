@@ -1,5 +1,18 @@
 import type { SelectOption } from "./common";
 
+export type CashTransactionType = "DEBIT" | "CREDIT";
+
+export type CashTransactionFlattenResult = {
+	id: string;
+	refNo: string;
+	type: CashTransactionType;
+	reason?: string;
+	date?: string;
+	currency?: string;
+	memo?: string;
+	amount: number;
+};
+
 export type CashTransaction = {
 	id: string;
 	no: number;
@@ -33,4 +46,44 @@ export type CashTransactionDataset = {
 	counterparties: CashTransactionCounterparty[];
 	typeOptions: SelectOption[];
 	summary: CashTransactionSummary;
+};
+
+export type CreateCashTransactionDetailRequest = {
+	chartOfAccountId: string;
+	accountTypeId: string;
+	memo?: string;
+	amount: number;
+	customerId: string;
+	journalClassId?: string;
+};
+
+export type CreateCashTransactionRequest = {
+	refNo: string;
+	type: CashTransactionType;
+	date?: string;
+	currencyId?: string;
+	employeeId: string;
+	memo?: string;
+	cashTransactionDetails: CreateCashTransactionDetailRequest[];
+};
+
+export type CashTransactionDetailResult = {
+	id: string;
+	chartOfAccountId: string;
+	accountTypeId: string;
+	memo?: string;
+	amount: number;
+	customerId: string;
+	journalClassId?: string;
+};
+
+export type CashTransactionResult = {
+	id: string;
+	refNo: string;
+	type: CashTransactionType;
+	date?: string;
+	currency?: string;
+	employeeId: string;
+	memo?: string;
+	cashTransactionDetails: CashTransactionDetailResult[];
 };

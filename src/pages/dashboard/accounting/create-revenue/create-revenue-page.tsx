@@ -17,7 +17,11 @@ import { formatLocalDateTime } from "../utils/format-local-date-time";
 
 export default function CreateRevenuePage() {
 	const navigate = useNavigate();
-	const { chartAccountOptions, employeeOptions, isLoading, journalClassOptions } = useAccountingReferenceData();
+	const { chartAccountOptions, employeeOptions, isLoading, journalClassOptions } = useAccountingReferenceData({
+		accountTypesEnabled: false,
+		journalTypesEnabled: false,
+		customersEnabled: false,
+	});
 	const [refNo] = useState("REVXXXXXXXXXX");
 	const [date] = useState(formatLocalDateTime());
 	const [cashAccount, setCashAccount] = useState("");
@@ -49,7 +53,7 @@ export default function CreateRevenuePage() {
 
 	return (
 		<div className="flex h-full flex-col gap-4 p-3 md:p-4">
-			<div className="flex items-center gap-3 border-b border-slate-200 pb-2">
+			<div className="flex items-center gap-3 pb-2">
 				<BackButton onClick={() => navigate("/dashboard/accounting")} />
 				<div className="flex items-center gap-2 text-slate-700">
 					<span className="text-base font-semibold">{ACCOUNTING_DRAFT_FORM_TEXT.revenue.pageTitle}</span>

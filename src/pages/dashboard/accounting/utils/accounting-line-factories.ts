@@ -33,7 +33,7 @@ export type TransactionLine = {
 	memo: string;
 	payMethod: string;
 	amount: string;
-	name: string;
+	customerId: string;
 	className: string;
 };
 
@@ -83,7 +83,7 @@ export function createEmptyTransactionLine(index: number): TransactionLine {
 		memo: "",
 		payMethod: "",
 		amount: "",
-		name: "",
+		customerId: "",
 		className: "",
 	};
 }
