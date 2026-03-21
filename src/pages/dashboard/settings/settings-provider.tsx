@@ -1,11 +1,11 @@
 import type { ReactNode } from "react";
 import { MultiStoreProvider, type StoreConfig } from "@/core/ui/store/multi-store-provider";
-import { settingsBoundStore } from "./stores/settings-store";
+import { settingsUiBoundStore } from "./stores/settings-ui-store";
 
 const settingsStores: StoreConfig[] = [
 	{
 		name: "settings",
-		store: settingsBoundStore,
+		store: settingsUiBoundStore,
 	},
 ];
 

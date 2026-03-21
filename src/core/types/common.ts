@@ -74,6 +74,7 @@ export type SettingsRow = {
 	id?: string;
 	name: string;
 	type: string;
+	code?: string;
 	descr?: string;
 	location?: string;
 };

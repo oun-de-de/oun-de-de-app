@@ -1,10 +1,10 @@
-export type { SettingsState as SettingsSidebarState } from "./settings-state";
-export type { SettingsStore as SettingsSidebarStore } from "./settings-store";
+export type { SettingsState } from "./settings-state";
+export type { SettingsStore } from "./settings-ui-store";
 export {
-	getSettingsActions as getSettingsSidebarActions,
-	settingsBoundStore as settingsSidebarBoundStore,
+	getSettingsActions,
+	settingsUiBoundStore,
 	useActiveItem,
 	useFormState,
-	useSettingsActions as useSettingsSidebarActions,
-	useSettingsState as useSettingsSidebarState,
-} from "./settings-store";
+	useSettingsActions as useSettingsUiActions,
+	useSettingsState as useSettingsUiState,
+} from "./settings-ui-store";

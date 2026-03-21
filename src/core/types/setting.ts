@@ -25,3 +25,14 @@ export interface CreateUnit {
 	descr: string;
 	type: UnitType;
 }
+
+export interface Currency {
+	id: string;
+	name: string;
+	descr: string;
+}
+
+export interface CreateCurrency {
+	name: string;
+	descr?: string;
+}

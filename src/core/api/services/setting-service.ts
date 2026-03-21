@@ -1,9 +1,10 @@
-import type { CreateUnit, CreateWarehouse, Unit, Warehouse } from "@/core/types/setting";
+import type { CreateCurrency, CreateUnit, CreateWarehouse, Currency, Unit, Warehouse } from "@/core/types/setting";
 import { apiClient } from "../apiClient";
 
 export enum SettingApi {
 	Warehouses = "/settings/warehouses",
 	Units = "/settings/units",
+	Currencies = "/settings/currencies",
 }
 
 const getWarehouseList = () => {
@@ -30,6 +31,14 @@ const updateUnit = (unitId: string, unit: CreateUnit) => {
 	return apiClient.put<Unit>({ url: `${SettingApi.Units}/${unitId}`, data: unit });
 };
 
+const getCurrencyList = () => {
+	return apiClient.get<Currency[]>({ url: SettingApi.Currencies });
+};
+
+const createCurrency = (currency: CreateCurrency) => {
+	return apiClient.post<Currency>({ url: SettingApi.Currencies, data: currency });
+};
+
 export default {
 	getWarehouseList,
 	createWarehouse,
@@ -37,4 +46,6 @@ export default {
 	getUnitList,
 	createUnit,
 	updateUnit,
+	getCurrencyList,
+	createCurrency,
 };

@@ -50,6 +50,7 @@ export type FormFieldConfig = {
 	placeholder?: string;
 	required?: boolean;
 	disabled?: boolean;
+	rows?: number;
 	options?: { label: string; value: string }[];
 	defaultValue?: FormValue;
 	helperText?: string;
@@ -161,7 +162,7 @@ export function DefaultForm<TFormData extends DefaultFormData = DefaultFormData>
 				return <FormSwitch {...baseProps} />;
 
 			case "textarea":
-				return <FormTextarea {...baseProps} variant={inputVariant} size={inputSize} />;
+				return <FormTextarea {...baseProps} variant={inputVariant} size={inputSize} rows={field.rows} />;
 
 			case "date":
 				return <FormTextField {...textFieldProps} type="date" variant={inputVariant} size={inputSize} />;
