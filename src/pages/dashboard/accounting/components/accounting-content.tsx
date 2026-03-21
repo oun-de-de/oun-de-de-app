@@ -1,5 +1,6 @@
 import { SmartDataTable } from "@/core/components/common";
 import Icon from "@/core/components/icon/icon";
+import { useEffect } from "react";
 import { Button } from "@/core/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/core/ui/dialog";
 import { Text } from "@/core/ui/typography";
@@ -54,6 +55,12 @@ export function AccountingContent({
 		activeAccountId,
 		listState,
 	});
+
+	useEffect(() => {
+		if (listState.page > totalPages) {
+			updateState({ page: totalPages });
+		}
+	}, [listState.page, totalPages, updateState]);
 
 	return (
 		<>

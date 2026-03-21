@@ -16,6 +16,7 @@ type ListCashTransactionsParams = {
 	page?: number;
 	limit?: number;
 	sort?: string;
+	paginateFallbackArray?: boolean;
 };
 
 const createCashTransaction = (data: CreateCashTransactionRequest): Promise<CashTransactionResult> =>
@@ -41,8 +42,12 @@ const listCashTransactions = async (
 	});
 
 	if (Array.isArray(response)) {
+		const shouldPaginateFallbackArray = params?.paginateFallbackArray ?? true;
+		const startIndex = Math.max(0, (page - 1) * pageSize);
+		const pagedList = shouldPaginateFallbackArray ? response.slice(startIndex, startIndex + pageSize) : response;
+
 		return {
-			list: response,
+			list: pagedList,
 			page,
 			pageSize,
 			pageCount: Math.max(1, Math.ceil(response.length / pageSize)),
