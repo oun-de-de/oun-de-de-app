@@ -107,7 +107,7 @@ export const getCouponColumns = ({
 			<div className="flex items-center justify-center gap-2">
 				<Button
 					size="sm"
-					variant="outline"
+					variant="warning"
 					onClick={() => onEditCoupon(row.original)}
 					disabled={!row.original.couponNo}
 				>
@@ -116,6 +116,7 @@ export const getCouponColumns = ({
 				<Button
 					size="sm"
 					variant="destructive"
+					className="text-white"
 					onClick={() => onDeleteCoupon(row.original)}
 					disabled={!row.original.couponNo}
 				>

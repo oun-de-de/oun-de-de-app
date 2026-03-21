@@ -119,6 +119,7 @@ export function itemColumns({ onUpdateStock, onBorrowings }: ItemRowActionHandle
 						<Button
 							type="button"
 							size="sm"
+							variant="warning"
 							onClick={(event) => {
 								event.stopPropagation();
 								onUpdateStock(row.original.id);
@@ -130,7 +131,6 @@ export function itemColumns({ onUpdateStock, onBorrowings }: ItemRowActionHandle
 							<Button
 								type="button"
 								size="sm"
-								variant="warning"
 								onClick={(event) => {
 									event.stopPropagation();
 									onBorrowings(row.original.id);
