@@ -64,6 +64,7 @@ export function useAccountingTransactions({
 }: UseAccountingTransactionsParams) {
 	const normalizedSearchValue = searchValue.trim();
 	const shouldFilterClientSide = typeFilter !== ACCOUNTING_ALL_TYPES_FILTER || normalizedSearchValue !== "";
+	const resolvedFieldFilter = normalizedSearchValue ? fieldFilter : "all";
 
 	const { data, isLoading, isError } = useQuery({
 		queryKey: [
@@ -71,13 +72,14 @@ export function useAccountingTransactions({
 			page,
 			pageSize,
 			typeFilter,
-			fieldFilter,
+			resolvedFieldFilter,
 			normalizedSearchValue,
 		],
 		queryFn: () =>
 			cashTransactionService.listCashTransactions({
 				page: shouldFilterClientSide ? 1 : page,
 				limit: shouldFilterClientSide ? ACCOUNTING_REFERENCE_PAGE_SIZE : pageSize,
+				paginateFallbackArray: !shouldFilterClientSide,
 			}),
 		placeholderData: keepPreviousData,
 		staleTime: 5 * 60 * 1000,
@@ -91,10 +93,10 @@ export function useAccountingTransactions({
 			return mappedRows;
 		}
 
-		const filteredRows = filterRows(mappedRows, typeFilter, fieldFilter, normalizedSearchValue);
+		const filteredRows = filterRows(mappedRows, typeFilter, resolvedFieldFilter, normalizedSearchValue);
 		const startIndex = (page - 1) * pageSize;
 		return filteredRows.slice(startIndex, startIndex + pageSize);
-	}, [data?.list, fieldFilter, normalizedSearchValue, page, pageSize, shouldFilterClientSide, typeFilter]);
+	}, [data?.list, normalizedSearchValue, page, pageSize, resolvedFieldFilter, shouldFilterClientSide, typeFilter]);
 
 	const filteredTotalItems = useMemo(() => {
 		if (!shouldFilterClientSide) {
@@ -104,10 +106,10 @@ export function useAccountingTransactions({
 		return filterRows(
 			(data?.list ?? []).map(mapCashTransactionToAccountingRow),
 			typeFilter,
-			fieldFilter,
+			resolvedFieldFilter,
 			normalizedSearchValue,
 		).length;
-	}, [data?.list, data?.total, fieldFilter, normalizedSearchValue, shouldFilterClientSide, typeFilter]);
+	}, [data?.list, data?.total, normalizedSearchValue, resolvedFieldFilter, shouldFilterClientSide, typeFilter]);
 
 	return {
 		rows,
