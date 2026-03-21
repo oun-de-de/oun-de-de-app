@@ -5,6 +5,7 @@ export {
 	settingsUiBoundStore,
 	useActiveItem,
 	useFormState,
+	useSettingsListState,
 	useSettingsActions as useSettingsUiActions,
 	useSettingsState as useSettingsUiState,
 } from "./settings-ui-store";

@@ -10,6 +10,9 @@ import { SettingsSelectItemLoadingState, SettingsSelectItemSuccessState } from "
 
 type SettingsActions = {
 	selectItem: (item: string) => void;
+	setPage: (page: number) => void;
+	setPageSize: (pageSize: number) => void;
+	setSearch: (search: string) => void;
 	reset: () => void;
 	openCreateForm: () => void;
 	openEditForm: (item: SettingsRow) => void;
@@ -31,7 +34,43 @@ const createSettingsStore = (items: string[]) =>
 				actions: {
 					selectItem(item: string) {
 						set({ state: SettingsSelectItemLoadingState(get().state) });
-						set({ state: SettingsSelectItemSuccessState(get().state, item) });
+						set({
+							state: _SettingsState({
+								state: SettingsSelectItemSuccessState(get().state, item),
+								type: "SelectItemSuccessState",
+								page: 1,
+								search: "",
+							}),
+						});
+					},
+					setPage(page: number) {
+						set({
+							state: _SettingsState({
+								state: get().state,
+								type: get().state.type,
+								page,
+							}),
+						});
+					},
+					setPageSize(pageSize: number) {
+						set({
+							state: _SettingsState({
+								state: get().state,
+								type: get().state.type,
+								pageSize,
+								page: 1,
+							}),
+						});
+					},
+					setSearch(search: string) {
+						set({
+							state: _SettingsState({
+								state: get().state,
+								type: get().state.type,
+								search,
+								page: 1,
+							}),
+						});
 					},
 					reset() {
 						set({ state: SettingsInitialState(items) });
@@ -103,6 +142,14 @@ export const settingsUiBoundStore = createBoundStore<SettingsStore>({
 export const useSettingsState = () => settingsUiBoundStore.useState();
 export const useSettingsActions = () => settingsUiBoundStore.useAction();
 export const useActiveItem = () => settingsUiBoundStore.useState().activeItem;
+export const useSettingsListState = () => {
+	const state = settingsUiBoundStore.useState();
+	return {
+		page: state.page,
+		pageSize: state.pageSize,
+		search: state.search,
+	};
+};
 export const useFormState = () => {
 	const state = settingsUiBoundStore.useState();
 	return {
