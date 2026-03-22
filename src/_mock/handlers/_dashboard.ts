@@ -93,10 +93,6 @@ function generateReportDailyReportData(date: string): DailyReportResponse {
 	return {
 		soldProducts,
 		boughtItems,
-		iceCubeSaleCash: soldProducts[0]?.totalAmount ?? 0,
-		premiumIceSaleCash: soldProducts[1]?.totalAmount ?? 0,
-		customerSaleInvoicePremiumIce: soldProducts[2]?.totalAmount ?? 0,
-		customerSaleInvoiceIceCube: soldProducts[3]?.totalAmount ?? 0,
 		totalRevenue,
 		totalCashReceive: Math.max(totalRevenue - faker.number.int({ min: 0, max: 300_000 }), 0),
 		totalExpense,
@@ -255,7 +251,7 @@ const financialOverview = http.get("/api/v1/dashboard/financial-overview", () =>
 	const mock = {
 		invoiceAmount: faker.number.int({ min: 100_000, max: 500_000_000 }),
 		overdueCycles: faker.number.int({ min: 0, max: 20 }),
-		overdueLoanInstallments: faker.number.int({ min: 0, max: 50 }),
+		dueLoanInstallments: faker.number.int({ min: 0, max: 50 }),
 		depositBalance: faker.number.int({ min: 0, max: 100_000_000 }),
 	};
 

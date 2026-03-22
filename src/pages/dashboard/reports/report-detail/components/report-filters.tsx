@@ -39,7 +39,7 @@ export const ReportFilters = React.memo(function ReportFilters({
 	});
 	const customers = customersResponse?.list ?? [];
 	const hasCustomerAndDateRange = filterConfig.customer && filterConfig.dateRange;
-	const hasDateFilter = filterConfig.dateRange || filterConfig.singleDate;
+	const hasDateFilter = filterConfig.dateRange || filterConfig.singleDate || filterConfig.monthOnly;
 	const helperSpanClass = hasCustomerAndDateRange || hasDateFilter ? "lg:col-span-2" : "lg:col-span-1";
 
 	return (
@@ -113,6 +113,28 @@ export const ReportFilters = React.memo(function ReportFilters({
 					<Input
 						id="report-date"
 						type="date"
+						value={fromDate}
+						onChange={(e) =>
+							onChange({
+								customerId,
+								fromDate: e.target.value,
+								toDate: e.target.value,
+								useDateRange: true,
+							})
+						}
+						className="h-10 text-slate-500"
+					/>
+				</div>
+			)}
+
+			{filterConfig.monthOnly && (
+				<div className="flex flex-col gap-1.5 text-red-500">
+					<Label htmlFor="report-month" className="text-slate-600">
+						* Month
+					</Label>
+					<Input
+						id="report-month"
+						type="month"
 						value={fromDate}
 						onChange={(e) =>
 							onChange({

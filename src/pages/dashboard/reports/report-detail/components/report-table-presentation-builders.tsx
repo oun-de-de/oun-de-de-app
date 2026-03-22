@@ -98,7 +98,7 @@ function buildCompanyAssetMetaColumns(): ReportTemplateMetaColumn[] {
 		{ key: "scope", rows: ["Company Asset Register", "Source: product catalog records"], className: "md:col-span-1" },
 		{
 			key: "supplier",
-			rows: ["Supplier fields are derived from product reference only", "No dedicated asset vendor API is available"],
+			rows: ["Supplier fields are derived from product reference only", "No supplier data in current source data"],
 			align: "center",
 			className: "md:col-span-1",
 		},
@@ -167,26 +167,11 @@ function buildSimplePresentation(
 	};
 }
 
-function buildWorkbookPresentation(
-	workbookTitle: string,
-	workbookSubtitle: string,
-	summaryRows?: ReportTemplateSummaryRow[],
-	emptyText?: string,
-): ReportPresentation {
-	return {
-		headerContent: buildDefaultHeader(`${workbookTitle} ${workbookSubtitle}`.trim(), ""),
-		summaryRows,
-		emptyText,
-	};
-}
-
-function buildMonthlyPresentation({ rows }: ReportPresentationBuilderParams): ReportPresentation {
-	return buildWorkbookPresentation(
-		"Revenue and Expense Statement",
-		"Monthly report format",
-		buildSingleAmountSummary("monthly-total", "Net total", rows.at(-1)?.cells.amount, " Riel"),
-		"No monthly data available.",
-	);
+function buildMonthlyPresentation({ filters, rows }: ReportPresentationBuilderParams): ReportPresentation {
+	return buildSimplePresentation("Revenue and Expense Statement", formatFilterRange(filters), {
+		summaryRows: buildSingleAmountSummary("monthly-total", "Net total", rows.at(-1)?.cells.amount, " Riel"),
+		emptyText: "No monthly data available.",
+	});
 }
 
 function buildDailyPresentation({ title, filters, rows }: ReportPresentationBuilderParams): ReportPresentation {
@@ -228,12 +213,10 @@ function buildLedgerPresentation({
 	});
 }
 
-function buildInventoryPresentation({ rows }: ReportPresentationBuilderParams): ReportPresentation {
-	return buildWorkbookPresentation(
-		"Inventory Stock Report",
-		"Q#8 Ice Bag Inventory",
-		buildSingleAmountSummary("inventory-balance", "Total balance qty", sumLatestBalanceByItem(rows)),
-	);
+function buildInventoryPresentation({ filters, rows }: ReportPresentationBuilderParams): ReportPresentation {
+	return buildSimplePresentation("Inventory Stock Report", formatFilterRange(filters), {
+		summaryRows: buildSingleAmountSummary("inventory-balance", "Total balance qty", sumLatestBalanceByItem(rows)),
+	});
 }
 
 function buildCustomerLoanPresentation({ filters, rows }: ReportPresentationBuilderParams): ReportPresentation {

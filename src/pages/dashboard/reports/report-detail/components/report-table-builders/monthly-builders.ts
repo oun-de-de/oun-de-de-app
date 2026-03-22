@@ -1,5 +1,6 @@
 import { accountingRows } from "@/_mock/data/dashboard";
 import type { Invoice, InvoiceExportPreviewRow } from "@/core/types/invoice";
+import type { MonthlyReportResponse } from "@/core/types/report";
 import { formatNumber } from "@/core/utils/formatters";
 import type { ReportTemplateRow } from "../../../components/layout/report-template-table";
 import { parseNumericCell } from "../report-table-utils";
@@ -79,5 +80,59 @@ export function buildMonthlyRevenueExpenseRows(
 		toMonthlySummarySectionRow("monthly-expense-total", "Total monthly expenses", totalExpenses),
 		...expenseDetailRows,
 		toSummaryRow("monthly-net", "Monthly cash rolling", "Total income - total expenses - credit sales", netTotal),
+	];
+}
+
+export function buildMonthlyRevenueExpenseApiRows(monthlyReport?: MonthlyReportResponse): ReportTemplateRow[] {
+	if (!monthlyReport) return [];
+
+	const expenses = monthlyReport.expenses ?? [];
+	const totalExpenses = expenses.reduce((sum, item) => sum + (item.amount ?? 0), 0);
+	const netTotal =
+		(monthlyReport.saleInvoice ?? 0) +
+		(monthlyReport.cashInstallment ?? 0) -
+		totalExpenses -
+		(monthlyReport.accountsReceivable ?? 0);
+	const expenseDetailRows = expenses.map((item, index) =>
+		toSummaryRow(
+			`monthly-expense-api-${index}`,
+			item.description || `Expense ${index + 1}`,
+			"Monthly report expense line",
+			item.amount ?? 0,
+		),
+	);
+
+	return [
+		toMonthlySummarySectionRow(
+			"monthly-income-total-api",
+			"Total monthly income",
+			(monthlyReport.saleInvoice ?? 0) + (monthlyReport.cashInstallment ?? 0),
+		),
+		toSummaryRow(
+			"monthly-accounts-receivable-api",
+			"1- Accounts receivable",
+			"Outstanding receivable balance in selected period",
+			monthlyReport.accountsReceivable ?? 0,
+		),
+		toSummaryRow(
+			"monthly-sale-invoice-api",
+			"2- Sale invoice",
+			"Total sale invoice amount in selected period",
+			monthlyReport.saleInvoice ?? 0,
+		),
+		toSummaryRow(
+			"monthly-cash-installment-api",
+			"3- Cash installment",
+			"Collected cash installments in selected period",
+			monthlyReport.cashInstallment ?? 0,
+		),
+		toMonthlySummarySectionRow("monthly-expense-total-api", "Total monthly expenses", totalExpenses),
+		...expenseDetailRows,
+		toSummaryRow(
+			"monthly-net-api",
+			"Monthly cash rolling",
+			"Sale invoice + cash installment - expenses - accounts receivable",
+			netTotal,
+		),
 	];
 }
