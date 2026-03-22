@@ -9,6 +9,7 @@ export type LoanDueWarning = "due-soon" | "overdue" | null;
 export type LoanPaymentRecord = {
 	id: string;
 	paymentNo: number;
+	code?: string;
 	amount: number;
 	paidAt: string;
 };
@@ -33,6 +34,7 @@ function toPaymentRecords(payments: LoanPayment[]): LoanPaymentRecord[] {
 	return sortedPayments.map((payment, index) => ({
 		id: payment.id,
 		paymentNo: sortedPayments.length - index,
+		code: payment.code,
 		amount: payment.amount,
 		paidAt: payment.paymentDate,
 	}));

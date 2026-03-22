@@ -30,16 +30,16 @@ export const SORT_LABELS: Record<SortMode, string> = {
 
 const PAPER_SIZE_WRAPPER_CLASS_NAMES: Record<PaperSizeMode, Record<OrientationMode, string>> = {
 	a4: {
-		portrait: "print:mx-auto print:w-[186mm] print:max-w-[186mm]",
-		landscape: "print:mx-auto print:w-[273mm] print:max-w-[273mm]",
+		portrait: "print:mx-auto print:w-full print:max-w-full",
+		landscape: "print:mx-auto print:w-full print:max-w-full",
 	},
 	a5: {
-		portrait: "print:mx-auto print:w-[118mm] print:max-w-[118mm]",
-		landscape: "print:mx-auto print:w-[186mm] print:max-w-[186mm]",
+		portrait: "print:mx-auto print:w-full print:max-w-full",
+		landscape: "print:mx-auto print:w-full print:max-w-full",
 	},
 	letter: {
-		portrait: "print:mx-auto print:w-[184mm] print:max-w-[184mm]",
-		landscape: "print:mx-auto print:w-[246mm] print:max-w-[246mm]",
+		portrait: "print:mx-auto print:w-full print:max-w-full",
+		landscape: "print:mx-auto print:w-full print:max-w-full",
 	},
 };
 

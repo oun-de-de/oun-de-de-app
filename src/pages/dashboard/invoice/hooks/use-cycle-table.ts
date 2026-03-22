@@ -5,6 +5,8 @@ import type { CycleStatus } from "@/core/types/cycle";
 import { buildPagination } from "@/core/utils/dashboard-utils";
 import { formatKHR } from "../utils/formatters";
 
+const DEFAULT_CYCLE_SORT = "startDate,desc";
+
 export function useCycleTable(customerId: string | null, requireCustomer = false) {
 	const [searchValue, setSearchValue] = useState("");
 	const [duration, setDuration] = useState(0);
@@ -28,6 +30,7 @@ export function useCycleTable(customerId: string | null, requireCustomer = false
 				status: status === "all" ? undefined : status,
 				page,
 				size: pageSize,
+				sort: DEFAULT_CYCLE_SORT,
 			}),
 		enabled: isQueryEnabled,
 	});
@@ -40,6 +43,7 @@ export function useCycleTable(customerId: string | null, requireCustomer = false
 				to: toDate ? `${toDate}T23:59:59` : undefined,
 				duration: duration > 0 ? duration : undefined,
 				status: status === "all" ? undefined : status,
+				sort: DEFAULT_CYCLE_SORT,
 			}),
 		enabled: isQueryEnabled && isSearching,
 	});

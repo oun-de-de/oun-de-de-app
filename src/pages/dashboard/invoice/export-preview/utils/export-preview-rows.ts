@@ -11,9 +11,17 @@ function formatNumber(value: number | null): string {
 	return coreFormatNumber(value);
 }
 
+function getPreviewRowReceived(row: InvoiceExportPreviewRow, originalAmount: number | null): number | null {
+	if (row.paid !== null && row.paid > 0) return row.paid;
+	if (row.balance !== null && originalAmount !== null) {
+		return Math.max(0, originalAmount - row.balance);
+	}
+	return originalAmount;
+}
+
 function toReportRow(row: InvoiceExportPreviewRow, index: number): ReportTemplateRow {
 	const originalAmount = getPreviewRowOriginalAmount(row);
-	const received = row.paid;
+	const received = getPreviewRowReceived(row, originalAmount);
 	const balance = getPreviewRowBalance(row, originalAmount);
 
 	return {
@@ -115,15 +123,16 @@ export function calculateTotalBalance(previewRows: InvoiceExportPreviewRow[]): n
 }
 
 export function calculateTotalReceived(previewRows: InvoiceExportPreviewRow[]): number {
-	const paidByRefNo = new Map<string, number>();
+	const receivedByRefNo = new Map<string, number>();
 
 	for (const row of previewRows) {
 		const key = row.refNo?.trim();
-		const paid = row.paid ?? 0;
+		const originalAmount = getPreviewRowOriginalAmount(row);
+		const received = getPreviewRowReceived(row, originalAmount) ?? 0;
 		if (!key) continue;
 
-		paidByRefNo.set(key, Math.max(paidByRefNo.get(key) ?? 0, paid));
+		receivedByRefNo.set(key, Math.max(receivedByRefNo.get(key) ?? 0, received));
 	}
 
-	return [...paidByRefNo.values()].reduce((sum, paid) => sum + paid, 0);
+	return [...receivedByRefNo.values()].reduce((sum, received) => sum + received, 0);
 }

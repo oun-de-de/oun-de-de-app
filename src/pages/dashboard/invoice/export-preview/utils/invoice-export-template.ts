@@ -4,6 +4,21 @@ import { formatFlexibleDisplayDate } from "@/core/utils/date-display";
 
 const EXCEL_MIME_TYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 
+function getOriginalAmount(row: InvoiceExportLineApi): number | null {
+	return row.amount ?? row.total ?? null;
+}
+
+function getReceivedAmount(row: InvoiceExportLineApi): number | null {
+	if (row.paid !== null && row.paid !== undefined && row.paid > 0) return row.paid;
+
+	const originalAmount = getOriginalAmount(row);
+	if (row.balance !== null && row.balance !== undefined && originalAmount !== null) {
+		return Math.max(0, originalAmount - row.balance);
+	}
+
+	return originalAmount;
+}
+
 type TemplateColumn = {
 	label: string;
 	width: number;
@@ -22,7 +37,7 @@ const TEMPLATE_COLUMNS: TemplateColumn[] = [
 	{ label: "QTY", width: 12, map: (row) => row.quantity ?? null },
 	{ label: "AMOUNT", width: 16, map: (row) => row.amount ?? null },
 	{ label: "TOTAL", width: 16, map: (row) => row.total ?? null },
-	{ label: "RECEIVED", width: 16, map: (row) => row.paid ?? null },
+	{ label: "RECEIVED", width: 16, map: (row) => getReceivedAmount(row) },
 	{ label: "BALANCE", width: 16, map: (row) => row.balance ?? null },
 	{ label: "MEMO", width: 30, map: (row) => row.memo ?? "" },
 ];

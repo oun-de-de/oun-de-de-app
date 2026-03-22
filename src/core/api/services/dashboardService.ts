@@ -48,14 +48,14 @@ function toCustomerSummaryItems(response: FinancialOverviewResponse): CustomerSu
 			id: "overdue-cycles",
 			label: "Overdue Cycles",
 			value: response.overdueCycles,
-			variant: "destructive",
+			variant: "info",
 			icon: "solar:danger-triangle-bold",
 		},
 		{
-			id: "overdue-installments",
-			label: "Overdue Installments",
+			id: "due-loan-installments",
+			label: "Due Loan Installments",
 			value: response.dueLoanInstallments,
-			variant: "info",
+			variant: "destructive",
 			icon: "solar:clock-circle-bold",
 		},
 		{

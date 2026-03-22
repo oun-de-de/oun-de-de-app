@@ -6,7 +6,9 @@ import { styled } from "styled-components";
 import { CustomerSummaryItem } from "../../../../../core/domain/dashboard/entities/customer-info";
 
 const formatCustomerSummaryValue = (item: CustomerSummaryItem) =>
-	item.id === "overdue-cycles" || item.id === "overdue-installments" ? formatNumber(item.value) : formatKHR(item.value);
+	item.id === "overdue-cycles" || item.id === "due-loan-installments"
+		? formatNumber(item.value)
+		: formatKHR(item.value);
 
 // Loading skeleton cho Customer Info card
 export function CustomerInfoCardLoading() {
