@@ -1,4 +1,4 @@
-import type { PaginatedResponse } from "@/core/types/common";
+import type { PagePaginatedResponse } from "@/core/types/common";
 import type { Vehicle } from "@/core/types/vehicle";
 import { apiClient } from "../apiClient";
 
@@ -10,15 +10,15 @@ type CustomerIdentity = { id: string };
 const CUSTOMER_PAGE_SIZE = 200;
 
 async function getAllCustomerIds(pageSize = CUSTOMER_PAGE_SIZE): Promise<string[]> {
-	const firstPage = await apiClient.get<PaginatedResponse<CustomerIdentity>>({
+	const firstPage = await apiClient.get<PagePaginatedResponse<CustomerIdentity>>({
 		url: VehicleApi.Customers,
 		params: { page: 0, size: pageSize },
 	});
 
-	const remainingPages = Array.from({ length: Math.max(0, firstPage.totalPages - 1) }, (_, index) => index + 1);
+	const remainingPages = Array.from({ length: Math.max(0, firstPage.page.totalPages - 1) }, (_, index) => index + 1);
 	const nextPages = await Promise.all(
 		remainingPages.map((page) =>
-			apiClient.get<PaginatedResponse<CustomerIdentity>>({
+			apiClient.get<PagePaginatedResponse<CustomerIdentity>>({
 				url: VehicleApi.Customers,
 				params: { page, size: pageSize },
 			}),

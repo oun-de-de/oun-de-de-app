@@ -3,10 +3,10 @@ import { toast } from "sonner";
 import employeeService from "@/core/api/services/employee-service";
 import type { CreateEmployee, UpdateEmployeeProfile } from "@/core/types/employee";
 
-export const useGetEmployees = (params?: { page?: number; size?: number }) => {
+export const useGetEmployees = () => {
 	return useQuery({
-		queryKey: ["employees", params],
-		queryFn: () => employeeService.getEmployeeList(params),
+		queryKey: ["employees"],
+		queryFn: () => employeeService.getEmployeeList(),
 	});
 };
 

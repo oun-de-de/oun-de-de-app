@@ -4,7 +4,7 @@ import { useGetCustomers } from "./use-get-customers";
 import { useGetEmployees } from "./use-get-employees";
 
 export const useFormOptions = () => {
-	const { data: employees } = useGetEmployees({ page: 0, size: 1000 });
+	const { data: employees } = useGetEmployees();
 	const { data: customersList } = useGetCustomers({ page: 1, limit: 1000 });
 
 	const employeeOptions = useMemo(
