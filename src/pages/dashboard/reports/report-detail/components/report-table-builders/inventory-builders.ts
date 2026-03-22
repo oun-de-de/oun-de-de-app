@@ -1,3 +1,4 @@
+import type { InventoryItem } from "@/core/types/inventory";
 import type { InventoryStockReportLine } from "@/core/types/report";
 import type { Product } from "@/core/types/product";
 import { formatFlexibleDisplayDate, parseFlexibleDateToUtcTime } from "@/core/utils/date-display";
@@ -51,23 +52,21 @@ function buildInventoryMovementCells(params: {
 	};
 }
 
-function buildAssetDetail(product: Product) {
+function buildAssetDetail(item: InventoryItem) {
 	return [
-		product.unit?.name ? `Unit: ${product.unit.name}` : null,
-		product.refNo ? `Code: ${product.refNo}` : `Asset ID: ${product.id}`,
-		product.defaultProductSetting?.price ? `Default price: ${formatNumber(product.defaultProductSetting.price)}` : null,
+		item.unit?.name ? `Unit: ${item.unit.name}` : null,
+		item.code ? `Code: ${item.code}` : `Asset ID: ${item.id}`,
+		item.type ? `Type: ${item.type}` : null,
 	]
 		.filter(Boolean)
 		.join(" | ");
 }
 
-function buildAssetOther(product: Product) {
+function buildAssetOther(item: InventoryItem) {
 	return (
 		[
-			product.defaultProductSetting?.quantity
-				? `Default qty ${formatNumber(product.defaultProductSetting.quantity)}`
-				: null,
-			product.price ? `Sale price ${formatNumber(product.price)}` : null,
+			item.alertThreshold ? `Alert threshold: ${formatNumber(item.alertThreshold)}` : null,
+			item.unit?.type ? `Unit type: ${item.unit.type}` : null,
 		]
 			.filter(Boolean)
 			.join(" | ") || EMPTY_CELL
@@ -179,20 +178,20 @@ export function filterInventoryStockReportRowsByDate(
 	return rowsWithinRange;
 }
 
-export function buildCompanyAssetRows(products: Product[]): ReportTemplateRow[] {
-	return products.map((product, index) =>
-		createIndexedReportRow(`asset-${product.id}`, index, {
-			name: product.name ?? "-",
-			entryDate: formatFlexibleDisplayDate(product.date),
-			supplierName: product.refNo ? `Ref ${product.refNo}` : "Internal record",
+export function buildCompanyAssetRows(items: InventoryItem[]): ReportTemplateRow[] {
+	return items.map((item, index) =>
+		createIndexedReportRow(`asset-${item.id}`, index, {
+			name: item.name ?? "-",
+			entryDate: EMPTY_CELL,
+			supplierName: item.code ? `Code ${item.code}` : "Internal record",
 			supplierPhone: EMPTY_CELL,
 			supplierAddress: EMPTY_CELL,
-			detail: buildAssetDetail(product),
-			debit: formatNumber(product.quantity * product.cost),
+			detail: buildAssetDetail(item),
+			debit: formatNumber(item.quantityOnHand),
 			credit: EMPTY_CELL,
-			balance: formatNumber(product.quantity * product.cost),
-			qty: formatNumber(product.quantity),
-			other: buildAssetOther(product),
+			balance: formatNumber(item.quantityOnHand),
+			qty: formatNumber(item.quantityOnHand),
+			other: buildAssetOther(item),
 		}),
 	);
 }

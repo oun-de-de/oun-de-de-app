@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import customerService from "@/core/api/services/customer-service";
 import cycleService from "@/core/api/services/cycle-service";
+import inventoryService from "@/core/api/services/inventory-service";
 import invoiceService from "@/core/api/services/invoice-service";
 import loanService from "@/core/api/services/loan-service";
 import productService from "@/core/api/services/product-service";
@@ -24,13 +25,7 @@ import {
 	isProductListDataSource,
 } from "../report-types";
 import type { ReportFiltersValue } from "./report-filters";
-import {
-	fallbackReportCustomers,
-	fallbackReportExportLines,
-	fallbackReportInvoices,
-	fallbackReportLoans,
-	fallbackReportProducts,
-} from "./report-template-fallback-mocks";
+
 import { mapExportLinesToPreviewRows } from "./report-table-builders";
 import { normalizeReportFilters, sortReportRows } from "./report-table-utils";
 
@@ -126,7 +121,13 @@ export function useReportTableData({ reportSlug, filters, sortMode }: UseReportT
 	const productQuery = useQuery({
 		queryKey: ["report", "product-list"],
 		queryFn: () => productService.getProductList(),
-		enabled: isProductList || isAssetList,
+		enabled: isProductList,
+	});
+
+	const inventoryItemsQuery = useQuery({
+		queryKey: ["report", "inventory-items"],
+		queryFn: () => inventoryService.getItems(),
+		enabled: isAssetList,
 	});
 
 	const loanQuery = useQuery({
@@ -175,7 +176,7 @@ export function useReportTableData({ reportSlug, filters, sortMode }: UseReportT
 		enabled: isMonthlyReportDetailsApi,
 	});
 
-	const customers = customerQuery.data ? customerQuery.data.list : fallbackReportCustomers;
+	const customers = customerQuery.data?.list ?? [];
 	const filteredCustomers = useMemo(
 		() => (customerId ? customers.filter((customer) => customer.id === customerId) : customers),
 		[customerId, customers],
@@ -191,26 +192,32 @@ export function useReportTableData({ reportSlug, filters, sortMode }: UseReportT
 	);
 
 	const invoices = useMemo(() => {
-		if (!invoiceQuery.data) return fallbackReportInvoices;
+		if (!invoiceQuery.data) return [];
 		const invoiceType = definition.invoiceType;
 		if (!invoiceType) return invoiceQuery.data.list;
 
 		return invoiceQuery.data.list.filter((invoice) => matchesInvoiceType(invoice, invoiceType));
 	}, [definition.invoiceType, invoiceQuery.data]);
 
-	const invoiceIds = useMemo(
-		() => (isInvoiceExport ? invoices.map((invoice) => invoice.id).filter(Boolean) : []),
-		[invoices, isInvoiceExport],
-	);
+	const invoiceIds = useMemo(() => {
+		if (!isInvoiceExport || !invoiceQuery.data) return [];
+
+		const invoiceType = definition.invoiceType;
+		const realInvoices = invoiceType
+			? invoiceQuery.data.list.filter((invoice) => matchesInvoiceType(invoice, invoiceType))
+			: invoiceQuery.data.list;
+
+		return realInvoices.map((invoice) => invoice.id).filter(Boolean);
+	}, [definition.invoiceType, invoiceQuery.data, isInvoiceExport]);
 
 	const exportQuery = useQuery({
 		queryKey: ["report", "invoice-export", invoiceIds],
 		queryFn: () => invoiceService.listInvoiceDetails(invoiceIds),
 		enabled: isInvoiceExport && invoiceIds.length > 0,
 	});
-	const exportLines = exportQuery.data ?? (invoiceQuery.data ? [] : fallbackReportExportLines);
-	const products = productQuery.data ?? fallbackReportProducts;
-	const loanContent = loanQuery.data ? loanQuery.data.content : fallbackReportLoans;
+	const exportLines = exportQuery.data ?? [];
+	const products = productQuery.data ?? [];
+	const loanContent = loanQuery.data?.content ?? [];
 	const resolvedInstallmentsByLoanId = loanQuery.data ? installmentsByLoanId : {};
 
 	const previewRows = useMemo<InvoiceExportPreviewRow[]>(
@@ -230,6 +237,7 @@ export function useReportTableData({ reportSlug, filters, sortMode }: UseReportT
 				loanContent,
 				installmentsByLoanId: resolvedInstallmentsByLoanId,
 				products,
+				inventoryItems: inventoryItemsQuery.data,
 				dailyReport: dailyReportQuery.data,
 				inventoryStockReport: inventoryStockReportQuery.data,
 				monthlyReport: monthlyReportQuery.data,
@@ -248,6 +256,7 @@ export function useReportTableData({ reportSlug, filters, sortMode }: UseReportT
 			resolvedInstallmentsByLoanId,
 			inventoryDateFrom,
 			inventoryDateTo,
+			inventoryItemsQuery.data,
 			inventoryStockReportQuery.data,
 			loanContent,
 			monthlyReportDetailsQuery.data,

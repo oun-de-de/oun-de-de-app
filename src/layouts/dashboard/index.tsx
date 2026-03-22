@@ -73,7 +73,7 @@ function PcVerticalLayout() {
 			<NavVerticalLayout data={navData} />
 
 			<div
-				className="relative w-full h-screen overflow-hidden flex flex-col transition-[padding] duration-300 ease-in-out"
+				className="relative flex h-screen w-full flex-col overflow-hidden transition-[padding] duration-300 ease-in-out print:h-auto print:overflow-visible"
 				style={{
 					paddingLeft: mainPaddingLeft,
 				}}

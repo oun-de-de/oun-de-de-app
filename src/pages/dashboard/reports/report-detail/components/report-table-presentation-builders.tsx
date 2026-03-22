@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import type { Customer } from "@/core/types/customer";
+import Logo from "@/core/components/logo";
 import type { InvoiceExportPreviewRow } from "@/core/types/invoice";
 import { formatNumber } from "@/core/utils/formatters";
 import type { ReportTemplateId } from "../report-types";
@@ -167,11 +168,28 @@ function buildSimplePresentation(
 	};
 }
 
-function buildMonthlyPresentation({ filters, rows }: ReportPresentationBuilderParams): ReportPresentation {
-	return buildSimplePresentation("Revenue and Expense Statement", formatFilterRange(filters), {
-		summaryRows: buildSingleAmountSummary("monthly-total", "Net total", rows.at(-1)?.cells.amount, " Riel"),
+function buildMonthlyPresentation({ filters }: ReportPresentationBuilderParams): ReportPresentation {
+	const periodText = formatFilterRange(filters);
+
+	return {
+		headerContent: (
+			<div className="flex flex-col gap-0 text-black">
+				<div className="flex items-center justify-between px-4 py-3">
+					<div className="flex w-16 justify-start">
+						<Logo size={52} />
+					</div>
+					<div className="flex-1 text-center">
+						<div className="text-[22px] font-bold">ហាងចក្រទឹកកក លឹម ច័ន្ទ</div>
+						<div className="text-base font-semibold">Lim chan ice cube</div>
+					</div>
+					<div className="w-16" />
+				</div>
+				<div className="mt-3 w-full text-left text-sm font-semibold">Report date: {periodText}</div>
+			</div>
+		),
+		showTableHeader: false,
 		emptyText: "No monthly data available.",
-	});
+	};
 }
 
 function buildDailyPresentation({ title, filters, rows }: ReportPresentationBuilderParams): ReportPresentation {

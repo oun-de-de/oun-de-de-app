@@ -24,8 +24,8 @@ function buildProductListReportRows({ products }: BuildReportRowsParams) {
 	return buildProductListRows(products);
 }
 
-function buildCompanyAssetRegisterRows({ products }: BuildReportRowsParams) {
-	return buildCompanyAssetRows(products);
+function buildCompanyAssetRegisterRows({ inventoryItems }: BuildReportRowsParams) {
+	return buildCompanyAssetRows(inventoryItems ?? []);
 }
 
 export const INVENTORY_REPORT_SPECS: ReportDefinitionMap = {

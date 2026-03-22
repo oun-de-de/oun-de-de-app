@@ -51,6 +51,10 @@ function getDefaultReportFilters(monthOnly = false): ReportFiltersValue {
 export function ReportDetailView({ reportSlug }: ReportDetailViewProps) {
 	const location = useLocation();
 	const navigate = useNavigate();
+	const activeTabFromState =
+		typeof (location.state as { activeTab?: unknown } | null)?.activeTab === "string"
+			? ((location.state as { activeTab?: string }).activeTab ?? undefined)
+			: undefined;
 	const searchParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
 	const [showSections, setShowSections] = useState(DEFAULT_REPORT_SECTIONS);
 	const [showColumns, setShowColumns] = useState(DEFAULT_REPORT_COLUMNS);
@@ -101,13 +105,18 @@ export function ReportDetailView({ reportSlug }: ReportDetailViewProps) {
 	const hasPendingFilterChanges = !areReportFiltersEqual(draftFilters, appliedFilters);
 	const handlePrint = () => window.print();
 	const handleBack = useCallback(() => {
+		if (activeTabFromState) {
+			navigate(`/dashboard/reports?tab=${encodeURIComponent(activeTabFromState)}`);
+			return;
+		}
+
 		if (window.history.length > 1) {
 			navigate(-1);
 			return;
 		}
 
 		navigate("/dashboard/reports");
-	}, [navigate]);
+	}, [activeTabFromState, navigate]);
 	const isExcelExportReport =
 		reportSlug === "open-invoice-detail-by-customer" || reportSlug === "receipt-detail-by-customer";
 	const tableWrapperClassName = useMemo(
@@ -138,7 +147,15 @@ export function ReportDetailView({ reportSlug }: ReportDetailViewProps) {
 			styleEl.id = styleId;
 			document.head.appendChild(styleEl);
 		}
-		styleEl.textContent = `@media print { @page { size: ${pageSizeValue} ${orientationMode}; margin: 6mm; } }`;
+		styleEl.textContent = `@media print {
+			@page { size: ${pageSizeValue} ${orientationMode}; margin: 4mm; }
+			html, body { width: auto !important; height: auto !important; }
+			.report-print-page, .report-print-target { width: 100% !important; max-width: none !important; }
+			.report-print-target table { width: 100% !important; max-width: none !important; break-inside: auto; page-break-inside: auto; }
+			.report-print-target thead { display: table-header-group; }
+			.report-print-target tfoot { display: table-footer-group; }
+			.report-print-target tr { break-inside: avoid; page-break-inside: avoid; }
+		}`;
 
 		return () => {
 			styleEl?.remove();
@@ -257,7 +274,7 @@ export function ReportDetailView({ reportSlug }: ReportDetailViewProps) {
 				</ReportFilterBar>
 			)}
 
-			<div className="flex flex-col print:w-full print:flex-1">
+			<div className="flex flex-col print:block print:w-full">
 				<ReportToolbar
 					showSections={showSections}
 					onShowSectionsChange={setShowSections}

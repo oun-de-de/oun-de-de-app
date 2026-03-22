@@ -2,6 +2,7 @@ import type { Customer } from "@/core/types/customer";
 import type { Cycle } from "@/core/types/cycle";
 import type { Invoice, InvoiceExportLineApi, InvoiceExportPreviewRow } from "@/core/types/invoice";
 import type { BorrowerType, Installment, Loan } from "@/core/types/loan";
+import type { InventoryItem } from "@/core/types/inventory";
 import type { Product } from "@/core/types/product";
 import type {
 	DailyReportResponse,
@@ -92,6 +93,7 @@ export interface BuildReportRowsParams {
 	loanContent: Loan[];
 	installmentsByLoanId: Record<string, Installment[]>;
 	products: Product[];
+	inventoryItems?: InventoryItem[];
 	dailyReport?: DailyReportResponse;
 	inventoryStockReport?: InventoryStockReportLine[];
 	monthlyReport?: MonthlyReportResponse;
