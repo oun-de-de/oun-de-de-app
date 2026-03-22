@@ -132,9 +132,9 @@ export default function EditCouponPage() {
 
 		setWeightRecords(
 			coupon.weightRecords.length > 0
-				? coupon.weightRecords.map((record) => ({
-						productId: products.find((product) => product.name === record.productName)?.id,
-						productName: record.productName,
+				? coupon.weightRecords.map((record, index) => ({
+						productId: index === 0 ? undefined : products.find((product) => product.name === record.productName)?.id,
+						productName: index === 0 ? null : record.productName || null,
 						unit: record.unit,
 						pricePerProduct: record.pricePerProduct,
 						quantityPerProduct: record.quantityPerProduct,

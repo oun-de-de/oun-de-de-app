@@ -2,6 +2,7 @@ import { useMutation } from "@tanstack/react-query";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
 import productService from "@/core/api/services/product-service";
+import { BackButton } from "@/core/components/common";
 import type { CreateProductRequest } from "@/core/types/product";
 import { Text } from "@/core/ui/typography";
 import { useGetUnitList } from "@/pages/dashboard/settings/hooks/use-settings";
@@ -53,6 +54,7 @@ export default function CreateProductPage() {
 		<div className="flex flex-col h-full p-6 gap-6">
 			{/* Header */}
 			<div className="flex items-center gap-3">
+				<BackButton onClick={handleCancel} />
 				<Text className="font-semibold text-sky-600">Create New Product</Text>
 			</div>
 

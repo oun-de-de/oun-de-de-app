@@ -45,7 +45,7 @@ export function SettingsContent({ activeItem }: SettingsContentProps) {
 
 	return (
 		<div className="flex h-full min-h-0 flex-col gap-3">
-			<div className="px-1 py-2">
+			<div className="p-2">
 				<div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
 					<div className="space-y-1">
 						<Text variant="body2" className="font-semibold text-base text-sky-600">

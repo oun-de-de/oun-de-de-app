@@ -51,7 +51,7 @@ export type FormFieldConfig = {
 	required?: boolean;
 	disabled?: boolean;
 	rows?: number;
-	options?: { label: string; value: string }[];
+	options?: { label: string; value: string; disabled?: boolean }[];
 	defaultValue?: FormValue;
 	helperText?: string;
 	component?: ReactNode;
