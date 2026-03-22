@@ -1,10 +1,12 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { useMemo } from "react";
-import { SmartDataTable } from "@/core/components/common";
 import Icon from "@/core/components/icon/icon";
+import { SmartDataTable } from "@/core/components/common";
+import type { SmartTablePaginationConfig } from "@/core/components/common/smart-data-table";
 import type { InventoryBorrowing } from "@/core/types/inventory";
 import { Badge } from "@/core/ui/badge";
 import { Button } from "@/core/ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/core/ui/dropdown-menu";
 import { Text } from "@/core/ui/typography";
 import { formatDisplayDate } from "@/core/utils/formatters";
 
@@ -18,9 +20,12 @@ type BorrowingsTableProps = {
 	borrowings: InventoryBorrowing[];
 	onReturn: (borrowingId: string) => void;
 	onSell: (borrowingId: string) => void;
-	onPay: (customerId: string) => void;
+	onPay?: (customerId: string) => void;
 	isReturnPending?: boolean;
 	isSellPending?: boolean;
+	className?: string;
+	maxBodyHeight?: string;
+	paginationConfig?: SmartTablePaginationConfig;
 };
 
 export function BorrowingsTable({
@@ -30,6 +35,9 @@ export function BorrowingsTable({
 	onPay,
 	isReturnPending,
 	isSellPending,
+	className,
+	maxBodyHeight,
+	paginationConfig,
 }: BorrowingsTableProps) {
 	const columns = useMemo<ColumnDef<InventoryBorrowing>[]>(
 		() => [
@@ -38,12 +46,18 @@ export function BorrowingsTable({
 				header: "Borrow Date",
 				cell: ({ row }) => formatDisplayDate(row.original.borrowDate),
 			},
+			// {
+			// 	accessorKey: "customerId",
+			// 	header: "Customer ID",
+			// 	cell: ({ row }) => (
+			// 		<span className="font-mono text-xs">{row.original.customerId ? row.original.customerId.slice(0, 8) : "-"}</span>
+			// 	),
+			// },
 			{
-				accessorKey: "customerId",
-				header: "Customer ID",
-				cell: ({ row }) => <span className="font-mono text-xs">{row.original.customerId.slice(0, 8)}</span>,
+				accessorKey: "customerName",
+				header: "Customer Name",
+				cell: ({ row }) => row.original.customerName || "-",
 			},
-			{ accessorKey: "quantity", header: "Quantity" },
 			{
 				accessorKey: "expectedReturnDate",
 				header: "Expected Return",
@@ -54,6 +68,7 @@ export function BorrowingsTable({
 				header: "Actual Return",
 				cell: ({ row }) => (row.original.actualReturnDate ? formatDisplayDate(row.original.actualReturnDate) : "-"),
 			},
+			{ accessorKey: "quantity", header: "Quantity", size: 90, meta: { bodyClassName: "text-right" } },
 			{
 				accessorKey: "status",
 				header: "Status",
@@ -64,24 +79,32 @@ export function BorrowingsTable({
 			{
 				id: "action",
 				header: "Action",
+				size: 50,
 				cell: ({ row }) =>
 					row.original.status === "BORROWED" ? (
-						<div className="flex items-center gap-2">
-							<Button variant="outline" size="sm" onClick={() => onPay(row.original.customerId)}>
-								<Icon icon="mdi:cash" className="mr-1" />
-								Pay
-							</Button>
-							<Button variant="outline" size="sm" onClick={() => onSell(row.original.id)} disabled={isSellPending}>
-								<Icon icon="mdi:tag" className="mr-1" />
-								{isSellPending ? "..." : "Sell"}
-							</Button>
-							<Button variant="outline" size="sm" onClick={() => onReturn(row.original.id)} disabled={isReturnPending}>
-								<Icon icon="mdi:keyboard-return" className="mr-1" />
-								{isReturnPending ? "..." : "Return"}
-							</Button>
-						</div>
+						<DropdownMenu>
+							<DropdownMenuTrigger asChild>
+								<Button variant="linkSecondary" size="icon">
+									<Icon icon="mdi:menu" className="text-base" />
+								</Button>
+							</DropdownMenuTrigger>
+							<DropdownMenuContent align="end" className="min-w-36">
+								{(() => {
+									const customerId = row.original.customerId;
+									return onPay && customerId ? (
+										<DropdownMenuItem onClick={() => onPay(customerId)}>Pay</DropdownMenuItem>
+									) : null;
+								})()}
+								<DropdownMenuItem onClick={() => onSell(row.original.id)} disabled={isSellPending}>
+									{isSellPending ? "Selling..." : "Sell"}
+								</DropdownMenuItem>
+								<DropdownMenuItem onClick={() => onReturn(row.original.id)} disabled={isReturnPending}>
+									{isReturnPending ? "Returning..." : "Return"}
+								</DropdownMenuItem>
+							</DropdownMenuContent>
+						</DropdownMenu>
 					) : (
-						<span className="text-slate-400 text-xs">{row.original.status === "SOLD" ? "Sold" : "Returned"}</span>
+						<span className="sr-only">{row.original.status}</span>
 					),
 			},
 		],
@@ -96,5 +119,13 @@ export function BorrowingsTable({
 		);
 	}
 
-	return <SmartDataTable className="flex-1 min-h-0" maxBodyHeight="100%" data={borrowings} columns={columns} />;
+	return (
+		<SmartDataTable
+			className={className ?? "flex-1 min-h-0"}
+			maxBodyHeight={maxBodyHeight ?? "100%"}
+			data={borrowings}
+			columns={columns}
+			paginationConfig={paginationConfig}
+		/>
+	);
 }
