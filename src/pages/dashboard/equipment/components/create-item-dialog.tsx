@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { EquipmentCreateType } from "@/core/types/equipment";
-import type { CreateInventoryItem } from "@/core/types/inventory";
+import type { CreateInventoryItem, InventoryItemType } from "@/core/types/inventory";
 import { Button } from "@/core/ui/button";
 import {
 	Dialog,
@@ -26,6 +26,7 @@ export function CreateItemDialog({ onSubmit, isPending }: CreateItemDialogProps)
 	const [name, setName] = useState("");
 	const [type, setType] = useState<EquipmentCreateType>("consumable");
 	const [unitId, setUnitId] = useState("");
+	const [refCode, setRefCode] = useState("");
 	const [quantityOnHand, setQuantityOnHand] = useState("0");
 	const [alertThreshold, setAlertThreshold] = useState("0");
 	const { data: units } = useGetUnitList();
@@ -34,6 +35,7 @@ export function CreateItemDialog({ onSubmit, isPending }: CreateItemDialogProps)
 		setName("");
 		setType("consumable");
 		setUnitId("");
+		setRefCode("");
 		setQuantityOnHand("0");
 		setAlertThreshold("0");
 	};
@@ -45,12 +47,25 @@ export function CreateItemDialog({ onSubmit, isPending }: CreateItemDialogProps)
 	};
 
 	const handleSubmit = () => {
+		const mappedType: InventoryItemType = type === "equipment" ? "EQUIPMENT" : "CONSUMABLE";
+		const parsedQuantityOnHand = Number(quantityOnHand);
+		const parsedAlertThreshold = Number(alertThreshold);
+		const normalizedName = name.trim();
+		const normalizedRefCode = refCode.trim();
+
 		onSubmit({
-			name,
-			type,
-			unitId,
-			quantityOnHand: Number(quantityOnHand),
-			alertThreshold: Number(alertThreshold),
+			name: normalizedName,
+			type: mappedType,
+			...(unitId ? { unitId } : {}),
+			...(normalizedRefCode
+				? {
+						initStock: {
+							refCode: normalizedRefCode,
+							quantityOnHand: parsedQuantityOnHand,
+						},
+					}
+				: {}),
+			...(Number.isFinite(parsedAlertThreshold) ? { alertThreshold: parsedAlertThreshold } : {}),
 		});
 		handleOpenChange(false);
 	};
@@ -100,6 +115,15 @@ export function CreateItemDialog({ onSubmit, isPending }: CreateItemDialogProps)
 							</SelectContent>
 						</Select>
 					</div>
+					<div className="space-y-2">
+						<Label htmlFor="item-ref-code">Ref Code</Label>
+						<Input
+							id="item-ref-code"
+							value={refCode}
+							onChange={(e) => setRefCode(e.target.value)}
+							placeholder="Reference code"
+						/>
+					</div>
 					<div className="grid grid-cols-2 gap-4">
 						<div className="space-y-2">
 							<Label htmlFor="item-qty">Initial Quantity</Label>
@@ -128,7 +152,7 @@ export function CreateItemDialog({ onSubmit, isPending }: CreateItemDialogProps)
 					<Button variant="outline" onClick={() => handleOpenChange(false)}>
 						Cancel
 					</Button>
-					<Button onClick={handleSubmit} disabled={isPending || !name}>
+					<Button onClick={handleSubmit} disabled={isPending || !name.trim()}>
 						{isPending ? "Creating..." : "Create Item"}
 					</Button>
 				</DialogFooter>
