@@ -14,6 +14,7 @@ export function useCyclePaymentState(params: {
 	//UI Form State
 	const [activeTab, setActiveTab] = useState("payment");
 	const [amount, setAmount] = useState("");
+	const [paymentCode, setPaymentCode] = useState("");
 	const [paymentDateTime, setPaymentDateTime] = useState("");
 	const [monthlyAmount, setMonthlyAmount] = useState("");
 	const [loanStartDate, setLoanStartDate] = useState("");
@@ -42,8 +43,10 @@ export function useCyclePaymentState(params: {
 	const parsedAmount = Number(amount);
 	const hasValidAmount = Number.isFinite(parsedAmount) && parsedAmount > 0;
 	const isAmountExceeded = hasValidAmount && parsedAmount > cycleBalance;
+	const hasPaymentCode = paymentCode.trim().length > 0;
 	const hasPaymentDateTime = paymentDateTime.trim().length > 0;
-	const canSubmit = !historyOnly && hasCycle && !isBusy && hasValidAmount && !isAmountExceeded && hasPaymentDateTime;
+	const canSubmit =
+		!historyOnly && hasCycle && !isBusy && hasValidAmount && !isAmountExceeded && hasPaymentCode && hasPaymentDateTime;
 
 	//Loan Conversion Validation
 	const parsedMonthlyAmount = Number(monthlyAmount);
@@ -62,10 +65,21 @@ export function useCyclePaymentState(params: {
 
 	//Expose State and Derived Values
 	return {
-		state: { activeTab, amount, paymentDateTime, monthlyAmount, loanStartDate, dueWarningDays, page, pageSize },
+		state: {
+			activeTab,
+			amount,
+			paymentCode,
+			paymentDateTime,
+			monthlyAmount,
+			loanStartDate,
+			dueWarningDays,
+			page,
+			pageSize,
+		},
 		setters: {
 			setActiveTab,
 			setAmount,
+			setPaymentCode,
 			setPaymentDateTime,
 			setMonthlyAmount,
 			setLoanStartDate,
