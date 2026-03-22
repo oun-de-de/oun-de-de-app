@@ -19,10 +19,11 @@ interface ReportSectionProps {
 	section: ReportSectionData;
 	favorites: string[];
 	onToggleFavorite: (slug: string) => void;
+	activeTab: string;
 	className?: string;
 }
 
-export function ReportSection({ section, favorites, onToggleFavorite, className }: ReportSectionProps) {
+export function ReportSection({ section, favorites, onToggleFavorite, activeTab, className }: ReportSectionProps) {
 	return (
 		<Card className={cn("w-full", className)}>
 			<CardContent className="flex flex-col gap-4 p-4">
@@ -43,6 +44,7 @@ export function ReportSection({ section, favorites, onToggleFavorite, className 
 							key={item.slug}
 							slug={item.slug}
 							label={item.label}
+							activeTab={activeTab}
 							isFavorite={isFavoriteReport(favorites, item.slug, item.label)}
 							onToggleFavorite={onToggleFavorite}
 						/>

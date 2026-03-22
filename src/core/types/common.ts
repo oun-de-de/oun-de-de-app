@@ -64,6 +64,7 @@ export type AccountingRow = {
 	date: string;
 	refNo: string;
 	type: string;
+	reason?: string;
 	currency: string;
 	memo: string;
 	dr: string;

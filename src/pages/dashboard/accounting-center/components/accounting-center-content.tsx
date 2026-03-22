@@ -68,8 +68,8 @@ export function AccountingCenterContent({
 				</div>
 				<AccountingCreateMenuButton
 					size="sm"
-					mainAction={createAccountingCreateMainAction("Create Cash Transaction", navigate)}
-					optionLabels={["Create Expense", "Create Revenue"]}
+					mainAction={createAccountingCreateMainAction("Create Expense", navigate)}
+					optionLabels={["Create Revenue"]}
 				/>
 			</div>
 			<div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">

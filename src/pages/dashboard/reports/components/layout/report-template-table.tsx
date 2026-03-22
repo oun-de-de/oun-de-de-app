@@ -53,6 +53,8 @@ export interface ReportTemplateSummaryRow {
 export interface ReportTemplateRow {
 	key: string;
 	cells: Record<string, React.ReactNode>;
+	rowClassName?: string;
+	cellClassNames?: Partial<Record<string, string>>;
 }
 
 interface ReportTemplateTableProps {
@@ -107,11 +109,12 @@ function renderRows(table: ReportTableInstance, hasNoRows: boolean, tableColSpan
 	}
 
 	return table.getRowModel().rows.map((row) => (
-		<tr key={row.id}>
+		<tr key={row.id} className={row.original.rowClassName}>
 			{row.getVisibleCells().map((cell) => {
 				const meta = getColumnMeta(cell.column.columnDef);
+				const cellClassName = row.original.cellClassNames?.[cell.column.id];
 				return (
-					<BodyCell key={cell.id} className={cn(getAlignClass(meta?.align), meta?.className)}>
+					<BodyCell key={cell.id} className={cn(getAlignClass(meta?.align), meta?.className, cellClassName)}>
 						{flexRender(cell.column.columnDef.cell, cell.getContext())}
 					</BodyCell>
 				);
@@ -206,7 +209,8 @@ export const ReportTemplateTable = React.memo(function ReportTemplateTable({
 //#region Styled Components
 
 const ReportTableRoot = styled.div.attrs({
-	className: "flex flex-col gap-4 rounded-none border-0 bg-white p-0 text-black",
+	className:
+		"flex flex-col gap-4 rounded-none border-0 bg-white p-0 text-black print:block [print-color-adjust:exact] [-webkit-print-color-adjust:exact]",
 })``;
 
 const ReportHeader = styled.div.attrs({
@@ -226,7 +230,7 @@ const MetaRow = styled.span.attrs({
 })``;
 
 const ReportTableWrapper = styled.div.attrs({
-	className: "w-full overflow-x-auto px-2 print:overflow-visible print:px-0",
+	className: "w-full overflow-x-auto print:overflow-visible",
 })``;
 
 const ReportTableElement = styled.table.attrs({

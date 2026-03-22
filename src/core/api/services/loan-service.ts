@@ -24,7 +24,7 @@ type LoanApiResponse = Omit<Loan, "borrowerType" | "createdAt" | "status"> & {
 
 function toApiBorrowerType(value?: BorrowerType): string | undefined {
 	if (!value) return undefined;
-	return value.toUpperCase();
+	return value.toLowerCase();
 }
 
 function normalizeBorrowerType(value: string): BorrowerType {

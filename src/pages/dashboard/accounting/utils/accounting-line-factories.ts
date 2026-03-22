@@ -1,6 +1,7 @@
 export type ExpenseLine = {
 	id: string;
-	accountCode: string;
+	accountTypeId: string;
+	nature: string;
 	memo: string;
 	amount: string;
 	name: string;
@@ -44,7 +45,8 @@ function createLineId(index: number) {
 export function createEmptyExpenseLine(index: number): ExpenseLine {
 	return {
 		id: createLineId(index),
-		accountCode: "",
+		accountTypeId: "",
+		nature: "",
 		memo: "",
 		amount: "",
 		name: "",

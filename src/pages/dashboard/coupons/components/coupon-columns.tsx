@@ -103,27 +103,30 @@ export const getCouponColumns = ({
 	},
 	{
 		header: "Actions",
-		cell: ({ row }) => (
-			<div className="flex items-center justify-center gap-2">
-				<Button
-					size="sm"
-					variant="warning"
-					onClick={() => onEditCoupon(row.original)}
-					disabled={!row.original.couponNo}
-				>
-					Edit
-				</Button>
-				<Button
-					size="sm"
-					variant="destructive"
-					className="text-white"
-					onClick={() => onDeleteCoupon(row.original)}
-					disabled={!row.original.couponNo}
-				>
-					Delete
-				</Button>
-			</div>
-		),
+		cell: ({ row }) => {
+			const isDeleted = Boolean(row.original.delAccNo?.trim());
+			return (
+				<div className="flex items-center justify-center gap-2">
+					<Button
+						size="sm"
+						variant="warning"
+						onClick={() => onEditCoupon(row.original)}
+						disabled={!row.original.couponNo || isDeleted}
+					>
+						Edit
+					</Button>
+					<Button
+						size="sm"
+						variant="destructive"
+						className="text-white"
+						onClick={() => onDeleteCoupon(row.original)}
+						disabled={!row.original.couponNo || isDeleted}
+					>
+						Delete
+					</Button>
+				</div>
+			);
+		},
 		meta: {
 			bodyClassName: "text-center",
 		},

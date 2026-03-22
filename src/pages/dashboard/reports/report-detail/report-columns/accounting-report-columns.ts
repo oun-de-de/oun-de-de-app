@@ -22,7 +22,7 @@ export function buildIncomeExpenseLedgerColumns(): ReportTemplateColumn[] {
 		["no", "NO", "w-[6%]", "center"],
 		["date", "DATE", "w-[12%]", "center"],
 		["refNo", "REF NO", "w-[15%]"],
-		["type", "TYPE", "w-[12%]", "center"],
+		["type", "REASON", "w-[12%]", "center"],
 		["name", "NAME", "w-[18%]"],
 		["memo", "MEMO", "w-[17%]"],
 		["debit", "DEBIT", "w-[10%]", "right"],

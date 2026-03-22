@@ -38,6 +38,8 @@ export function useSettingsContentActions({
 		isPending: isSavingAccounting,
 	} = useCreateAccountingSetting();
 
+	const normalizeUnitType = (value: unknown) => String(value ?? "").toLowerCase() as UnitType;
+
 	const handleSave = async (formData: DefaultFormData) => {
 		try {
 			let successMessage: string | null = null;
@@ -59,7 +61,7 @@ export function useSettingsContentActions({
 				const unitData = {
 					name: String(formData.name ?? ""),
 					descr: String(formData.descr ?? ""),
-					type: formData.type as UnitType,
+					type: normalizeUnitType(formData.type),
 				};
 
 				if (formMode === "edit" && editItem?.id) {

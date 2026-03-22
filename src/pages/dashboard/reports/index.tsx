@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
+import { useSearchParams } from "react-router";
 import { reportSections } from "@/_mock/data/dashboard";
 import { ReportSection } from "./components/report-section";
 import { ReportTabs } from "./components/report-tabs";
@@ -22,7 +23,15 @@ export default function ReportsPage() {
 function ReportsView() {
 	const { favorites } = useReportsState();
 	const { toggleFavorite } = useReportsActions();
-	const [activeTab, setActiveTab] = useState(DEFAULT_REPORT_TAB);
+	const [searchParams, setSearchParams] = useSearchParams();
+	const requestedTab = searchParams.get("tab");
+	const activeTab = reportSections.some((section) => section.tab === requestedTab) ? requestedTab! : DEFAULT_REPORT_TAB;
+
+	const handleTabChange = (nextTab: string) => {
+		const nextSearchParams = new URLSearchParams(searchParams);
+		nextSearchParams.set("tab", nextTab);
+		setSearchParams(nextSearchParams, { replace: true });
+	};
 
 	const displaySections = useMemo(() => {
 		const sections = reportSections.filter((section) => section.tab === activeTab);
@@ -37,10 +46,16 @@ function ReportsView() {
 
 	return (
 		<div className="flex w-full flex-col gap-4">
-			<ReportTabs activeTab={activeTab} onTabChange={setActiveTab} />
+			<ReportTabs activeTab={activeTab} onTabChange={handleTabChange} />
 
 			{displaySections.map((section) => (
-				<ReportSection key={section.title} section={section} favorites={favorites} onToggleFavorite={toggleFavorite} />
+				<ReportSection
+					key={section.title}
+					section={section}
+					favorites={favorites}
+					onToggleFavorite={toggleFavorite}
+					activeTab={activeTab}
+				/>
 			))}
 		</div>
 	);

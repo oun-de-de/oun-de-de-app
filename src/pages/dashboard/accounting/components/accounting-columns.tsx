@@ -23,17 +23,6 @@ const TYPE_BADGE_CLASSNAME: Record<string, string> = {
 	Invoice: "border-emerald-200 bg-emerald-50 text-emerald-700",
 };
 
-const TYPE_DOT_CLASSNAME: Record<string, string> = {
-	DEBIT: "bg-sky-500",
-	CREDIT: "bg-emerald-500",
-	Cash_Sale: "bg-amber-500",
-	Revenue: "bg-sky-500",
-	Receipt: "bg-yellow-500",
-	Expense: "bg-cyan-500",
-	Journal: "bg-violet-500",
-	Invoice: "bg-emerald-500",
-};
-
 export const columns = [
 	columnHelper.accessor("date", {
 		header: "Date",
@@ -45,23 +34,24 @@ export const columns = [
 		size: 170,
 		cell: (info) => <span className="text-sky-600">{info.getValue()}</span>,
 	}),
-	columnHelper.accessor("type", {
-		header: "Type",
+	columnHelper.accessor("reason", {
+		header: "Reason",
 		size: 100,
 		cell: (info) => {
-			const value = info.getValue();
+			const value = info.getValue() || "-";
+			const normalizedValue = value.toUpperCase();
 
 			return (
 				<Badge
 					className={`inline-flex items-center gap-1.5 rounded-md border px-2 py-0 text-[11px] font-semibold shadow-none ${
-						TYPE_BADGE_CLASSNAME[value] ?? "border-slate-200 bg-slate-50 text-slate-700"
+						TYPE_BADGE_CLASSNAME[normalizedValue] ?? "border-slate-200 bg-slate-50 text-slate-700"
 					}`}
 					shape="square"
 				>
-					<span
+					{/* <span
 						aria-hidden="true"
-						className={`h-1.5 w-1.5 rounded-full ${TYPE_DOT_CLASSNAME[value] ?? "bg-slate-400"}`}
-					/>
+						className={`h-1.5 w-1.5 rounded-full ${TYPE_DOT_CLASSNAME[normalizedValue] ?? "bg-slate-400"}`}
+					/> */}
 					{formatTypeLabel(value)}
 				</Badge>
 			);

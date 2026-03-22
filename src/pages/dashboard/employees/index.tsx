@@ -35,6 +35,10 @@ export default function EmployeesPage() {
 	});
 
 	const filteredEmployees = employees.filter((employee) => {
+		if (activeEmployee && employee.id !== activeEmployee.id && employee.username !== activeEmployee.username) {
+			return false;
+		}
+
 		const query = (listState.searchValue || "").toLowerCase();
 		if (!query) return true;
 

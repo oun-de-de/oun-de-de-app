@@ -1,15 +1,17 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { useMemo, useState } from "react";
 import { SmartDataTable } from "@/core/components/common";
+import { Button } from "@/core/ui/button";
 import { Text } from "@/core/ui/typography";
 import { formatDisplayDateTime, formatKHR } from "@/core/utils/formatters";
 import type { LoanPaymentRecord } from "../hooks/use-borrow-detail";
 
 type LoanPaymentsTableProps = {
 	payments: LoanPaymentRecord[];
+	onExportReceipt?: (payment: LoanPaymentRecord) => void;
 };
 
-export function LoanPaymentsTable({ payments }: LoanPaymentsTableProps) {
+export function LoanPaymentsTable({ payments, onExportReceipt }: LoanPaymentsTableProps) {
 	const [page, setPage] = useState(1);
 	const [pageSize, setPageSize] = useState(20);
 	const totalPages = useMemo(() => Math.max(1, Math.ceil(payments.length / pageSize)), [payments.length, pageSize]);
@@ -22,9 +24,16 @@ export function LoanPaymentsTable({ payments }: LoanPaymentsTableProps) {
 	const columns = useMemo<ColumnDef<LoanPaymentRecord>[]>(
 		() => [
 			{
-				header: "Payment No",
+				header: "No",
 				accessorKey: "paymentNo",
 				size: 50,
+				meta: { bodyClassName: "text-center" },
+			},
+			{
+				header: "Code",
+				accessorKey: "code",
+				cell: ({ row }) => row.original.code || "-",
+				size: 140,
 				meta: { bodyClassName: "text-center" },
 			},
 			{
@@ -38,8 +47,21 @@ export function LoanPaymentsTable({ payments }: LoanPaymentsTableProps) {
 				cell: ({ row }) => formatKHR(row.original.amount),
 				meta: { bodyClassName: "text-right" },
 			},
+			{
+				id: "actions",
+				header: "Action",
+				cell: ({ row }) =>
+					onExportReceipt ? (
+						<div className="flex justify-center">
+							<Button size="sm" variant="outline" onClick={() => onExportReceipt(row.original)}>
+								Export Receipt
+							</Button>
+						</div>
+					) : null,
+				meta: { bodyClassName: "text-center" },
+			},
 		],
-		[],
+		[onExportReceipt],
 	);
 
 	if (payments.length === 0) {

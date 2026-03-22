@@ -213,7 +213,11 @@ export function CyclePaymentDialog({
 			<DialogContent className="sm:max-w-5xl overflow-y-auto p-4 md:p-6">
 				<DialogHeader className="pr-8">
 					<DialogTitle>
-						{historyOnly ? "Payment History" : defaultTab === "loan" ? "Convert Cycle To Loan" : "Create Cycle Payment"}
+						{historyOnly
+							? "Payment Histories"
+							: defaultTab === "loan"
+								? "Convert Cycle To Loan"
+								: "Create Cycle Payment"}
 					</DialogTitle>
 					<DialogDescription>
 						{cycle
@@ -338,7 +342,7 @@ export function CyclePaymentDialog({
 				)}
 
 				<div className="flex flex-col flex-1 min-h-0 space-y-2 mt-2">
-					<Label className="text-sm font-semibold">Payment History</Label>
+					<Label className="text-sm font-semibold">Payment Histories</Label>
 					<SmartDataTable
 						className="rounded-md border border-slate-200 pb-2"
 						maxBodyHeight="320px"

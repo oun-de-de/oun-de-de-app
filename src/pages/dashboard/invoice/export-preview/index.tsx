@@ -102,6 +102,7 @@ export default function InvoiceExportPreviewPage() {
 	const [isExporting, setIsExporting] = useState(false);
 	const state = (location.state as InvoiceExportPreviewLocationState | null) ?? null;
 	const searchParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
+	const autoPrintStorageKey = useMemo(() => `invoice-export-auto-print:${location.key}`, [location.key]);
 	const requestedPaperSizeMode = searchParams.get("paper");
 	const requestedOrientationMode = searchParams.get("orientation");
 	const requestedTemplateMode = searchParams.get("template");
@@ -318,11 +319,18 @@ export default function InvoiceExportPreviewPage() {
 	useEffect(() => {
 		if (hasAutoPrinted || !state?.autoPrint) return;
 		if (exportQuery.isLoading || previewRows.length === 0) return;
+		if (window.sessionStorage.getItem(autoPrintStorageKey) === "done") return;
+
+		window.sessionStorage.setItem(autoPrintStorageKey, "done");
 		setHasAutoPrinted(true);
-		requestAnimationFrame(() => {
+		const timer = window.setTimeout(() => {
 			handlePrint();
-		});
-	}, [hasAutoPrinted, state?.autoPrint, exportQuery.isLoading, previewRows.length, handlePrint]);
+		}, 120);
+
+		return () => {
+			window.clearTimeout(timer);
+		};
+	}, [autoPrintStorageKey, hasAutoPrinted, state?.autoPrint, exportQuery.isLoading, previewRows.length, handlePrint]);
 
 	useEffect(() => {
 		const styleId = "invoice-export-page-size-style";
@@ -431,11 +439,10 @@ export default function InvoiceExportPreviewPage() {
 									<div className="mt-2 text-[13px] font-semibold text-slate-700">
 										ទីតាំង : ភូមិត្រពាំងក្រសាំង សង្កាត់កន្ទោក ខណ្ឌកំបូល រាជធានីភ្នំពេញ (TEL: 070 66 9898)
 									</div>
-									<div className="mt-1 text-[16px] font-bold">Invoice</div>
 								</div>
 							</div>
 
-							<div className="mb-2 border-t-[3px] border-black pt-2 text-[14px] font-bold">
+							<div className="mb-2 border-t border-slate-500 pt-2 text-[14px] font-bold">
 								<div className="flex items-center justify-between gap-4">
 									<div>Customer : {sortedPreviewRows[0]?.customerName || "-"}</div>
 									<div>Ref No : {sortedPreviewRows[0]?.refNo || "-"}</div>
@@ -449,42 +456,42 @@ export default function InvoiceExportPreviewPage() {
 							<table className="w-full border-collapse text-[13px]">
 								<thead>
 									<tr>
-										<th className="border-[3px] border-slate-700 px-2 py-1.5 text-center font-bold">ល.រ</th>
-										<th className="border-[3px] border-slate-700 px-2 py-1.5 text-center font-bold">PRODUCT</th>
-										<th className="border-[3px] border-slate-700 px-2 py-1.5 text-center font-bold">UNIT</th>
-										<th className="border-[3px] border-slate-700 px-2 py-1.5 text-center font-bold">QTY</th>
-										<th className="border-[3px] border-slate-700 px-2 py-1.5 text-center font-bold">PRICE</th>
-										<th className="border-[3px] border-slate-700 px-2 py-1.5 text-center font-bold">DISCOUNT</th>
-										<th className="border-[3px] border-slate-700 px-2 py-1.5 text-center font-bold">TOTAL</th>
+										<th className="border border-slate-500 px-2 py-1.5 text-center font-bold">ល.រ</th>
+										<th className="border border-slate-500 px-2 py-1.5 text-center font-bold">PRODUCT</th>
+										<th className="border border-slate-500 px-2 py-1.5 text-center font-bold">UNIT</th>
+										<th className="border border-slate-500 px-2 py-1.5 text-center font-bold">QTY</th>
+										<th className="border border-slate-500 px-2 py-1.5 text-center font-bold">PRICE</th>
+										<th className="border border-slate-500 px-2 py-1.5 text-center font-bold">DISCOUNT</th>
+										<th className="border border-slate-500 px-2 py-1.5 text-center font-bold">TOTAL</th>
 									</tr>
 								</thead>
 								<tbody>
 									{sortedPreviewRows.map((row, index) => (
 										<tr key={`${row.refNo}-${index}`}>
-											<td className="border-[3px] border-slate-700 px-2 py-2 text-center">{index + 1}</td>
-											<td className="border-[3px] border-slate-700 px-2 py-2 text-center">{row.productName || "-"}</td>
-											<td className="border-[3px] border-slate-700 px-2 py-2 text-center">{row.unit || "-"}</td>
-											<td className="border-[3px] border-slate-700 px-2 py-2 text-center">
+											<td className="border border-slate-500 px-2 py-2 text-center">{index + 1}</td>
+											<td className="border border-slate-500 px-2 py-2 text-center">{row.productName || "-"}</td>
+											<td className="border border-slate-500 px-2 py-2 text-center">{row.unit || "-"}</td>
+											<td className="border border-slate-500 px-2 py-2 text-center">
 												{formatNumber(getRowQuantity(row))}
 											</td>
-											<td className="border-[3px] border-slate-700 px-2 py-2 text-right">
+											<td className="border border-slate-500 px-2 py-2 text-right">
 												{formatNumber(getRowPrice(row))} ៛
 											</td>
-											<td className="border-[3px] border-slate-700 px-2 py-2 text-center">0</td>
-											<td className="border-[3px] border-slate-700 px-2 py-2 text-right">
+											<td className="border border-slate-500 px-2 py-2 text-center">0</td>
+											<td className="border border-slate-500 px-2 py-2 text-right">
 												{formatNumber(getRowAmount(row))} ៛
 											</td>
 										</tr>
 									))}
 									{Array.from({ length: Math.max(0, 1 - sortedPreviewRows.length) }).map((_, index) => (
 										<tr key={`blank-${index}`}>
-											<td className="border-[3px] border-slate-700 px-2 py-3" />
-											<td className="border-[3px] border-slate-700 px-2 py-3" />
-											<td className="border-[3px] border-slate-700 px-2 py-3" />
-											<td className="border-[3px] border-slate-700 px-2 py-3" />
-											<td className="border-[3px] border-slate-700 px-2 py-3" />
-											<td className="border-[3px] border-slate-700 px-2 py-3" />
-											<td className="border-[3px] border-slate-700 px-2 py-3" />
+											<td className="border border-slate-500 px-2 py-3" />
+											<td className="border border-slate-500 px-2 py-3" />
+											<td className="border border-slate-500 px-2 py-3" />
+											<td className="border border-slate-500 px-2 py-3" />
+											<td className="border border-slate-500 px-2 py-3" />
+											<td className="border border-slate-500 px-2 py-3" />
+											<td className="border border-slate-500 px-2 py-3" />
 										</tr>
 									))}
 								</tbody>

@@ -35,11 +35,15 @@ export const ACCOUNTING_TABLE_FIELD_OPTIONS = [
 	{ value: "memo", label: "Memo" },
 ];
 
+export const ACCOUNTING_FORM_TRANSACTION_TYPES = {
+	expense: "CREDIT",
+	revenue: "DEBIT",
+} as const;
+
 export const ACCOUNTING_CREATE_OPTION_TARGETS = [
-	{ label: "Create Journal", path: "/dashboard/accounting/create-journal", isDraftOnly: true },
-	{ label: "Create Expense", path: "/dashboard/accounting/create-expense", isDraftOnly: true },
+	{ label: "Create Expense", path: "/dashboard/accounting/create-expense", isDraftOnly: false },
 	{ label: "Create Cash Transaction", path: "/dashboard/accounting/create-cash-transaction", isDraftOnly: false },
-	{ label: "Create Revenue", path: "/dashboard/accounting/create-revenue", isDraftOnly: true },
+	{ label: "Create Revenue", path: "/dashboard/accounting/create-revenue", isDraftOnly: false },
 	// { label: "Create Chart Account", path: "/dashboard/accounting/create-chart-account", isDraftOnly: false },
 ] as const;
 
@@ -96,7 +100,6 @@ export const ACCOUNTING_UI_TEXT = {
 	inactivateSelectedAccountTitle: "Mark selected chart account as inactive",
 	createChartAccount: "Create Chart Account",
 	createChartAccountPrimary: "Create Chart Account",
-	draftOptionSuffix: "Draft",
 	inactiveConfirmTitle: "Confirm",
 	inactiveConfirmAction: "OK",
 	inactiveConfirmCancel: "Cancel",
@@ -120,25 +123,25 @@ export const ACCOUNTING_DRAFT_FORM_TEXT = {
 	journal: {
 		pageTitle: "Create Journal",
 		cardTitle: "Journal",
-		notice: "This form is currently draft-only.",
-		saveAndClose: "Save Draft & Close",
-		saveAndNew: "Save Draft & New",
-		successMessage: "Journal draft saved",
+		notice: "Complete the journal details before saving.",
+		saveAndClose: "Save & Close",
+		saveAndNew: "Save & New",
+		successMessage: "Journal saved",
 	},
 	expense: {
 		pageTitle: "Create Cash Expense",
 		cardTitle: "Create Cash Expense",
-		notice: "This form is currently draft-only.",
-		saveAndClose: "Save Draft & Close",
-		saveAndNew: "Save Draft & New",
-		successMessage: "Create expense draft saved",
+		notice: "Complete the expense details before saving. Expense transactions use Credit.",
+		saveAndClose: "Save & Close",
+		saveAndNew: "Save & New",
+		successMessage: "Expense saved",
 	},
 	revenue: {
 		pageTitle: "Create Cash Revenue",
 		cardTitle: "Create Cash Revenue",
-		notice: "This form is currently draft-only.",
-		saveAndClose: "Save Draft & Close",
-		successMessage: "Revenue draft saved",
+		notice: "Complete the revenue details before saving. Revenue transactions use Debit.",
+		saveAndClose: "Save & Close",
+		successMessage: "Revenue saved",
 	},
 	transaction: {
 		pageTitle: "Create Cash Transaction",
@@ -153,7 +156,7 @@ export const ACCOUNTING_DRAFT_FORM_TEXT = {
 export function formatAccountingCreateOptionLabel(
 	target: Pick<(typeof ACCOUNTING_CREATE_OPTION_TARGETS)[number], "label" | "isDraftOnly">,
 ) {
-	return target.isDraftOnly ? `${target.label} (${ACCOUNTING_UI_TEXT.draftOptionSuffix})` : target.label;
+	return target.label;
 }
 
 export function createAccountingCreateOption(label: AccountingCreateOptionLabel, navigate: (path: string) => void) {

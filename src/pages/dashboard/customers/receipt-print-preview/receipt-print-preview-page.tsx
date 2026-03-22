@@ -9,6 +9,7 @@ export default function ReceiptPrintPreviewPage() {
 	const navigate = useNavigate();
 	const location = useLocation();
 	const state = (location.state as ReceiptPrintPreviewState | null) ?? null;
+	const autoPrintStorageKey = useMemo(() => `receipt-preview-auto-print:${location.key}`, [location.key]);
 
 	const handlePrint = useCallback(() => {
 		window.print();
@@ -16,6 +17,9 @@ export default function ReceiptPrintPreviewPage() {
 
 	useEffect(() => {
 		if (!state) return;
+		if (window.sessionStorage.getItem(autoPrintStorageKey) === "done") return;
+
+		window.sessionStorage.setItem(autoPrintStorageKey, "done");
 
 		const styleId = "receipt-print-page-size-style";
 		let styleEl = document.getElementById(styleId) as HTMLStyleElement | null;
@@ -35,7 +39,7 @@ export default function ReceiptPrintPreviewPage() {
 			window.clearTimeout(timer);
 			styleEl?.remove();
 		};
-	}, [handlePrint, state]);
+	}, [autoPrintStorageKey, handlePrint, state]);
 
 	if (!state) {
 		return (

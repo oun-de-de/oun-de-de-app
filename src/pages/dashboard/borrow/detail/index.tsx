@@ -7,10 +7,11 @@ import { Input } from "@/core/ui/input";
 import { Label } from "@/core/ui/label";
 import { Separator } from "@/core/ui/separator";
 import { Text } from "@/core/ui/typography";
+import type { InvoiceExportPreviewLocationState } from "@/core/types/invoice";
 import { formatDisplayDate, formatDisplayDateTime, formatKHR } from "@/core/utils/formatters";
 import { useRouter } from "@/routes/hooks/use-router";
 import { useMemo, useState } from "react";
-import { useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import { ReportLayout } from "../../reports/components/layout/report-layout";
 import {
 	type ReportTemplateColumn,
@@ -28,20 +29,10 @@ function formatLoanStatusLabel(status?: "normal" | "due" | "complete") {
 	return "Normal";
 }
 
-function buildPaymentExportCsv(
-	rows: Array<{ paymentNo: number; paidAt: string; amount: number }>,
-	borrowerName: string,
-) {
-	const header = ["Borrower", "Payment No", "Payment Date", "Amount"];
-	const lines = rows.map((row) =>
-		[borrowerName, String(row.paymentNo), formatDisplayDateTime(row.paidAt), String(row.amount)].join(","),
-	);
-	return [header.join(","), ...lines].join("\n");
-}
-
 export default function BorrowDetailPage() {
 	const { id } = useParams<{ id: string }>();
 	const router = useRouter();
+	const navigate = useNavigate();
 	const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
 	const [shouldUpdateDueDate, setShouldUpdateDueDate] = useState(true);
 	const [paymentCode, setPaymentCode] = useState("");
@@ -110,7 +101,7 @@ export default function BorrowDetailPage() {
 		() => [
 			<div key="loan-print-header" className="flex flex-col gap-4 text-black">
 				<div className="text-center">
-					<div className="text-2xl font-bold">Loan Payment History</div>
+					<div className="text-2xl font-bold">Loan Payment Histories</div>
 					<div className="mt-1 text-lg font-semibold">
 						{loan?.borrowerType === "employee" ? "Employee Loan" : "Customer Loan"}
 					</div>
@@ -192,23 +183,41 @@ export default function BorrowDetailPage() {
 		setIsEditTermsDialogOpen(false);
 	};
 
-	const handleExportPayments = () => {
-		if (!loan || payments.length === 0) return;
-		const csv = buildPaymentExportCsv(payments, loan.borrowerName);
-		const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-		const url = window.URL.createObjectURL(blob);
-		const link = document.createElement("a");
-		link.href = url;
-		link.download = `loan-payments-${loan.borrowerName.replace(/\s+/g, "-").toLowerCase()}.csv`;
-		document.body.appendChild(link);
-		link.click();
-		link.remove();
-		window.URL.revokeObjectURL(url);
-	};
-
 	const handlePrintPayments = () => {
 		if (payments.length === 0) return;
 		window.print();
+	};
+
+	const handleExportPaymentReceipt = (payment: (typeof payments)[number]) => {
+		if (!loan) return;
+
+		const exportPreviewState: InvoiceExportPreviewLocationState = {
+			selectedInvoiceIds: [],
+			previewRows: [
+				{
+					refNo: payment.code || `PAY-${payment.paymentNo}`,
+					customerName: loan.borrowerName,
+					date: payment.paidAt,
+					productName: "Loan Payment",
+					unit: null,
+					pricePerProduct: payment.amount,
+					quantityPerProduct: 1,
+					quantity: 1,
+					amount: payment.amount,
+					total: payment.amount,
+					memo: `${loan.borrowerType === "employee" ? "Employee" : "Customer"} loan payment receipt`,
+					paid: payment.amount,
+					balance: 0,
+				},
+			],
+			autoPrint: true,
+			initialPaperSizeMode: "a5",
+			initialOrientationMode: "landscape",
+		};
+
+		navigate("/dashboard/invoice/export-preview?paper=a5&orientation=landscape", {
+			state: exportPreviewState,
+		});
 	};
 
 	if (isLoading) {
@@ -257,15 +266,6 @@ export default function BorrowDetailPage() {
 						disabled={!currentDue || isCreatingPayment}
 					>
 						Create Payment
-					</Button>
-					<Button
-						size="sm"
-						variant="outline"
-						className="border-slate-300 bg-white text-slate-700 shadow-sm hover:bg-slate-50 hover:text-slate-900"
-						onClick={handleExportPayments}
-						disabled={payments.length === 0}
-					>
-						Export CSV
 					</Button>
 					<Button
 						size="sm"
@@ -393,7 +393,7 @@ export default function BorrowDetailPage() {
 				<div className="col-span-1 flex flex-col rounded-lg border bg-white p-6 shadow-sm lg:col-span-2">
 					<div className="mb-4 flex items-center justify-between gap-2">
 						<Text variant="subTitle1" className="font-semibold">
-							Payment History
+							Payment Histories
 						</Text>
 						{currentDue ? (
 							<Button variant="warning" size="sm" onClick={() => setIsPostponeDialogOpen(true)} disabled={isPostponing}>
@@ -401,13 +401,13 @@ export default function BorrowDetailPage() {
 							</Button>
 						) : null}
 					</div>
-					<LoanPaymentsTable payments={payments} />
+					<LoanPaymentsTable payments={payments} onExportReceipt={handleExportPaymentReceipt} />
 				</div>
 			</div>
 
 			<ReportLayout className="hidden print:flex">
 				<ReportTemplateTable
-					title="Loan Payment History"
+					title="Loan Payment Histories"
 					headerContent={printHeaderContent}
 					columns={printColumns}
 					rows={printRows}

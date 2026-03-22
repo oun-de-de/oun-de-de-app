@@ -48,7 +48,16 @@ export function formatFlexibleDisplayDate(value?: string | Date | null, fallback
 		return `${dateParts.day}/${dateParts.month}/${dateParts.year}`;
 	}
 
-	const parsed = new Date(normalized);
+	// If it contains a time component and no timezone info, treat as UTC
+	let toParse = normalized;
+	if (toParse.includes("T") || toParse.includes(" ")) {
+		toParse = toParse.replace(" ", "T");
+		if (!/[Z+-](?:\d{2}:\d{2}|\d{4}|\d{2})?$/.test(toParse) && !toParse.endsWith("Z")) {
+			toParse += "Z";
+		}
+	}
+
+	const parsed = new Date(toParse);
 	if (Number.isNaN(parsed.getTime())) return fallback;
 	return format(parsed, "dd/MM/yyyy");
 }

@@ -97,13 +97,13 @@ export const getColumnsForItem = (activeItem: string, canEdit = true): ColumnDef
 				? [
 						{
 							id: "actions",
-							size: 30,
+							size: 40,
 							cell: (cellContext: CellContext<SettingsRow, unknown>) => {
 								const { row } = cellContext;
 								return (
 									<Button
 										variant="ghost"
-										size="sm"
+										size="icon"
 										className="cursor-pointer"
 										onClick={() => getSettingsActions().openEditForm(row.original)}
 									>

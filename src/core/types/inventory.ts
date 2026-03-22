@@ -21,12 +21,18 @@ export interface InventoryItem {
 	alertThreshold: number;
 }
 
+export interface InitStockRequest {
+	refCode: string;
+	quantityOnHand: number;
+	expense?: number;
+}
+
 export interface CreateInventoryItem {
 	name: string;
-	type: string;
-	unitId: string;
-	quantityOnHand: number;
-	alertThreshold: number;
+	type: InventoryItemType;
+	unitId?: string;
+	initStock?: InitStockRequest;
+	alertThreshold?: number;
 }
 
 export interface UpdateStockRequest {

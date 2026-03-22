@@ -5,7 +5,7 @@ import { cn } from "@/core/utils";
 import { FormField } from "./form-field";
 import { selectVariants } from "./styles/variants";
 
-type Option = { label: string; value: string };
+type Option = { label: string; value: string; disabled?: boolean };
 
 type FormSelectProps = {
 	name: string;
@@ -72,7 +72,7 @@ export function FormSelect({
 							</SelectTrigger>
 							<SelectContent>
 								{options.map((o) => (
-									<SelectItem key={o.value} value={o.value}>
+									<SelectItem key={o.value} value={o.value} disabled={o.disabled}>
 										{o.label}
 									</SelectItem>
 								))}

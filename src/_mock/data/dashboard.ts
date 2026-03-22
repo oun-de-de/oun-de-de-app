@@ -576,7 +576,7 @@ export const reportSections = [
 		icon: "mdi:book-open-page-variant-outline",
 		items: [
 			{ slug: "general-ledger", label: "General Ledger", favorite: false },
-			{ slug: "trial-balance", label: "Trial Balance", favorite: false },
+			// { slug: "trial-balance", label: "Trial Balance", favorite: false },
 		],
 	},
 	{

@@ -383,7 +383,7 @@ export function InvoiceContent({
 			{activeCycle && (
 				<div className="min-w-0 shrink-0 space-y-2">
 					<div className="flex items-center justify-between gap-2">
-						<Text className="text-sm font-semibold">Payment History</Text>
+						<Text className="text-sm font-semibold">Payment Histories</Text>
 						{payments.length > displayedPayments.length && (
 							<Button size="sm" variant="secondary" onClick={() => setIsPaymentHistoryDialogOpen(true)}>
 								View more
