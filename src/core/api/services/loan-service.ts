@@ -1,4 +1,4 @@
-import type { PaginatedResponse } from "@/core/types/common";
+import type { PagePaginatedResponse, PaginatedResponse } from "@/core/types/common";
 import type {
 	BorrowerType,
 	CreateLoanPaymentRequest,
@@ -64,7 +64,7 @@ const getLoans = (params?: {
 	sort?: string;
 }): Promise<PaginatedResponse<Loan>> =>
 	apiClient
-		.get<PaginatedResponse<LoanApiResponse>>({
+		.get<PagePaginatedResponse<LoanApiResponse>>({
 			url: LoanApi.Loans,
 			params: {
 				...params,
@@ -73,8 +73,32 @@ const getLoans = (params?: {
 			},
 		})
 		.then((response) => ({
-			...response,
 			content: response.content.map(normalizeLoan),
+			pageable: {
+				pageNumber: response.page.number,
+				pageSize: response.page.size,
+				sort: {
+					empty: false,
+					sorted: true,
+					unsorted: false,
+				},
+				offset: response.page.number * response.page.size,
+				paged: true,
+				unpaged: false,
+			},
+			totalElements: response.page.totalElements,
+			totalPages: response.page.totalPages,
+			last: response.page.number + 1 >= response.page.totalPages,
+			size: response.page.size,
+			number: response.page.number,
+			sort: {
+				empty: false,
+				sorted: true,
+				unsorted: false,
+			},
+			numberOfElements: response.content.length,
+			first: response.page.number === 0,
+			empty: response.content.length === 0,
 		}));
 
 const createLoan = (data: CreateLoanRequest): Promise<Loan> =>
@@ -102,7 +126,7 @@ const listLoanPayments = (loanId: string): Promise<LoanPayment[]> =>
 
 const createPayment = (loanId: string, data: CreateLoanPaymentRequest): Promise<LoanPayment> =>
 	apiClient.post<LoanPayment>({
-		url: `${LoanApi.Loans}/${loanId}/pay`,
+		url: `${LoanApi.Loans}/${loanId}/payments`,
 		data,
 	});
 

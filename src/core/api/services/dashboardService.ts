@@ -19,7 +19,7 @@ type GetPerformanceResponse = {
 type FinancialOverviewResponse = {
 	invoiceAmount: number;
 	overdueCycles: number;
-	overdueLoanInstallments: number;
+	dueLoanInstallments: number;
 	depositBalance: number;
 };
 
@@ -54,7 +54,7 @@ function toCustomerSummaryItems(response: FinancialOverviewResponse): CustomerSu
 		{
 			id: "overdue-installments",
 			label: "Overdue Installments",
-			value: response.overdueLoanInstallments,
+			value: response.dueLoanInstallments,
 			variant: "info",
 			icon: "solar:clock-circle-bold",
 		},
@@ -106,7 +106,7 @@ function createMockFinancialOverviewResponse(): FinancialOverviewResponse {
 	return {
 		invoiceAmount: 398_631_700,
 		overdueCycles: 0,
-		overdueLoanInstallments: 0,
+		dueLoanInstallments: 0,
 		depositBalance: 0,
 	};
 }

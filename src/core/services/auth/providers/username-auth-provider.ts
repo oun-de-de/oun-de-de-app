@@ -1,6 +1,7 @@
 import { type AuthLoginDTO, type AuthToken, type UsernameAuthCredential, UsernameAuthProvider } from "@auth-service";
 import { createTaggedLogger } from "@/core/utils/logger";
 import { AppAuthAccount } from "../models/app-auth-account";
+import { AppAuthService } from "../app-auth-service";
 import { UserApi } from "@/core/api/services/userService";
 import { apiClient, noAuthApi } from "@/core/api/apiClient";
 
@@ -54,9 +55,12 @@ export class AppUsernameAuthProvider implements UsernameAuthProvider<AppAuthAcco
 
 	async logout(): Promise<void> {
 		try {
-			// Logout requires auth token
-			await apiClient.get({
+			const refreshToken = AppAuthService.getInstance().getRefreshToken();
+			if (!refreshToken) return;
+
+			await apiClient.post({
 				url: UserApi.Logout,
+				data: { refreshToken },
 			});
 		} catch (error) {
 			// Ignore logout errors
