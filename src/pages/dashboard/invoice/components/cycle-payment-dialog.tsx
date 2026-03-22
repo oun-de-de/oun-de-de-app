@@ -94,8 +94,15 @@ export function CyclePaymentDialog({
 		isConvertingToLoan,
 	});
 	const { state, setters, derived } = ui;
-	const { setActiveTab, setAmount, setPaymentDateTime, setMonthlyAmount, setLoanStartDate, setDueWarningDays } =
-		setters;
+	const {
+		setActiveTab,
+		setAmount,
+		setPaymentCode,
+		setPaymentDateTime,
+		setMonthlyAmount,
+		setLoanStartDate,
+		setDueWarningDays,
+	} = setters;
 	const paymentColumns = useMemo(
 		() =>
 			getPaymentColumns({
@@ -111,6 +118,7 @@ export function CyclePaymentDialog({
 		const nowDateTime = getLocalNowDateTime();
 		setActiveTab(defaultTab);
 		setAmount("");
+		setPaymentCode("");
 		setAmountInputError("");
 		setPaymentDateTime(nowDateTime);
 		setMonthlyAmount("");
@@ -137,6 +145,10 @@ export function CyclePaymentDialog({
 			toast.error("Payment amount must be greater than 0");
 			return;
 		}
+		if (!state.paymentCode.trim()) {
+			toast.error("Payment code is required");
+			return;
+		}
 		if (derived.isAmountExceeded) {
 			toast.error("Payment amount cannot exceed remaining balance");
 			return;
@@ -150,6 +162,7 @@ export function CyclePaymentDialog({
 			}
 
 			await createPayment({
+				code: state.paymentCode.trim(),
 				amount: derived.parsedAmount,
 				paymentDate,
 			});
@@ -229,6 +242,17 @@ export function CyclePaymentDialog({
 						<TabsContent value="payment" className="space-y-4 pt-4">
 							<div className="grid grid-cols-1 md:grid-cols-2 gap-3">
 								<div className="space-y-1.5">
+									<Label htmlFor="cycle-payment-code">Payment Code</Label>
+									<Input
+										id="cycle-payment-code"
+										type="text"
+										value={state.paymentCode}
+										onChange={(e) => setPaymentCode(e.target.value)}
+										placeholder="Enter payment code"
+										disabled={isCreatingPayment}
+									/>
+								</div>
+								<div className="space-y-1.5">
 									<Label htmlFor="cycle-payment-amount">Amount</Label>
 									<Input
 										id="cycle-payment-amount"
@@ -248,7 +272,7 @@ export function CyclePaymentDialog({
 									/>
 									{amountInputError ? <p className="text-[10px] text-red-500 font-medium">{amountInputError}</p> : null}
 								</div>
-								<div className="space-y-1.5">
+								<div className="space-y-1.5 md:col-span-2">
 									<Label htmlFor="cycle-payment-date">Payment Date Time</Label>
 									<Input
 										id="cycle-payment-date"

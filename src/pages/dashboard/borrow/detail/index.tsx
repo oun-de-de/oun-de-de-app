@@ -44,6 +44,7 @@ export default function BorrowDetailPage() {
 	const router = useRouter();
 	const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
 	const [shouldUpdateDueDate, setShouldUpdateDueDate] = useState(true);
+	const [paymentCode, setPaymentCode] = useState("");
 	const [paymentAmount, setPaymentAmount] = useState("");
 	const [isBorrowMoreDialogOpen, setIsBorrowMoreDialogOpen] = useState(false);
 	const [additionalAmount, setAdditionalAmount] = useState("");
@@ -152,11 +153,14 @@ export default function BorrowDetailPage() {
 	const handleCreatePayment = async () => {
 		const parsedAmount = Number(paymentAmount);
 		if (!currentDue || !Number.isFinite(parsedAmount) || parsedAmount <= 0) return;
+		if (!paymentCode.trim()) return;
 		await createPayment({
+			code: paymentCode.trim(),
 			amount: parsedAmount,
 			shouldUpdateDueDate,
 		});
 		setIsPaymentDialogOpen(false);
+		setPaymentCode("");
 		setPaymentAmount(currentDue ? String(currentDue.amount) : "");
 	};
 
@@ -245,6 +249,7 @@ export default function BorrowDetailPage() {
 						size="sm"
 						className="bg-sky-600 text-white shadow-sm hover:bg-sky-700"
 						onClick={() => {
+							setPaymentCode("");
 							setPaymentAmount(currentDue ? String(currentDue.amount) : "");
 							setShouldUpdateDueDate(true);
 							setIsPaymentDialogOpen(true);
@@ -432,6 +437,17 @@ export default function BorrowDetailPage() {
 							</div>
 						</div>
 						<div className="space-y-1.5">
+							<Label htmlFor="loan-payment-code">Payment Code</Label>
+							<Input
+								id="loan-payment-code"
+								type="text"
+								value={paymentCode}
+								onChange={(event) => setPaymentCode(event.target.value)}
+								placeholder="Enter payment code"
+								disabled={isCreatingPayment}
+							/>
+						</div>
+						<div className="space-y-1.5">
 							<Label htmlFor="loan-payment-amount">Amount</Label>
 							<div className="relative">
 								<Input
@@ -471,6 +487,7 @@ export default function BorrowDetailPage() {
 							onClick={() => {
 								setIsPaymentDialogOpen(false);
 								setShouldUpdateDueDate(true);
+								setPaymentCode("");
 								setPaymentAmount(currentDue ? String(currentDue.amount) : "");
 							}}
 							disabled={isCreatingPayment}
@@ -482,6 +499,7 @@ export default function BorrowDetailPage() {
 							disabled={
 								!currentDue ||
 								isCreatingPayment ||
+								!paymentCode.trim() ||
 								!Number.isFinite(Number(paymentAmount)) ||
 								Number(paymentAmount) <= 0
 							}

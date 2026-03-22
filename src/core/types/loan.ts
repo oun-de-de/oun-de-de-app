@@ -41,11 +41,13 @@ export type CreateLoanRequest = {
 
 export type LoanPayment = {
 	id: string;
+	code?: string;
 	paymentDate: string;
 	amount: number;
 };
 
 export type CreateLoanPaymentRequest = {
+	code: string;
 	paymentDate?: string;
 	amount: number;
 	shouldUpdateDueDate: boolean;
