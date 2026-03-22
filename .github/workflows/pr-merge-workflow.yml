@@ -1,9 +1,5 @@
 on:
-  pull_request:
-    types:
-      - closed
-    branches:
-      - main
+  workflow_dispatch:
 
 name: 🚀 Deploy website on merge
 
@@ -30,7 +26,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'pnpm'
+          cache: "pnpm"
 
       - name: 📦 Install
         run: pnpm install --frozen-lockfile
@@ -51,7 +47,7 @@ jobs:
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           local-dir: ./dist/
-          server-dir: ./domains/cdtphuhoi.com/public_html/
+          server-dir: ./public_html
           exclude: |
             **/.git*/**
             **/node_modules/**
