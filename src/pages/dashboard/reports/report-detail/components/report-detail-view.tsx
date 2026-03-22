@@ -28,13 +28,6 @@ interface ReportDetailViewProps {
 	reportSlug: string;
 }
 
-const DEFAULT_REPORT_FILTERS: ReportFiltersValue = {
-	customerId: "all",
-	fromDate: REPORT_DEFAULT_DATE_INPUT,
-	toDate: REPORT_DEFAULT_DATE_INPUT,
-	useDateRange: true,
-};
-
 function areReportFiltersEqual(left: ReportFiltersValue, right: ReportFiltersValue) {
 	return (
 		left.customerId === right.customerId &&
@@ -42,6 +35,17 @@ function areReportFiltersEqual(left: ReportFiltersValue, right: ReportFiltersVal
 		left.toDate === right.toDate &&
 		left.useDateRange === right.useDateRange
 	);
+}
+
+function getDefaultReportFilters(monthOnly = false): ReportFiltersValue {
+	const defaultValue = monthOnly ? REPORT_DEFAULT_DATE_INPUT.slice(0, 7) : REPORT_DEFAULT_DATE_INPUT;
+
+	return {
+		customerId: "all",
+		fromDate: defaultValue,
+		toDate: defaultValue,
+		useDateRange: true,
+	};
 }
 
 export function ReportDetailView({ reportSlug }: ReportDetailViewProps) {
@@ -87,8 +91,13 @@ export function ReportDetailView({ reportSlug }: ReportDetailViewProps) {
 		columns: [],
 		hiddenColumnKeys: [],
 	});
-	const [draftFilters, setDraftFilters] = useState<ReportFiltersValue>(DEFAULT_REPORT_FILTERS);
-	const [appliedFilters, setAppliedFilters] = useState<ReportFiltersValue>(DEFAULT_REPORT_FILTERS);
+	const reportDefinition = useMemo(() => getReportDefinition(reportSlug), [reportSlug]);
+	const defaultFilters = useMemo(
+		() => getDefaultReportFilters(reportDefinition.filterConfig?.monthOnly === true),
+		[reportDefinition.filterConfig?.monthOnly],
+	);
+	const [draftFilters, setDraftFilters] = useState<ReportFiltersValue>(defaultFilters);
+	const [appliedFilters, setAppliedFilters] = useState<ReportFiltersValue>(defaultFilters);
 	const hasPendingFilterChanges = !areReportFiltersEqual(draftFilters, appliedFilters);
 	const handlePrint = () => window.print();
 	const handleBack = useCallback(() => {
@@ -99,7 +108,6 @@ export function ReportDetailView({ reportSlug }: ReportDetailViewProps) {
 
 		navigate("/dashboard/reports");
 	}, [navigate]);
-	const reportDefinition = useMemo(() => getReportDefinition(reportSlug), [reportSlug]);
 	const isExcelExportReport =
 		reportSlug === "open-invoice-detail-by-customer" || reportSlug === "receipt-detail-by-customer";
 	const tableWrapperClassName = useMemo(
@@ -116,6 +124,11 @@ export function ReportDetailView({ reportSlug }: ReportDetailViewProps) {
 	useEffect(() => {
 		setShowColumns(createVisibleColumnMap(columnOptions));
 	}, [reportSlug, columnOptions]);
+
+	useEffect(() => {
+		setDraftFilters(defaultFilters);
+		setAppliedFilters(defaultFilters);
+	}, [defaultFilters, reportSlug]);
 
 	useEffect(() => {
 		const styleId = "report-page-size-style";
@@ -167,6 +180,11 @@ export function ReportDetailView({ reportSlug }: ReportDetailViewProps) {
 	}, [tableData]);
 
 	const handleSubmitFilters = useCallback(() => {
+		if (reportDefinition.filterConfig?.monthOnly && !draftFilters.fromDate) {
+			toast.error("Month is required");
+			return;
+		}
+
 		if (reportDefinition.filterConfig?.singleDate && !draftFilters.fromDate) {
 			toast.error("Date is required");
 			return;

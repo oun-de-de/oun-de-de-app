@@ -3,7 +3,12 @@ import type { Cycle } from "@/core/types/cycle";
 import type { Invoice, InvoiceExportLineApi, InvoiceExportPreviewRow } from "@/core/types/invoice";
 import type { BorrowerType, Installment, Loan } from "@/core/types/loan";
 import type { Product } from "@/core/types/product";
-import type { DailyReportResponse, InventoryStockReportLine } from "@/core/types/report";
+import type {
+	DailyReportResponse,
+	InventoryStockReportLine,
+	MonthlyReportDetailsResponse,
+	MonthlyReportResponse,
+} from "@/core/types/report";
 import type {
 	ReportTemplateColumn,
 	ReportTemplateRow,
@@ -21,6 +26,8 @@ export type ReportDataSource =
 	| "invoice-summary"
 	| "daily-report-api"
 	| "inventory-stock-report-api"
+	| "monthly-report-api"
+	| "monthly-report-details-api"
 	| "asset-list"
 	| "unsupported";
 
@@ -45,6 +52,7 @@ export interface ReportFilterConfig {
 	customer: boolean;
 	dateRange: boolean;
 	singleDate?: boolean;
+	monthOnly?: boolean;
 }
 
 export const REPORT_FILTERS = {
@@ -53,6 +61,7 @@ export const REPORT_FILTERS = {
 	dateRangeOnly: { customer: false, dateRange: true },
 	noFilters: { customer: false, dateRange: false },
 	singleDateOnly: { customer: false, dateRange: false, singleDate: true },
+	monthOnly: { customer: false, dateRange: false, monthOnly: true },
 } satisfies Record<string, ReportFilterConfig>;
 
 export interface ReportDefinition {
@@ -85,6 +94,8 @@ export interface BuildReportRowsParams {
 	products: Product[];
 	dailyReport?: DailyReportResponse;
 	inventoryStockReport?: InventoryStockReportLine[];
+	monthlyReport?: MonthlyReportResponse;
+	monthlyReportDetails?: MonthlyReportDetailsResponse;
 	inventoryDateFrom?: string;
 	inventoryDateTo?: string;
 }
@@ -112,6 +123,14 @@ export function isInventoryStockReportApiDataSource(dataSource: ReportDataSource
 	return dataSource === "inventory-stock-report-api";
 }
 
+export function isMonthlyReportApiDataSource(dataSource: ReportDataSource): boolean {
+	return dataSource === "monthly-report-api";
+}
+
+export function isMonthlyReportDetailsApiDataSource(dataSource: ReportDataSource): boolean {
+	return dataSource === "monthly-report-details-api";
+}
+
 export function isCycleDataSource(dataSource: ReportDataSource): boolean {
 	return dataSource === "cycle";
 }
@@ -133,5 +152,8 @@ export function isLoanListDataSource(dataSource: ReportDataSource): boolean {
 }
 
 export function hasVisibleReportFilters(filterConfig?: ReportFilterConfig): boolean {
-	return !!filterConfig && (filterConfig.customer || filterConfig.dateRange || !!filterConfig.singleDate);
+	return (
+		!!filterConfig &&
+		(filterConfig.customer || filterConfig.dateRange || !!filterConfig.singleDate || !!filterConfig.monthOnly)
+	);
 }

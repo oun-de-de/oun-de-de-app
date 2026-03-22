@@ -4,8 +4,14 @@ import type { ReportFiltersValue } from "./report-filters";
 
 export function normalizeReportFilters(filters?: ReportFiltersValue) {
 	const customerId = filters?.customerId && filters.customerId !== "all" ? filters.customerId : undefined;
-	const reportDateFrom = filters?.useDateRange && filters.fromDate ? `${filters.fromDate}T00:00:00` : undefined;
-	const reportDateTo = filters?.useDateRange && filters.toDate ? `${filters.toDate}T23:59:59` : undefined;
+	const reportDateFrom =
+		filters?.useDateRange && filters.fromDate && /^\d{4}-\d{2}-\d{2}$/.test(filters.fromDate)
+			? `${filters.fromDate}T00:00:00`
+			: undefined;
+	const reportDateTo =
+		filters?.useDateRange && filters.toDate && /^\d{4}-\d{2}-\d{2}$/.test(filters.toDate)
+			? `${filters.toDate}T23:59:59`
+			: undefined;
 
 	return { customerId, reportDateFrom, reportDateTo };
 }
@@ -19,6 +25,11 @@ export function formatFilterRange(filters?: ReportFiltersValue): string {
 
 export function formatFilterDateForDisplay(value?: string): string {
 	if (!value) return "All";
+	const monthMatch = value.match(/^(\d{4})-(\d{2})$/);
+	if (monthMatch) {
+		const [, year, month] = monthMatch;
+		return `${month}/${year}`;
+	}
 	const match = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
 	if (!match) return value;
 	const [, year, month, day] = match;

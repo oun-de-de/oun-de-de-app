@@ -19,6 +19,8 @@ import {
 	isInventoryStockReportApiDataSource,
 	isInvoiceDataSource,
 	isLoanListDataSource,
+	isMonthlyReportApiDataSource,
+	isMonthlyReportDetailsApiDataSource,
 	isProductListDataSource,
 } from "../report-types";
 import type { ReportFiltersValue } from "./report-filters";
@@ -62,6 +64,7 @@ export function useReportTableData({ reportSlug, filters, sortMode }: UseReportT
 	const definition = getReportDefinition(reportSlug);
 	const dataSource = definition.dataSource ?? "invoice-export";
 	const { customerId, reportDateFrom, reportDateTo } = normalizeReportFilters(filters);
+	const isMonthFilter = definition.filterConfig?.monthOnly === true;
 	const shouldBuildPreviewRows = definition.needsPreviewRows === true;
 
 	const isInvoiceExport = isInvoiceDataSource(dataSource);
@@ -72,11 +75,16 @@ export function useReportTableData({ reportSlug, filters, sortMode }: UseReportT
 	const isLoanList = isLoanListDataSource(dataSource);
 	const isDailyReportApi = isDailyReportApiDataSource(dataSource);
 	const isInventoryStockReportApi = isInventoryStockReportApiDataSource(dataSource);
+	const isMonthlyReportApi = isMonthlyReportApiDataSource(dataSource);
+	const isMonthlyReportDetailsApi = isMonthlyReportDetailsApiDataSource(dataSource);
 	const defaultReportDate = formatDateToYYYYMMDD(getTodayUTC());
+	const defaultReportPeriod = defaultReportDate.slice(0, 7);
 	const reportDate = (isDailyReportApi ? filters?.fromDate : undefined) || filters?.toDate || defaultReportDate;
+	const reportPeriod = isMonthFilter
+		? filters?.fromDate || filters?.toDate || defaultReportPeriod
+		: (filters?.toDate || filters?.fromDate || defaultReportDate).slice(0, 7);
 	const inventoryDateFrom = filters?.fromDate || reportDate;
 	const inventoryDateTo = filters?.toDate || inventoryDateFrom;
-	const inventoryHistoryDateFrom = "1970-01-01";
 
 	const cycleQuery = useQuery({
 		queryKey: ["report", "cycle-list", customerId ?? "all", reportDateFrom ?? "", reportDateTo ?? ""],
@@ -150,9 +158,21 @@ export function useReportTableData({ reportSlug, filters, sortMode }: UseReportT
 	});
 
 	const inventoryStockReportQuery = useQuery({
-		queryKey: ["report", "inventory-stock-report", inventoryHistoryDateFrom, inventoryDateTo],
-		queryFn: () => reportService.getInventoryStockReport(inventoryHistoryDateFrom, inventoryDateTo),
+		queryKey: ["report", "inventory-stock-report", inventoryDateFrom, inventoryDateTo],
+		queryFn: () => reportService.getInventoryStockReport(inventoryDateFrom, inventoryDateTo),
 		enabled: isInventoryStockReportApi,
+	});
+
+	const monthlyReportQuery = useQuery({
+		queryKey: ["report", "monthly-report", reportPeriod],
+		queryFn: () => reportService.getMonthlyReport(reportPeriod),
+		enabled: isMonthlyReportApi,
+	});
+
+	const monthlyReportDetailsQuery = useQuery({
+		queryKey: ["report", "monthly-report-details", reportPeriod],
+		queryFn: () => reportService.getMonthlyReportDetails(reportPeriod),
+		enabled: isMonthlyReportDetailsApi,
 	});
 
 	const customers = customerQuery.data ? customerQuery.data.list : fallbackReportCustomers;
@@ -212,6 +232,8 @@ export function useReportTableData({ reportSlug, filters, sortMode }: UseReportT
 				products,
 				dailyReport: dailyReportQuery.data,
 				inventoryStockReport: inventoryStockReportQuery.data,
+				monthlyReport: monthlyReportQuery.data,
+				monthlyReportDetails: monthlyReportDetailsQuery.data,
 				inventoryDateFrom,
 				inventoryDateTo,
 			}),
@@ -228,6 +250,8 @@ export function useReportTableData({ reportSlug, filters, sortMode }: UseReportT
 			inventoryDateTo,
 			inventoryStockReportQuery.data,
 			loanContent,
+			monthlyReportDetailsQuery.data,
+			monthlyReportQuery.data,
 			previewRows,
 			products,
 		],
