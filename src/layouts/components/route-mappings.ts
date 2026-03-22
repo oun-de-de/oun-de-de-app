@@ -89,10 +89,6 @@ export const ROUTE_TITLE_MAPPINGS = [
 		title: "Accounting",
 	},
 	{
-		path: "/dashboard/accounting/create-journal",
-		title: "Create Journal",
-	},
-	{
 		path: "/dashboard/accounting/create-expense",
 		title: "Create Cash Expense",
 	},

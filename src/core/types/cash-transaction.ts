@@ -59,7 +59,7 @@ export type CreateCashTransactionDetailRequest = {
 
 export type CreateCashTransactionRequest = {
 	refNo: string;
-	type: CashTransactionType;
+	type: CashTransactionType | Lowercase<CashTransactionType>;
 	date?: string;
 	currencyId?: string;
 	employeeId: string;

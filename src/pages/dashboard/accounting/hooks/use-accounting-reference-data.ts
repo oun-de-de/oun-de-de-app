@@ -29,7 +29,7 @@ type AccountingReferenceDataOptions = {
 function mapAccountTypeOptions(accountTypes: AccountTypeResult[]): SelectOption[] {
 	return accountTypes.map((item) => ({
 		value: item.id,
-		label: item.name,
+		label: item.code + " : " + item.name,
 	}));
 }
 

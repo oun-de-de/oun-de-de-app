@@ -42,7 +42,7 @@ export function getFrontendDashboardRoutes(): RouteObject[] {
 			path: "dashboard/accounting/create-cash-transaction",
 			element: Component("/pages/dashboard/accounting-center/create"),
 		},
-		{ path: "dashboard/accounting/create-journal", element: Component("/pages/dashboard/accounting/create-journal") },
+
 		{ path: "dashboard/accounting/create-expense", element: Component("/pages/dashboard/accounting/create-expense") },
 		{ path: "dashboard/accounting/create-revenue", element: Component("/pages/dashboard/accounting/create-revenue") },
 		{

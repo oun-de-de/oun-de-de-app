@@ -17,6 +17,7 @@ function mapCashTransactionToAccountingRow(item: CashTransactionFlattenResult): 
 		date: formatAccountingDate(item.date),
 		refNo: item.refNo,
 		type: item.type,
+		reason: item.reason?.trim() || item.type,
 		currency: item.currency ?? "-",
 		memo: item.memo ?? "",
 		dr: item.type === "DEBIT" ? String(item.amount ?? 0) : "0",

@@ -193,7 +193,7 @@ export default function CreateAccountingEntryPage() {
 
 		return {
 			refNo,
-			type: transactionType,
+			type: transactionType.toLowerCase() as Lowercase<typeof transactionType>,
 			date: date.toISOString(),
 			currencyId: currencyId || undefined,
 			employeeId,
@@ -460,7 +460,7 @@ export default function CreateAccountingEntryPage() {
 								variant="info"
 								size="sm"
 								mainAction={{ label: "+ New", onClick: addLine }}
-								optionLabels={["Create Cash Transaction", "Create Journal", "Create Expense"]}
+								optionLabels={["Create Expense", "Create Revenue"]}
 							/>
 							<div className="flex min-w-[240px] items-center justify-between rounded-md border bg-white px-4 py-3">
 								<span className="text-base font-semibold text-slate-700">

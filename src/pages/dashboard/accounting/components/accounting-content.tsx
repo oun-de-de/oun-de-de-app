@@ -7,7 +7,6 @@ import { Text } from "@/core/ui/typography";
 import { useNavigate } from "react-router";
 import { columns } from "./accounting-columns";
 import {
-	ACCOUNTING_CREATE_OPTION_TARGETS,
 	ACCOUNTING_TABLE_FIELD_OPTIONS,
 	ACCOUNTING_TABLE_TYPE_OPTIONS,
 	ACCOUNTING_UI_TEXT,
@@ -110,8 +109,8 @@ export function AccountingContent({
 				</div>
 				<AccountingCreateMenuButton
 					size="sm"
-					mainAction={createAccountingCreateMainAction("Create Cash Transaction", navigate)}
-					optionLabels={ACCOUNTING_CREATE_OPTION_TARGETS.map((option) => option.label)}
+					mainAction={createAccountingCreateMainAction("Create Expense", navigate)}
+					optionLabels={["Create Revenue"]}
 					mainButtonClassName="gap-2"
 					triggerButtonClassName="px-2"
 				/>
