@@ -25,8 +25,7 @@ export const columns: ColumnDef<Customer>[] = [
 		header: "Code",
 		accessorKey: "code",
 		size: 120,
-		meta: { bodyClassName: "text-center" },
-		cell: ({ row }) => <Badge variant="info">{row.original.code}</Badge>,
+		cell: ({ row }) => <span className="font-mono">{row.original.code}</span>,
 	},
 	{
 		header: "Name",
@@ -45,7 +44,7 @@ export const columns: ColumnDef<Customer>[] = [
 		cell: ({ row }) => {
 			const paymentType = getCustomerPaymentType(row.original);
 			return (
-				<Badge variant={paymentType === "credit" ? "success" : "info"} className="w-full h-6.5">
+				<Badge variant={paymentType === "credit" ? "success" : "info"} className="w-3/4 h-6.5">
 					{formatPaymentTypeLabel(paymentType)}
 				</Badge>
 			);
