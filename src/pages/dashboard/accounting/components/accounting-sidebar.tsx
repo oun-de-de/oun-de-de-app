@@ -1,99 +1,68 @@
-import { useMemo, useState } from "react";
-import { accountingAccountList } from "@/_mock/data/dashboard";
 import { EntityListItem, SidebarList } from "@/core/components/common";
-import { up, useMediaQuery } from "@/core/hooks/use-media-query";
-import { useSidebarPagination } from "@/core/hooks/use-sidebar-pagination";
-
-// Infer type from mock data since it's not exported
-type AccountingAccount = (typeof accountingAccountList)[number];
+import { ACCOUNTING_SIDEBAR_TYPE_OPTIONS } from "../constants";
+import { useAccountingSidebarState } from "../hooks/use-accounting-sidebar-state";
+import type { AccountingAccountListItem } from "../types";
 
 type AccountingSidebarProps = {
+	items: AccountingAccountListItem[];
 	activeAccountId: string | null;
 	onSelect: (id: string | null) => void;
 	onToggle?: () => void;
 	isCollapsed?: boolean;
 };
 
-const MAIN_TYPE_OPTIONS = [
-	{ value: "asset", label: "Asset" },
-	{ value: "liability", label: "Liability" },
-	{ value: "equity", label: "Equity" },
-	{ value: "revenue", label: "Revenue" },
-	{ value: "expense", label: "Expense" },
-];
-
-export function AccountingSidebar({ activeAccountId, onSelect, onToggle, isCollapsed }: AccountingSidebarProps) {
-	const [typeFilter, setTypeFilter] = useState("type");
-	const [searchValue, setSearchValue] = useState("");
-	const [statusFilter, setStatusFilter] = useState("active");
-	const isLgUp = useMediaQuery(up("lg"));
-
-	const filteredAccounts = useMemo(() => {
-		return accountingAccountList.filter((account) => {
-			if (typeFilter !== "type" && account.type !== typeFilter) {
-				return false;
-			}
-
-			if (searchValue) {
-				const query = searchValue.toLowerCase();
-				if (!account.name.toLowerCase().includes(query) && !account.id.includes(query)) {
-					return false;
-				}
-			}
-
-			if (statusFilter !== "all" && (account.status ?? "active") !== statusFilter) {
-				return false;
-			}
-			return true;
-		});
-	}, [typeFilter, searchValue, statusFilter]);
-
-	const pagination = useSidebarPagination({
-		data: filteredAccounts,
-		enabled: !isLgUp,
-	});
+export function AccountingSidebar({ items, activeAccountId, onSelect, onToggle, isCollapsed }: AccountingSidebarProps) {
+	const { isLgUp, pagination, searchValue, setSearchValue, statusFilter, setStatusFilter, typeFilter, setTypeFilter } =
+		useAccountingSidebarState({ items });
 
 	return (
 		<SidebarList>
 			<SidebarList.Header
-				mainTypeOptions={MAIN_TYPE_OPTIONS}
-				mainTypePlaceholder="Account type"
+				mainTypeOptions={ACCOUNTING_SIDEBAR_TYPE_OPTIONS}
+				mainTypePlaceholder="Chart account type"
 				mainTypeValue={typeFilter}
 				onMainTypeChange={setTypeFilter}
+				searchPlaceholder="Search chart accounts..."
 				searchValue={searchValue}
 				onSearchChange={setSearchValue}
+				statusPlaceholder="Active"
 				statusValue={statusFilter}
 				onStatusChange={setStatusFilter}
 				onMenuClick={onToggle}
 				isCollapsed={isCollapsed}
 			/>
 
-			<SidebarList.Body
-				className="flex-1 divide-y divide-border-gray-300 min-h-0"
-				data={pagination.pagedData}
-				estimateSize={56}
-				height="100%"
-				renderItem={(account: AccountingAccount, style) => (
-					<EntityListItem
-						key={account.id}
-						entity={account}
-						isActive={account.id === activeAccountId}
-						onSelect={onSelect}
-						style={style}
-						isCollapsed={isCollapsed}
+			{isCollapsed ? (
+				<SidebarList.CollapsedHint text="Click to expand chart account list" onClick={onToggle} />
+			) : (
+				<>
+					<SidebarList.Body
+						className="mt-1 flex-1 min-h-0 divide-y divide-border-gray-300"
+						data={pagination.pagedData}
+						estimateSize={56}
+						height="100%"
+						renderItem={(account: AccountingAccountListItem, style) => (
+							<EntityListItem
+								key={account.id}
+								entity={account}
+								isActive={account.id === activeAccountId}
+								onSelect={onSelect}
+								style={style}
+							/>
+						)}
 					/>
-				)}
-			/>
 
-			<SidebarList.Footer
-				total={pagination.total}
-				isCollapsed={isCollapsed}
-				onPrev={pagination.handlePrev}
-				onNext={pagination.handleNext}
-				hasPrev={pagination.hasPrev}
-				hasNext={pagination.hasNext}
-				showControls={!isLgUp && pagination.totalPages > 1}
-			/>
+					<SidebarList.Footer
+						total={pagination.total}
+						isCollapsed={false}
+						onPrev={pagination.handlePrev}
+						onNext={pagination.handleNext}
+						hasPrev={pagination.hasPrev}
+						hasNext={pagination.hasNext}
+						showControls={!isLgUp && pagination.totalPages > 1}
+					/>
+				</>
+			)}
 		</SidebarList>
 	);
 }

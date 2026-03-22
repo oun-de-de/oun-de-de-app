@@ -4,6 +4,7 @@ import type {
 	InventoryBorrowing,
 	InventoryItem,
 	InventoryTransaction,
+	SellEquipmentRequest,
 	UpdateStockRequest,
 } from "@/core/types/inventory";
 import { apiClient } from "../apiClient";
@@ -50,6 +51,16 @@ const returnBorrowing = (itemId: string, borrowingId: string): Promise<Inventory
 		url: `${InventoryApi.Items}/${itemId}/borrowings/${borrowingId}/return`,
 	});
 
+const sellBorrowing = (
+	itemId: string,
+	borrowingId: string,
+	data: SellEquipmentRequest,
+): Promise<InventoryTransaction> =>
+	apiClient.post<InventoryTransaction>({
+		url: `${InventoryApi.Items}/${itemId}/borrowings/${borrowingId}/sell`,
+		data,
+	});
+
 const getTransactions = (itemId: string): Promise<InventoryTransaction[]> =>
 	apiClient.get<InventoryTransaction[]>({
 		url: `${InventoryApi.Items}/${itemId}/transactions`,
@@ -63,5 +74,6 @@ export default {
 	getBorrowings,
 	createBorrowing,
 	returnBorrowing,
+	sellBorrowing,
 	getTransactions,
 };

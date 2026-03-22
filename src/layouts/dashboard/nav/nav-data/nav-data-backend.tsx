@@ -52,7 +52,7 @@ export const newActions = [
 		title: "Accounting",
 		items: [
 			{ title: "Create Journal", href: "/dashboard/accounting/create-journal" },
-			{ title: "Create Cash Transaction", href: "/dashboard/accounting-center/create" },
+			{ title: "Create Cash Transaction", href: "/dashboard/accounting/create-cash-transaction" },
 			{ title: "Create Cash Revenue", href: "/dashboard/accounting/create-revenue" },
 			{ title: "Create Cash Expense", href: "/dashboard/accounting/create-expense" },
 		],

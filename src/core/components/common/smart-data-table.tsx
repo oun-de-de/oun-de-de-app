@@ -417,12 +417,18 @@ export function SmartDataTable<T extends object>({
 					pageSize={paginationConfig.pageSize}
 					pageSizeOptions={[10, 20, 50, 100]}
 					goToValue={goToPageValue}
-					onPrev={table.getCanPreviousPage() ? () => table.previousPage() : undefined}
-					onNext={table.getCanNextPage() ? () => table.nextPage() : undefined}
-					onPageChange={(p) => table.setPageIndex(p - 1)}
-					onPageSizeChange={(s) => table.setPageSize(s)}
+					onPrev={
+						paginationConfig.page > 1 ? () => paginationConfig.onPageChange(paginationConfig.page - 1) : undefined
+					}
+					onNext={
+						paginationConfig.page < paginationConfig.totalPages
+							? () => paginationConfig.onPageChange(paginationConfig.page + 1)
+							: undefined
+					}
+					onPageChange={paginationConfig.onPageChange}
+					onPageSizeChange={paginationConfig.onPageSizeChange}
 					onGoToChange={setGoToPageValue}
-					onGoToSubmit={(page) => table.setPageIndex(page - 1)}
+					onGoToSubmit={paginationConfig.onPageChange}
 				/>
 			)}
 		</div>

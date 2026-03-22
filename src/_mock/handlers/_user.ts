@@ -40,6 +40,18 @@ const refresh = http.post(new RegExp(`/api/v1${UserApi.Refresh}`), async ({ requ
 	});
 });
 
+const signOut = http.post(new RegExp(`/api/v1${UserApi.Logout}`), async ({ request }) => {
+	const { refreshToken } = (await request.json()) as Record<string, string>;
+
+	if (!refreshToken) {
+		return HttpResponse.json("Refresh token is required.", { status: 400 });
+	}
+
+	return HttpResponse.json("Signed out", {
+		status: 200,
+	});
+});
+
 const userList = http.get(new RegExp(`/api/v1${UserApi.User}$`), async () => {
 	return HttpResponse.json(
 		Array.from({ length: 10 }).map(() => ({
@@ -54,4 +66,4 @@ const userList = http.get(new RegExp(`/api/v1${UserApi.User}$`), async () => {
 	);
 });
 
-export { signIn, refresh, userList };
+export { signIn, signOut, refresh, userList };

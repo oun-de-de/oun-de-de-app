@@ -1,8 +1,8 @@
 export type InventoryItemType = "CONSUMABLE" | "EQUIPMENT";
 export type InventoryUnitType = "COUNT";
 export type InventoryTransactionType = "IN" | "OUT";
-export type InventoryTransactionReason = "PURCHASE" | "CONSUME" | "BORROW" | "RETURN";
-export type InventoryBorrowingStatus = "BORROWED" | "RETURNED";
+export type InventoryTransactionReason = "PURCHASE" | "CONSUME" | "BORROW" | "RETURN" | "SOLD";
+export type InventoryBorrowingStatus = "BORROWED" | "RETURNED" | "SOLD";
 
 export interface InventoryUnit {
 	id: string;
@@ -51,8 +51,8 @@ export interface InventoryTransaction {
 
 export interface InventoryBorrowing {
 	id: string;
-	itemId: string;
-	customerId: string;
+	itemId: string | null;
+	customerId: string | null;
 	customerName: string;
 	quantity: number;
 	borrowDate: string;
@@ -66,4 +66,9 @@ export interface CreateBorrowingRequest {
 	quantity: number;
 	expectedReturnDate: string;
 	memo: string;
+}
+
+export interface SellEquipmentRequest {
+	refCode: string;
+	expense?: number;
 }

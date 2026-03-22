@@ -16,89 +16,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/core/ui/textarea";
 import { formatNumber } from "@/core/utils/formatters";
 import { CalendarDays, Trash2 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
-import { toast } from "sonner";
-
-type ExpenseLine = {
-	id: string;
-	accountCode: string;
-	memo: string;
-	amount: string;
-	name: string;
-	nameInput: string;
-	className: string;
-};
-
-const CASH_ACCOUNT_OPTIONS = [
-	{ value: "13512B", label: "13512B : Cash On Hand", type: "Current Asset" },
-	{ value: "13514A", label: "13514A : ABA Bank", type: "Current Asset" },
-	{ value: "12110", label: "12110 : Accounts Receivable", type: "Accounts Receivable (A/R)" },
-	{ value: "12117A", label: "12117A : Customer Receivable", type: "Accounts Receivable (A/R)" },
-	{ value: "12119A", label: "12119A : Advance", type: "Accounts Receivable (A/R)" },
-	{ value: "12122A", label: "12122A : Other Receivable", type: "Accounts Receivable (A/R)" },
-	{ value: "12124A", label: "12124A : Employee Receivable", type: "Accounts Receivable (A/R)" },
-	{ value: "12125A", label: "12125A : Borrower Receivable", type: "Accounts Receivable (A/R)" },
-	{ value: "12126A", label: "12126A : Partner Receivable", type: "Accounts Receivable (A/R)" },
-];
-
-const EMPLOYEE_OPTIONS = [
-	{ value: "emp-01", label: "001 : General Employee" },
-	{ value: "emp-02", label: "Sokha" },
-	{ value: "emp-03", label: "Dara" },
-];
-
-const ACCOUNT_OPTIONS = [
-	{ value: "10116A", label: "10116A : Office Expense" },
-	{ value: "10116B", label: "10116B : Fuel Expense" },
-	{ value: "12155A", label: "12155A : Maintenance Expense" },
-	{ value: "12161A", label: "12161A : Staff Welfare" },
-	{ value: "13511X", label: "13511X : General Expense" },
-];
-
-const NAME_OPTIONS = [
-	{ value: "customer-001", label: "កាណា", type: "Customer" },
-	{ value: "customer-002", label: "គុណ (2ភ្នូតង)", type: "Customer" },
-	{ value: "customer-003", label: "សុភ័ក្រ្ត (តាំងជាប់ផ្សារតាខ្មៅ)", type: "Customer" },
-	{ value: "customer-004", label: "ព្រីង", type: "Customer" },
-	{ value: "customer-005", label: "មុនា", type: "Customer" },
-	{ value: "customer-006", label: "មី (2ខ65511)", type: "Customer" },
-	{ value: "customer-007", label: "រ៉ា (ឆី2AA-9221)", type: "Customer" },
-	{ value: "customer-008", label: "ចេង (2AM-0507)", type: "Customer" },
-];
-
-const CLASS_OPTIONS = [
-	{ value: "expense", label: "Expense" },
-	{ value: "operation", label: "Operation" },
-	{ value: "other", label: "Other" },
-];
-
-const CURRENCY_OPTIONS = [
-	{ value: "USD", label: "USD" },
-	{ value: "KHR", label: "KHR" },
-];
-
-function createEmptyLine(index: number): ExpenseLine {
-	return {
-		id: `line-${index + 1}`,
-		accountCode: "",
-		memo: "",
-		amount: "",
-		name: "",
-		nameInput: "",
-		className: "",
-	};
-}
-
-function formatLocalDateTime(date = new Date()) {
-	const year = date.getFullYear();
-	const month = String(date.getMonth() + 1).padStart(2, "0");
-	const day = String(date.getDate()).padStart(2, "0");
-	const hours = String(date.getHours()).padStart(2, "0");
-	const minutes = String(date.getMinutes()).padStart(2, "0");
-	const seconds = String(date.getSeconds()).padStart(2, "0");
-	return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
-}
+import { ACCOUNTING_DRAFT_FORM_TEXT, ACCOUNTING_EXPENSE_NAME_OPTIONS } from "../constants";
+import { AccountingCreateMenuButton } from "../components/accounting-create-menu-button";
+import { useAccountingReferenceData } from "../hooks/use-accounting-reference-data";
+import { useGetCurrencyList } from "@/pages/dashboard/settings/hooks/use-settings";
+import { saveAccountingDraft } from "../utils/accounting-draft-actions";
+import { createEmptyExpenseLine, type ExpenseLine } from "../utils/accounting-line-factories";
+import { formatLocalDateTime } from "../utils/format-local-date-time";
 
 function ExpenseNameCombobox({
 	line,
@@ -108,11 +34,11 @@ function ExpenseNameCombobox({
 	onNameChange: (name: string, nameInput: string) => void;
 }) {
 	const anchorRef = useComboboxAnchor();
-	const selectedOption = NAME_OPTIONS.find((option) => option.value === line.name) ?? null;
+	const selectedOption = ACCOUNTING_EXPENSE_NAME_OPTIONS.find((option) => option.value === line.name) ?? null;
 
 	return (
-		<Combobox<(typeof NAME_OPTIONS)[number]>
-			items={NAME_OPTIONS}
+		<Combobox<(typeof ACCOUNTING_EXPENSE_NAME_OPTIONS)[number]>
+			items={ACCOUNTING_EXPENSE_NAME_OPTIONS}
 			value={selectedOption}
 			inputValue={line.nameInput}
 			onValueChange={(option) => onNameChange(option?.value ?? "", option?.label ?? "")}
@@ -140,22 +66,35 @@ function ExpenseNameCombobox({
 
 export default function CreateExpensePage() {
 	const navigate = useNavigate();
-	const [refNo] = useState("000065");
+	const { chartAccountOptions, employeeOptions, isLoading, journalClassOptions } = useAccountingReferenceData({
+		accountTypesEnabled: false,
+		journalTypesEnabled: false,
+		customersEnabled: false,
+	});
+	const { data: currencies = [], isLoading: isLoadingCurrencies } = useGetCurrencyList();
+	const [refNo] = useState("EXPXXXXXXXXXX");
 	const [date] = useState(formatLocalDateTime());
-	const [currency, setCurrency] = useState("USD");
+	const [currencyId, setCurrencyId] = useState("");
 	const [cashAccount, setCashAccount] = useState("");
 	const [employeeId, setEmployeeId] = useState("");
 	const [memo, setMemo] = useState("");
-	const [lines, setLines] = useState<ExpenseLine[]>([createEmptyLine(0)]);
+	const [lines, setLines] = useState<ExpenseLine[]>([createEmptyExpenseLine(0)]);
 
 	const totalAmount = useMemo(() => lines.reduce((sum, line) => sum + (Number(line.amount) || 0), 0), [lines]);
+	const currencyOptions = useMemo(() => currencies.map((item) => ({ value: item.id, label: item.name })), [currencies]);
+
+	useEffect(() => {
+		if (!currencyId && currencies.length > 0) {
+			setCurrencyId(currencies[0].id);
+		}
+	}, [currencies, currencyId]);
 
 	const updateLine = <K extends keyof ExpenseLine>(id: string, field: K, value: ExpenseLine[K]) => {
 		setLines((prev) => prev.map((line) => (line.id === id ? { ...line, [field]: value } : line)));
 	};
 
 	const addLine = () => {
-		setLines((prev) => [...prev, createEmptyLine(prev.length)]);
+		setLines((prev) => [...prev, createEmptyExpenseLine(prev.length)]);
 	};
 
 	const removeLine = (id: string) => {
@@ -163,24 +102,32 @@ export default function CreateExpensePage() {
 	};
 
 	const handleSave = () => {
-		toast.success("Create expense draft saved");
-		navigate("/dashboard/accounting");
+		saveAccountingDraft({
+			navigate,
+			redirectTo: "/dashboard/accounting",
+			successMessage: ACCOUNTING_DRAFT_FORM_TEXT.expense.successMessage,
+		});
 	};
 
 	return (
 		<div className="flex h-full flex-col gap-4 p-3 md:p-4">
-			<div className="flex items-center gap-3 border-b border-slate-200 pb-2">
+			<div className="flex items-center gap-3 pb-2">
 				<BackButton onClick={() => navigate("/dashboard/accounting")} />
 				<div className="flex items-center gap-2 text-slate-700">
-					<span className="text-base font-semibold">Create Cash Expense</span>
+					<span className="text-base font-semibold">{ACCOUNTING_DRAFT_FORM_TEXT.expense.pageTitle}</span>
 				</div>
 			</div>
 
 			<Card className="gap-0 py-0">
 				<CardHeader className="justify-start border-b px-4 py-3">
-					<CardTitle className="text-left text-base font-semibold text-slate-700">Create Cash Expense</CardTitle>
+					<CardTitle className="text-left text-base font-semibold text-slate-700">
+						{ACCOUNTING_DRAFT_FORM_TEXT.expense.cardTitle}
+					</CardTitle>
 				</CardHeader>
 				<CardContent className="space-y-4 px-4 py-4">
+					<div className="rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+						{ACCOUNTING_DRAFT_FORM_TEXT.expense.notice}
+					</div>
 					<div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-6">
 						<div className="space-y-3">
 							<div className="space-y-1.5">
@@ -205,12 +152,12 @@ export default function CreateExpensePage() {
 								<Label className="text-slate-600">
 									<span className="text-rose-500">*</span> Currency
 								</Label>
-								<Select value={currency} onValueChange={setCurrency}>
-									<SelectTrigger>
+								<Select value={currencyId} onValueChange={setCurrencyId}>
+									<SelectTrigger disabled={isLoadingCurrencies}>
 										<SelectValue placeholder="Select currency" />
 									</SelectTrigger>
 									<SelectContent>
-										{CURRENCY_OPTIONS.map((option) => (
+										{currencyOptions.map((option) => (
 											<SelectItem key={option.value} value={option.value}>
 												{option.label}
 											</SelectItem>
@@ -226,16 +173,13 @@ export default function CreateExpensePage() {
 									<span className="text-rose-500">*</span> Cash & Cash Equivalents
 								</Label>
 								<Select value={cashAccount} onValueChange={setCashAccount}>
-									<SelectTrigger>
+									<SelectTrigger disabled={isLoading}>
 										<SelectValue placeholder="Select" />
 									</SelectTrigger>
 									<SelectContent>
-										{CASH_ACCOUNT_OPTIONS.map((option) => (
+										{chartAccountOptions.map((option) => (
 											<SelectItem key={option.value} value={option.value}>
-												<div className="flex min-w-[280px] items-center justify-between gap-4">
-													<span>{option.label}</span>
-													<span className="text-xs text-slate-500">{option.type}</span>
-												</div>
+												{option.label}
 											</SelectItem>
 										))}
 									</SelectContent>
@@ -246,11 +190,11 @@ export default function CreateExpensePage() {
 									<span className="text-rose-500">*</span> Employee
 								</Label>
 								<Select value={employeeId} onValueChange={setEmployeeId}>
-									<SelectTrigger>
+									<SelectTrigger disabled={isLoading}>
 										<SelectValue placeholder="Select" />
 									</SelectTrigger>
 									<SelectContent>
-										{EMPLOYEE_OPTIONS.map((option) => (
+										{employeeOptions.map((option) => (
 											<SelectItem key={option.value} value={option.value}>
 												{option.label}
 											</SelectItem>
@@ -301,11 +245,11 @@ export default function CreateExpensePage() {
 													value={line.accountCode}
 													onValueChange={(value) => updateLine(line.id, "accountCode", value)}
 												>
-													<SelectTrigger className={index === 0 ? "border-sky-400" : undefined}>
+													<SelectTrigger disabled={isLoading} className={index === 0 ? "border-sky-400" : undefined}>
 														<SelectValue placeholder="Select account" />
 													</SelectTrigger>
 													<SelectContent>
-														{ACCOUNT_OPTIONS.map((option) => (
+														{chartAccountOptions.map((option) => (
 															<SelectItem key={option.value} value={option.value}>
 																{option.label}
 															</SelectItem>
@@ -342,11 +286,11 @@ export default function CreateExpensePage() {
 													value={line.className}
 													onValueChange={(value) => updateLine(line.id, "className", value)}
 												>
-													<SelectTrigger>
+													<SelectTrigger disabled={isLoading}>
 														<SelectValue placeholder="Select class" />
 													</SelectTrigger>
 													<SelectContent>
-														{CLASS_OPTIONS.map((option) => (
+														{journalClassOptions.map((option) => (
 															<SelectItem key={option.value} value={option.value}>
 																{option.label}
 															</SelectItem>
@@ -355,7 +299,12 @@ export default function CreateExpensePage() {
 												</Select>
 											</td>
 											<td className="px-3 py-2 text-center">
-												<Button variant="ghost" size="icon" onClick={() => removeLine(line.id)}>
+												<Button
+													variant="ghost"
+													size="icon"
+													aria-label="Remove expense line"
+													onClick={() => removeLine(line.id)}
+												>
 													<Trash2 className="size-4 text-rose-500" />
 												</Button>
 											</td>
@@ -365,15 +314,11 @@ export default function CreateExpensePage() {
 							</table>
 						</div>
 						<div className="flex items-center justify-between gap-3 border-t px-4 py-4">
-							<SplitButton
+							<AccountingCreateMenuButton
 								variant="info"
 								size="sm"
 								mainAction={{ label: "+ New", onClick: addLine }}
-								options={[
-									{ label: "Create Cash Expense", onClick: () => navigate("/dashboard/accounting/create-expense") },
-									{ label: "Create Journal", onClick: () => navigate("/dashboard/accounting/create-journal") },
-									{ label: "Create Cash Transaction", onClick: () => navigate("/dashboard/accounting-center/create") },
-								]}
+								optionLabels={["Create Expense", "Create Journal", "Create Cash Transaction"]}
 							/>
 							<div className="flex min-w-[260px] items-center justify-between rounded-md border bg-white px-4 py-3">
 								<span className="text-base font-semibold text-slate-700">Total:</span>
@@ -388,8 +333,16 @@ export default function CreateExpensePage() {
 						</Button>
 						<SplitButton
 							variant="info"
-							mainAction={{ label: "Save & Close", onClick: handleSave }}
-							options={[{ label: "Save & New", onClick: () => toast.success("Create expense draft saved") }]}
+							mainAction={{ label: ACCOUNTING_DRAFT_FORM_TEXT.expense.saveAndClose, onClick: handleSave }}
+							options={[
+								{
+									label: ACCOUNTING_DRAFT_FORM_TEXT.expense.saveAndNew,
+									onClick: () =>
+										saveAccountingDraft({
+											successMessage: ACCOUNTING_DRAFT_FORM_TEXT.expense.successMessage,
+										}),
+								},
+							]}
 						/>
 					</div>
 				</CardContent>

@@ -1,11 +1,9 @@
-import type { PaginatedResponse } from "@/core/types/common";
+import type { PagePaginatedResponse, PaginatedResponse } from "@/core/types/common";
 import type {
 	BorrowerType,
 	CreateLoanPaymentRequest,
 	CreateLoanRequest,
 	ExtendLoanRequest,
-	Installment,
-	InstallmentStatus,
 	Loan,
 	LoanPayment,
 	LoanStatus,
@@ -24,10 +22,6 @@ type LoanApiResponse = Omit<Loan, "borrowerType" | "createdAt" | "status"> & {
 	createAt?: string;
 };
 
-type InstallmentApiResponse = Omit<Installment, "status"> & {
-	status: string;
-};
-
 function toApiBorrowerType(value?: BorrowerType): string | undefined {
 	if (!value) return undefined;
 	return value.toUpperCase();
@@ -40,13 +34,6 @@ function normalizeBorrowerType(value: string): BorrowerType {
 	}
 	console.warn(`Unknown borrowerType received from API: ${value}. Fallback to customer.`);
 	return "customer";
-}
-
-function normalizeInstallmentStatus(value: string): InstallmentStatus {
-	const normalizedValue = value.toLowerCase();
-	if (normalizedValue === "paid") return "paid";
-	if (normalizedValue === "overdue") return "overdue";
-	return "unpaid";
 }
 
 function normalizeLoanStatus(value: string): LoanStatus {
@@ -67,13 +54,6 @@ function normalizeLoan(data: LoanApiResponse): Loan {
 	};
 }
 
-function normalizeInstallment(data: InstallmentApiResponse): Installment {
-	return {
-		...data,
-		status: normalizeInstallmentStatus(data.status),
-	};
-}
-
 const getLoans = (params?: {
 	borrower_type?: BorrowerType;
 	borrower_id?: string;
@@ -84,7 +64,7 @@ const getLoans = (params?: {
 	sort?: string;
 }): Promise<PaginatedResponse<Loan>> =>
 	apiClient
-		.get<PaginatedResponse<LoanApiResponse>>({
+		.get<PagePaginatedResponse<LoanApiResponse>>({
 			url: LoanApi.Loans,
 			params: {
 				...params,
@@ -93,8 +73,32 @@ const getLoans = (params?: {
 			},
 		})
 		.then((response) => ({
-			...response,
 			content: response.content.map(normalizeLoan),
+			pageable: {
+				pageNumber: response.page.number,
+				pageSize: response.page.size,
+				sort: {
+					empty: false,
+					sorted: true,
+					unsorted: false,
+				},
+				offset: response.page.number * response.page.size,
+				paged: true,
+				unpaged: false,
+			},
+			totalElements: response.page.totalElements,
+			totalPages: response.page.totalPages,
+			last: response.page.number + 1 >= response.page.totalPages,
+			size: response.page.size,
+			number: response.page.number,
+			sort: {
+				empty: false,
+				sorted: true,
+				unsorted: false,
+			},
+			numberOfElements: response.content.length,
+			first: response.page.number === 0,
+			empty: response.content.length === 0,
 		}));
 
 const createLoan = (data: CreateLoanRequest): Promise<Loan> =>
@@ -120,25 +124,11 @@ const listLoanPayments = (loanId: string): Promise<LoanPayment[]> =>
 		url: `${LoanApi.Loans}/${loanId}/payments`,
 	});
 
-const getInstallments = (loanId: string): Promise<Installment[]> =>
-	apiClient
-		.get<InstallmentApiResponse[]>({
-			url: `${LoanApi.Loans}/${loanId}/installments`,
-		})
-		.then((response) => response.map(normalizeInstallment));
-
 const createPayment = (loanId: string, data: CreateLoanPaymentRequest): Promise<LoanPayment> =>
 	apiClient.post<LoanPayment>({
-		url: `${LoanApi.Loans}/${loanId}/pay`,
+		url: `${LoanApi.Loans}/${loanId}/payments`,
 		data,
 	});
-
-const payInstallment = (loanId: string, installmentId: string): Promise<Installment> =>
-	apiClient
-		.post<InstallmentApiResponse>({
-			url: `${LoanApi.Loans}/${loanId}/installments/${installmentId}/pay`,
-		})
-		.then(normalizeInstallment);
 
 const postponeLoan = (loanId: string): Promise<Loan> =>
 	apiClient
@@ -168,9 +158,7 @@ export default {
 	createLoan,
 	getLoanDetails,
 	listLoanPayments,
-	getInstallments,
 	createPayment,
-	payInstallment,
 	postponeLoan,
 	extendLoan,
 	updateLoan,

@@ -1,5 +1,4 @@
 import { useState } from "react";
-import Icon from "@/core/components/icon/icon";
 import type { EquipmentCreateType } from "@/core/types/equipment";
 import type { CreateInventoryItem } from "@/core/types/inventory";
 import { Button } from "@/core/ui/button";
@@ -60,7 +59,6 @@ export function CreateItemDialog({ onSubmit, isPending }: CreateItemDialogProps)
 		<Dialog open={open} onOpenChange={handleOpenChange}>
 			<DialogTrigger asChild>
 				<Button size="sm" className="gap-1">
-					<Icon icon="mdi:plus" />
 					New Item
 				</Button>
 			</DialogTrigger>

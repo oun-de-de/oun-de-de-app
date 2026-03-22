@@ -1,9 +1,9 @@
-import type { ColumnDef } from "@tanstack/react-table";
+import type { CellContext, ColumnDef } from "@tanstack/react-table";
 import Icon from "@/core/components/icon/icon";
 import type { SettingsRow } from "@/core/types/common";
 import { Badge } from "@/core/ui/badge";
 import { Button } from "@/core/ui/button";
-import { getSettingsSidebarActions } from "../stores";
+import { getSettingsActions } from "../stores";
 
 const TYPE_BADGE_VARIANT: Record<string, "default" | "info" | "success" | "warning" | "secondary"> = {
 	count: "info",
@@ -12,7 +12,7 @@ const TYPE_BADGE_VARIANT: Record<string, "default" | "info" | "success" | "warni
 	length: "secondary",
 };
 
-export const getColumnsForItem = (activeItem: string): ColumnDef<SettingsRow>[] => {
+export const getColumnsForItem = (activeItem: string, canEdit = true): ColumnDef<SettingsRow>[] => {
 	const baseColumns: ColumnDef<SettingsRow>[] = [
 		{
 			id: "no",
@@ -25,15 +25,18 @@ export const getColumnsForItem = (activeItem: string): ColumnDef<SettingsRow>[] 
 			header: "Name",
 			accessorKey: "name",
 			meta: { bodyClassName: "text-sky-600 text-center" },
-			cell: ({ row }) => (
-				<Button
-					variant="linkSecondary"
-					className="h-auto p-0 font-normal text-sky-600"
-					onClick={() => getSettingsSidebarActions().openEditForm(row.original)}
-				>
-					{row.original.name}
-				</Button>
-			),
+			cell: ({ row }) =>
+				canEdit ? (
+					<Button
+						variant="linkSecondary"
+						className="h-auto p-0 font-normal text-sky-600"
+						onClick={() => getSettingsActions().openEditForm(row.original)}
+					>
+						{row.original.name}
+					</Button>
+				) : (
+					<span>{row.original.name}</span>
+				),
 		},
 	];
 
@@ -50,20 +53,27 @@ export const getColumnsForItem = (activeItem: string): ColumnDef<SettingsRow>[] 
 				accessorKey: "location",
 				meta: { bodyClassName: "text-gray-600" },
 			},
-			{
-				id: "actions",
-				size: 30,
-				cell: ({ row }) => (
-					<Button
-						variant="ghost"
-						size="sm"
-						className="cursor-pointer"
-						onClick={() => getSettingsSidebarActions().openEditForm(row.original)}
-					>
-						<Icon icon="mdi:pencil" className="h-4 w-4" />
-					</Button>
-				),
-			},
+			...(canEdit
+				? [
+						{
+							id: "actions",
+							size: 30,
+							cell: (cellContext: CellContext<SettingsRow, unknown>) => {
+								const { row } = cellContext;
+								return (
+									<Button
+										variant="ghost"
+										size="sm"
+										className="cursor-pointer"
+										onClick={() => getSettingsActions().openEditForm(row.original)}
+									>
+										<Icon icon="mdi:pencil" className="h-4 w-4" />
+									</Button>
+								);
+							},
+						},
+					]
+				: []),
 		];
 	}
 
@@ -83,19 +93,124 @@ export const getColumnsForItem = (activeItem: string): ColumnDef<SettingsRow>[] 
 					<Badge variant={TYPE_BADGE_VARIANT[row.original.type] || "default"}>{row.original.type}</Badge>
 				),
 			},
+			...(canEdit
+				? [
+						{
+							id: "actions",
+							size: 30,
+							cell: (cellContext: CellContext<SettingsRow, unknown>) => {
+								const { row } = cellContext;
+								return (
+									<Button
+										variant="ghost"
+										size="sm"
+										className="cursor-pointer"
+										onClick={() => getSettingsActions().openEditForm(row.original)}
+									>
+										<Icon icon="mdi:pencil" className="h-4 w-4" />
+									</Button>
+								);
+							},
+						},
+					]
+				: []),
+		];
+	}
+
+	if (activeItem === "Currency") {
+		return [
+			...baseColumns,
 			{
-				id: "actions",
-				size: 30,
-				cell: ({ row }) => (
-					<Button
-						variant="ghost"
-						size="sm"
-						className="cursor-pointer"
-						onClick={() => getSettingsSidebarActions().openEditForm(row.original)}
-					>
-						<Icon icon="mdi:pencil" className="h-4 w-4" />
-					</Button>
-				),
+				header: "Description",
+				accessorKey: "descr",
+				meta: { bodyClassName: "text-gray-600" },
+			},
+		];
+	}
+
+	if (activeItem === "Chart of Accounts") {
+		return [
+			{
+				id: "no",
+				header: "No",
+				size: 50,
+				meta: { bodyClassName: "text-center", headerClassName: "text-center" },
+				cell: ({ row }) => row.index + 1,
+			},
+			{
+				header: "Code",
+				accessorKey: "code",
+				meta: { bodyClassName: "text-slate-700 text-center font-medium" },
+			},
+			{
+				header: "Name",
+				accessorKey: "name",
+				meta: { bodyClassName: "text-sky-600 text-center" },
+			},
+			{
+				header: "Description",
+				accessorKey: "descr",
+				meta: { bodyClassName: "text-gray-600" },
+			},
+			{
+				header: "Account Type",
+				accessorKey: "type",
+				meta: { bodyClassName: "text-center" },
+			},
+		];
+	}
+
+	if (activeItem === "Account Type") {
+		return [
+			{
+				id: "no",
+				header: "No",
+				size: 50,
+				meta: { bodyClassName: "text-center", headerClassName: "text-center" },
+				cell: ({ row }) => row.index + 1,
+			},
+			{
+				header: "Code",
+				accessorKey: "code",
+				meta: { bodyClassName: "text-slate-700 text-center font-medium" },
+			},
+			{
+				header: "Name",
+				accessorKey: "name",
+				meta: { bodyClassName: "text-sky-600 text-center" },
+			},
+			{
+				header: "Nature",
+				accessorKey: "type",
+				meta: { bodyClassName: "text-center" },
+				cell: ({ row }) => <Badge variant="secondary">{row.original.type}</Badge>,
+			},
+			{
+				header: "Description",
+				accessorKey: "descr",
+				meta: { bodyClassName: "text-gray-600" },
+			},
+		];
+	}
+
+	if (activeItem === "Journal Type" || activeItem === "Journal Class") {
+		return [
+			{
+				id: "no",
+				header: "No",
+				size: 50,
+				meta: { bodyClassName: "text-center", headerClassName: "text-center" },
+				cell: ({ row }) => row.index + 1,
+			},
+			{
+				header: "Name",
+				accessorKey: "name",
+				meta: { bodyClassName: "text-sky-600 text-center" },
+			},
+			{
+				header: "Description",
+				accessorKey: "descr",
+				meta: { bodyClassName: "text-gray-600" },
 			},
 		];
 	}
@@ -110,21 +225,28 @@ export const getColumnsForItem = (activeItem: string): ColumnDef<SettingsRow>[] 
 				<Badge variant={TYPE_BADGE_VARIANT[row.original.type] || "default"}>{row.original.type}</Badge>
 			),
 		},
-		{
-			id: "actions",
-			header: "",
-			cell: ({ row }) => (
-				<Button
-					variant="ghost"
-					size="sm"
-					className="cursor-pointer"
-					onClick={() => getSettingsSidebarActions().openEditForm(row.original)}
-				>
-					<Icon icon="mdi:pencil" className="h-4 w-4" />
-				</Button>
-			),
-			meta: { headerClassName: "w-12" },
-		},
+		...(canEdit
+			? [
+					{
+						id: "actions",
+						header: "",
+						cell: (cellContext: CellContext<SettingsRow, unknown>) => {
+							const { row } = cellContext;
+							return (
+								<Button
+									variant="ghost"
+									size="sm"
+									className="cursor-pointer"
+									onClick={() => getSettingsActions().openEditForm(row.original)}
+								>
+									<Icon icon="mdi:pencil" className="h-4 w-4" />
+								</Button>
+							);
+						},
+						meta: { headerClassName: "w-12" },
+					},
+				]
+			: []),
 	];
 };
 

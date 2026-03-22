@@ -1,9 +1,11 @@
-import { SmartDataTable, SplitButton, SummaryStatCard } from "@/core/components/common";
+import { SmartDataTable, SummaryStatCard } from "@/core/components/common";
 import type { CashTransaction, CashTransactionSummary } from "@/core/types/cash-transaction";
 import { formatKHR, formatNumber } from "@/core/utils/formatters";
 import { Text } from "@/core/ui/typography";
 import type { ListState } from "@/core/store/createListStore";
 import { useNavigate } from "react-router";
+import { createAccountingCreateMainAction } from "@/pages/dashboard/accounting/constants";
+import { AccountingCreateMenuButton } from "@/pages/dashboard/accounting/components/accounting-create-menu-button";
 import { accountingCenterColumns } from "./accounting-center-columns";
 
 type AccountingCenterContentProps = {
@@ -64,16 +66,10 @@ export function AccountingCenterContent({
 						{accountLabel}
 					</Text>
 				</div>
-				<SplitButton
+				<AccountingCreateMenuButton
 					size="sm"
-					mainAction={{
-						label: "Create Cash Transaction",
-						onClick: () => navigate("/dashboard/accounting-center/create"),
-					}}
-					options={[
-						{ label: "Create Cash Expense", onClick: () => navigate("/dashboard/accounting/create-expense") },
-						{ label: "Create Cash Revenue", onClick: () => navigate("/dashboard/accounting/create-revenue") },
-					]}
+					mainAction={createAccountingCreateMainAction("Create Cash Transaction", navigate)}
+					optionLabels={["Create Expense", "Create Revenue"]}
 				/>
 			</div>
 			<div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">

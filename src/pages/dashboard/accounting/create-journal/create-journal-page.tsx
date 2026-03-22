@@ -1,7 +1,6 @@
 import { CalendarDays, Trash2 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
-import { toast } from "sonner";
 import { BackButton, SplitButton } from "@/core/components/common";
 import { Button } from "@/core/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/core/ui/card";
@@ -10,95 +9,51 @@ import { Label } from "@/core/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/core/ui/select";
 import { Textarea } from "@/core/ui/textarea";
 import { formatNumber } from "@/core/utils/formatters";
-
-type JournalLine = {
-	id: string;
-	accountCode: string;
-	dr: string;
-	cr: string;
-	memo: string;
-	name: string;
-	className: string;
-};
-
-const EMPLOYEE_OPTIONS = [
-	{ value: "emp-01", label: "Administrator" },
-	{ value: "emp-02", label: "Sokha" },
-	{ value: "emp-03", label: "Dara" },
-];
-
-const JOURNAL_OPTIONS = [
-	{ value: "general", label: "General" },
-	{ value: "adjustment", label: "Adjustment" },
-	{ value: "closing", label: "Closing" },
-];
-
-const CURRENCY_OPTIONS = [
-	{ value: "KHR", label: "KHR" },
-	{ value: "USD", label: "USD" },
-];
-
-const ACCOUNT_OPTIONS = [
-	{ value: "13511X", label: "13511X : General Expense" },
-	{ value: "13512B", label: "13512B : Cash On Hand" },
-	{ value: "13514A", label: "13514A : ABA Bank" },
-	{ value: "12128A", label: "12128A : Other Receivable" },
-	{ value: "40110", label: "40110 : Revenue" },
-];
-
-const NAME_OPTIONS = [
-	{ value: "atlas", label: "Atlas Supplies" },
-	{ value: "tony", label: "Tony Trading" },
-	{ value: "walk-in", label: "Walk-in" },
-];
-
-const CLASS_OPTIONS = [
-	{ value: "expense", label: "Expense" },
-	{ value: "asset", label: "Asset" },
-	{ value: "revenue", label: "Revenue" },
-];
-
-function createEmptyLine(index: number): JournalLine {
-	return {
-		id: `line-${index + 1}`,
-		accountCode: "",
-		dr: "",
-		cr: "",
-		memo: "",
-		name: "",
-		className: "",
-	};
-}
-
-function formatLocalDateTime(date = new Date()) {
-	const year = date.getFullYear();
-	const month = String(date.getMonth() + 1).padStart(2, "0");
-	const day = String(date.getDate()).padStart(2, "0");
-	const hours = String(date.getHours()).padStart(2, "0");
-	const minutes = String(date.getMinutes()).padStart(2, "0");
-	const seconds = String(date.getSeconds()).padStart(2, "0");
-	return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
-}
+import { ACCOUNTING_DRAFT_FORM_TEXT, ACCOUNTING_JOURNAL_NAME_OPTIONS } from "../constants";
+import { AccountingCreateMenuButton } from "../components/accounting-create-menu-button";
+import { useAccountingReferenceData } from "../hooks/use-accounting-reference-data";
+import { useGetCurrencyList } from "@/pages/dashboard/settings/hooks/use-settings";
+import { saveAccountingDraft } from "../utils/accounting-draft-actions";
+import { createEmptyJournalLine, type JournalLine } from "../utils/accounting-line-factories";
+import { formatLocalDateTime } from "../utils/format-local-date-time";
 
 export default function CreateJournalPage() {
 	const navigate = useNavigate();
+	const { chartAccountOptions, employeeOptions, isLoading, journalClassOptions, journalTypeOptions } =
+		useAccountingReferenceData({
+			accountTypesEnabled: false,
+			customersEnabled: false,
+		});
+	const { data: currencies = [], isLoading: isLoadingCurrencies } = useGetCurrencyList();
 	const [refNo] = useState("");
 	const [date] = useState(formatLocalDateTime());
 	const [employeeId, setEmployeeId] = useState("");
-	const [journalType, setJournalType] = useState("general");
-	const [currency, setCurrency] = useState("KHR");
+	const [journalType, setJournalType] = useState("");
+	const [currencyId, setCurrencyId] = useState("");
 	const [memo, setMemo] = useState("");
-	const [lines, setLines] = useState<JournalLine[]>([createEmptyLine(0)]);
+	const [lines, setLines] = useState<JournalLine[]>([createEmptyJournalLine(0)]);
 
 	const totalDr = useMemo(() => lines.reduce((sum, line) => sum + (Number(line.dr) || 0), 0), [lines]);
 	const totalCr = useMemo(() => lines.reduce((sum, line) => sum + (Number(line.cr) || 0), 0), [lines]);
+	const currencyOptions = useMemo(() => currencies.map((item) => ({ value: item.id, label: item.name })), [currencies]);
+
+	useEffect(() => {
+		if (journalType || journalTypeOptions.length === 0) return;
+		setJournalType(journalTypeOptions[0].value);
+	}, [journalType, journalTypeOptions]);
+
+	useEffect(() => {
+		if (!currencyId && currencies.length > 0) {
+			setCurrencyId(currencies[0].id);
+		}
+	}, [currencies, currencyId]);
 
 	const updateLine = <K extends keyof JournalLine>(id: string, field: K, value: JournalLine[K]) => {
 		setLines((prev) => prev.map((line) => (line.id === id ? { ...line, [field]: value } : line)));
 	};
 
 	const addLine = () => {
-		setLines((prev) => [...prev, createEmptyLine(prev.length)]);
+		setLines((prev) => [...prev, createEmptyJournalLine(prev.length)]);
 	};
 
 	const removeLine = (id: string) => {
@@ -106,24 +61,32 @@ export default function CreateJournalPage() {
 	};
 
 	const handleSave = () => {
-		toast.success("Journal draft saved");
-		navigate("/dashboard/accounting");
+		saveAccountingDraft({
+			navigate,
+			redirectTo: "/dashboard/accounting",
+			successMessage: ACCOUNTING_DRAFT_FORM_TEXT.journal.successMessage,
+		});
 	};
 
 	return (
 		<div className="flex h-full flex-col gap-4 p-3 md:p-4">
-			<div className="flex items-center gap-3 border-b border-slate-200 pb-2">
+			<div className="flex items-center gap-3 pb-2">
 				<BackButton onClick={() => navigate("/dashboard/accounting")} />
 				<div className="flex items-center gap-2 text-slate-700">
-					<span className="text-base font-semibold">Create Journal</span>
+					<span className="text-base font-semibold">{ACCOUNTING_DRAFT_FORM_TEXT.journal.pageTitle}</span>
 				</div>
 			</div>
 
 			<Card className="gap-0 py-0">
 				<CardHeader className="justify-between border-b px-4 py-3">
-					<CardTitle className="text-left text-base font-semibold text-slate-700">Journal</CardTitle>
+					<CardTitle className="text-left text-base font-semibold text-slate-700">
+						{ACCOUNTING_DRAFT_FORM_TEXT.journal.cardTitle}
+					</CardTitle>
 				</CardHeader>
 				<CardContent className="space-y-4 px-4 py-4">
+					<div className="rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+						{ACCOUNTING_DRAFT_FORM_TEXT.journal.notice}
+					</div>
 					<div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-6">
 						<div className="space-y-3">
 							<div className="space-y-1.5">
@@ -149,11 +112,11 @@ export default function CreateJournalPage() {
 									<span className="text-rose-500">*</span> Journal type
 								</Label>
 								<Select value={journalType} onValueChange={setJournalType}>
-									<SelectTrigger>
+									<SelectTrigger disabled={isLoading}>
 										<SelectValue placeholder="Select" />
 									</SelectTrigger>
 									<SelectContent>
-										{JOURNAL_OPTIONS.map((option) => (
+										{journalTypeOptions.map((option) => (
 											<SelectItem key={option.value} value={option.value}>
 												{option.label}
 											</SelectItem>
@@ -167,11 +130,11 @@ export default function CreateJournalPage() {
 							<div className="space-y-1.5">
 								<Label className="text-slate-600">Employee</Label>
 								<Select value={employeeId} onValueChange={setEmployeeId}>
-									<SelectTrigger>
+									<SelectTrigger disabled={isLoading}>
 										<SelectValue placeholder="Select" />
 									</SelectTrigger>
 									<SelectContent>
-										{EMPLOYEE_OPTIONS.map((option) => (
+										{employeeOptions.map((option) => (
 											<SelectItem key={option.value} value={option.value}>
 												{option.label}
 											</SelectItem>
@@ -183,12 +146,12 @@ export default function CreateJournalPage() {
 								<Label className="text-slate-600">
 									<span className="text-rose-500">*</span> Currency
 								</Label>
-								<Select value={currency} onValueChange={setCurrency}>
-									<SelectTrigger>
+								<Select value={currencyId} onValueChange={setCurrencyId}>
+									<SelectTrigger disabled={isLoadingCurrencies}>
 										<SelectValue placeholder="Select currency" />
 									</SelectTrigger>
 									<SelectContent>
-										{CURRENCY_OPTIONS.map((option) => (
+										{currencyOptions.map((option) => (
 											<SelectItem key={option.value} value={option.value}>
 												{option.label}
 											</SelectItem>
@@ -234,11 +197,11 @@ export default function CreateJournalPage() {
 													value={line.accountCode}
 													onValueChange={(value) => updateLine(line.id, "accountCode", value)}
 												>
-													<SelectTrigger>
+													<SelectTrigger disabled={isLoading}>
 														<SelectValue placeholder="Select account" />
 													</SelectTrigger>
 													<SelectContent>
-														{ACCOUNT_OPTIONS.map((option) => (
+														{chartAccountOptions.map((option) => (
 															<SelectItem key={option.value} value={option.value}>
 																{option.label}
 															</SelectItem>
@@ -275,7 +238,7 @@ export default function CreateJournalPage() {
 														<SelectValue placeholder="Select" />
 													</SelectTrigger>
 													<SelectContent>
-														{NAME_OPTIONS.map((option) => (
+														{ACCOUNTING_JOURNAL_NAME_OPTIONS.map((option) => (
 															<SelectItem key={option.value} value={option.value}>
 																{option.label}
 															</SelectItem>
@@ -288,11 +251,11 @@ export default function CreateJournalPage() {
 													value={line.className}
 													onValueChange={(value) => updateLine(line.id, "className", value)}
 												>
-													<SelectTrigger>
+													<SelectTrigger disabled={isLoading}>
 														<SelectValue placeholder="Select" />
 													</SelectTrigger>
 													<SelectContent>
-														{CLASS_OPTIONS.map((option) => (
+														{journalClassOptions.map((option) => (
 															<SelectItem key={option.value} value={option.value}>
 																{option.label}
 															</SelectItem>
@@ -301,7 +264,12 @@ export default function CreateJournalPage() {
 												</Select>
 											</td>
 											<td className="px-3 py-2 text-center">
-												<Button variant="ghost" size="icon" onClick={() => removeLine(line.id)}>
+												<Button
+													variant="ghost"
+													size="icon"
+													aria-label="Remove journal line"
+													onClick={() => removeLine(line.id)}
+												>
 													<Trash2 className="size-4 text-rose-500" />
 												</Button>
 											</td>
@@ -312,18 +280,11 @@ export default function CreateJournalPage() {
 						</div>
 						<div className="border-t px-4 py-4">
 							<div className="flex items-center justify-between gap-3">
-								<SplitButton
+								<AccountingCreateMenuButton
 									variant="info"
 									size="sm"
 									mainAction={{ label: "+ New", onClick: addLine }}
-									options={[
-										{ label: "Create Journal", onClick: () => navigate("/dashboard/accounting/create-journal") },
-										{
-											label: "Create Cash Transaction",
-											onClick: () => navigate("/dashboard/accounting-center/create"),
-										},
-										{ label: "Create Cash Expense", onClick: () => navigate("/dashboard/accounting/create-expense") },
-									]}
+									optionLabels={["Create Journal", "Create Cash Transaction", "Create Expense"]}
 								/>
 								<div className="flex gap-3">
 									<div className="flex min-w-[300px] items-center justify-between rounded-md border bg-white px-4 py-3">
@@ -345,8 +306,16 @@ export default function CreateJournalPage() {
 						</Button>
 						<SplitButton
 							variant="info"
-							mainAction={{ label: "Save & Close", onClick: handleSave }}
-							options={[{ label: "Save & New", onClick: () => toast.success("Journal draft saved") }]}
+							mainAction={{ label: ACCOUNTING_DRAFT_FORM_TEXT.journal.saveAndClose, onClick: handleSave }}
+							options={[
+								{
+									label: ACCOUNTING_DRAFT_FORM_TEXT.journal.saveAndNew,
+									onClick: () =>
+										saveAccountingDraft({
+											successMessage: ACCOUNTING_DRAFT_FORM_TEXT.journal.successMessage,
+										}),
+								},
+							]}
 						/>
 					</div>
 				</CardContent>

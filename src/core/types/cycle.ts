@@ -32,11 +32,13 @@ export interface Cycle {
 export interface CyclePayment {
 	id: string;
 	cycleId: string;
+	code?: string;
 	paymentDate: string;
 	amount: number;
 }
 
 export interface CreatePaymentRequest {
+	code: string;
 	paymentDate: string;
 	amount: number;
 }

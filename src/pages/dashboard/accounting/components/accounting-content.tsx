@@ -1,63 +1,66 @@
-import { accountingAccountList, accountingRows } from "@/_mock/data/dashboard";
 import { SmartDataTable } from "@/core/components/common";
-import { SplitButton } from "@/core/components/common";
 import Icon from "@/core/components/icon/icon";
-import { useAccountingListActions } from "@/core/store/accountingListStore";
-import type { SelectOption } from "@/core/types/common";
+import { useEffect } from "react";
 import { Button } from "@/core/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/core/ui/dialog";
 import { Text } from "@/core/ui/typography";
-import { getPaginationItems } from "@/core/utils/pagination";
-import { useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { columns } from "./accounting-columns";
-
-const rows = accountingRows;
-
-const FILTER_TYPE_OPTIONS: SelectOption[] = [
-	{ value: "journal", label: "Journal Type" },
-	{ value: "cash-sale", label: "Cash Sale" },
-	{ value: "revenue", label: "Revenue" },
-	{ value: "receipt", label: "Receipt" },
-	{ value: "expense", label: "Expense" },
-	{ value: "invoice", label: "Invoice" },
-];
-
-const FILTER_FIELD_OPTIONS: SelectOption[] = [
-	{ value: "field-name", label: "Field name" },
-	{ value: "ref-no", label: "Ref No" },
-	{ value: "memo", label: "Memo" },
-];
+import {
+	ACCOUNTING_CREATE_OPTION_TARGETS,
+	ACCOUNTING_TABLE_FIELD_OPTIONS,
+	ACCOUNTING_TABLE_TYPE_OPTIONS,
+	ACCOUNTING_UI_TEXT,
+	createAccountingCreateMainAction,
+} from "../constants";
+import { AccountingCreateMenuButton } from "./accounting-create-menu-button";
+import { useAccountingContentState } from "../hooks/use-accounting-content-state";
+import { useAccountingList, useAccountingListActions } from "../stores/accounting-list-store";
+import type { AccountingAccountListItem } from "../types";
+import type { AccountingRow } from "@/core/types/common";
 
 type AccountingContentProps = {
+	accounts: AccountingAccountListItem[];
+	rows: AccountingRow[];
+	totalItems: number;
+	totalPages: number;
 	activeAccountId: string | null;
-	listState: any; // Using explicit type would be better
+	listState: ReturnType<typeof useAccountingList>;
 };
 
-export function AccountingContent({ activeAccountId, listState }: AccountingContentProps) {
+export function AccountingContent({
+	accounts,
+	rows,
+	totalItems: serverTotalItems,
+	totalPages: serverTotalPages,
+	activeAccountId,
+	listState,
+}: AccountingContentProps) {
 	const navigate = useNavigate();
 	const { updateState } = useAccountingListActions();
-	const activeAccount = accountingAccountList.find((account) => account.id === activeAccountId);
-	const [inactiveAccountIds, setInactiveAccountIds] = useState<string[]>([]);
-	const [showInactiveConfirm, setShowInactiveConfirm] = useState(false);
-	const createOptions = [
-		{ label: "Create Journal", onClick: () => navigate("/dashboard/accounting/create-journal") },
-		{ label: "Create Expense", onClick: () => navigate("/dashboard/accounting/create-expense") },
-		{ label: "Create Cash Transaction", onClick: () => navigate("/dashboard/accounting-center/create") },
-		{ label: "Create Revenue", onClick: () => navigate("/dashboard/accounting/create-revenue") },
-		{ label: "Create Chart Account", onClick: () => navigate("/dashboard/accounting/create-chart-account") },
-	];
-	const isActiveAccountInactive = !!activeAccountId && inactiveAccountIds.includes(activeAccountId);
-	const tableData = useMemo(() => (isActiveAccountInactive ? [] : rows), [isActiveAccountInactive]);
-	const totalItems = tableData.length;
-	const totalPages = Math.max(1, Math.ceil(totalItems / listState.pageSize));
-	const paginationItems = getPaginationItems(listState.page, totalPages);
+	const {
+		activeAccount,
+		handleConfirmInactive,
+		paginationItems,
+		setShowInactiveConfirm,
+		showInactiveConfirm,
+		tableData,
+		totalItems,
+		totalPages,
+	} = useAccountingContentState({
+		accounts,
+		rows,
+		totalItems: serverTotalItems,
+		totalPages: serverTotalPages,
+		activeAccountId,
+		listState,
+	});
 
-	const handleConfirmInactive = () => {
-		if (!activeAccountId) return;
-		setInactiveAccountIds((prev) => (prev.includes(activeAccountId) ? prev : [...prev, activeAccountId]));
-		setShowInactiveConfirm(false);
-	};
+	useEffect(() => {
+		if (listState.page > totalPages) {
+			updateState({ page: totalPages });
+		}
+	}, [listState.page, totalPages, updateState]);
 
 	return (
 		<>
@@ -65,40 +68,50 @@ export function AccountingContent({ activeAccountId, listState }: AccountingCont
 				<div className="flex min-w-0 items-center gap-2">
 					<div className="flex items-center">
 						<Button
+							type="button"
 							size="sm"
-							className="rounded-r-none"
+							className="rounded-r-none px-3 text-sm font-medium"
 							onClick={() => navigate("/dashboard/accounting/create-chart-account")}
+							title={ACCOUNTING_UI_TEXT.createChartAccount}
 						>
-							Chart of Account
+							{ACCOUNTING_UI_TEXT.headerLabel}
 						</Button>
 						<Button
-							size="icon"
-							className="h-9 w-9 shrink-0 rounded-l-none border-l border-sky-300/70"
+							type="button"
+							size="sm"
+							className="shrink-0 rounded-l-none border-l border-sky-300/70"
 							disabled={!activeAccount}
 							onClick={() => navigate(`/dashboard/accounting/edit-chart-account/${activeAccount?.id}`)}
+							aria-label={ACCOUNTING_UI_TEXT.viewSelectedAccountTitle}
+							title={ACCOUNTING_UI_TEXT.viewSelectedAccountTitle}
 						>
-							<Icon icon="mdi:cog-outline" />
+							<Icon icon="mdi:eye-outline" />
 						</Button>
 					</div>
 					<Button
 						variant="outline"
 						size="icon"
-						className="h-9 w-9 shrink-0"
+						className="shrink-0"
 						disabled={!activeAccount}
 						onClick={() => setShowInactiveConfirm(true)}
+						aria-label={ACCOUNTING_UI_TEXT.inactivateSelectedAccountTitle}
+						title={ACCOUNTING_UI_TEXT.inactivateSelectedAccountTitle}
 					>
 						<Icon icon="mdi:eye-off-outline" />
 					</Button>
 					<div className="min-w-0 pl-1">
-						<Text variant="body2" className="text-slate-400">
-							{activeAccount?.name ?? "No item selected"}
+						<Text variant="caption" className="block text-slate-400">
+							{ACCOUNTING_UI_TEXT.selectedAccountLabel}
+						</Text>
+						<Text variant="body2" className="truncate text-slate-600">
+							{activeAccount?.name ?? ACCOUNTING_UI_TEXT.noAccountSelected}
 						</Text>
 					</div>
 				</div>
-				<SplitButton
+				<AccountingCreateMenuButton
 					size="sm"
-					mainAction={{ label: "Create Cash Expense", onClick: () => navigate("/dashboard/accounting/create-expense") }}
-					options={createOptions}
+					mainAction={createAccountingCreateMainAction("Create Cash Transaction", navigate)}
+					optionLabels={ACCOUNTING_CREATE_OPTION_TARGETS.map((option) => option.label)}
 					mainButtonClassName="gap-2"
 					triggerButtonClassName="px-2"
 				/>
@@ -110,11 +123,14 @@ export function AccountingContent({ activeAccountId, listState }: AccountingCont
 				columns={columns}
 				filterConfig={{
 					onFilterClick: () => undefined,
-					typeOptions: FILTER_TYPE_OPTIONS,
-					fieldOptions: FILTER_FIELD_OPTIONS,
+					typeOptions: ACCOUNTING_TABLE_TYPE_OPTIONS,
+					fieldOptions: ACCOUNTING_TABLE_FIELD_OPTIONS,
 					typeValue: listState.typeFilter,
 					fieldValue: listState.fieldFilter,
 					searchValue: listState.searchValue,
+					typePlaceholder: ACCOUNTING_UI_TEXT.tableTypePlaceholder,
+					fieldPlaceholder: ACCOUNTING_UI_TEXT.tableFieldPlaceholder,
+					searchPlaceholder: ACCOUNTING_UI_TEXT.tableSearchPlaceholder,
 					onTypeChange: (value) => updateState({ typeFilter: value, page: 1 }),
 					onFieldChange: (value) => updateState({ fieldFilter: value, page: 1 }),
 					onSearchChange: (value) => updateState({ searchValue: value, page: 1 }),
@@ -132,17 +148,17 @@ export function AccountingContent({ activeAccountId, listState }: AccountingCont
 			<Dialog open={showInactiveConfirm} onOpenChange={setShowInactiveConfirm}>
 				<DialogContent className="sm:max-w-md">
 					<DialogHeader>
-						<DialogTitle>Confirm</DialogTitle>
+						<DialogTitle>{ACCOUNTING_UI_TEXT.inactiveConfirmTitle}</DialogTitle>
 					</DialogHeader>
 					<div className="py-2 text-slate-700">
 						Are you sure to make inactive {activeAccount?.name ?? "this account"}?
 					</div>
 					<DialogFooter>
 						<Button variant="outline" onClick={() => setShowInactiveConfirm(false)}>
-							Cancel
+							{ACCOUNTING_UI_TEXT.inactiveConfirmCancel}
 						</Button>
 						<Button variant="info" onClick={handleConfirmInactive}>
-							OK
+							{ACCOUNTING_UI_TEXT.inactiveConfirmAction}
 						</Button>
 					</DialogFooter>
 				</DialogContent>

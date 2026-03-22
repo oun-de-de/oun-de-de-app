@@ -1,8 +1,8 @@
-import { createListStore, type ListState } from "./createListStore";
+import { createListStore, type ListState } from "@/core/store/createListStore";
 
 const createInitialState = (): ListState => ({
-	typeFilter: "journal",
-	fieldFilter: "field-name",
+	typeFilter: "all",
+	fieldFilter: "all",
 	searchValue: "",
 	page: 1,
 	pageSize: 20,

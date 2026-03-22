@@ -1,6 +1,6 @@
 import {
+	buildMonthlyRevenueExpenseApiRows,
 	buildInvoiceReportRows,
-	buildMonthlyRevenueExpenseRows,
 	buildOpenInvoiceRows,
 	buildSaleDetailRows,
 } from "../components/report-table-builders";
@@ -25,8 +25,8 @@ function buildSaleDetailReportRows({ invoices, exportLines }: BuildReportRowsPar
 	return buildSaleDetailRows(invoices, exportLines);
 }
 
-function buildMonthlyRevenueExpenseReportRows({ invoices, previewRows }: BuildReportRowsParams) {
-	return buildMonthlyRevenueExpenseRows(invoices, previewRows);
+function buildMonthlyRevenueExpenseApiReportRows({ monthlyReport }: BuildReportRowsParams) {
+	return buildMonthlyRevenueExpenseApiRows(monthlyReport);
 }
 
 export const INVOICE_REPORT_SPECS: ReportDefinitionMap = {
@@ -69,9 +69,8 @@ export const INVOICE_REPORT_SPECS: ReportDefinitionMap = {
 		templateId: "monthly-revenue-expense-summary",
 		subtitle: REPORT_DEFAULT_DATE,
 		buildColumns: buildMonthlySummaryColumns,
-		buildRows: buildMonthlyRevenueExpenseReportRows,
-		dataSource: "invoice-summary",
-		needsPreviewRows: true,
-		filterConfig: REPORT_FILTERS.customerAndDateRange,
+		buildRows: buildMonthlyRevenueExpenseApiReportRows,
+		dataSource: "monthly-report-api",
+		filterConfig: REPORT_FILTERS.monthOnly,
 	},
 };

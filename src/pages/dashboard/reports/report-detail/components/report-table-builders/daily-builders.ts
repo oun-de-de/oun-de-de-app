@@ -21,53 +21,40 @@ function buildDailyMetricRow(
 }
 
 export function buildApiDailyReportRows(report: DailyReportResponse | undefined): ReportTemplateRow[] {
+	const soldProducts = report?.soldProducts ?? [];
 	const boughtItems = report?.boughtItems ?? [];
-	const revenueBreakdownRows: ReportTemplateRow[] = [
+	const soldProductRows = soldProducts.map((item, index) =>
 		buildDailyMetricRow(
-			"daily-ice-cube-sale-cash",
-			"Ice cube sale cash",
-			formatNumber(report?.iceCubeSaleCash ?? 0),
-			"daily-ice-cube-sale-cash",
-			1,
+			`daily-sold-product-${index}`,
+			item.productName?.trim() || `Sold product ${index + 1}`,
+			formatNumber(item.totalAmount ?? 0),
+			`daily-sold-product-${index}`,
+			index + 1,
+			item.totalQuantity != null ? formatNumber(item.totalQuantity) : "",
 		),
-		buildDailyMetricRow(
-			"daily-premium-ice-sale-cash",
-			"Premium Ice sale cash",
-			formatNumber(report?.premiumIceSaleCash ?? 0),
-			"daily-premium-ice-sale-cash",
-			2,
-		),
-		buildDailyMetricRow(
-			"daily-customer-sale-invoice-premium-ice",
-			"customer sale invoice Premium Ice",
-			formatNumber(report?.customerSaleInvoicePremiumIce ?? 0),
-			"daily-customer-sale-invoice-premium-ice",
-			3,
-		),
-		buildDailyMetricRow(
-			"daily-customer-sale-invoice-ice-cube",
-			"Customer sale invoice ice cube",
-			formatNumber(report?.customerSaleInvoiceIceCube ?? 0),
-			"daily-customer-sale-invoice-ice-cube",
-			4,
-		),
-	];
+	);
 	const summaryRows: ReportTemplateRow[] = [
 		buildDailyMetricRow(
 			"daily-total-revenue",
 			"Total Revenues",
 			formatNumber(report?.totalRevenue ?? 0),
 			"daily-total-revenue",
-			5,
+			soldProductRows.length + 1,
 		),
 		buildDailyMetricRow(
 			"daily-cash-received",
 			"Daily Cash receive",
 			formatNumber(report?.totalCashReceive ?? 0),
 			"daily-cash-receive",
-			6,
+			soldProductRows.length + 2,
 		),
-		buildDailyMetricRow("daily-expense-section", "Daily expenses", "", "daily-expense-section", 7),
+		buildDailyMetricRow(
+			"daily-expense-section",
+			"Daily expenses",
+			"",
+			"daily-expense-section",
+			soldProductRows.length + 3,
+		),
 	];
 	const expenseRows = boughtItems.map((item, index) =>
 		buildDailyMetricRow(
@@ -75,12 +62,12 @@ export function buildApiDailyReportRows(report: DailyReportResponse | undefined)
 			item.itemName?.trim() || `Expense item ${index + 1}`,
 			formatNumber(item.expense ?? 0),
 			`daily-expense-item-${index}`,
-			index + 8,
+			soldProductRows.length + index + 4,
 		),
 	);
 
 	return [
-		...revenueBreakdownRows,
+		...soldProductRows,
 		...summaryRows,
 		...expenseRows,
 		buildDailyMetricRow(
@@ -88,7 +75,7 @@ export function buildApiDailyReportRows(report: DailyReportResponse | undefined)
 			"Total expense",
 			formatNumber(report?.totalExpense ?? 0),
 			"daily-expense-total",
-			expenseRows.length + 8,
+			soldProductRows.length + expenseRows.length + 4,
 		),
 	];
 }

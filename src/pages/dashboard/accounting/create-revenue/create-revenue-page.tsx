@@ -9,77 +9,25 @@ import { formatNumber } from "@/core/utils/formatters";
 import { CalendarDays, Plus, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router";
-import { toast } from "sonner";
-
-type RevenueLine = {
-	id: string;
-	accountCode: string;
-	memo: string;
-	amount: string;
-	name: string;
-	className: string;
-};
-
-const CASH_ACCOUNT_OPTIONS = [
-	{ value: "13512B", label: "13512B : Cash On Hand", type: "Current Asset" },
-	{ value: "13514A", label: "13514A : ABA Bank", type: "Current Asset" },
-	{ value: "10115A", label: "10115A : Cash In Bank", type: "Current Asset" },
-];
-
-const EMPLOYEE_OPTIONS = [
-	{ value: "emp-01", label: "Administrator" },
-	{ value: "emp-02", label: "Sokha" },
-	{ value: "emp-03", label: "Dara" },
-];
-
-const ACCOUNT_OPTIONS = [
-	{ value: "40110", label: "40110 : Cash Sale Revenue" },
-	{ value: "40120", label: "40120 : Service Revenue" },
-	{ value: "40210", label: "40210 : Other Income" },
-	{ value: "12110", label: "12110 : Accounts Receivable" },
-];
-
-const NAME_OPTIONS = [
-	{ value: "tony", label: "Tony Trading" },
-	{ value: "walk-in", label: "Walk-in" },
-	{ value: "retail", label: "Retail Customer" },
-];
-
-const CLASS_OPTIONS = [
-	{ value: "revenue", label: "Revenue" },
-	{ value: "income", label: "Income" },
-	{ value: "other", label: "Other" },
-];
-
-function createEmptyLine(index: number): RevenueLine {
-	return {
-		id: `line-${index + 1}`,
-		accountCode: index === 0 ? "40110" : "",
-		memo: "",
-		amount: "",
-		name: "",
-		className: "",
-	};
-}
-
-function formatLocalDateTime(date = new Date()) {
-	const year = date.getFullYear();
-	const month = String(date.getMonth() + 1).padStart(2, "0");
-	const day = String(date.getDate()).padStart(2, "0");
-	const hours = String(date.getHours()).padStart(2, "0");
-	const minutes = String(date.getMinutes()).padStart(2, "0");
-	const seconds = String(date.getSeconds()).padStart(2, "0");
-	return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
-}
+import { ACCOUNTING_DRAFT_FORM_TEXT, ACCOUNTING_REVENUE_NAME_OPTIONS } from "../constants";
+import { useAccountingReferenceData } from "../hooks/use-accounting-reference-data";
+import { saveAccountingDraft } from "../utils/accounting-draft-actions";
+import { createEmptyRevenueLine, type RevenueLine } from "../utils/accounting-line-factories";
+import { formatLocalDateTime } from "../utils/format-local-date-time";
 
 export default function CreateRevenuePage() {
 	const navigate = useNavigate();
-	const [refNo] = useState("REV000062");
+	const { chartAccountOptions, employeeOptions, isLoading, journalClassOptions } = useAccountingReferenceData({
+		accountTypesEnabled: false,
+		journalTypesEnabled: false,
+		customersEnabled: false,
+	});
+	const [refNo] = useState("REVXXXXXXXXXX");
 	const [date] = useState(formatLocalDateTime());
 	const [cashAccount, setCashAccount] = useState("");
 	const [employeeId, setEmployeeId] = useState("");
 	const [memo, setMemo] = useState("");
-	const [lines, setLines] = useState<RevenueLine[]>([createEmptyLine(0), createEmptyLine(1), createEmptyLine(2)]);
+	const [lines, setLines] = useState<RevenueLine[]>([createEmptyRevenueLine(0)]);
 
 	const totalAmount = useMemo(() => lines.reduce((sum, line) => sum + (Number(line.amount) || 0), 0), [lines]);
 
@@ -88,7 +36,7 @@ export default function CreateRevenuePage() {
 	};
 
 	const addLine = () => {
-		setLines((prev) => [...prev, createEmptyLine(prev.length)]);
+		setLines((prev) => [...prev, createEmptyRevenueLine(prev.length)]);
 	};
 
 	const removeLine = (id: string) => {
@@ -96,24 +44,32 @@ export default function CreateRevenuePage() {
 	};
 
 	const handleSave = () => {
-		toast.success("Revenue draft saved");
-		navigate("/dashboard/accounting");
+		saveAccountingDraft({
+			navigate,
+			redirectTo: "/dashboard/accounting",
+			successMessage: ACCOUNTING_DRAFT_FORM_TEXT.revenue.successMessage,
+		});
 	};
 
 	return (
 		<div className="flex h-full flex-col gap-4 p-3 md:p-4">
-			<div className="flex items-center gap-3 border-b border-slate-200 pb-2">
+			<div className="flex items-center gap-3 pb-2">
 				<BackButton onClick={() => navigate("/dashboard/accounting")} />
 				<div className="flex items-center gap-2 text-slate-700">
-					<span className="text-base font-semibold">Create Cash Revenue</span>
+					<span className="text-base font-semibold">{ACCOUNTING_DRAFT_FORM_TEXT.revenue.pageTitle}</span>
 				</div>
 			</div>
 
 			<Card className="gap-0 py-0">
 				<CardHeader className="justify-start border-b px-4 py-3">
-					<CardTitle className="text-left text-base font-semibold text-slate-700">Create Cash Revenue</CardTitle>
+					<CardTitle className="text-left text-base font-semibold text-slate-700">
+						{ACCOUNTING_DRAFT_FORM_TEXT.revenue.cardTitle}
+					</CardTitle>
 				</CardHeader>
 				<CardContent className="space-y-4 px-4 py-4">
+					<div className="rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+						{ACCOUNTING_DRAFT_FORM_TEXT.revenue.notice}
+					</div>
 					<div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-6">
 						<div className="space-y-3">
 							<div className="space-y-1.5">
@@ -139,16 +95,13 @@ export default function CreateRevenuePage() {
 									<span className="text-rose-500">*</span> Cash & Cash Equivalents
 								</Label>
 								<Select value={cashAccount} onValueChange={setCashAccount}>
-									<SelectTrigger>
+									<SelectTrigger disabled={isLoading}>
 										<SelectValue placeholder="Select" />
 									</SelectTrigger>
 									<SelectContent>
-										{CASH_ACCOUNT_OPTIONS.map((option) => (
+										{chartAccountOptions.map((option) => (
 											<SelectItem key={option.value} value={option.value}>
-												<div className="flex min-w-[280px] items-center justify-between gap-4">
-													<span>{option.label}</span>
-													<span className="text-xs text-slate-500">{option.type}</span>
-												</div>
+												{option.label}
 											</SelectItem>
 										))}
 									</SelectContent>
@@ -162,11 +115,11 @@ export default function CreateRevenuePage() {
 									<span className="text-rose-500">*</span> Employee
 								</Label>
 								<Select value={employeeId} onValueChange={setEmployeeId}>
-									<SelectTrigger>
+									<SelectTrigger disabled={isLoading}>
 										<SelectValue placeholder="Select" />
 									</SelectTrigger>
 									<SelectContent>
-										{EMPLOYEE_OPTIONS.map((option) => (
+										{employeeOptions.map((option) => (
 											<SelectItem key={option.value} value={option.value}>
 												{option.label}
 											</SelectItem>
@@ -211,11 +164,11 @@ export default function CreateRevenuePage() {
 													value={line.accountCode}
 													onValueChange={(value) => updateLine(line.id, "accountCode", value)}
 												>
-													<SelectTrigger>
+													<SelectTrigger disabled={isLoading}>
 														<SelectValue placeholder="Select account" />
 													</SelectTrigger>
 													<SelectContent>
-														{ACCOUNT_OPTIONS.map((option) => (
+														{chartAccountOptions.map((option) => (
 															<SelectItem key={option.value} value={option.value}>
 																{option.label}
 															</SelectItem>
@@ -244,7 +197,7 @@ export default function CreateRevenuePage() {
 														<SelectValue placeholder="Select" />
 													</SelectTrigger>
 													<SelectContent>
-														{NAME_OPTIONS.map((option) => (
+														{ACCOUNTING_REVENUE_NAME_OPTIONS.map((option) => (
 															<SelectItem key={option.value} value={option.value}>
 																{option.label}
 															</SelectItem>
@@ -257,11 +210,11 @@ export default function CreateRevenuePage() {
 													value={line.className}
 													onValueChange={(value) => updateLine(line.id, "className", value)}
 												>
-													<SelectTrigger>
+													<SelectTrigger disabled={isLoading}>
 														<SelectValue placeholder="Select" />
 													</SelectTrigger>
 													<SelectContent>
-														{CLASS_OPTIONS.map((option) => (
+														{journalClassOptions.map((option) => (
 															<SelectItem key={option.value} value={option.value}>
 																{option.label}
 															</SelectItem>
@@ -270,7 +223,12 @@ export default function CreateRevenuePage() {
 												</Select>
 											</td>
 											<td className="px-3 py-2 text-center">
-												<Button variant="ghost" size="icon" onClick={() => removeLine(line.id)}>
+												<Button
+													variant="ghost"
+													size="icon"
+													aria-label="Remove revenue line"
+													onClick={() => removeLine(line.id)}
+												>
 													<Trash2 className="size-4 text-rose-500" />
 												</Button>
 											</td>
@@ -296,7 +254,7 @@ export default function CreateRevenuePage() {
 							Cancel
 						</Button>
 						<Button variant="info" onClick={handleSave}>
-							Save & Close
+							{ACCOUNTING_DRAFT_FORM_TEXT.revenue.saveAndClose}
 						</Button>
 					</div>
 				</CardContent>

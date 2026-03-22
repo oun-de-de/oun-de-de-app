@@ -14,6 +14,20 @@ export interface WeightRecord {
 	manual: boolean;
 }
 
+export interface CouponWeightRecordResult {
+	id: string;
+	productName: string | null;
+	unit: string | null;
+	pricePerProduct: number | null;
+	quantityPerProduct: number | null;
+	quantity: number | null;
+	weight: number | null;
+	amount?: number | null;
+	outTime: string;
+	memo: string | null;
+	manual: boolean;
+}
+
 export interface CouponEmployee {
 	id: string;
 	username: string;
@@ -34,9 +48,11 @@ export interface Coupon {
 	accNo: string | null;
 	delAccNo: string | null;
 	delDate: string | null;
+	invoiceRefNo?: string | null;
 }
 
 export interface CreateCouponRequest {
+	date?: string;
 	vehicleId: string;
 	driverName?: string;
 	employeeId: string;
@@ -45,8 +61,6 @@ export interface CreateCouponRequest {
 	couponNo?: number;
 	couponId?: number;
 	accNo?: string;
-	delAccNo?: string;
-	delDate?: string;
 }
 
 export interface CreateWeightRecordRequest {
@@ -59,4 +73,19 @@ export interface CreateWeightRecordRequest {
 	outTime?: string;
 	memo?: string | null;
 	manual?: boolean;
+}
+
+export interface UpdateCouponRequest {
+	date?: string;
+	driverName?: string;
+	employeeId?: string;
+	remark?: string;
+	weightRecords: CreateWeightRecordRequest[];
+	couponId?: number;
+	accNo?: string;
+}
+
+export interface DeleteCouponRequest {
+	delAccNo?: string;
+	delDate?: string;
 }

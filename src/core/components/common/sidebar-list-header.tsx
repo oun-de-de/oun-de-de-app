@@ -130,7 +130,7 @@ export function SidebarListHeader({
 
 	if (isCollapsed) {
 		return (
-			<div className={cn("flex w-full justify-center p-2", className)}>
+			<div className={cn("absolute left-1/2 top-0 z-10 flex -translate-x-1/2 justify-center p-2", className)}>
 				<SidebarToggleButton onClick={onMenuClick} isCollapsed={isCollapsed} variant="info" />
 			</div>
 		);

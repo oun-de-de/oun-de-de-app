@@ -1,7 +1,12 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import inventoryService from "@/core/api/services/inventory-service";
-import type { CreateBorrowingRequest, CreateInventoryItem, UpdateStockRequest } from "@/core/types/inventory";
+import type {
+	CreateBorrowingRequest,
+	CreateInventoryItem,
+	SellEquipmentRequest,
+	UpdateStockRequest,
+} from "@/core/types/inventory";
 import { INVENTORY_QUERY_KEYS } from "./use-inventory-items";
 
 function assertItemId(itemId?: string): string {
@@ -89,5 +94,17 @@ export function useReturnBorrowing(itemId?: string) {
 		},
 		successMessage: "Borrowing returned successfully",
 		errorMessage: "Failed to return borrowing",
+	});
+}
+
+export function useSellBorrowing(itemId?: string) {
+	return useInventoryMutation<{ borrowingId: string; data: SellEquipmentRequest }>({
+		itemId,
+		mutationFn: ({ borrowingId, data }) => {
+			const requiredItemId = assertItemId(itemId);
+			return inventoryService.sellBorrowing(requiredItemId, borrowingId, data);
+		},
+		successMessage: "Borrowing sold successfully",
+		errorMessage: "Failed to sell borrowing",
 	});
 }

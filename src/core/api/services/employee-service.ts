@@ -6,14 +6,13 @@ export enum EmployeeApi {
 	Create = "/employees",
 }
 
-const getEmployeeList = (params?: { page?: number; size?: number }): Promise<Employee[]> =>
+const getEmployeeList = (): Promise<Employee[]> =>
 	apiClient.get<Employee[]>({
 		url: EmployeeApi.List,
-		params,
 	});
 
-const createEmployee = (employee: CreateEmployee) =>
-	apiClient.post<Employee>({ url: EmployeeApi.Create, data: employee });
+const createEmployee = (employee: CreateEmployee): Promise<string> =>
+	apiClient.post<string>({ url: EmployeeApi.Create, data: employee });
 
 const updateEmployee = (id: string, employee: UpdateEmployeeProfile) =>
 	apiClient.put<Employee>({

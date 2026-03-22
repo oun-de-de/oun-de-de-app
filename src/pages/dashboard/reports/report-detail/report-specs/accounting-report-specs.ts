@@ -1,6 +1,6 @@
 import {
-	buildIncomeExpenseLedgerRows,
 	buildLedgerRows,
+	buildMonthlyReportDetailRows,
 	buildTrialBalanceRows,
 } from "../components/report-table-builders";
 import { REPORT_DEFAULT_DATE } from "../constants";
@@ -9,7 +9,7 @@ import {
 	buildIncomeExpenseLedgerColumns,
 	buildTrialBalanceColumns,
 } from "../report-columns/accounting-report-columns";
-import { REPORT_FILTERS, type ReportDefinitionMap } from "../report-types";
+import { REPORT_FILTERS, type BuildReportRowsParams, type ReportDefinitionMap } from "../report-types";
 
 function buildGeneralLedgerRows() {
 	return buildLedgerRows();
@@ -19,8 +19,8 @@ function buildTrialBalanceReportRows() {
 	return buildTrialBalanceRows();
 }
 
-function buildIncomeExpenseReportRows() {
-	return buildIncomeExpenseLedgerRows();
+function buildIncomeExpenseApiReportRows({ monthlyReportDetails }: BuildReportRowsParams) {
+	return buildMonthlyReportDetailRows(monthlyReportDetails);
 }
 
 export const ACCOUNTING_REPORT_SPECS: ReportDefinitionMap = {
@@ -50,8 +50,8 @@ export const ACCOUNTING_REPORT_SPECS: ReportDefinitionMap = {
 		templateId: "income-expense-ledger",
 		subtitle: REPORT_DEFAULT_DATE,
 		buildColumns: buildIncomeExpenseLedgerColumns,
-		buildRows: buildIncomeExpenseReportRows,
-		dataSource: "accounting-mock",
-		filterConfig: REPORT_FILTERS.noFilters,
+		buildRows: buildIncomeExpenseApiReportRows,
+		dataSource: "monthly-report-details-api",
+		filterConfig: REPORT_FILTERS.monthOnly,
 	},
 };
