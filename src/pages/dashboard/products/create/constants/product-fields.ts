@@ -53,10 +53,6 @@ export const PRODUCT_FIELDS: FormFieldConfig[] = [
 		type: "text",
 		required: false,
 		placeholder: "Enter reference number",
-		pattern: {
-			value: /^PRO\d{6}$/,
-			message: "Ref No must be in format PROxxxxxx (e.g., PRO123456)",
-		},
 	},
 	{
 		name: "name",
