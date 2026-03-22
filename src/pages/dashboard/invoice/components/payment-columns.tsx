@@ -19,6 +19,11 @@ export function getPaymentColumns({
 			cell: ({ row }) => formatDisplayDateTime(row.original.paymentDate),
 		},
 		{
+			accessorKey: "code",
+			header: "Payment Code",
+			cell: ({ row }) => row.original.code || "-",
+		},
+		{
 			accessorKey: "amount",
 			header: "Amount",
 			cell: ({ row }) => formatKHR(row.original.amount),

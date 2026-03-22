@@ -54,6 +54,37 @@ function validateCumulativeWeightRecords(records: DraftWeightRecord[]): string |
 	return null;
 }
 
+function normalizeDraftWeightRecords(
+	couponWeightRecords: Coupon["weightRecords"],
+	products: Awaited<ReturnType<typeof productService.getProductList>>,
+): DraftWeightRecord[] {
+	if (couponWeightRecords.length === 0) {
+		return [createInitialRawWeightRecord()];
+	}
+
+	const rawRecordIndex = couponWeightRecords.findIndex((record) => record.productName === null);
+	const orderedRecords =
+		rawRecordIndex >= 0
+			? [couponWeightRecords[rawRecordIndex], ...couponWeightRecords.filter((_, index) => index !== rawRecordIndex)]
+			: [createInitialRawWeightRecord(), ...couponWeightRecords];
+
+	return orderedRecords.map((record, index) => ({
+		productId:
+			index === 0 || record.productName === null
+				? undefined
+				: products.find((product) => product.name === record.productName)?.id,
+		productName: index === 0 ? null : record.productName || null,
+		unit: record.unit,
+		pricePerProduct: record.pricePerProduct,
+		quantityPerProduct: record.quantityPerProduct,
+		quantity: record.quantity,
+		weight: record.weight,
+		outTime: record.outTime,
+		memo: record.memo,
+		manual: record.manual,
+	}));
+}
+
 export default function EditCouponPage() {
 	const navigate = useNavigate();
 	const location = useLocation();
@@ -130,22 +161,7 @@ export default function EditCouponPage() {
 			return;
 		}
 
-		setWeightRecords(
-			coupon.weightRecords.length > 0
-				? coupon.weightRecords.map((record, index) => ({
-						productId: index === 0 ? undefined : products.find((product) => product.name === record.productName)?.id,
-						productName: index === 0 ? null : record.productName || null,
-						unit: record.unit,
-						pricePerProduct: record.pricePerProduct,
-						quantityPerProduct: record.quantityPerProduct,
-						quantity: record.quantity,
-						weight: record.weight,
-						outTime: record.outTime,
-						memo: record.memo,
-						manual: record.manual,
-					}))
-				: [createInitialRawWeightRecord()],
-		);
+		setWeightRecords(normalizeDraftWeightRecords(coupon.weightRecords, products));
 	}, [coupon, products]);
 
 	const { mutateAsync: updateCoupon, isPending } = useMutation({
