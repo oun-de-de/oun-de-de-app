@@ -1,6 +1,6 @@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/core/ui/dropdown-menu";
+import Icon from "@/core/components/icon/icon";
 import { useQueryClient } from "@tanstack/react-query";
-import { EllipsisVertical } from "lucide-react";
 import { useNavigate } from "react-router";
 import { customerQueryOptions } from "../hooks/use-get-customer";
 
@@ -54,11 +54,11 @@ export function CustomerActions({ customerId, customerName }: CustomerActionsPro
 			</Button> */}
 			<DropdownMenu>
 				<DropdownMenuTrigger
-					className="h-7 w-7 justify-center border-gray-200 p-0 hover:bg-gray-50"
+					className="h-6 w-8 justify-center border-gray-200 p-0 hover:bg-gray-50"
 					onMouseEnter={handlePrefetch}
 					onFocus={handlePrefetch}
 				>
-					<EllipsisVertical className="size-4 text-gray-500" />
+					<Icon icon="mdi:menu" className="text-gray-500" />
 				</DropdownMenuTrigger>
 				<DropdownMenuContent align="end" className="w-44">
 					<DropdownMenuItem onClick={handleEdit} className="cursor-pointer">
