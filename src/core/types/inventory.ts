@@ -51,8 +51,8 @@ export interface InventoryTransaction {
 
 export interface InventoryBorrowing {
 	id: string;
-	itemId: string;
-	customerId: string;
+	itemId: string | null;
+	customerId: string | null;
 	customerName: string;
 	quantity: number;
 	borrowDate: string;
@@ -66,4 +66,9 @@ export interface CreateBorrowingRequest {
 	quantity: number;
 	expectedReturnDate: string;
 	memo: string;
+}
+
+export interface SellEquipmentRequest {
+	refCode: string;
+	expense?: number;
 }
