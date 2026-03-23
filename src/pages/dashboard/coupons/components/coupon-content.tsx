@@ -7,7 +7,7 @@ import type { Customer } from "@/core/types/customer";
 import type { Coupon } from "@/core/types/coupon";
 import { Button } from "@/core/ui/button";
 import { Text } from "@/core/ui/typography";
-import { useNavigate } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 import type { CouponState } from "../stores/coupon-state";
 import { getCouponColumns } from "./coupon-columns";
 import { CouponDeleteDialog } from "./coupon-delete-dialog";
@@ -40,6 +40,7 @@ export function CouponContent({
 	paginationItems,
 }: CouponContentProps) {
 	const navigate = useNavigate();
+	const location = useLocation();
 	const [selectedCoupon, setSelectedCoupon] = useState<Coupon | null>(null);
 	const [deletingCoupon, setDeletingCoupon] = useState<Coupon | null>(null);
 	const columns = useMemo(
@@ -47,7 +48,7 @@ export function CouponContent({
 			getCouponColumns({
 				onViewWeightRecords: setSelectedCoupon,
 				onEditCoupon: (coupon) =>
-					navigate(`/dashboard/coupons/edit/${coupon.id}`, {
+					navigate(`/dashboard/coupons/edit/${coupon.id}${location.search || ""}`, {
 						state: {
 							coupon,
 							activeCustomer,
@@ -55,7 +56,7 @@ export function CouponContent({
 					}),
 				onDeleteCoupon: setDeletingCoupon,
 			}),
-		[navigate, activeCustomer],
+		[navigate, activeCustomer, location.search],
 	);
 	const { data: weightRecords = [], isLoading: isWeightRecordsLoading } = useQuery({
 		queryKey: ["coupon-weight-records", selectedCoupon?.id],

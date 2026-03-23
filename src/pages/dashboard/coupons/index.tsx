@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
-import { useLocation } from "react-router";
+import { useCallback, useEffect, useState } from "react";
+import { useLocation, useNavigate, useSearchParams } from "react-router";
 
 import couponService from "@/core/api/services/coupon-service";
 import { DashboardSplitView } from "@/core/components/common/dashboard-split-view";
@@ -15,20 +15,94 @@ type CouponsLocationState = {
 	activeCustomer?: Customer | null;
 };
 
+function createCustomerSelection(customerId: string | null, customerName: string | null): Customer | null {
+	if (!customerId || !customerName) return null;
+
+	return {
+		id: customerId,
+		name: customerName,
+		registerDate: "",
+		code: "",
+		status: true,
+		defaultPrice: "",
+		warehouseId: "",
+		memo: "",
+		profileUrl: "",
+		shopBannerUrl: "",
+		employeeId: "",
+		telephone: "",
+		email: "",
+		geography: "",
+		address: "",
+		location: "",
+		map: "",
+		billingAddress: "",
+		deliveryAddress: "",
+		vehicles: [],
+	};
+}
+
 export default function CouponsPage() {
+	const navigate = useNavigate();
 	const location = useLocation();
+	const [searchParams] = useSearchParams();
 	const locationState = location.state as CouponsLocationState | null;
-	const [activeCustomer, setActiveCustomer] = useState<Customer | null>(locationState?.activeCustomer ?? null);
+	const [activeCustomer, setActiveCustomer] = useState<Customer | null>(() => {
+		const queryCustomer = createCustomerSelection(searchParams.get("customerId"), searchParams.get("customerName"));
+		return queryCustomer ?? locationState?.activeCustomer ?? null;
+	});
 
 	const listState = useCouponsList();
 	const { updateState } = useCouponsListActions();
 
 	const { isCollapsed, handleToggle } = useSidebarCollapse();
 
-	const handleCustomerSelect = (customer: Customer | null) => {
-		setActiveCustomer(customer);
-		updateState({ page: 1 });
-	};
+	useEffect(() => {
+		const queryCustomer = createCustomerSelection(searchParams.get("customerId"), searchParams.get("customerName"));
+		setActiveCustomer((prev) => {
+			if (
+				(prev?.id ?? null) === (queryCustomer?.id ?? null) &&
+				(prev?.name ?? null) === (queryCustomer?.name ?? null)
+			) {
+				return prev;
+			}
+			return queryCustomer;
+		});
+	}, [searchParams]);
+
+	const updateCouponsSearchParams = useCallback(
+		(next: { customerId?: string | null; customerName?: string | null }) => {
+			const params = new URLSearchParams(location.search);
+
+			if (next.customerId) {
+				params.set("customerId", next.customerId);
+			} else {
+				params.delete("customerId");
+			}
+
+			if (next.customerName) {
+				params.set("customerName", next.customerName);
+			} else {
+				params.delete("customerName");
+			}
+
+			const nextSearch = params.toString();
+			navigate(`${location.pathname}${nextSearch ? `?${nextSearch}` : ""}`);
+		},
+		[location.pathname, location.search, navigate],
+	);
+
+	const handleCustomerSelect = useCallback(
+		(customer: Customer | null) => {
+			setActiveCustomer(customer);
+			updateState({ page: 1 });
+			updateCouponsSearchParams({
+				customerId: customer?.id ?? null,
+				customerName: customer?.name ?? null,
+			});
+		},
+		[updateCouponsSearchParams, updateState],
+	);
 
 	const { data, isLoading } = useQuery({
 		queryKey: ["coupons", listState.page, listState.pageSize, activeCustomer?.id],

@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
-import { useLocation, useNavigate, useParams } from "react-router";
+import { useLocation, useNavigate, useParams, useSearchParams } from "react-router";
 import { toast } from "sonner";
 import { BackButton } from "@/core/components/common";
 import couponService from "@/core/api/services/coupon-service";
@@ -24,6 +24,33 @@ type CouponEditLocationState = {
 	coupon?: Coupon;
 	activeCustomer?: Customer | null;
 };
+
+function createCustomerSelection(customerId: string | null, customerName: string | null): Customer | null {
+	if (!customerId || !customerName) return null;
+
+	return {
+		id: customerId,
+		name: customerName,
+		registerDate: "",
+		code: "",
+		status: true,
+		defaultPrice: "",
+		warehouseId: "",
+		memo: "",
+		profileUrl: "",
+		shopBannerUrl: "",
+		employeeId: "",
+		telephone: "",
+		email: "",
+		geography: "",
+		address: "",
+		location: "",
+		map: "",
+		billingAddress: "",
+		deliveryAddress: "",
+		vehicles: [],
+	};
+}
 
 function toDateInputValue(value: string | null | undefined): string {
 	if (!value) return "";
@@ -88,9 +115,13 @@ function normalizeDraftWeightRecords(
 export default function EditCouponPage() {
 	const navigate = useNavigate();
 	const location = useLocation();
+	const [searchParams] = useSearchParams();
 	const queryClient = useQueryClient();
 	const { id } = useParams<{ id: string }>();
 	const locationState = location.state as CouponEditLocationState | null;
+	const activeCustomer =
+		locationState?.activeCustomer ??
+		createCustomerSelection(searchParams.get("customerId"), searchParams.get("customerName"));
 	const [weightRecords, setWeightRecords] = useState<DraftWeightRecord[]>([createInitialRawWeightRecord()]);
 
 	const { data: employees = [] } = useQuery({
@@ -172,9 +203,9 @@ export default function EditCouponPage() {
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["coupons"] });
 			toast.success("Coupon updated successfully");
-			navigate("/dashboard/coupons", {
+			navigate(`/dashboard/coupons${location.search || ""}`, {
 				state: {
-					activeCustomer: locationState?.activeCustomer ?? null,
+					activeCustomer,
 				},
 			});
 		},
@@ -222,9 +253,9 @@ export default function EditCouponPage() {
 				<div className="flex items-center gap-3">
 					<BackButton
 						onClick={() =>
-							navigate("/dashboard/coupons", {
+							navigate(`/dashboard/coupons${location.search || ""}`, {
 								state: {
-									activeCustomer: locationState?.activeCustomer ?? null,
+									activeCustomer,
 								},
 							})
 						}
@@ -244,9 +275,9 @@ export default function EditCouponPage() {
 				<div className="flex items-center gap-3">
 					<BackButton
 						onClick={() =>
-							navigate("/dashboard/coupons", {
+							navigate(`/dashboard/coupons${location.search || ""}`, {
 								state: {
-									activeCustomer: locationState?.activeCustomer ?? null,
+									activeCustomer,
 								},
 							})
 						}
