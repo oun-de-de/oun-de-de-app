@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router";
 import { SmartDataTable, SummaryStatCard } from "@/core/components/common";
 import { Button } from "@/core/ui/button";
@@ -58,6 +58,10 @@ export function BorrowContent({ activeCustomerId, activeCustomerName, listState,
 			}),
 		[listState, paginationItems, totalItems, totalPages, updateState],
 	);
+	const handleRowClick = useCallback(
+		(row: (typeof paginatedLoans)[number]) => navigate(`/dashboard/loan/${row.id}`),
+		[navigate],
+	);
 
 	useEffect(() => {
 		if (listState.page > totalPages) {
@@ -93,7 +97,7 @@ export function BorrowContent({ activeCustomerId, activeCustomerName, listState,
 				columns={borrowColumns}
 				filterConfig={filterConfig}
 				paginationConfig={paginationConfig}
-				onRowClick={(row) => navigate(`/dashboard/loan/${row.id}`)}
+				onRowClick={handleRowClick}
 			/>
 		</>
 	);

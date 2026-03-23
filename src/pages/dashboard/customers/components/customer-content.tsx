@@ -1,4 +1,5 @@
 import { SmartDataTable } from "@/core/components/common";
+import { useCallback, useMemo } from "react";
 import type { Customer } from "@/core/types/customer";
 import { Text } from "@/core/ui/typography";
 import { useNavigate } from "react-router";
@@ -32,6 +33,56 @@ export function CustomerContent({
 	const navigate = useNavigate();
 	// const summaryStats = getSummaryStats(activeCustomer);
 	const searchPlaceholder = listState.fieldFilter === "payment_term" ? "Enter payment term in days" : "Search...";
+	const handleRowClick = useCallback(
+		(customer: Customer) => navigate(`/dashboard/customers/edit/${customer.id}`),
+		[navigate],
+	);
+	const handleTypeChange = useCallback((value: string) => updateState({ typeFilter: value, page: 1 }), [updateState]);
+	const handleFieldChange = useCallback((value: string) => updateState({ fieldFilter: value, page: 1 }), [updateState]);
+	const handleSearchChange = useCallback(
+		(value: string) => updateState({ searchValue: value, page: 1 }),
+		[updateState],
+	);
+	const handlePageChange = useCallback((nextPage: number) => updateState({ page: nextPage }), [updateState]);
+	const handlePageSizeChange = useCallback(
+		(nextSize: number) => updateState({ pageSize: nextSize, page: 1 }),
+		[updateState],
+	);
+	const filterConfig = useMemo(
+		() => ({
+			showTypeFilter: false,
+			typeOptions: FILTER_TYPE_OPTIONS,
+			fieldOptions: FILTER_FIELD_OPTIONS,
+			typeValue: listState.typeFilter,
+			fieldValue: listState.fieldFilter,
+			searchValue: listState.searchValue,
+			searchPlaceholder,
+			onTypeChange: handleTypeChange,
+			onFieldChange: handleFieldChange,
+			onSearchChange: handleSearchChange,
+		}),
+		[
+			handleFieldChange,
+			handleSearchChange,
+			handleTypeChange,
+			listState.fieldFilter,
+			listState.searchValue,
+			listState.typeFilter,
+			searchPlaceholder,
+		],
+	);
+	const paginationConfig = useMemo(
+		() => ({
+			page: currentPage,
+			pageSize: listState.pageSize,
+			totalItems,
+			totalPages,
+			paginationItems,
+			onPageChange: handlePageChange,
+			onPageSizeChange: handlePageSizeChange,
+		}),
+		[currentPage, handlePageChange, handlePageSizeChange, listState.pageSize, paginationItems, totalItems, totalPages],
+	);
 
 	return (
 		<>
@@ -58,28 +109,9 @@ export function CustomerContent({
 				maxBodyHeight="100%"
 				data={pagedData}
 				columns={columns}
-				onRowClick={(customer) => navigate(`/dashboard/customers/edit/${customer.id}`)}
-				filterConfig={{
-					showTypeFilter: false,
-					typeOptions: FILTER_TYPE_OPTIONS,
-					fieldOptions: FILTER_FIELD_OPTIONS,
-					typeValue: listState.typeFilter,
-					fieldValue: listState.fieldFilter,
-					searchValue: listState.searchValue,
-					searchPlaceholder,
-					onTypeChange: (value: string) => updateState({ typeFilter: value, page: 1 }),
-					onFieldChange: (value: string) => updateState({ fieldFilter: value, page: 1 }),
-					onSearchChange: (value: string) => updateState({ searchValue: value, page: 1 }),
-				}}
-				paginationConfig={{
-					page: currentPage,
-					pageSize: listState.pageSize,
-					totalItems: totalItems,
-					totalPages: totalPages,
-					paginationItems: paginationItems,
-					onPageChange: (nextPage: number) => updateState({ page: nextPage }),
-					onPageSizeChange: (nextSize: number) => updateState({ pageSize: nextSize, page: 1 }),
-				}}
+				onRowClick={handleRowClick}
+				filterConfig={filterConfig}
+				paginationConfig={paginationConfig}
 			/>
 		</>
 	);

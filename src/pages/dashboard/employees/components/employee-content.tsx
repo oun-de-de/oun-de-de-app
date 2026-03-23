@@ -1,3 +1,4 @@
+import { useCallback, useMemo } from "react";
 import { useNavigate } from "react-router";
 import { SmartDataTable } from "@/core/components/common";
 import type { Employee } from "@/core/types/employee";
@@ -30,9 +31,61 @@ export function EmployeeContent({
 	const listState = useEmployeeState();
 	const { updateState } = useEmployeeActions();
 
-	const handleEdit = (employee: Employee) => {
-		navigate(`/dashboard/employees/edit/${employee.id}`);
-	};
+	const handleEdit = useCallback(
+		(employee: Employee) => {
+			navigate(`/dashboard/employees/edit/${employee.id}`);
+		},
+		[navigate],
+	);
+	const handleCreateEmployee = useCallback(() => {
+		navigate("/dashboard/employees/create");
+	}, [navigate]);
+	const handleTypeChange = useCallback((value: string) => updateState({ typeFilter: value, page: 1 }), [updateState]);
+	const handleFieldChange = useCallback((value: string) => updateState({ fieldFilter: value, page: 1 }), [updateState]);
+	const handleSearchChange = useCallback(
+		(value: string) => updateState({ searchValue: value, page: 1 }),
+		[updateState],
+	);
+	const handlePageChange = useCallback((nextPage: number) => updateState({ page: nextPage }), [updateState]);
+	const handlePageSizeChange = useCallback(
+		(nextSize: number) => updateState({ pageSize: nextSize, page: 1 }),
+		[updateState],
+	);
+	const employeeColumns = useMemo(() => columns(handleEdit), [handleEdit]);
+	const filterConfig = useMemo(
+		() => ({
+			showTypeFilter: false,
+			typeOptions: FILTER_TYPE_OPTIONS,
+			fieldOptions: FILTER_FIELD_OPTIONS,
+			typeValue: listState.typeFilter,
+			fieldValue: listState.fieldFilter,
+			searchValue: listState.searchValue,
+			searchPlaceholder: "Search employees...",
+			onTypeChange: handleTypeChange,
+			onFieldChange: handleFieldChange,
+			onSearchChange: handleSearchChange,
+		}),
+		[
+			handleFieldChange,
+			handleSearchChange,
+			handleTypeChange,
+			listState.fieldFilter,
+			listState.searchValue,
+			listState.typeFilter,
+		],
+	);
+	const paginationConfig = useMemo(
+		() => ({
+			page: currentPage,
+			pageSize: listState.pageSize,
+			totalItems,
+			totalPages,
+			paginationItems,
+			onPageChange: handlePageChange,
+			onPageSizeChange: handlePageSizeChange,
+		}),
+		[currentPage, handlePageChange, handlePageSizeChange, listState.pageSize, paginationItems, totalItems, totalPages],
+	);
 
 	return (
 		<>
@@ -43,11 +96,7 @@ export function EmployeeContent({
 					</Text>
 				</div>
 				<div className="flex items-center gap-2">
-					<Button
-						onClick={() => navigate("/dashboard/employees/create")}
-						size="sm"
-						className="gap-2 bg-sky-600 hover:bg-sky-700"
-					>
+					<Button onClick={handleCreateEmployee} size="sm" className="gap-2 bg-sky-600 hover:bg-sky-700">
 						Add Employee
 					</Button>
 				</div>
@@ -62,28 +111,9 @@ export function EmployeeContent({
 				className="flex-1 min-h-0"
 				maxBodyHeight="100%"
 				data={pagedData}
-				columns={columns(handleEdit)}
-				filterConfig={{
-					showTypeFilter: false,
-					typeOptions: FILTER_TYPE_OPTIONS,
-					fieldOptions: FILTER_FIELD_OPTIONS,
-					typeValue: listState.typeFilter,
-					fieldValue: listState.fieldFilter,
-					searchValue: listState.searchValue,
-					searchPlaceholder: "Search employees...",
-					onTypeChange: (value: string) => updateState({ typeFilter: value, page: 1 }),
-					onFieldChange: (value: string) => updateState({ fieldFilter: value, page: 1 }),
-					onSearchChange: (value: string) => updateState({ searchValue: value, page: 1 }),
-				}}
-				paginationConfig={{
-					page: currentPage,
-					pageSize: listState.pageSize,
-					totalItems: totalItems,
-					totalPages: totalPages,
-					paginationItems: paginationItems,
-					onPageChange: (nextPage: number) => updateState({ page: nextPage }),
-					onPageSizeChange: (nextSize: number) => updateState({ pageSize: nextSize, page: 1 }),
-				}}
+				columns={employeeColumns}
+				filterConfig={filterConfig}
+				paginationConfig={paginationConfig}
 			/>
 		</>
 	);

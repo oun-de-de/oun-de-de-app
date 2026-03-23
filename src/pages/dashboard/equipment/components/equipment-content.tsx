@@ -1,5 +1,6 @@
 import { BackButton, SmartDataTable, SummaryStatCard } from "@/core/components/common";
 import { Text } from "@/core/ui/typography";
+import { useCallback, useMemo } from "react";
 import { useNavigate } from "react-router";
 import { useEquipmentContent } from "../hooks/use-equipment-content";
 import { CreateItemDialog } from "./create-item-dialog";
@@ -24,14 +25,47 @@ const SEARCH_PLACEHOLDER = "Search items";
 export function EquipmentContent({ activeItemId }: Props) {
 	const navigate = useNavigate();
 	const { activeItem, summaryCards, createItem, table, getRowLink } = useEquipmentContent(activeItemId);
-	const handleBack = () => {
+	const handleBack = useCallback(() => {
 		if (window.history.length > 1) {
 			navigate(-1);
 			return;
 		}
 
 		navigate("/dashboard");
-	};
+	}, [navigate]);
+	const handleCreateItem = useCallback(
+		(data: Parameters<typeof createItem.mutate>[0]) => createItem.mutate(data),
+		[createItem],
+	);
+	const handleRowClick = useCallback(
+		(row: (typeof table.pagedRows)[number]) => {
+			const link = getRowLink(row);
+			if (link) navigate(link);
+		},
+		[getRowLink, navigate],
+	);
+	const filterConfig = useMemo(
+		() => ({
+			showTypeFilter: false,
+			typeOptions: EQUIPMENT_TYPE_OPTIONS,
+			fieldOptions: EQUIPMENT_FIELD_OPTIONS,
+			typeValue: table.typeFilter,
+			fieldValue: table.fieldFilter,
+			searchValue: table.searchValue,
+			onTypeChange: table.setTypeFilter,
+			onFieldChange: table.setFieldFilter,
+			onSearchChange: table.setSearchValue,
+			searchPlaceholder: SEARCH_PLACEHOLDER,
+		}),
+		[
+			table.fieldFilter,
+			table.searchValue,
+			table.setFieldFilter,
+			table.setSearchValue,
+			table.setTypeFilter,
+			table.typeFilter,
+		],
+	);
 
 	return (
 		<>
@@ -44,7 +78,7 @@ export function EquipmentContent({ activeItemId }: Props) {
 					</Text>
 				</div>
 				<div className="flex gap-2">
-					<CreateItemDialog onSubmit={(data) => createItem.mutate(data)} isPending={createItem.isPending} />
+					<CreateItemDialog onSubmit={handleCreateItem} isPending={createItem.isPending} />
 				</div>
 			</div>
 			{/* Summary */}
@@ -60,22 +94,8 @@ export function EquipmentContent({ activeItemId }: Props) {
 				maxBodyHeight="100%"
 				data={table.pagedRows}
 				columns={table.columns}
-				onRowClick={(row) => {
-					const link = getRowLink(row);
-					if (link) navigate(link);
-				}}
-				filterConfig={{
-					showTypeFilter: false,
-					typeOptions: EQUIPMENT_TYPE_OPTIONS,
-					fieldOptions: EQUIPMENT_FIELD_OPTIONS,
-					typeValue: table.typeFilter,
-					fieldValue: table.fieldFilter,
-					searchValue: table.searchValue,
-					onTypeChange: table.setTypeFilter,
-					onFieldChange: table.setFieldFilter,
-					onSearchChange: table.setSearchValue,
-					searchPlaceholder: SEARCH_PLACEHOLDER,
-				}}
+				onRowClick={handleRowClick}
+				filterConfig={filterConfig}
 			/>
 		</>
 	);

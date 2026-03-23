@@ -16,7 +16,7 @@ import { Label } from "@/core/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/core/ui/select";
 import { Text } from "@/core/ui/typography";
 import { cn } from "@/core/utils";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { CYCLE_STATUS_OPTIONS, DURATION_OPTIONS } from "../constants/constants";
 import { useCycleTable } from "../hooks/use-cycle-table";
@@ -91,8 +91,24 @@ export function CycleContent({ customerId, customerName, onSelectCycle, requireC
 		() => durationOptions.find((option) => option.value === String(duration)) ?? null,
 		[duration, durationOptions],
 	);
-
 	const columns = useMemo(() => getCycleColumns(), []);
+	const handleResetDefault = useCallback(() => {
+		setDurationInput(getDurationDisplayValue(0));
+		onResetFilters();
+	}, [onResetFilters]);
+	const handleRowClick = useCallback((row: Cycle) => onSelectCycle(row), [onSelectCycle]);
+	const paginationConfig = useMemo(
+		() => ({
+			page: currentPage,
+			pageSize,
+			totalItems,
+			totalPages,
+			paginationItems,
+			onPageChange,
+			onPageSizeChange,
+		}),
+		[currentPage, onPageChange, onPageSizeChange, pageSize, paginationItems, totalItems, totalPages],
+	);
 
 	useEffect(() => {
 		setDurationInput(getDurationDisplayValue(duration));
@@ -215,14 +231,7 @@ export function CycleContent({ customerId, customerName, onSelectCycle, requireC
 
 				<div className="space-y-1.5">
 					<div className="h-2" aria-hidden="true" />
-					<Button
-						size="sm"
-						className="h-8"
-						onClick={() => {
-							setDurationInput(getDurationDisplayValue(0));
-							onResetFilters();
-						}}
-					>
+					<Button size="sm" className="h-8" onClick={handleResetDefault}>
 						Reset Default
 					</Button>
 				</div>
@@ -234,16 +243,8 @@ export function CycleContent({ customerId, customerName, onSelectCycle, requireC
 				maxBodyHeight="100%"
 				data={cycles}
 				columns={columns}
-				onRowClick={(row) => onSelectCycle(row)}
-				paginationConfig={{
-					page: currentPage,
-					pageSize,
-					totalItems,
-					totalPages,
-					paginationItems,
-					onPageChange,
-					onPageSizeChange,
-				}}
+				onRowClick={handleRowClick}
+				paginationConfig={paginationConfig}
 			/>
 		</div>
 	);

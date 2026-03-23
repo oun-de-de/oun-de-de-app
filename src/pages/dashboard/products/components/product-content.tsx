@@ -1,4 +1,5 @@
 import { SmartDataTable } from "@/core/components/common";
+import { useCallback, useMemo } from "react";
 import type { Product } from "@/core/types/product";
 import { Button } from "@/core/ui/button";
 import { Text } from "@/core/ui/typography";
@@ -32,6 +33,50 @@ export function ProductContent({
 	paginationItems,
 }: ProductContentProps) {
 	const navigate = useNavigate();
+	const handleCreateProduct = useCallback(() => {
+		navigate("/dashboard/products/create");
+	}, [navigate]);
+	const handleFieldChange = useCallback((value: string) => updateState({ fieldFilter: value, page: 1 }), [updateState]);
+	const handleSearchChange = useCallback(
+		(value: string) => updateState({ searchValue: value, page: 1 }),
+		[updateState],
+	);
+	const handlePageChange = useCallback((nextPage: number) => updateState({ page: nextPage }), [updateState]);
+	const handlePageSizeChange = useCallback(
+		(nextSize: number) => updateState({ pageSize: nextSize, page: 1 }),
+		[updateState],
+	);
+	const filterConfig = useMemo(
+		() => ({
+			showTypeFilter: false,
+			fieldOptions: FILTER_FIELD_OPTIONS,
+			fieldValue: listState.fieldFilter,
+			searchValue: listState.searchValue,
+			onFieldChange: handleFieldChange,
+			onSearchChange: handleSearchChange,
+		}),
+		[handleFieldChange, handleSearchChange, listState.fieldFilter, listState.searchValue],
+	);
+	const paginationConfig = useMemo(
+		() => ({
+			page: listState.page,
+			pageSize: listState.pageSize,
+			totalItems,
+			totalPages,
+			paginationItems,
+			onPageChange: handlePageChange,
+			onPageSizeChange: handlePageSizeChange,
+		}),
+		[
+			handlePageChange,
+			handlePageSizeChange,
+			listState.page,
+			listState.pageSize,
+			paginationItems,
+			totalItems,
+			totalPages,
+		],
+	);
 
 	return (
 		<>
@@ -42,7 +87,7 @@ export function ProductContent({
 					</Text>
 				</div>
 				<div className="flex gap-2">
-					<Button size="sm" className="gap-2" onClick={() => navigate("/dashboard/products/create")}>
+					<Button size="sm" className="gap-2" onClick={handleCreateProduct}>
 						Create Product
 					</Button>
 				</div>
@@ -58,23 +103,8 @@ export function ProductContent({
 				maxBodyHeight="100%"
 				data={pagedData}
 				columns={columns}
-				filterConfig={{
-					showTypeFilter: false,
-					fieldOptions: FILTER_FIELD_OPTIONS,
-					fieldValue: listState.fieldFilter,
-					searchValue: listState.searchValue,
-					onFieldChange: (value: string) => updateState({ fieldFilter: value, page: 1 }),
-					onSearchChange: (value: string) => updateState({ searchValue: value, page: 1 }),
-				}}
-				paginationConfig={{
-					page: listState.page,
-					pageSize: listState.pageSize,
-					totalItems: totalItems,
-					totalPages: totalPages,
-					paginationItems: paginationItems,
-					onPageChange: (nextPage: number) => updateState({ page: nextPage }),
-					onPageSizeChange: (nextSize: number) => updateState({ pageSize: nextSize, page: 1 }),
-				}}
+				filterConfig={filterConfig}
+				paginationConfig={paginationConfig}
 			/>
 		</>
 	);

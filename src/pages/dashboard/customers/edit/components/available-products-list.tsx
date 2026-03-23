@@ -41,6 +41,14 @@ export function AvailableProductsList({ products, onAdd }: AvailableProductsList
 		],
 		[],
 	);
+	const filterConfig = useMemo(
+		() => ({
+			searchValue: searchTerm,
+			onSearchChange: setSearchTerm,
+			searchPlaceholder: "Search by name or ref...",
+		}),
+		[searchTerm],
+	);
 
 	return (
 		<div className="border rounded-md overflow-hidden flex flex-col h-full">
@@ -51,11 +59,7 @@ export function AvailableProductsList({ products, onAdd }: AvailableProductsList
 				<SmartDataTable
 					data={filteredProducts}
 					columns={columns}
-					filterConfig={{
-						searchValue: searchTerm,
-						onSearchChange: setSearchTerm,
-						searchPlaceholder: "Search by name or ref...",
-					}}
+					filterConfig={filterConfig}
 					enableFilterBar={false}
 					onRowClick={onAdd}
 					maxBodyHeight="100%"
