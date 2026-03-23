@@ -133,7 +133,7 @@ export function CycleContent({ customerId, customerName, onSelectCycle, requireC
 			<div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-2">
 				<div className="flex items-center gap-2">
 					<Text variant="body2" className="text-muted-foreground">
-						{customerName ? `${customerName} selected` : "Select a customer"}
+						{customerName ? `Cycles for ${customerName}` : "Select a customer"}
 					</Text>
 				</div>
 				<div className="flex items-center gap-2">

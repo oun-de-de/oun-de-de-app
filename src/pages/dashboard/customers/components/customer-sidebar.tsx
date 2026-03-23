@@ -9,6 +9,7 @@ import { CustomerTypeCombobox } from "./customer-type-combobox";
 
 type CustomerSidebarProps = {
 	activeCustomerId: string | null;
+	activeCustomerName?: string | null;
 	onSelect: (customer: Customer | null) => void;
 	onToggle?: () => void;
 	isCollapsed?: boolean;
@@ -21,6 +22,7 @@ const DEFAULT_ITEM_SIZE = 56;
 
 export function CustomerSidebar({
 	activeCustomerId,
+	activeCustomerName,
 	onSelect,
 	onToggle,
 	isCollapsed,
@@ -54,6 +56,11 @@ export function CustomerSidebar({
 
 	const customers = data?.pages.flatMap((p) => p.list) ?? [];
 	const total = data?.pages[0]?.total ?? customers.length;
+	const hasVisibleActiveCustomer = activeCustomerId
+		? customers.some((customer) => customer.id === activeCustomerId)
+		: false;
+	const shouldShowPinnedActiveCustomer =
+		Boolean(activeCustomerId) && Boolean(activeCustomerName) && !hasVisibleActiveCustomer;
 
 	return (
 		<SidebarList>
@@ -74,6 +81,22 @@ export function CustomerSidebar({
 				<SidebarList.CollapsedHint text="Click to expand customer list" onClick={onToggle} />
 			) : (
 				<>
+					{shouldShowPinnedActiveCustomer ? (
+						<div className="mt-2 space-y-2">
+							<div className="px-1 text-xs font-medium uppercase tracking-wide text-slate-500">Selected Customer</div>
+							<EntityListItem
+								entity={{
+									id: activeCustomerId!,
+									name: activeCustomerName!,
+									code: "",
+								}}
+								isActive
+								onSelect={() => onSelect(null)}
+								className="rounded"
+							/>
+						</div>
+					) : null}
+
 					<SidebarList.Body
 						key="expanded"
 						className={cn("mt-2 flex-1 min-h-0 divide-y divide-border-gray-300")}

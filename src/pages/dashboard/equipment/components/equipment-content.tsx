@@ -7,6 +7,7 @@ import { CreateItemDialog } from "./create-item-dialog";
 
 type Props = {
 	activeItemId: string | null;
+	onClearSelection: () => void;
 };
 
 const EQUIPMENT_TYPE_OPTIONS = [
@@ -22,17 +23,12 @@ const EQUIPMENT_FIELD_OPTIONS = [
 
 const SEARCH_PLACEHOLDER = "Search items";
 
-export function EquipmentContent({ activeItemId }: Props) {
+export function EquipmentContent({ activeItemId, onClearSelection }: Props) {
 	const navigate = useNavigate();
 	const { activeItem, summaryCards, createItem, table, getRowLink } = useEquipmentContent(activeItemId);
 	const handleBack = useCallback(() => {
-		if (window.history.length > 1) {
-			navigate(-1);
-			return;
-		}
-
-		navigate("/dashboard");
-	}, [navigate]);
+		onClearSelection();
+	}, [onClearSelection]);
 	const handleCreateItem = useCallback(
 		(data: Parameters<typeof createItem.mutate>[0]) => createItem.mutate(data),
 		[createItem],
@@ -72,7 +68,7 @@ export function EquipmentContent({ activeItemId }: Props) {
 			{/* Header */}
 			<div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-2">
 				<div className="flex items-center gap-2">
-					<BackButton appearance="default" onClick={handleBack} />
+					{activeItemId ? <BackButton appearance="default" onClick={handleBack} /> : null}
 					<Text variant="body2" className="text-slate-400">
 						{activeItem ? `${activeItem.name} selected` : "All equipment"}
 					</Text>

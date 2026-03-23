@@ -313,12 +313,8 @@ export function InvoiceContent({
 			<div className="flex flex-wrap items-center justify-between gap-2 shrink-0 border-b border-slate-200 pb-2">
 				<div className="flex items-center gap-2">
 					{onBack && <BackButton onClick={onBack} />}
-					<Button size="sm" className="gap-1">
-						<Icon icon="mdi:file-document-outline" />
-						Invoice
-					</Button>
 					<Text variant="body2" className="text-muted-foreground">
-						{activeInvoiceLabel ? `${activeInvoiceLabel} selected` : "Manage customer invoices"}
+						{activeInvoiceLabel ? `Invoices for ${activeInvoiceLabel}` : "Manage customer invoices"}
 					</Text>
 				</div>
 				<div className="flex items-center gap-2">

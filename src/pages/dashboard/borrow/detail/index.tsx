@@ -11,7 +11,7 @@ import type { InvoiceExportPreviewLocationState } from "@/core/types/invoice";
 import { formatDisplayDate, formatDisplayDateTime, formatKHR } from "@/core/utils/formatters";
 import { useRouter } from "@/routes/hooks/use-router";
 import { useCallback, useMemo, useState } from "react";
-import { useLocation, useNavigate, useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import { ReportLayout } from "../../reports/components/layout/report-layout";
 import {
 	type ReportTemplateColumn,
@@ -33,7 +33,6 @@ export default function BorrowDetailPage() {
 	const { id } = useParams<{ id: string }>();
 	const router = useRouter();
 	const navigate = useNavigate();
-	const location = useLocation();
 	const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
 	const [shouldUpdateDueDate, setShouldUpdateDueDate] = useState(true);
 	const [paymentCode, setPaymentCode] = useState("");
@@ -142,8 +141,8 @@ export default function BorrowDetailPage() {
 	);
 	const printTimestamp = useMemo(() => formatReportTimestamp("administrator", new Date()), []);
 	const handleBackToLoans = useCallback(() => {
-		router.push(`/dashboard/loan${location.search || ""}`);
-	}, [location.search, router]);
+		router.push("/dashboard/loan");
+	}, [router]);
 
 	const handleCreatePayment = async () => {
 		const parsedAmount = Number(paymentAmount);

@@ -68,6 +68,7 @@ export default function BorrowPage() {
 			sidebar={
 				<CustomerSidebar
 					activeCustomerId={activeCustomerId ?? null}
+					activeCustomerName={activeCustomerName ?? null}
 					onSelect={handleSelectCustomer}
 					onToggle={handleToggle}
 					isCollapsed={isCollapsed}

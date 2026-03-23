@@ -27,6 +27,7 @@ type CouponContentProps = {
 };
 
 const summaryCards = couponSummaryCards;
+const getCouponDraftStorageKey = (couponId: string) => `coupon-edit:draft:${couponId}`;
 
 export function CouponContent({
 	activeCustomerName,
@@ -47,13 +48,15 @@ export function CouponContent({
 		() =>
 			getCouponColumns({
 				onViewWeightRecords: setSelectedCoupon,
-				onEditCoupon: (coupon) =>
+				onEditCoupon: (coupon) => {
+					window.sessionStorage.setItem(getCouponDraftStorageKey(coupon.id), JSON.stringify(coupon));
 					navigate(`/dashboard/coupons/edit/${coupon.id}${location.search || ""}`, {
 						state: {
 							coupon,
 							activeCustomer,
 						},
-					}),
+					});
+				},
 				onDeleteCoupon: setDeletingCoupon,
 			}),
 		[navigate, activeCustomer, location.search],
@@ -69,7 +72,7 @@ export function CouponContent({
 			<div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-2">
 				<div className="flex items-center gap-2">
 					<Text variant="body2" className="text-muted-foreground">
-						{activeCustomerName ? `${activeCustomerName} selected` : "No customer selected"}
+						{activeCustomerName ? `Coupons for ${activeCustomerName}` : "No customer selected"}
 					</Text>
 				</div>
 				<div className="flex items-center gap-2">

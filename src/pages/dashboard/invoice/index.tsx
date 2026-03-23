@@ -97,12 +97,14 @@ export default function InvoicePage() {
 	const handleBackToCycles = useCallback(() => {
 		setActiveCycleSnapshot(null);
 		setActiveCycleId(null);
+		setActiveCustomerId(null);
+		setActiveCustomerName(null);
 		updateInvoiceSearchParams({
-			customerId: activeCustomerId,
-			customerName: activeCustomerName,
+			customerId: null,
+			customerName: null,
 			cycleId: null,
 		});
-	}, [activeCustomerId, activeCustomerName, updateInvoiceSearchParams]);
+	}, [updateInvoiceSearchParams]);
 
 	// Invoice table — only used when a cycle is selected
 	const invoiceTable = useInvoiceTable({
@@ -120,6 +122,7 @@ export default function InvoicePage() {
 			sidebar={
 				<CustomerSidebar
 					activeCustomerId={activeCustomerId ?? null}
+					activeCustomerName={activeCustomerName ?? null}
 					onSelect={handleSelectCustomer}
 					onToggle={handleToggle}
 					isCollapsed={isCollapsed}

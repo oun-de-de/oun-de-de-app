@@ -23,7 +23,8 @@ export function CustomerActions({ customerId, customerName }: CustomerActionsPro
 	};
 
 	const handleScrollTo = (section: string) => {
-		navigate(editUrl, { state: { scrollTo: section } });
+		const params = new URLSearchParams({ section });
+		navigate(`${editUrl}?${params.toString()}`);
 	};
 
 	// prefetch customer data

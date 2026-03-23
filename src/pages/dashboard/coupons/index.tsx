@@ -140,6 +140,7 @@ export default function CouponsPage() {
 			sidebar={
 				<CustomerSidebar
 					activeCustomerId={activeCustomer?.id || null}
+					activeCustomerName={activeCustomer?.name || null}
 					onSelect={handleCustomerSelect}
 					onToggle={handleToggle}
 					isCollapsed={isCollapsed}

@@ -107,13 +107,13 @@ export default function EquipmentExportPreviewPage() {
 	const emptyText = isLoading ? EMPTY_LOADING_TEXT : EMPTY_NOT_FOUND_TEXT;
 	const handlePrint = useCallback(() => window.print(), []);
 	const handleBack = useCallback(() => {
-		if (window.history.length > 1) {
-			navigate(-1);
+		if (itemId) {
+			navigate(`/dashboard/equipment/${encodeURIComponent(itemId)}`);
 			return;
 		}
 
 		navigate("/dashboard/equipment");
-	}, [navigate]);
+	}, [itemId, navigate]);
 
 	const metaColumns = useMemo<ReportTemplateMetaColumn[]>(
 		() => buildPreviewMetaColumns(item, transactionId),

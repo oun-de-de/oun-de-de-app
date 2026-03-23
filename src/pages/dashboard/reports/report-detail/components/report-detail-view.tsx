@@ -49,11 +49,13 @@ function getDefaultReportFilters(): ReportFiltersValue {
 export function ReportDetailView({ reportSlug }: ReportDetailViewProps) {
 	const location = useLocation();
 	const navigate = useNavigate();
+	const searchParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
+	const activeTabFromQuery = searchParams.get("tab") ?? undefined;
 	const activeTabFromState =
 		typeof (location.state as { activeTab?: unknown } | null)?.activeTab === "string"
 			? ((location.state as { activeTab?: string }).activeTab ?? undefined)
 			: undefined;
-	const searchParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
+	const activeTab = activeTabFromQuery ?? activeTabFromState;
 	const [showSections, setShowSections] = useState(DEFAULT_REPORT_SECTIONS);
 	const [showColumns, setShowColumns] = useState(DEFAULT_REPORT_COLUMNS);
 	const [exportInvoiceIds, setExportInvoiceIds] = useState<string[]>([]);
@@ -100,8 +102,8 @@ export function ReportDetailView({ reportSlug }: ReportDetailViewProps) {
 	const hasPendingFilterChanges = !areReportFiltersEqual(draftFilters, appliedFilters);
 	const handlePrint = () => window.print();
 	const handleBack = useCallback(() => {
-		if (activeTabFromState) {
-			navigate(`/dashboard/reports?tab=${encodeURIComponent(activeTabFromState)}`);
+		if (activeTab) {
+			navigate(`/dashboard/reports?tab=${encodeURIComponent(activeTab)}`);
 			return;
 		}
 
@@ -111,7 +113,7 @@ export function ReportDetailView({ reportSlug }: ReportDetailViewProps) {
 		}
 
 		navigate("/dashboard/reports");
-	}, [activeTabFromState, navigate]);
+	}, [activeTab, navigate]);
 	const isExcelExportReport =
 		reportSlug === "open-invoice-detail-by-customer" || reportSlug === "receipt-detail-by-customer";
 	const tableWrapperClassName = useMemo(

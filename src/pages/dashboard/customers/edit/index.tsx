@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef } from "react";
-import { useLocation, useNavigate, useParams } from "react-router";
+import { useLocation, useNavigate, useParams, useSearchParams } from "react-router";
 import { toast } from "sonner";
 import type { CustomerDetail } from "@/core/types/customer";
 import type { CreateVehicle, Vehicle } from "@/core/types/vehicle";
+import { BackButton } from "@/core/components/common";
 import { Separator } from "@/core/ui/separator";
 import { Text } from "@/core/ui/typography";
 import type { CustomerFormData } from "../create/components/customer-form";
@@ -82,10 +83,11 @@ const scrollToAnchorWhenReady = (container: HTMLDivElement, anchorId: string) =>
 export default function CustomerEditPage() {
 	const location = useLocation();
 	const navigate = useNavigate();
+	const [searchParams, setSearchParams] = useSearchParams();
 	const { id } = useParams<{ id: string }>();
 	const containerRef = useRef<HTMLDivElement>(null);
 	const locationState = location.state as CustomerEditLocationState | null;
-	const scrollTarget = locationState?.scrollTo;
+	const scrollTarget = searchParams.get("section") ?? locationState?.scrollTo ?? null;
 
 	const { data: customer, isLoading } = useGetCustomer(id);
 	const { data: vehicles } = useGetCustomerVehicles(id);
@@ -103,6 +105,19 @@ export default function CustomerEditPage() {
 
 		return scrollToAnchorWhenReady(container, scrollTarget);
 	}, [customer, isLoading, scrollTarget]);
+
+	useEffect(() => {
+		if (!locationState?.scrollTo || searchParams.get("section")) return;
+
+		setSearchParams(
+			(prev) => {
+				const next = new URLSearchParams(prev);
+				next.set("section", locationState.scrollTo!);
+				return next;
+			},
+			{ replace: true },
+		);
+	}, [locationState?.scrollTo, searchParams, setSearchParams]);
 
 	const handleSubmit = useCallback(
 		async (formData: CustomerFormData) => {
@@ -136,6 +151,7 @@ export default function CustomerEditPage() {
 	return (
 		<div ref={containerRef} className="flex flex-col h-full p-6 gap-6 overflow-auto flex-1">
 			<div className="flex items-center gap-3">
+				<BackButton appearance="icon" onClick={() => navigate(CUSTOMERS_PATH)} />
 				<Text className="font-semibold text-sky-600">Edit Customer</Text>
 			</div>
 

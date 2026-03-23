@@ -76,7 +76,7 @@ export function BorrowContent({ activeCustomerId, activeCustomerName, listState,
 			<div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-2">
 				<div className="flex items-center gap-2">
 					<Text variant="body2" className="text-slate-400">
-						{activeCustomerId ? `${activeCustomerName || activeCustomerId} selected` : "All Customers"}
+						{activeCustomerId ? `Loans for ${activeCustomerName || activeCustomerId}` : "All Customers"}
 					</Text>
 				</div>
 
