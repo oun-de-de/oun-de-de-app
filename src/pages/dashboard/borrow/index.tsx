@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { useSearchParams } from "react-router";
+import { useLocation, useNavigate, useSearchParams } from "react-router";
 import { DashboardSplitView } from "@/core/components/common/dashboard-split-view";
 import { useSidebarCollapse } from "@/core/hooks/use-sidebar-collapse";
 import type { Customer } from "@/core/types/customer";
@@ -8,6 +8,8 @@ import { CustomerSidebar } from "@/pages/dashboard/customers/components/customer
 import { BorrowContent } from "./components/borrow-content";
 
 export default function BorrowPage() {
+	const navigate = useNavigate();
+	const location = useLocation();
 	const [searchParams] = useSearchParams();
 	const [activeCustomerId, setActiveCustomerId] = useState<string | null>(() => searchParams.get("customerId"));
 	const [activeCustomerName, setActiveCustomerName] = useState<string | null>(() => searchParams.get("customerName"));
@@ -23,10 +25,41 @@ export default function BorrowPage() {
 		setActiveCustomerName((prev) => (prev === queryCustomerName ? prev : queryCustomerName));
 	}, [searchParams]);
 
-	const handleSelectCustomer = useCallback((customer: Customer | null) => {
-		setActiveCustomerId((prev) => (prev === (customer?.id ?? null) ? prev : (customer?.id ?? null)));
-		setActiveCustomerName((prev) => (prev === (customer?.name ?? null) ? prev : (customer?.name ?? null)));
-	}, []);
+	const updateBorrowSearchParams = useCallback(
+		(next: { customerId?: string | null; customerName?: string | null }) => {
+			const params = new URLSearchParams(location.search);
+
+			if (next.customerId) {
+				params.set("customerId", next.customerId);
+			} else {
+				params.delete("customerId");
+			}
+
+			if (next.customerName) {
+				params.set("customerName", next.customerName);
+			} else {
+				params.delete("customerName");
+			}
+
+			const nextSearch = params.toString();
+			navigate(`${location.pathname}${nextSearch ? `?${nextSearch}` : ""}`);
+		},
+		[location.pathname, location.search, navigate],
+	);
+
+	const handleSelectCustomer = useCallback(
+		(customer: Customer | null) => {
+			const nextCustomerId = customer?.id ?? null;
+			const nextCustomerName = customer?.name ?? null;
+			setActiveCustomerId((prev) => (prev === nextCustomerId ? prev : nextCustomerId));
+			setActiveCustomerName((prev) => (prev === nextCustomerName ? prev : nextCustomerName));
+			updateBorrowSearchParams({
+				customerId: nextCustomerId,
+				customerName: nextCustomerName,
+			});
+		},
+		[updateBorrowSearchParams],
+	);
 
 	return (
 		<DashboardSplitView
@@ -35,6 +68,7 @@ export default function BorrowPage() {
 			sidebar={
 				<CustomerSidebar
 					activeCustomerId={activeCustomerId ?? null}
+					activeCustomerName={activeCustomerName ?? null}
 					onSelect={handleSelectCustomer}
 					onToggle={handleToggle}
 					isCollapsed={isCollapsed}

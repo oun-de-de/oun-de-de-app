@@ -263,17 +263,21 @@ export default function InvoiceExportPreviewPage() {
 	}, []);
 
 	const handleBack = useCallback(() => {
-		if (state?.cycleId) {
+		const cycleId = searchParams.get("cycleId") ?? state?.cycleId;
+		const customerId = searchParams.get("customerId") ?? state?.customerId;
+		const customerName = searchParams.get("customerName") ?? state?.customerName;
+
+		if (cycleId) {
 			const params = new URLSearchParams();
-			if (state.customerId) params.set("customerId", state.customerId);
-			if (state.customerName) params.set("customerName", state.customerName);
-			params.set("cycleId", state.cycleId);
+			if (customerId) params.set("customerId", customerId);
+			if (customerName) params.set("customerName", customerName);
+			params.set("cycleId", cycleId);
 			navigate(`/dashboard/invoice?${params.toString()}`);
 			return;
 		}
 
 		navigate("/dashboard/invoice");
-	}, [navigate, state]);
+	}, [navigate, searchParams, state]);
 
 	const handleCopy = useCallback(async () => {
 		const clipboardText = buildClipboardText(reportRows, visibleColumnIds, columns);
@@ -291,6 +295,15 @@ export default function InvoiceExportPreviewPage() {
 		const idsValue = selectedInvoiceIds.join(",");
 		if (idsValue) nextSearchParams.set("ids", idsValue);
 		else nextSearchParams.delete("ids");
+		const cycleId = state?.cycleId ?? searchParams.get("cycleId");
+		const customerId = state?.customerId ?? searchParams.get("customerId");
+		const customerName = state?.customerName ?? searchParams.get("customerName");
+		if (cycleId) nextSearchParams.set("cycleId", cycleId);
+		else nextSearchParams.delete("cycleId");
+		if (customerId) nextSearchParams.set("customerId", customerId);
+		else nextSearchParams.delete("customerId");
+		if (customerName) nextSearchParams.set("customerName", customerName);
+		else nextSearchParams.delete("customerName");
 		nextSearchParams.set("paper", paperSizeMode);
 		nextSearchParams.set("orientation", orientationMode);
 		nextSearchParams.set("template", templateMode);
@@ -311,6 +324,7 @@ export default function InvoiceExportPreviewPage() {
 		orientationMode,
 		paperSizeMode,
 		selectedInvoiceIds,
+		searchParams,
 		sortMode,
 		state,
 		templateMode,

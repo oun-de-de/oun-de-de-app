@@ -72,6 +72,8 @@ export default function VendorsPage() {
 				<VendorSidebar
 					activeVendorId={activeVendorId}
 					onSelect={setActiveVendorId}
+					searchValue={listState.searchValue}
+					onSearchChange={(value) => updateState({ searchValue: value, page: 1 })}
 					onToggle={handleToggle}
 					isCollapsed={isCollapsed}
 				/>

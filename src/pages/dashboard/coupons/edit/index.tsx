@@ -7,7 +7,6 @@ import couponService from "@/core/api/services/coupon-service";
 import employeeService from "@/core/api/services/employee-service";
 import productService from "@/core/api/services/product-service";
 import vehicleService from "@/core/api/services/vehicle-service";
-import type { Customer } from "@/core/types/customer";
 import type { Coupon, UpdateCouponRequest } from "@/core/types/coupon";
 import { Button } from "@/core/ui/button";
 import { Text } from "@/core/ui/typography";
@@ -22,8 +21,9 @@ import {
 
 type CouponEditLocationState = {
 	coupon?: Coupon;
-	activeCustomer?: Customer | null;
 };
+
+const getCouponDraftStorageKey = (couponId: string) => `coupon-edit:draft:${couponId}`;
 
 function toDateInputValue(value: string | null | undefined): string {
 	if (!value) return "";
@@ -91,6 +91,17 @@ export default function EditCouponPage() {
 	const queryClient = useQueryClient();
 	const { id } = useParams<{ id: string }>();
 	const locationState = location.state as CouponEditLocationState | null;
+	const cachedCoupon = useMemo(() => {
+		if (!id) return null;
+		const raw = window.sessionStorage.getItem(getCouponDraftStorageKey(id));
+		if (!raw) return null;
+
+		try {
+			return JSON.parse(raw) as Coupon;
+		} catch {
+			return null;
+		}
+	}, [id]);
 	const [weightRecords, setWeightRecords] = useState<DraftWeightRecord[]>([createInitialRawWeightRecord()]);
 
 	const { data: employees = [] } = useQuery({
@@ -110,13 +121,14 @@ export default function EditCouponPage() {
 		queryKey: ["coupon-edit", id],
 		queryFn: async () => {
 			if (locationState?.coupon) return locationState.coupon;
+			if (cachedCoupon) return cachedCoupon;
 			// Temporary fallback: the current coupon API does not expose a get-by-id endpoint,
 			// so direct URL access has to scan the list response to recover the selected coupon.
 			const response = await couponService.getCouponList({ page: 1, limit: 10000 });
 			return response.list.find((coupon) => coupon.id === id) ?? null;
 		},
 		enabled: !!id,
-		initialData: locationState?.coupon ?? undefined,
+		initialData: locationState?.coupon ?? cachedCoupon ?? undefined,
 	});
 
 	const coupon = couponQuery.data ?? null;
@@ -161,6 +173,7 @@ export default function EditCouponPage() {
 			return;
 		}
 
+		window.sessionStorage.setItem(getCouponDraftStorageKey(coupon.id), JSON.stringify(coupon));
 		setWeightRecords(normalizeDraftWeightRecords(coupon.weightRecords, products));
 	}, [coupon, products]);
 
@@ -172,11 +185,7 @@ export default function EditCouponPage() {
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["coupons"] });
 			toast.success("Coupon updated successfully");
-			navigate("/dashboard/coupons", {
-				state: {
-					activeCustomer: locationState?.activeCustomer ?? null,
-				},
-			});
+			navigate("/dashboard/coupons");
 		},
 		onError: () => {
 			toast.error("Failed to update coupon");
@@ -220,15 +229,7 @@ export default function EditCouponPage() {
 		return (
 			<div className="flex h-full flex-col gap-6 p-6">
 				<div className="flex items-center gap-3">
-					<BackButton
-						onClick={() =>
-							navigate("/dashboard/coupons", {
-								state: {
-									activeCustomer: locationState?.activeCustomer ?? null,
-								},
-							})
-						}
-					/>
+					<BackButton onClick={() => navigate("/dashboard/coupons")} />
 					<Text className="font-semibold text-sky-600">Edit Coupon</Text>
 				</div>
 				<div className="rounded-lg border border-slate-200 bg-white p-6 text-sm text-slate-500">
@@ -242,15 +243,7 @@ export default function EditCouponPage() {
 		return (
 			<div className="flex h-full flex-col gap-6 p-6">
 				<div className="flex items-center gap-3">
-					<BackButton
-						onClick={() =>
-							navigate("/dashboard/coupons", {
-								state: {
-									activeCustomer: locationState?.activeCustomer ?? null,
-								},
-							})
-						}
-					/>
+					<BackButton onClick={() => navigate("/dashboard/coupons")} />
 					<Text className="font-semibold text-sky-600">Edit Coupon</Text>
 				</div>
 				<div className="space-y-4 rounded-lg border border-amber-200 bg-amber-50 p-6">
@@ -262,13 +255,7 @@ export default function EditCouponPage() {
 						type="button"
 						variant="outline"
 						className="border-amber-300 bg-white text-amber-900 hover:bg-amber-100"
-						onClick={() =>
-							navigate("/dashboard/coupons", {
-								state: {
-									activeCustomer: locationState?.activeCustomer ?? null,
-								},
-							})
-						}
+						onClick={() => navigate("/dashboard/coupons")}
 					>
 						Back to Coupons
 					</Button>
@@ -280,28 +267,14 @@ export default function EditCouponPage() {
 	return (
 		<div className="flex flex-col h-full p-6 gap-6">
 			<div className="flex items-center gap-3">
-				<BackButton
-					onClick={() =>
-						navigate("/dashboard/coupons", {
-							state: {
-								activeCustomer: locationState?.activeCustomer ?? null,
-							},
-						})
-					}
-				/>
+				<BackButton onClick={() => navigate("/dashboard/coupons")} />
 				<Text className="font-semibold text-sky-600">Edit Coupon</Text>
 			</div>
 			<div className="flex-1 overflow-y-auto">
 				<div className="w-full">
 					<CouponForm
 						onSubmit={handleSubmit}
-						onCancel={() =>
-							navigate("/dashboard/coupons", {
-								state: {
-									activeCustomer: locationState?.activeCustomer ?? null,
-								},
-							})
-						}
+						onCancel={() => navigate("/dashboard/coupons")}
 						mode="edit"
 						showTitle={false}
 						defaultValues={defaultValues}

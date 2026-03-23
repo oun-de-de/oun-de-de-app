@@ -41,10 +41,6 @@ export const ROUTE_TITLE_MAPPINGS = [
 		title: "Create Customer",
 	},
 	{
-		path: "/dashboard/customers/receipt-print-preview",
-		title: "Receipt Print Preview",
-	},
-	{
 		path: "/dashboard/employees",
 		title: "Employee Center",
 	},

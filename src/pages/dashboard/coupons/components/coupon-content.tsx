@@ -7,7 +7,7 @@ import type { Customer } from "@/core/types/customer";
 import type { Coupon } from "@/core/types/coupon";
 import { Button } from "@/core/ui/button";
 import { Text } from "@/core/ui/typography";
-import { useNavigate } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 import type { CouponState } from "../stores/coupon-state";
 import { getCouponColumns } from "./coupon-columns";
 import { CouponDeleteDialog } from "./coupon-delete-dialog";
@@ -27,6 +27,7 @@ type CouponContentProps = {
 };
 
 const summaryCards = couponSummaryCards;
+const getCouponDraftStorageKey = (couponId: string) => `coupon-edit:draft:${couponId}`;
 
 export function CouponContent({
 	activeCustomerName,
@@ -40,22 +41,25 @@ export function CouponContent({
 	paginationItems,
 }: CouponContentProps) {
 	const navigate = useNavigate();
+	const location = useLocation();
 	const [selectedCoupon, setSelectedCoupon] = useState<Coupon | null>(null);
 	const [deletingCoupon, setDeletingCoupon] = useState<Coupon | null>(null);
 	const columns = useMemo(
 		() =>
 			getCouponColumns({
 				onViewWeightRecords: setSelectedCoupon,
-				onEditCoupon: (coupon) =>
-					navigate(`/dashboard/coupons/edit/${coupon.id}`, {
+				onEditCoupon: (coupon) => {
+					window.sessionStorage.setItem(getCouponDraftStorageKey(coupon.id), JSON.stringify(coupon));
+					navigate(`/dashboard/coupons/edit/${coupon.id}${location.search || ""}`, {
 						state: {
 							coupon,
 							activeCustomer,
 						},
-					}),
+					});
+				},
 				onDeleteCoupon: setDeletingCoupon,
 			}),
-		[navigate, activeCustomer],
+		[navigate, activeCustomer, location.search],
 	);
 	const { data: weightRecords = [], isLoading: isWeightRecordsLoading } = useQuery({
 		queryKey: ["coupon-weight-records", selectedCoupon?.id],
@@ -68,7 +72,7 @@ export function CouponContent({
 			<div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-2">
 				<div className="flex items-center gap-2">
 					<Text variant="body2" className="text-muted-foreground">
-						{activeCustomerName ? `${activeCustomerName} selected` : "No customer selected"}
+						{activeCustomerName ? `Coupons for ${activeCustomerName}` : "No customer selected"}
 					</Text>
 				</div>
 				<div className="flex items-center gap-2">

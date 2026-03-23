@@ -24,6 +24,8 @@ const getCustomerList = (params?: {
 	name?: string;
 	sort?: string;
 	paymentTerm?: number;
+	loadVehicle?: boolean;
+	loadProductSetting?: boolean;
 }): Promise<Pagination<Customer>> =>
 	apiClient
 		.get<PagePaginatedResponse<Customer>>({
@@ -34,6 +36,8 @@ const getCustomerList = (params?: {
 				name: params?.name,
 				sort: params?.sort,
 				payment_term: params?.paymentTerm,
+				load_vehicle: params?.loadVehicle,
+				load_product_setting: params?.loadProductSetting,
 			},
 		})
 		.then(mapPagePaginatedResponseToPagination);

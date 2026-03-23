@@ -15,10 +15,6 @@ export function getFrontendDashboardRoutes(): RouteObject[] {
 		{ path: "dashboard/customers/create", element: Component("/pages/dashboard/customers/create") },
 		{ path: "dashboard/customers/edit/:id", element: Component("/pages/dashboard/customers/edit") },
 		{ path: "dashboard/customers/create-receipt", element: Component("/pages/dashboard/customers/create-receipt") },
-		{
-			path: "dashboard/customers/receipt-print-preview",
-			element: Component("/pages/dashboard/customers/receipt-print-preview"),
-		},
 		{ path: "dashboard/employees", element: Component("/pages/dashboard/employees") },
 		{ path: "dashboard/employees/create", element: Component("/pages/dashboard/employees/create") },
 		{ path: "dashboard/employees/edit/:id", element: Component("/pages/dashboard/employees/edit") },

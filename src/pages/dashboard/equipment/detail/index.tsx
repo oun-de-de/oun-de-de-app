@@ -53,6 +53,10 @@ export default function EquipmentDetailPage() {
 		);
 	}, [setSearchParams]);
 
+	const handleBackToEquipmentCenter = useCallback(() => {
+		router.push("/dashboard/equipment");
+	}, [router]);
+
 	useEffect(() => {
 		if (!activeItem) {
 			return;
@@ -83,7 +87,7 @@ export default function EquipmentDetailPage() {
 					<Text variant="body1" className="mb-4 text-lg font-semibold">
 						Equipment not found
 					</Text>
-					<BackButton onClick={() => router.push("/dashboard/equipment")} label="Back to Equipment" />
+					<BackButton onClick={handleBackToEquipmentCenter} label="Back to Equipment" />
 				</div>
 			</div>
 		);
@@ -94,7 +98,7 @@ export default function EquipmentDetailPage() {
 			{/* Header */}
 			<div className="flex flex-wrap items-center justify-between gap-3">
 				<div className="flex items-center gap-2">
-					<BackButton appearance="icon" onClick={() => router.push("/dashboard/equipment")} />
+					<BackButton appearance="icon" onClick={handleBackToEquipmentCenter} />
 					<Button size="sm" className="gap-1">
 						{activeItem.name}
 					</Button>

@@ -32,7 +32,7 @@ export function WarehouseSettingsForm({ customerId, currentWarehouseId, anchorId
 				<Text className="font-semibold text-sky-600">Warehouse Settings</Text>
 				<div className="flex items-center gap-2">
 					<Button variant="outline" asChild size="sm">
-						<Link to="/dashboard/settings" state={{ tab: "warehouse" }}>
+						<Link to="/dashboard/settings?tab=Items&item=Warehouse">
 							<Icon icon="mdi:plus" className="w-4 h-4 mr-1" />
 							Create Warehouse
 						</Link>

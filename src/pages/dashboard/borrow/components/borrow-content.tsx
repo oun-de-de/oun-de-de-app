@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo } from "react";
-import { useNavigate } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 import { SmartDataTable, SummaryStatCard } from "@/core/components/common";
 import { Button } from "@/core/ui/button";
 import { Text } from "@/core/ui/typography";
@@ -23,6 +23,7 @@ type Props = {
 
 export function BorrowContent({ activeCustomerId, activeCustomerName, listState, updateState }: Props) {
 	const navigate = useNavigate();
+	const location = useLocation();
 	const { searchValue, typeFilter } = listState;
 	const { data: loansResponse } = useLoans();
 
@@ -59,8 +60,9 @@ export function BorrowContent({ activeCustomerId, activeCustomerName, listState,
 		[listState, paginationItems, totalItems, totalPages, updateState],
 	);
 	const handleRowClick = useCallback(
-		(row: (typeof paginatedLoans)[number]) => navigate(`/dashboard/loan/${row.id}`),
-		[navigate],
+		(row: (typeof paginatedLoans)[number]) =>
+			navigate(`/dashboard/loan/${row.id}${location.search ? location.search : ""}`),
+		[location.search, navigate],
 	);
 
 	useEffect(() => {
@@ -74,7 +76,7 @@ export function BorrowContent({ activeCustomerId, activeCustomerName, listState,
 			<div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-2">
 				<div className="flex items-center gap-2">
 					<Text variant="body2" className="text-slate-400">
-						{activeCustomerId ? `${activeCustomerName || activeCustomerId} selected` : "All Customers"}
+						{activeCustomerId ? `Loans for ${activeCustomerName || activeCustomerId}` : "All Customers"}
 					</Text>
 				</div>
 

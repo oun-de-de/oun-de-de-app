@@ -1,45 +1,52 @@
+import { useMemo } from "react";
 import { vendorList } from "@/_mock/data/dashboard";
 import { EntityListItem, SidebarList } from "@/core/components/common";
 import { up, useMediaQuery } from "@/core/hooks/use-media-query";
 import { useSidebarPagination } from "@/core/hooks/use-sidebar-pagination";
-import type { SelectOption } from "@/core/types/common";
+import { normalizeToken } from "@/core/utils/dashboard-utils";
 
 type VendorSidebarProps = {
 	activeVendorId: string | null;
 	onSelect: (id: string | null) => void;
+	searchValue: string;
+	onSearchChange: (value: string) => void;
 	onToggle?: () => void;
 	isCollapsed?: boolean;
 };
 
-const MAIN_TYPE_OPTIONS: SelectOption[] = [
-	{ value: "preferred", label: "Preferred" },
-	{ value: "standard", label: "Standard" },
-];
-
-const STATUS_OPTIONS: SelectOption[] = [
-	{ value: "active", label: "Active" },
-	{ value: "inactive", label: "Inactive" },
-];
-
-export function VendorSidebar({ activeVendorId, onSelect, onToggle, isCollapsed }: VendorSidebarProps) {
+export function VendorSidebar({
+	activeVendorId,
+	onSelect,
+	searchValue,
+	onSearchChange,
+	onToggle,
+	isCollapsed,
+}: VendorSidebarProps) {
 	const isLgUp = useMediaQuery(up("lg"));
+	const filteredVendors = useMemo(() => {
+		const normalizedQuery = normalizeToken(searchValue);
+		if (!normalizedQuery) return vendorList;
+
+		return vendorList.filter((vendor) => {
+			const searchableText = `${vendor.name} ${vendor.code}`.trim().toLowerCase();
+			return searchableText.includes(normalizedQuery);
+		});
+	}, [searchValue]);
 
 	const pagination = useSidebarPagination({
-		data: vendorList,
+		data: filteredVendors,
 		enabled: !isLgUp,
 	});
 
 	return (
 		<SidebarList>
 			<SidebarList.Header
-				mainTypeOptions={MAIN_TYPE_OPTIONS}
-				mainTypePlaceholder="Vendor Type"
-				onMainTypeChange={() => {}}
+				showMainTypeFilter={false}
+				showStatusFilter={false}
 				onMenuClick={onToggle}
-				searchPlaceholder="Search..."
-				onSearchChange={() => {}}
-				statusOptions={STATUS_OPTIONS}
-				onStatusChange={() => {}}
+				searchPlaceholder="Search vendors..."
+				searchValue={searchValue}
+				onSearchChange={onSearchChange}
 				isCollapsed={isCollapsed}
 			/>
 
