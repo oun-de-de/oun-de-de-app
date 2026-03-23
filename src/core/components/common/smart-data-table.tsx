@@ -7,7 +7,7 @@ import {
 	type SortingState,
 	useReactTable,
 } from "@tanstack/react-table";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import styled from "styled-components";
 import { Icon } from "@/core/components/icon";
 import { Skeleton } from "@/core/ui/skeleton";
@@ -163,6 +163,7 @@ type SmartDataTableProps<T> = {
 
 /** Helper to generate fixed column size styles */
 const getColumnSizeStyle = (size?: number) => (size ? { width: size, minWidth: size, maxWidth: size } : undefined);
+const EMPTY_FILTER_OPTIONS: { value: string; label: string }[] = [];
 
 export function SmartDataTable<T extends object>({
 	data,
@@ -187,9 +188,11 @@ export function SmartDataTable<T extends object>({
 	// show filter bar
 	const showFilterBar = enableFilterBar !== false && !!filterConfig;
 
-	const paginationState: PaginationState | undefined = paginationConfig
-		? { pageIndex: paginationConfig.page - 1, pageSize: paginationConfig.pageSize }
-		: undefined;
+	const paginationState = useMemo<PaginationState | undefined>(
+		() =>
+			paginationConfig ? { pageIndex: paginationConfig.page - 1, pageSize: paginationConfig.pageSize } : undefined,
+		[paginationConfig],
+	);
 
 	const updateScrollState = useCallback(() => {
 		if (rafRef.current) {
@@ -204,6 +207,28 @@ export function SmartDataTable<T extends object>({
 			setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 1);
 		});
 	}, []);
+
+	const getRowId = useCallback((row: T & { id?: string | number }, index: number) => String(row.id ?? index), []);
+
+	const handlePaginationChange = useCallback<OnChangeFn<PaginationState>>(
+		(updater) => {
+			if (!paginationConfig) return;
+
+			const prev = {
+				pageIndex: paginationConfig.page - 1,
+				pageSize: paginationConfig.pageSize,
+			};
+			const next = typeof updater === "function" ? updater(prev) : updater;
+
+			if (next.pageIndex !== prev.pageIndex) {
+				paginationConfig.onPageChange(next.pageIndex + 1);
+			}
+			if (next.pageSize !== prev.pageSize) {
+				paginationConfig.onPageSizeChange(next.pageSize);
+			}
+		},
+		[paginationConfig],
+	);
 
 	const scrollByAmount = useCallback((delta: number) => {
 		const el = scrollRef.current;
@@ -225,24 +250,9 @@ export function SmartDataTable<T extends object>({
 			pagination: paginationState,
 			sorting: sortingConfig?.sorting,
 		},
-		onPaginationChange: paginationConfig
-			? (updater) => {
-					const prev = {
-						pageIndex: paginationConfig.page - 1,
-						pageSize: paginationConfig.pageSize,
-					};
-					const next = typeof updater === "function" ? updater(prev) : updater;
-
-					if (next.pageIndex !== prev.pageIndex) {
-						paginationConfig.onPageChange(next.pageIndex + 1);
-					}
-					if (next.pageSize !== prev.pageSize) {
-						paginationConfig.onPageSizeChange(next.pageSize);
-					}
-				}
-			: undefined,
+		onPaginationChange: paginationConfig ? handlePaginationChange : undefined,
 		onSortingChange: sortingConfig?.onSortingChange,
-		getRowId: (row: any, index) => String(row?.id ?? index),
+		getRowId,
 	});
 
 	// Manage "Go to" input state locally to allow typing without immediate page jump
@@ -278,8 +288,8 @@ export function SmartDataTable<T extends object>({
 				<TableFilterBar
 					showTypeFilter={filterConfig.showTypeFilter}
 					showFieldFilter={filterConfig.showFieldFilter}
-					typeOptions={filterConfig.typeOptions || []}
-					fieldOptions={filterConfig.fieldOptions || []}
+					typeOptions={filterConfig.typeOptions ?? EMPTY_FILTER_OPTIONS}
+					fieldOptions={filterConfig.fieldOptions ?? EMPTY_FILTER_OPTIONS}
 					typeValue={filterConfig.typeValue}
 					fieldValue={filterConfig.fieldValue}
 					searchValue={filterConfig.searchValue}
