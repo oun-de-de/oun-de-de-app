@@ -78,9 +78,8 @@ export function useAccountingTransactions({
 		],
 		queryFn: () =>
 			cashTransactionService.listCashTransactions({
-				page: shouldFilterClientSide ? 1 : page,
-				limit: shouldFilterClientSide ? ACCOUNTING_REFERENCE_PAGE_SIZE : pageSize,
-				paginateFallbackArray: !shouldFilterClientSide,
+				page: 1,
+				limit: ACCOUNTING_REFERENCE_PAGE_SIZE,
 			}),
 		placeholderData: keepPreviousData,
 		staleTime: 5 * 60 * 1000,
@@ -90,11 +89,9 @@ export function useAccountingTransactions({
 
 	const rows = useMemo<AccountingRow[]>(() => {
 		const mappedRows = (data?.list ?? []).map(mapCashTransactionToAccountingRow);
-		if (!shouldFilterClientSide) {
-			return mappedRows;
-		}
-
-		const filteredRows = filterRows(mappedRows, typeFilter, resolvedFieldFilter, normalizedSearchValue);
+		const filteredRows = shouldFilterClientSide
+			? filterRows(mappedRows, typeFilter, resolvedFieldFilter, normalizedSearchValue)
+			: mappedRows;
 		const startIndex = (page - 1) * pageSize;
 		return filteredRows.slice(startIndex, startIndex + pageSize);
 	}, [data?.list, normalizedSearchValue, page, pageSize, resolvedFieldFilter, shouldFilterClientSide, typeFilter]);

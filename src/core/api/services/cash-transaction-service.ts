@@ -16,7 +16,6 @@ type ListCashTransactionsParams = {
 	page?: number;
 	limit?: number;
 	sort?: string;
-	paginateFallbackArray?: boolean;
 };
 
 const createCashTransaction = (data: CreateCashTransactionRequest): Promise<CashTransactionResult> =>
@@ -30,9 +29,7 @@ const listCashTransactions = async (
 ): Promise<Pagination<CashTransactionFlattenResult>> => {
 	const page = params?.page ?? 1;
 	const pageSize = params?.limit ?? 20;
-	const response = await apiClient.get<
-		PagePaginatedResponse<CashTransactionFlattenResult> | CashTransactionFlattenResult[]
-	>({
+	const response = await apiClient.get<PagePaginatedResponse<CashTransactionFlattenResult>>({
 		url: CashTransactionApi.List,
 		params: {
 			page: page - 1,
@@ -40,20 +37,6 @@ const listCashTransactions = async (
 			sort: params?.sort ?? "date,desc",
 		},
 	});
-
-	if (Array.isArray(response)) {
-		const shouldPaginateFallbackArray = params?.paginateFallbackArray ?? true;
-		const startIndex = Math.max(0, (page - 1) * pageSize);
-		const pagedList = shouldPaginateFallbackArray ? response.slice(startIndex, startIndex + pageSize) : response;
-
-		return {
-			list: pagedList,
-			page,
-			pageSize,
-			pageCount: Math.max(1, Math.ceil(response.length / pageSize)),
-			total: response.length,
-		};
-	}
 
 	return mapPagePaginatedResponseToPagination(response);
 };
