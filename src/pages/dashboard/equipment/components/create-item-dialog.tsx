@@ -30,6 +30,8 @@ export function CreateItemDialog({ onSubmit, isPending }: CreateItemDialogProps)
 	const [refCode, setRefCode] = useState("");
 	const [quantityOnHand, setQuantityOnHand] = useState("0");
 	const [expense, setExpense] = useState("");
+	const [errors, setErrors] = useState<{ name?: string }>({});
+
 	const { data: units } = useGetUnitList();
 
 	const resetForm = () => {
@@ -40,6 +42,7 @@ export function CreateItemDialog({ onSubmit, isPending }: CreateItemDialogProps)
 		setRefCode("");
 		setQuantityOnHand("0");
 		setExpense("");
+		setErrors({});
 	};
 	const handleOpenChange = (nextOpen: boolean) => {
 		if (!nextOpen) {
@@ -49,11 +52,18 @@ export function CreateItemDialog({ onSubmit, isPending }: CreateItemDialogProps)
 	};
 
 	const handleSubmit = () => {
+		const normalizedName = name.trim();
+		if (!normalizedName) {
+			setErrors({ name: "Name is required" });
+			return;
+		}
+
+		setErrors({});
+
 		const mappedType: InventoryItemType = type === "equipment" ? "EQUIPMENT" : "CONSUMABLE";
 		const parsedQuantityOnHand = Number(quantityOnHand);
 		const parsedAlertThreshold = Number(alertThreshold);
 		const parsedExpense = Number(expense);
-		const normalizedName = name.trim();
 		const normalizedRefCode = refCode.trim();
 
 		onSubmit({
@@ -97,7 +107,19 @@ export function CreateItemDialog({ onSubmit, isPending }: CreateItemDialogProps)
 							<Label htmlFor="item-name">
 								Name <span className="text-red-500">*</span>
 							</Label>
-							<Input id="item-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Item name" />
+							<Input
+								id="item-name"
+								name="itemName"
+								autoComplete="off"
+								value={name}
+								onChange={(e) => {
+									setName(e.target.value);
+									if (errors.name) setErrors({});
+								}}
+								placeholder="Item name"
+								aria-invalid={!!errors.name}
+							/>
+							{errors.name ? <p className="text-xs text-red-500">{errors.name}</p> : null}
 						</div>
 						<div className="grid grid-cols-2 gap-4">
 							<div className="space-y-2">
@@ -132,6 +154,8 @@ export function CreateItemDialog({ onSubmit, isPending }: CreateItemDialogProps)
 							<Label htmlFor="item-threshold">Alert Threshold</Label>
 							<Input
 								id="item-threshold"
+								name="alertThreshold"
+								autoComplete="off"
 								type="number"
 								min={0}
 								value={alertThreshold}
@@ -150,6 +174,8 @@ export function CreateItemDialog({ onSubmit, isPending }: CreateItemDialogProps)
 							<Label htmlFor="item-ref-code">Ref Code</Label>
 							<Input
 								id="item-ref-code"
+								name="refCode"
+								autoComplete="off"
 								value={refCode}
 								onChange={(e) => setRefCode(e.target.value)}
 								placeholder="e.g. initial-stock-001"
@@ -160,6 +186,8 @@ export function CreateItemDialog({ onSubmit, isPending }: CreateItemDialogProps)
 								<Label htmlFor="item-qty">Qty On Hand</Label>
 								<Input
 									id="item-qty"
+									name="quantityOnHand"
+									autoComplete="off"
 									type="number"
 									min={0}
 									value={quantityOnHand}
@@ -171,6 +199,8 @@ export function CreateItemDialog({ onSubmit, isPending }: CreateItemDialogProps)
 								<Label htmlFor="item-expense">Expense</Label>
 								<Input
 									id="item-expense"
+									name="expense"
+									autoComplete="off"
 									type="number"
 									min={0}
 									value={expense}
@@ -187,7 +217,7 @@ export function CreateItemDialog({ onSubmit, isPending }: CreateItemDialogProps)
 					<Button variant="outline" onClick={() => handleOpenChange(false)}>
 						Cancel
 					</Button>
-					<Button onClick={handleSubmit} disabled={isPending || !name.trim()}>
+					<Button onClick={handleSubmit} disabled={isPending}>
 						{isPending ? "Creating..." : "Create Item"}
 					</Button>
 				</DialogFooter>

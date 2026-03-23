@@ -1,7 +1,7 @@
 import { toast } from "sonner";
 import { CalendarDays, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { BackButton, SplitButton } from "@/core/components/common";
 import type { CashTransactionType, CreateCashTransactionRequest } from "@/core/types/cash-transaction";
 import { Button } from "@/core/ui/button";
@@ -252,7 +252,7 @@ export default function CreateAccountingEntryPage() {
 								</Label>
 								<div className="relative">
 									<CalendarDays className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
-									<Input value={displayedDate} disabled className="pl-9" />
+									<Input name="date" autoComplete="off" value={displayedDate} disabled className="pl-9" />
 								</div>
 							</div>
 							<div className="space-y-2">
@@ -313,6 +313,8 @@ export default function CreateAccountingEntryPage() {
 							<div className="space-y-2">
 								<Label className="text-slate-600">Memo</Label>
 								<Textarea
+									name="memo"
+									autoComplete="off"
 									value={memo}
 									onChange={(event) => setMemo(event.target.value)}
 									placeholder="Enter memo"
@@ -472,8 +474,8 @@ export default function CreateAccountingEntryPage() {
 					</div>
 
 					<div className="flex items-center justify-end gap-3">
-						<Button variant="outline" onClick={() => navigate("/dashboard/accounting")} disabled={isSubmitting}>
-							Cancel
+						<Button asChild variant="outline">
+							<Link to="/dashboard/accounting">Cancel</Link>
 						</Button>
 						<SplitButton
 							variant="info"
