@@ -10,8 +10,8 @@ import { Text } from "@/core/ui/typography";
 import type { InvoiceExportPreviewLocationState } from "@/core/types/invoice";
 import { formatDisplayDate, formatDisplayDateTime, formatKHR } from "@/core/utils/formatters";
 import { useRouter } from "@/routes/hooks/use-router";
-import { useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router";
+import { useCallback, useMemo, useState } from "react";
+import { useLocation, useNavigate, useParams } from "react-router";
 import { ReportLayout } from "../../reports/components/layout/report-layout";
 import {
 	type ReportTemplateColumn,
@@ -33,6 +33,7 @@ export default function BorrowDetailPage() {
 	const { id } = useParams<{ id: string }>();
 	const router = useRouter();
 	const navigate = useNavigate();
+	const location = useLocation();
 	const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
 	const [shouldUpdateDueDate, setShouldUpdateDueDate] = useState(true);
 	const [paymentCode, setPaymentCode] = useState("");
@@ -140,6 +141,9 @@ export default function BorrowDetailPage() {
 		[loan, remainingBalance],
 	);
 	const printTimestamp = useMemo(() => formatReportTimestamp("administrator", new Date()), []);
+	const handleBackToLoans = useCallback(() => {
+		router.push(`/dashboard/loan${location.search || ""}`);
+	}, [location.search, router]);
 
 	const handleCreatePayment = async () => {
 		const parsedAmount = Number(paymentAmount);
@@ -235,7 +239,7 @@ export default function BorrowDetailPage() {
 					<Text variant="body1" className="mb-4 text-lg font-semibold">
 						Loan not found
 					</Text>
-					<BackButton onClick={() => router.push("/dashboard/loan")} label="Back to Loans" />
+					<BackButton onClick={handleBackToLoans} label="Back to Loans" />
 				</div>
 			</div>
 		);
@@ -245,7 +249,7 @@ export default function BorrowDetailPage() {
 		<div className="report-print-page flex h-full flex-col gap-2 p-2 md:gap-4 md:p-4">
 			<div className="flex flex-wrap items-center justify-between gap-3 print:hidden">
 				<div className="flex items-center gap-2">
-					<BackButton appearance="icon" onClick={() => router.push("/dashboard/loan")} />
+					<BackButton appearance="icon" onClick={handleBackToLoans} />
 					<Text variant="body2" className="text-slate-400">
 						Loan Details
 					</Text>

@@ -1,18 +1,37 @@
+import { useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import employeeService from "@/core/api/services/employee-service";
 import loanService from "@/core/api/services/loan-service";
 import type {
 	BorrowerType,
 	CreateLoanPaymentRequest,
 	CreateLoanRequest,
 	ExtendLoanRequest,
+	Loan,
 	UpdateLoanRequest,
 } from "@/core/types/loan";
+import { getEmployeeDisplayName } from "@/pages/dashboard/employees/utils/employee-utils";
 
 export const LOAN_QUERY_KEYS = {
 	loans: (params?: Record<string, unknown>) => ["loans", params] as const,
 	loan: (loanId: string) => ["loan", loanId] as const,
 	payments: (loanId: string) => ["loan-payments", loanId] as const,
 };
+
+function normalizeLoanBorrowerName(
+	loan: Loan,
+	employeesById: Map<string, { username: string; firstName?: string | null; lastName?: string | null }>,
+) {
+	if (loan.borrowerType !== "employee") return loan;
+
+	const employee = employeesById.get(loan.borrowerId);
+	if (!employee) return loan;
+
+	return {
+		...loan,
+		borrowerName: getEmployeeDisplayName(employee),
+	};
+}
 
 export function useLoans(params?: {
 	borrower_type?: BorrowerType;
@@ -23,18 +42,53 @@ export function useLoans(params?: {
 	size?: number;
 	sort?: string;
 }) {
-	return useQuery({
+	const loansQuery = useQuery({
 		queryKey: LOAN_QUERY_KEYS.loans(params),
 		queryFn: () => loanService.getLoans(params),
 	});
+	const employeesQuery = useQuery({
+		queryKey: ["employees", "all"],
+		queryFn: () => employeeService.getEmployeeList(),
+	});
+	const data = useMemo(() => {
+		if (!loansQuery.data) return loansQuery.data;
+
+		const employeesById = new Map((employeesQuery.data ?? []).map((employee) => [employee.id, employee]));
+		const content = loansQuery.data.content.map((loan) => normalizeLoanBorrowerName(loan, employeesById));
+
+		return {
+			...loansQuery.data,
+			content,
+		};
+	}, [employeesQuery.data, loansQuery.data]);
+
+	return {
+		...loansQuery,
+		data,
+	};
 }
 
 export function useLoanDetails(loanId?: string) {
-	return useQuery({
+	const loanQuery = useQuery({
 		queryKey: LOAN_QUERY_KEYS.loan(loanId ?? ""),
 		queryFn: () => loanService.getLoanDetails(loanId ?? ""),
 		enabled: !!loanId,
 	});
+	const employeesQuery = useQuery({
+		queryKey: ["employees", "all"],
+		queryFn: () => employeeService.getEmployeeList(),
+	});
+	const data = useMemo(() => {
+		if (!loanQuery.data) return loanQuery.data;
+
+		const employeesById = new Map((employeesQuery.data ?? []).map((employee) => [employee.id, employee]));
+		return normalizeLoanBorrowerName(loanQuery.data, employeesById);
+	}, [employeesQuery.data, loanQuery.data]);
+
+	return {
+		...loanQuery,
+		data,
+	};
 }
 
 export function useCreateLoan() {
