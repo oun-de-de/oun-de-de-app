@@ -18,7 +18,7 @@ import { ReportFilterBar } from "../../components/layout/report-filter-bar";
 import { ReportLayout } from "../../components/layout/report-layout";
 import type { ReportTemplateColumn, ReportTemplateRow } from "../../components/layout/report-template-table";
 import { ReportToolbar } from "../../components/layout/report-toolbar";
-import { DEFAULT_REPORT_COLUMNS, DEFAULT_REPORT_SECTIONS, REPORT_DEFAULT_DATE_INPUT } from "../constants";
+import { DEFAULT_REPORT_COLUMNS, DEFAULT_REPORT_SECTIONS } from "../constants";
 import { getReportDefinition } from "../report-specs";
 import { createVisibleColumnMap, getReportColumnOptions, hasVisibleReportFilters } from "../report-types";
 import { ReportFilters, type ReportFiltersValue } from "./report-filters";
@@ -37,14 +37,12 @@ function areReportFiltersEqual(left: ReportFiltersValue, right: ReportFiltersVal
 	);
 }
 
-function getDefaultReportFilters(monthOnly = false): ReportFiltersValue {
-	const defaultValue = monthOnly ? REPORT_DEFAULT_DATE_INPUT.slice(0, 7) : REPORT_DEFAULT_DATE_INPUT;
-
+function getDefaultReportFilters(): ReportFiltersValue {
 	return {
 		customerId: "all",
-		fromDate: defaultValue,
-		toDate: defaultValue,
-		useDateRange: true,
+		fromDate: "",
+		toDate: "",
+		useDateRange: false,
 	};
 }
 
@@ -96,10 +94,7 @@ export function ReportDetailView({ reportSlug }: ReportDetailViewProps) {
 		hiddenColumnKeys: [],
 	});
 	const reportDefinition = useMemo(() => getReportDefinition(reportSlug), [reportSlug]);
-	const defaultFilters = useMemo(
-		() => getDefaultReportFilters(reportDefinition.filterConfig?.monthOnly === true),
-		[reportDefinition.filterConfig?.monthOnly],
-	);
+	const defaultFilters = useMemo(() => getDefaultReportFilters(), []);
 	const [draftFilters, setDraftFilters] = useState<ReportFiltersValue>(defaultFilters);
 	const [appliedFilters, setAppliedFilters] = useState<ReportFiltersValue>(defaultFilters);
 	const hasPendingFilterChanges = !areReportFiltersEqual(draftFilters, appliedFilters);

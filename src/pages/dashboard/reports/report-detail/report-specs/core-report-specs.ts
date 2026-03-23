@@ -26,7 +26,6 @@ export const CORE_REPORT_SPECS: ReportDefinitionMap = {
 		slug: "customer-list",
 		title: "Customer List",
 		templateId: "customer-list",
-		subtitle: REPORT_DEFAULT_DATE,
 		buildColumns: buildCustomerListColumns,
 		buildRows: buildCustomerListReportRows,
 		dataSource: "customer-list",

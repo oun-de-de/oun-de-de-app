@@ -17,14 +17,14 @@ export function normalizeReportFilters(filters?: ReportFiltersValue) {
 }
 
 export function formatFilterRange(filters?: ReportFiltersValue): string {
-	if (!filters?.useDateRange || !filters.fromDate || !filters.toDate) return "All Dates";
+	if (!filters?.useDateRange || !filters.fromDate || !filters.toDate) return "No date selected";
 	const fromDate = formatFilterDateForDisplay(filters.fromDate);
 	const toDate = formatFilterDateForDisplay(filters.toDate);
 	return filters.fromDate === filters.toDate ? fromDate : `${fromDate} To ${toDate}`;
 }
 
 export function formatFilterDateForDisplay(value?: string): string {
-	if (!value) return "All";
+	if (!value) return "Not selected";
 	const monthMatch = value.match(/^(\d{4})-(\d{2})$/);
 	if (monthMatch) {
 		const [, year, month] = monthMatch;
