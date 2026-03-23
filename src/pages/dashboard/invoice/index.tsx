@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { useSearchParams } from "react-router";
+import { useLocation, useNavigate, useSearchParams } from "react-router";
 import { DashboardSplitView } from "@/core/components/common/dashboard-split-view";
 import { useSidebarCollapse } from "@/core/hooks/use-sidebar-collapse";
 import type { Customer } from "@/core/types/customer";
@@ -11,6 +11,8 @@ import { useCycleDetail } from "./hooks/use-cycle-detail";
 import { useInvoiceTable } from "./hooks/use-invoice-table";
 
 export default function InvoicePage() {
+	const navigate = useNavigate();
+	const location = useLocation();
 	const [searchParams] = useSearchParams();
 	const [activeCustomerId, setActiveCustomerId] = useState<string | null>(() => searchParams.get("customerId"));
 	const [activeCustomerName, setActiveCustomerName] = useState<string | null>(() => searchParams.get("customerName"));
@@ -32,26 +34,75 @@ export default function InvoicePage() {
 		}
 	}, [searchParams]);
 
-	const handleSelectCustomer = useCallback((customer: Customer | null) => {
-		setActiveCustomerId((prev) => (prev === (customer?.id ?? null) ? prev : (customer?.id ?? null)));
-		setActiveCustomerName((prev) => (prev === (customer?.name ?? null) ? prev : (customer?.name ?? null)));
-		setActiveCycleSnapshot(null);
-		setActiveCycleId(null);
-	}, []);
+	const updateInvoiceSearchParams = useCallback(
+		(next: { customerId?: string | null; customerName?: string | null; cycleId?: string | null }) => {
+			const params = new URLSearchParams(location.search);
 
-	const handleSelectCycle = useCallback((cycle: Cycle) => {
-		setActiveCycleSnapshot(cycle);
-		setActiveCycleId(cycle.id);
-		setActiveCustomerId((prev) => (prev === cycle.customerId ? prev : cycle.customerId));
-		setActiveCustomerName((prev) => (prev === cycle.customerName ? prev : cycle.customerName));
-	}, []);
+			if (next.customerId) {
+				params.set("customerId", next.customerId);
+			} else {
+				params.delete("customerId");
+			}
+
+			if (next.customerName) {
+				params.set("customerName", next.customerName);
+			} else {
+				params.delete("customerName");
+			}
+
+			if (next.cycleId) {
+				params.set("cycleId", next.cycleId);
+			} else {
+				params.delete("cycleId");
+			}
+
+			const nextSearch = params.toString();
+			navigate(`${location.pathname}${nextSearch ? `?${nextSearch}` : ""}`);
+		},
+		[location.pathname, location.search, navigate],
+	);
+
+	const handleSelectCustomer = useCallback(
+		(customer: Customer | null) => {
+			const nextCustomerId = customer?.id ?? null;
+			const nextCustomerName = customer?.name ?? null;
+			setActiveCustomerId((prev) => (prev === nextCustomerId ? prev : nextCustomerId));
+			setActiveCustomerName((prev) => (prev === nextCustomerName ? prev : nextCustomerName));
+			setActiveCycleSnapshot(null);
+			setActiveCycleId(null);
+			updateInvoiceSearchParams({
+				customerId: nextCustomerId,
+				customerName: nextCustomerName,
+				cycleId: null,
+			});
+		},
+		[updateInvoiceSearchParams],
+	);
+
+	const handleSelectCycle = useCallback(
+		(cycle: Cycle) => {
+			setActiveCycleSnapshot(cycle);
+			setActiveCycleId(cycle.id);
+			setActiveCustomerId((prev) => (prev === cycle.customerId ? prev : cycle.customerId));
+			setActiveCustomerName((prev) => (prev === cycle.customerName ? prev : cycle.customerName));
+			updateInvoiceSearchParams({
+				customerId: cycle.customerId,
+				customerName: cycle.customerName,
+				cycleId: cycle.id,
+			});
+		},
+		[updateInvoiceSearchParams],
+	);
 
 	const handleBackToCycles = useCallback(() => {
 		setActiveCycleSnapshot(null);
 		setActiveCycleId(null);
-		setActiveCustomerId(null);
-		setActiveCustomerName(null);
-	}, []);
+		updateInvoiceSearchParams({
+			customerId: activeCustomerId,
+			customerName: activeCustomerName,
+			cycleId: null,
+		});
+	}, [activeCustomerId, activeCustomerName, updateInvoiceSearchParams]);
 
 	// Invoice table — only used when a cycle is selected
 	const invoiceTable = useInvoiceTable({
