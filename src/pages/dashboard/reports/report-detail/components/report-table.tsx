@@ -59,6 +59,7 @@ export const ReportTable = React.memo(function ReportTable({
 				templateId: definition.templateId,
 				reportSlug,
 				title: definition.title,
+				filterConfig: definition.filterConfig,
 				filters,
 				selectedCustomerLabel,
 				selectedCustomer,
@@ -68,6 +69,7 @@ export const ReportTable = React.memo(function ReportTable({
 		[
 			definition.templateId,
 			definition.title,
+			definition.filterConfig,
 			filters,
 			previewRows,
 			reportSlug,

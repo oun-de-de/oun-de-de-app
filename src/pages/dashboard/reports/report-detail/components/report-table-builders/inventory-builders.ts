@@ -73,23 +73,33 @@ function buildAssetOther(item: InventoryItem) {
 	);
 }
 
+function resolveProductQuantity(product: Product) {
+	return typeof product.defaultProductSetting?.quantity === "number" ? product.defaultProductSetting.quantity : null;
+}
+
+function resolveProductPrice(product: Product) {
+	return typeof product.defaultProductSetting?.price === "number" ? product.defaultProductSetting.price : null;
+}
+
 export function buildProductListRows(products: Product[]): ReportTemplateRow[] {
-	return products.map((product, index) =>
-		createIndexedReportRow(product.id, index, {
+	return products.map((product, index) => {
+		const quantity = resolveProductQuantity(product);
+		const price = resolveProductPrice(product);
+
+		return createIndexedReportRow(product.id, index, {
 			name: product.name ?? "-",
 			unit: product.unit?.name ?? "-",
-			quantity: formatNumber(product.quantity),
-			cost: formatNumber(product.cost),
-			price: formatNumber(product.price),
-			value: formatNumber(product.quantity * product.cost),
-		}),
-	);
+			quantity: formatNumber(quantity, "-"),
+			price: formatNumber(price, "-"),
+		});
+	});
 }
 
 export function buildInventoryBagRows(products: Product[]): ReportTemplateRow[] {
 	return products.map((product) => {
-		const stockInQty = Math.max(product.quantity, 0);
-		const stockOutQty = Math.max(Math.round(product.quantity * 0.35), 0);
+		const quantity = resolveProductQuantity(product) ?? 0;
+		const stockInQty = Math.max(quantity, 0);
+		const stockOutQty = Math.max(Math.round(quantity * 0.35), 0);
 		const balanceQty = Math.max(stockInQty - stockOutQty, 0);
 
 		return createReportRow(

@@ -1,4 +1,5 @@
 import { SplitButton } from "@/core/components/common";
+import { useMemo } from "react";
 import type { ButtonProps } from "@/core/ui/button";
 import { useNavigate } from "react-router";
 import type { AccountingCreateOptionLabel } from "../constants";
@@ -25,13 +26,14 @@ export function AccountingCreateMenuButton({
 	triggerButtonClassName,
 }: AccountingCreateMenuButtonProps) {
 	const navigate = useNavigate();
+	const options = useMemo(() => createAccountingCreateOptions(optionLabels, navigate), [optionLabels, navigate]);
 
 	return (
 		<SplitButton
 			size={size}
 			variant={variant}
 			mainAction={mainAction}
-			options={createAccountingCreateOptions(optionLabels, navigate)}
+			options={options}
 			mainButtonClassName={mainButtonClassName}
 			triggerButtonClassName={triggerButtonClassName}
 		/>

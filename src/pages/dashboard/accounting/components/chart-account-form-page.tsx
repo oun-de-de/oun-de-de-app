@@ -57,11 +57,19 @@ export function ChartAccountFormPage({ mode }: ChartAccountFormPageProps) {
 	const normalizedAccountTypeId = accountTypeId.trim();
 	const isFormValid = normalizedAccountTypeId !== "" && accountCode.trim() !== "" && accountName.trim() !== "";
 
+	const [errors, setErrors] = useState<{ accountType?: string; code?: string; name?: string }>({});
+
 	const handleSave = async () => {
 		if (!isFormValid) {
-			toast.error(ACCOUNTING_UI_TEXT.formIncomplete);
+			setErrors({
+				accountType: normalizedAccountTypeId === "" ? "Account type is required" : undefined,
+				code: accountCode.trim() === "" ? "Account code is required" : undefined,
+				name: accountName.trim() === "" ? "Account name is required" : undefined,
+			});
 			return;
 		}
+
+		setErrors({});
 
 		try {
 			await createChartAccount({
@@ -105,38 +113,65 @@ export function ChartAccountFormPage({ mode }: ChartAccountFormPageProps) {
 								<Label className="text-slate-600">
 									<span className="text-rose-500">*</span> Account type
 								</Label>
-								<Select value={accountTypeId} onValueChange={setAccountTypeId}>
-									<SelectTrigger disabled={isLoading || isReadOnly}>
-										<SelectValue placeholder="Select type" />
-									</SelectTrigger>
-									<SelectContent>
-										{accountTypeOptions.map((option) => (
-											<SelectItem key={option.value} value={option.value}>
-												{option.label}
-											</SelectItem>
-										))}
-									</SelectContent>
-								</Select>
+								<div className="space-y-1">
+									<Select
+										value={accountTypeId}
+										onValueChange={(val) => {
+											setAccountTypeId(val);
+											if (errors.accountType) setErrors({ ...errors, accountType: undefined });
+										}}
+									>
+										<SelectTrigger disabled={isLoading || isReadOnly} aria-invalid={!!errors.accountType}>
+											<SelectValue placeholder="Select type" />
+										</SelectTrigger>
+										<SelectContent>
+											{accountTypeOptions.map((option) => (
+												<SelectItem key={option.value} value={option.value}>
+													{option.label}
+												</SelectItem>
+											))}
+										</SelectContent>
+									</Select>
+									{errors.accountType ? <p className="text-xs text-red-500">{errors.accountType}</p> : null}
+								</div>
 							</div>
 							<div className="grid gap-3 sm:grid-cols-[220px_minmax(0,1fr)] sm:items-center">
 								<Label className="text-slate-600">
 									<span className="text-rose-500">*</span> Account code
 								</Label>
-								<Input
-									value={accountCode}
-									onChange={(event) => setAccountCode(event.target.value)}
-									disabled={isCreating || isReadOnly}
-								/>
+								<div className="space-y-1">
+									<Input
+										name="accountCode"
+										autoComplete="off"
+										value={accountCode}
+										onChange={(event) => {
+											setAccountCode(event.target.value);
+											if (errors.code) setErrors({ ...errors, code: undefined });
+										}}
+										disabled={isCreating || isReadOnly}
+										aria-invalid={!!errors.code}
+									/>
+									{errors.code ? <p className="text-xs text-red-500">{errors.code}</p> : null}
+								</div>
 							</div>
 							<div className="grid gap-3 sm:grid-cols-[220px_minmax(0,1fr)] sm:items-center">
 								<Label className="text-slate-600">
 									<span className="text-rose-500">*</span> Account name
 								</Label>
-								<Input
-									value={accountName}
-									onChange={(event) => setAccountName(event.target.value)}
-									disabled={isCreating || isReadOnly}
-								/>
+								<div className="space-y-1">
+									<Input
+										name="accountName"
+										autoComplete="off"
+										value={accountName}
+										onChange={(event) => {
+											setAccountName(event.target.value);
+											if (errors.name) setErrors({ ...errors, name: undefined });
+										}}
+										disabled={isCreating || isReadOnly}
+										aria-invalid={!!errors.name}
+									/>
+									{errors.name ? <p className="text-xs text-red-500">{errors.name}</p> : null}
+								</div>
 							</div>
 						</div>
 
@@ -144,6 +179,8 @@ export function ChartAccountFormPage({ mode }: ChartAccountFormPageProps) {
 							<div className="grid gap-3 sm:grid-cols-[220px_minmax(0,1fr)] sm:items-start">
 								<Label className="text-slate-600">Memo</Label>
 								<Textarea
+									name="memo"
+									autoComplete="off"
 									value={memo}
 									onChange={(event) => setMemo(event.target.value)}
 									className="min-h-24"
@@ -163,13 +200,13 @@ export function ChartAccountFormPage({ mode }: ChartAccountFormPageProps) {
 								mainAction={{
 									label: ACCOUNTING_UI_TEXT.saveAndClose,
 									onClick: handleSave,
-									disabled: isCreating || !isFormValid,
+									disabled: isCreating,
 								}}
 								options={[
 									{
 										label: ACCOUNTING_UI_TEXT.saveAndNew,
 										onClick: handleSave,
-										disabled: isCreating || !isFormValid,
+										disabled: isCreating,
 									},
 								]}
 							/>

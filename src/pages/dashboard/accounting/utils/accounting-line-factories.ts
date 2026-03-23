@@ -1,11 +1,9 @@
 export type ExpenseLine = {
 	id: string;
-	accountTypeId: string;
-	nature: string;
+	accountCode: string;
 	memo: string;
 	amount: string;
-	name: string;
-	nameInput: string;
+	customerId: string;
 	className: string;
 };
 
@@ -14,7 +12,7 @@ export type RevenueLine = {
 	accountCode: string;
 	memo: string;
 	amount: string;
-	name: string;
+	customerId: string;
 	className: string;
 };
 
@@ -38,30 +36,31 @@ export type TransactionLine = {
 	className: string;
 };
 
-function createLineId(index: number) {
-	return `line-${index + 1}`;
+let lineIdCounter = 0;
+
+function createLineId(_index?: number) {
+	lineIdCounter += 1;
+	return `line-${lineIdCounter}`;
 }
 
-export function createEmptyExpenseLine(index: number): ExpenseLine {
+export function createEmptyExpenseLine(): ExpenseLine {
 	return {
-		id: createLineId(index),
-		accountTypeId: "",
-		nature: "",
+		id: createLineId(),
+		accountCode: "",
 		memo: "",
 		amount: "",
-		name: "",
-		nameInput: "",
+		customerId: "",
 		className: "",
 	};
 }
 
-export function createEmptyRevenueLine(index: number): RevenueLine {
+export function createEmptyRevenueLine(): RevenueLine {
 	return {
-		id: createLineId(index),
+		id: createLineId(),
 		accountCode: "",
 		memo: "",
 		amount: "",
-		name: "",
+		customerId: "",
 		className: "",
 	};
 }

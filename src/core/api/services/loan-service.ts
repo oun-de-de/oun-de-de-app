@@ -24,6 +24,11 @@ type LoanApiResponse = Omit<Loan, "borrowerType" | "createdAt" | "status"> & {
 
 function toApiBorrowerType(value?: BorrowerType): string | undefined {
 	if (!value) return undefined;
+	return value.toUpperCase();
+}
+
+function toApiCreateBorrowerType(value?: BorrowerType): string | undefined {
+	if (!value) return undefined;
 	return value.toLowerCase();
 }
 
@@ -107,7 +112,7 @@ const createLoan = (data: CreateLoanRequest): Promise<Loan> =>
 			url: LoanApi.Loans,
 			data: {
 				...data,
-				borrowerType: toApiBorrowerType(data.borrowerType),
+				borrowerType: toApiCreateBorrowerType(data.borrowerType),
 			},
 		})
 		.then(normalizeLoan);

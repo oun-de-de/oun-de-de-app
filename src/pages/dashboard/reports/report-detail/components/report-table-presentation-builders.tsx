@@ -3,7 +3,7 @@ import type { Customer } from "@/core/types/customer";
 import Logo from "@/core/components/logo";
 import type { InvoiceExportPreviewRow } from "@/core/types/invoice";
 import { formatNumber } from "@/core/utils/formatters";
-import type { ReportTemplateId } from "../report-types";
+import type { ReportFilterConfig, ReportTemplateId } from "../report-types";
 import type {
 	ReportTemplateMetaColumn,
 	ReportTemplateRow,
@@ -25,6 +25,7 @@ type ReportPresentationBuilderParams = {
 	templateId: ReportTemplateId;
 	reportSlug: string;
 	title: string;
+	filterConfig?: ReportFilterConfig;
 	filters: ReportFiltersValue | undefined;
 	selectedCustomerLabel: string | undefined;
 	selectedCustomer: Customer | undefined;
@@ -38,13 +39,13 @@ type SummaryDefinition = {
 	value: string | number;
 };
 
-function buildDefaultHeader(title: string, dateText: string) {
+function buildDefaultHeader(title: string, dateText?: string) {
 	return (
 		<div className="flex flex-col items-center gap-1 text-center text-black">
 			<div className="text-[11px] font-normal">{title}</div>
 			<div className="pb-0 text-[22px] font-bold">ហាងចក្រទឹកកក លឹម ច័ន្ទ II</div>
 			<div className="pb-3 text-[13px] font-semibold underline">TEL: 070669898</div>
-			<div className="text-base font-semibold text-slate-600">{dateText}</div>
+			{dateText && <div className="text-base font-semibold text-slate-600">{dateText}</div>}
 		</div>
 	);
 }
@@ -105,7 +106,7 @@ function buildCompanyAssetMetaColumns(): ReportTemplateMetaColumn[] {
 		},
 		{
 			key: "valuation",
-			rows: ["Balance is based on quantity x cost", "Credit remains blank in current source data"],
+			rows: ["Quantity reflects current inventory records", "Credit remains blank in current source data"],
 			align: "right",
 			className: "md:col-span-1",
 		},
@@ -151,7 +152,7 @@ function buildDebitCreditSummary(prefix: string, rows: ReportTemplateRow[]): Rep
 
 function buildSimplePresentation(
 	title: string,
-	dateText: string,
+	dateText?: string,
 	options?: {
 		metaColumns?: ReportTemplateMetaColumn[];
 		summaryRows?: ReportTemplateSummaryRow[];
@@ -210,8 +211,8 @@ function buildDailyPresentation({ title, filters, rows }: ReportPresentationBuil
 	});
 }
 
-function buildCompanyAssetPresentation({ filters, rows }: ReportPresentationBuilderParams): ReportPresentation {
-	return buildSimplePresentation("Company Asset Report", formatFilterRange(filters), {
+function buildCompanyAssetPresentation({ rows }: ReportPresentationBuilderParams): ReportPresentation {
+	return buildSimplePresentation("Company Asset Report", undefined, {
 		metaColumns: buildCompanyAssetMetaColumns(),
 		summaryRows: buildSingleAmountSummary("asset-total", "Total asset value", sumCell(rows, "balance")),
 		emptyText: "No asset rows available.",
@@ -298,5 +299,10 @@ const PRESENTATION_BUILDERS: Partial<
 export function buildReportPresentation(params: ReportPresentationBuilderParams): ReportPresentation {
 	const builder = PRESENTATION_BUILDERS[params.templateId];
 	if (builder) return builder(params);
-	return buildSimplePresentation(params.title, formatFilterRange(params.filters));
+
+	const shouldShowDate =
+		!!params.filterConfig &&
+		(!!params.filterConfig.dateRange || !!params.filterConfig.singleDate || !!params.filterConfig.monthOnly);
+
+	return buildSimplePresentation(params.title, shouldShowDate ? formatFilterRange(params.filters) : undefined);
 }

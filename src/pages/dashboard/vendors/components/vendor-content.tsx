@@ -4,6 +4,7 @@ import Icon from "@/core/components/icon/icon";
 import type { VendorTransactionRow } from "@/core/types/common";
 import { Button } from "@/core/ui/button";
 import { Text } from "@/core/ui/typography";
+import { useCallback, useMemo } from "react";
 import { columns } from "./vendor-columns";
 
 type VendorContentProps = {
@@ -43,6 +44,49 @@ export function VendorContent({
 	paginationItems,
 }: VendorContentProps) {
 	const activeVendor = vendorList.find((vendor) => vendor.id === activeVendorId);
+	const handleTypeChange = useCallback((value: string) => updateState({ typeFilter: value, page: 1 }), [updateState]);
+	const handleFieldChange = useCallback((value: string) => updateState({ fieldFilter: value, page: 1 }), [updateState]);
+	const handleSearchChange = useCallback(
+		(value: string) => updateState({ searchValue: value, page: 1 }),
+		[updateState],
+	);
+	const handlePageChange = useCallback((nextPage: number) => updateState({ page: nextPage }), [updateState]);
+	const handlePageSizeChange = useCallback(
+		(nextSize: number) => updateState({ pageSize: nextSize, page: 1 }),
+		[updateState],
+	);
+	const filterConfig = useMemo(
+		() => ({
+			typeOptions: filterTypeOptions,
+			fieldOptions: filterFieldOptions,
+			typeValue: listState.typeFilter,
+			fieldValue: listState.fieldFilter,
+			searchValue: listState.searchValue,
+			onTypeChange: handleTypeChange,
+			onFieldChange: handleFieldChange,
+			onSearchChange: handleSearchChange,
+		}),
+		[
+			handleFieldChange,
+			handleSearchChange,
+			handleTypeChange,
+			listState.fieldFilter,
+			listState.searchValue,
+			listState.typeFilter,
+		],
+	);
+	const paginationConfig = useMemo(
+		() => ({
+			page: currentPage,
+			pageSize: listState.pageSize,
+			totalItems,
+			totalPages,
+			paginationItems,
+			onPageChange: handlePageChange,
+			onPageSizeChange: handlePageSizeChange,
+		}),
+		[currentPage, handlePageChange, handlePageSizeChange, listState.pageSize, paginationItems, totalItems, totalPages],
+	);
 
 	return (
 		<>
@@ -73,25 +117,8 @@ export function VendorContent({
 				maxBodyHeight="100%"
 				data={pagedTransactions}
 				columns={columns}
-				filterConfig={{
-					typeOptions: filterTypeOptions,
-					fieldOptions: filterFieldOptions,
-					typeValue: listState.typeFilter,
-					fieldValue: listState.fieldFilter,
-					searchValue: listState.searchValue,
-					onTypeChange: (value: string) => updateState({ typeFilter: value, page: 1 }),
-					onFieldChange: (value: string) => updateState({ fieldFilter: value, page: 1 }),
-					onSearchChange: (value: string) => updateState({ searchValue: value, page: 1 }),
-				}}
-				paginationConfig={{
-					page: currentPage,
-					pageSize: listState.pageSize,
-					totalItems: totalItems,
-					totalPages: totalPages,
-					paginationItems: paginationItems,
-					onPageChange: (nextPage: number) => updateState({ page: nextPage }),
-					onPageSizeChange: (nextSize: number) => updateState({ pageSize: nextSize, page: 1 }),
-				}}
+				filterConfig={filterConfig}
+				paginationConfig={paginationConfig}
 			/>
 		</>
 	);

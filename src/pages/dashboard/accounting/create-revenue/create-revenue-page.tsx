@@ -8,9 +8,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/core/ui/textarea";
 import { formatNumber } from "@/core/utils/formatters";
 import { CalendarDays, Plus, Trash2 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 import type { CreateCashTransactionRequest } from "@/core/types/cash-transaction";
 import { ACCOUNTING_DRAFT_FORM_TEXT, ACCOUNTING_FORM_TRANSACTION_TYPES } from "../constants";
 import { AccountingSelectOptionContent } from "../components/accounting-select-option-content";
@@ -19,16 +19,19 @@ import { createEmptyRevenueLine, type RevenueLine } from "../utils/accounting-li
 import { formatDateTimeLocalInputValue } from "../utils/format-local-date-time";
 import { getChartAccountAccountTypeId } from "../utils/map-chart-account-result";
 import { useCreateCashTransaction } from "@/pages/dashboard/accounting-center/hooks/use-create-cash-transaction";
+import { useGetCurrencyList } from "@/pages/dashboard/settings/hooks/use-settings";
 
 const getChartAccountLabel = (code?: string, name?: string) => (code && name ? `${code} : ${name}` : "");
 
 type RevenueFormValues = {
 	refNo: string;
 	date: string;
-	cashAccount: string;
+	currencyId: string;
 	employeeId: string;
 	memo: string;
 };
+
+type RevenueLineField = "accountCode" | "amount" | "customerId";
 
 export default function CreateRevenuePage() {
 	const navigate = useNavigate();
@@ -39,39 +42,48 @@ export default function CreateRevenuePage() {
 			customersEnabled: true,
 			loadChartAccountType: true,
 		});
+	const { data: currencies = [], isLoading: isLoadingCurrencies } = useGetCurrencyList();
 	const { mutateAsync: createCashTransaction, isPending: isSubmitting } = useCreateCashTransaction();
 	const form = useForm<RevenueFormValues>({
 		defaultValues: {
 			refNo: "REVXXXXXXXXXX",
 			date: formatDateTimeLocalInputValue(),
-			cashAccount: "",
+			currencyId: "",
 			employeeId: "",
 			memo: "",
 		},
 	});
-	const [lines, setLines] = useState<RevenueLine[]>([createEmptyRevenueLine(0)]);
+	const [lines, setLines] = useState<RevenueLine[]>([createEmptyRevenueLine()]);
+	const [lineError, setLineError] = useState<{ lineId: string; field: RevenueLineField } | null>(null);
 	const refNo = form.watch("refNo");
 	const date = form.watch("date");
-	const cashAccount = form.watch("cashAccount");
+	const currencyId = form.watch("currencyId");
 	const employeeId = form.watch("employeeId");
 	const memo = form.watch("memo");
 
 	const totalAmount = useMemo(() => lines.reduce((sum, line) => sum + (Number(line.amount) || 0), 0), [lines]);
-	const selectedCashAccountLabel = useMemo(() => {
-		const selectedAccount = chartAccounts.find((account) => account.id === cashAccount);
-		return getChartAccountLabel(selectedAccount?.code, selectedAccount?.name);
-	}, [chartAccounts, cashAccount]);
+	const currencyOptions = useMemo(() => currencies.map((item) => ({ value: item.id, label: item.name })), [currencies]);
 	const chartAccountMap = useMemo(
 		() => new Map(chartAccounts.map((account) => [account.id, account])),
 		[chartAccounts],
 	);
+	const defaultCurrencyId = currencies[1]?.id ?? currencies[0]?.id ?? "";
+
+	useEffect(() => {
+		if (!currencyId && defaultCurrencyId) {
+			form.setValue("currencyId", defaultCurrencyId);
+		}
+	}, [currencyId, defaultCurrencyId, form]);
 
 	const updateLine = <K extends keyof RevenueLine>(id: string, field: K, value: RevenueLine[K]) => {
+		if (lineError?.lineId === id && lineError.field === field) {
+			setLineError(null);
+		}
 		setLines((prev) => prev.map((line) => (line.id === id ? { ...line, [field]: value } : line)));
 	};
 
 	const addLine = () => {
-		setLines((prev) => [...prev, createEmptyRevenueLine(prev.length)]);
+		setLines((prev) => [...prev, createEmptyRevenueLine()]);
 	};
 
 	const removeLine = (id: string) => {
@@ -82,19 +94,14 @@ export default function CreateRevenuePage() {
 		form.reset({
 			refNo: "REVXXXXXXXXXX",
 			date: formatDateTimeLocalInputValue(),
-			cashAccount: "",
+			currencyId: defaultCurrencyId,
 			employeeId: "",
 			memo: "",
 		});
-		setLines([createEmptyRevenueLine(0)]);
+		setLines([createEmptyRevenueLine()]);
 	};
 
 	const buildPayload = (values: RevenueFormValues): CreateCashTransactionRequest | null => {
-		if (!values.cashAccount) {
-			toast.error("Chart of Account is required");
-			return null;
-		}
-
 		if (!values.employeeId) {
 			toast.error("Employee is required");
 			return null;
@@ -104,17 +111,20 @@ export default function CreateRevenuePage() {
 
 		for (const [index, line] of lines.entries()) {
 			if (!line.accountCode) {
+				setLineError({ lineId: line.id, field: "accountCode" });
 				toast.error(`Line ${index + 1}: account is required`);
 				return null;
 			}
 
-			if (!line.name) {
+			if (!line.customerId) {
+				setLineError({ lineId: line.id, field: "customerId" });
 				toast.error(`Line ${index + 1}: customer name is required`);
 				return null;
 			}
 
 			const amount = Number(line.amount);
 			if (!Number.isFinite(amount) || amount <= 0) {
+				setLineError({ lineId: line.id, field: "amount" });
 				toast.error(`Line ${index + 1}: amount must be greater than 0`);
 				return null;
 			}
@@ -127,21 +137,22 @@ export default function CreateRevenuePage() {
 			}
 
 			details.push({
-				chartOfAccountId: values.cashAccount,
+				chartOfAccountId: line.accountCode,
 				accountTypeId,
 				memo: line.memo.trim() || undefined,
 				amount,
-				customerId: line.name,
+				customerId: line.customerId,
 				journalClassId: line.className || undefined,
 			});
 		}
 
 		return {
-			refNo: values.refNo,
+			refNo: values.refNo.trim(),
 			type: ACCOUNTING_FORM_TRANSACTION_TYPES.revenue.toLowerCase() as Lowercase<
 				typeof ACCOUNTING_FORM_TRANSACTION_TYPES.revenue
 			>,
 			date: new Date(values.date).toISOString(),
+			currencyId: values.currencyId || undefined,
 			employeeId: values.employeeId,
 			memo: values.memo.trim() || undefined,
 			cashTransactionDetails: details,
@@ -184,11 +195,17 @@ export default function CreateRevenuePage() {
 					<div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-6">
 						<div className="space-y-3">
 							<div className="space-y-1.5">
-								<Label className="text-slate-600">
+								<Label htmlFor="revenue-ref-no" className="text-slate-600">
 									<span className="text-rose-500">*</span> Ref No
 								</Label>
 								<div className="w-full">
-									<Input value={refNo} disabled />
+									<Input
+										id="revenue-ref-no"
+										name="refNo"
+										autoComplete="off"
+										value={refNo}
+										onChange={(event) => form.setValue("refNo", event.target.value)}
+									/>
 								</div>
 							</div>
 							<div className="space-y-1.5">
@@ -198,6 +215,7 @@ export default function CreateRevenuePage() {
 								<div className="relative">
 									<CalendarDays className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
 									<Input
+										name="date"
 										type="datetime-local"
 										value={date}
 										onChange={(event) => form.setValue("date", event.target.value)}
@@ -207,26 +225,23 @@ export default function CreateRevenuePage() {
 							</div>
 							<div className="space-y-1.5">
 								<Label className="text-slate-600">
-									<span className="text-rose-500">*</span> Cash & Cash Equivalents
+									<span className="text-rose-500">*</span> Currency
 								</Label>
-								<Select value={cashAccount} onValueChange={(value) => form.setValue("cashAccount", value)}>
-									<SelectTrigger disabled={isLoading}>
-										{selectedCashAccountLabel || <SelectValue placeholder="Select" />}
+								<Select value={currencyId} onValueChange={(value) => form.setValue("currencyId", value)}>
+									<SelectTrigger disabled={isLoadingCurrencies}>
+										<SelectValue placeholder="Select currency" />
 									</SelectTrigger>
 									<SelectContent>
-										{chartAccounts.map((account) => (
-											<SelectItem key={account.id} value={account.id} className="relative pr-40">
-												<AccountingSelectOptionContent
-													primary={getChartAccountLabel(account.code, account.name)}
-													secondary={account.accountType?.nature ?? "-"}
-													rightPaddingClassName="pr-32"
-												/>
+										{currencyOptions.map((option) => (
+											<SelectItem key={option.value} value={option.value}>
+												{option.label}
 											</SelectItem>
 										))}
 									</SelectContent>
 								</Select>
 							</div>
 						</div>
+
 						<div className="space-y-3">
 							<div className="space-y-1.5">
 								<Label className="text-slate-600">
@@ -250,6 +265,8 @@ export default function CreateRevenuePage() {
 									<span className="text-rose-500">*</span> Memo
 								</Label>
 								<Textarea
+									name="memo"
+									autoComplete="off"
 									value={memo}
 									onChange={(event) => form.setValue("memo", event.target.value)}
 									className="min-h-24"
@@ -289,7 +306,14 @@ export default function CreateRevenuePage() {
 														value={line.accountCode}
 														onValueChange={(value) => updateLine(line.id, "accountCode", value)}
 													>
-														<SelectTrigger disabled={isLoading}>
+														<SelectTrigger
+															disabled={isLoading}
+															className={
+																lineError?.lineId === line.id && lineError.field === "accountCode"
+																	? "border-rose-500 ring-1 ring-rose-500"
+																	: undefined
+															}
+														>
 															{selectedLineAccount ? (
 																getChartAccountLabel(selectedLineAccount.code, selectedLineAccount.name)
 															) : (
@@ -323,12 +347,25 @@ export default function CreateRevenuePage() {
 															updateLine(line.id, "amount", event.target.value.replace(/[^\d.]/g, ""))
 														}
 														placeholder="0"
-														className="text-right"
+														className={
+															lineError?.lineId === line.id && lineError.field === "amount"
+																? "border-rose-500 ring-1 ring-rose-500 text-right"
+																: "text-right"
+														}
 													/>
 												</td>
 												<td className="min-w-[220px] px-3 py-2">
-													<Select value={line.name} onValueChange={(value) => updateLine(line.id, "name", value)}>
-														<SelectTrigger>
+													<Select
+														value={line.customerId}
+														onValueChange={(value) => updateLine(line.id, "customerId", value)}
+													>
+														<SelectTrigger
+															className={
+																lineError?.lineId === line.id && lineError.field === "customerId"
+																	? "border-rose-500 ring-1 ring-rose-500"
+																	: undefined
+															}
+														>
 															<SelectValue placeholder="Select customer" />
 														</SelectTrigger>
 														<SelectContent>
@@ -386,8 +423,8 @@ export default function CreateRevenuePage() {
 					</div>
 
 					<div className="flex items-center justify-end gap-3">
-						<Button variant="outline" onClick={() => navigate("/dashboard/accounting")}>
-							Cancel
+						<Button asChild variant="outline">
+							<Link to="/dashboard/accounting">Cancel</Link>
 						</Button>
 						<Button variant="info" onClick={() => void submitRevenue("close")} disabled={isSubmitting}>
 							{ACCOUNTING_DRAFT_FORM_TEXT.revenue.saveAndClose}

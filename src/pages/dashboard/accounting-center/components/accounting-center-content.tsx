@@ -1,4 +1,5 @@
 import { SmartDataTable, SummaryStatCard } from "@/core/components/common";
+import { useCallback, useMemo } from "react";
 import type { CashTransaction, CashTransactionSummary } from "@/core/types/cash-transaction";
 import { formatKHR, formatNumber } from "@/core/utils/formatters";
 import { Text } from "@/core/ui/typography";
@@ -43,17 +44,72 @@ export function AccountingCenterContent({
 	summary,
 }: AccountingCenterContentProps) {
 	const navigate = useNavigate();
-	const summaryCards = [
-		{
-			label: "Transactions",
-			value: formatNumber(summary.count),
-			color: "bg-sky-500",
-			icon: "mdi:format-list-bulleted",
-		},
-		{ label: "Total Debit", value: formatKHR(summary.debit), color: "bg-emerald-500", icon: "mdi:arrow-down-bold" },
-		{ label: "Total Credit", value: formatKHR(summary.credit), color: "bg-rose-500", icon: "mdi:arrow-up-bold" },
-		{ label: "Ending Balance", value: formatKHR(summary.balance), color: "bg-amber-500", icon: "mdi:cash-register" },
-	];
+	const handleTypeChange = useCallback((value: string) => updateState({ typeFilter: value, page: 1 }), [updateState]);
+	const handleFieldChange = useCallback((value: string) => updateState({ fieldFilter: value, page: 1 }), [updateState]);
+	const handleSearchChange = useCallback(
+		(value: string) => updateState({ searchValue: value, page: 1 }),
+		[updateState],
+	);
+	const handlePageChange = useCallback((nextPage: number) => updateState({ page: nextPage }), [updateState]);
+	const handlePageSizeChange = useCallback(
+		(nextSize: number) => updateState({ pageSize: nextSize, page: 1 }),
+		[updateState],
+	);
+	const summaryCards = useMemo(
+		() => [
+			{
+				label: "Transactions",
+				value: formatNumber(summary.count),
+				color: "bg-sky-500",
+				icon: "mdi:format-list-bulleted",
+			},
+			{ label: "Total Debit", value: formatKHR(summary.debit), color: "bg-emerald-500", icon: "mdi:arrow-down-bold" },
+			{ label: "Total Credit", value: formatKHR(summary.credit), color: "bg-rose-500", icon: "mdi:arrow-up-bold" },
+			{ label: "Ending Balance", value: formatKHR(summary.balance), color: "bg-amber-500", icon: "mdi:cash-register" },
+		],
+		[summary.balance, summary.count, summary.credit, summary.debit],
+	);
+	const createRevenueOptionLabels = useMemo(() => ["Create Revenue"] as const, []);
+	const createExpenseMainAction = useMemo(
+		() => createAccountingCreateMainAction("Create Expense", navigate),
+		[navigate],
+	);
+	const filterConfig = useMemo(
+		() => ({
+			typeOptions,
+			fieldOptions: FIELD_OPTIONS,
+			typeValue: listState.typeFilter,
+			fieldValue: listState.fieldFilter,
+			searchValue: listState.searchValue,
+			typePlaceholder: "Transaction Type",
+			fieldPlaceholder: "Search Field",
+			searchPlaceholder: "Search accounting entries...",
+			onTypeChange: handleTypeChange,
+			onFieldChange: handleFieldChange,
+			onSearchChange: handleSearchChange,
+		}),
+		[
+			handleFieldChange,
+			handleSearchChange,
+			handleTypeChange,
+			listState.fieldFilter,
+			listState.searchValue,
+			listState.typeFilter,
+			typeOptions,
+		],
+	);
+	const paginationConfig = useMemo(
+		() => ({
+			page: currentPage,
+			pageSize: listState.pageSize,
+			totalItems,
+			totalPages,
+			paginationItems,
+			onPageChange: handlePageChange,
+			onPageSizeChange: handlePageSizeChange,
+		}),
+		[currentPage, handlePageChange, handlePageSizeChange, listState.pageSize, paginationItems, totalItems, totalPages],
+	);
 
 	return (
 		<>
@@ -68,8 +124,8 @@ export function AccountingCenterContent({
 				</div>
 				<AccountingCreateMenuButton
 					size="sm"
-					mainAction={createAccountingCreateMainAction("Create Expense", navigate)}
-					optionLabels={["Create Revenue"]}
+					mainAction={createExpenseMainAction}
+					optionLabels={createRevenueOptionLabels}
 				/>
 			</div>
 			<div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
@@ -83,28 +139,8 @@ export function AccountingCenterContent({
 				maxBodyHeight="100%"
 				data={pagedTransactions}
 				columns={accountingCenterColumns}
-				filterConfig={{
-					typeOptions,
-					fieldOptions: FIELD_OPTIONS,
-					typeValue: listState.typeFilter,
-					fieldValue: listState.fieldFilter,
-					searchValue: listState.searchValue,
-					typePlaceholder: "Transaction Type",
-					fieldPlaceholder: "Search Field",
-					searchPlaceholder: "Search accounting entries...",
-					onTypeChange: (value: string) => updateState({ typeFilter: value, page: 1 }),
-					onFieldChange: (value: string) => updateState({ fieldFilter: value, page: 1 }),
-					onSearchChange: (value: string) => updateState({ searchValue: value, page: 1 }),
-				}}
-				paginationConfig={{
-					page: currentPage,
-					pageSize: listState.pageSize,
-					totalItems,
-					totalPages,
-					paginationItems,
-					onPageChange: (nextPage: number) => updateState({ page: nextPage }),
-					onPageSizeChange: (nextSize: number) => updateState({ pageSize: nextSize, page: 1 }),
-				}}
+				filterConfig={filterConfig}
+				paginationConfig={paginationConfig}
 			/>
 		</>
 	);

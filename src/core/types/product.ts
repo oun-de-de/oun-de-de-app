@@ -17,9 +17,9 @@ export type Product = {
 	date: string;
 	refNo: string;
 	isPackagedByQuantity?: boolean;
-	quantity: number;
-	cost: number;
-	price: number;
+	// quantity: number;
+	// cost: number;
+	// price: number;
 	unit: Unit;
 	defaultProductSetting: DefaultProductSetting;
 };

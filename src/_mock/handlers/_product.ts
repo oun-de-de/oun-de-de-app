@@ -8,9 +8,6 @@ const getProductList = http.get("/api/v1/products", async () => {
 		name: faker.commerce.productName(),
 		date: faker.date.recent().toISOString(),
 		refNo: faker.string.alphanumeric(8).toUpperCase(),
-		quantity: faker.number.int({ min: 1, max: 100 }),
-		cost: parseFloat(faker.commerce.price()),
-		price: parseFloat(faker.commerce.price()),
 		unit: {
 			id: faker.string.uuid(),
 			name: faker.helpers.arrayElement(["kg", "g", "l", "ml", "pcs"]),
@@ -34,9 +31,6 @@ const getProductById = http.get("/api/v1/products/:id", async ({ params }) => {
 		name: faker.commerce.productName(),
 		date: faker.date.recent().toISOString(),
 		refNo: faker.string.alphanumeric(8).toUpperCase(),
-		quantity: faker.number.int({ min: 1, max: 100 }),
-		cost: parseFloat(faker.commerce.price()),
-		price: parseFloat(faker.commerce.price()),
 		unit: {
 			id: faker.string.uuid(),
 			name: faker.helpers.arrayElement(["kg", "g", "l", "ml", "pcs"]),

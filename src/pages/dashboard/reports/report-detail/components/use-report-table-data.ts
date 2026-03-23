@@ -60,6 +60,9 @@ export function useReportTableData({ reportSlug, filters, sortMode }: UseReportT
 	const dataSource = definition.dataSource ?? "invoice-export";
 	const { customerId, reportDateFrom, reportDateTo } = normalizeReportFilters(filters);
 	const isMonthFilter = definition.filterConfig?.monthOnly === true;
+	const requiresSingleDate = definition.filterConfig?.singleDate === true;
+	const requiresDateRange = definition.filterConfig?.dateRange === true;
+	const requiresMonth = definition.filterConfig?.monthOnly === true;
 	const shouldBuildPreviewRows = definition.needsPreviewRows === true;
 
 	const isInvoiceExport = isInvoiceDataSource(dataSource);
@@ -74,6 +77,12 @@ export function useReportTableData({ reportSlug, filters, sortMode }: UseReportT
 	const isMonthlyReportDetailsApi = isMonthlyReportDetailsApiDataSource(dataSource);
 	const defaultReportDate = formatDateToYYYYMMDD(getTodayUTC());
 	const defaultReportPeriod = defaultReportDate.slice(0, 7);
+	const hasRequiredDateFilters =
+		requiresMonth || requiresSingleDate
+			? Boolean(filters?.fromDate)
+			: requiresDateRange
+				? Boolean(filters?.fromDate && filters?.toDate)
+				: true;
 	const reportDate = (isDailyReportApi ? filters?.fromDate : undefined) || filters?.toDate || defaultReportDate;
 	const reportPeriod = isMonthFilter
 		? filters?.fromDate || filters?.toDate || defaultReportPeriod
@@ -92,7 +101,7 @@ export function useReportTableData({ reportSlug, filters, sortMode }: UseReportT
 				from: reportDateFrom,
 				to: reportDateTo,
 			}),
-		enabled: isCycle,
+		enabled: isCycle && hasRequiredDateFilters,
 	});
 
 	const invoiceQuery = useQuery({
@@ -106,7 +115,7 @@ export function useReportTableData({ reportSlug, filters, sortMode }: UseReportT
 				from: reportDateFrom,
 				to: reportDateTo,
 			}),
-		enabled: isInvoiceExport,
+		enabled: isInvoiceExport && hasRequiredDateFilters,
 	});
 
 	const customerQuery = useQuery({
@@ -155,25 +164,25 @@ export function useReportTableData({ reportSlug, filters, sortMode }: UseReportT
 	const dailyReportQuery = useQuery({
 		queryKey: ["report", "daily-report", reportDate],
 		queryFn: () => reportService.getDailyReport(reportDate),
-		enabled: isDailyReportApi,
+		enabled: isDailyReportApi && hasRequiredDateFilters,
 	});
 
 	const inventoryStockReportQuery = useQuery({
 		queryKey: ["report", "inventory-stock-report", inventoryDateFrom, inventoryDateTo],
 		queryFn: () => reportService.getInventoryStockReport(inventoryDateFrom, inventoryDateTo),
-		enabled: isInventoryStockReportApi,
+		enabled: isInventoryStockReportApi && hasRequiredDateFilters,
 	});
 
 	const monthlyReportQuery = useQuery({
 		queryKey: ["report", "monthly-report", reportPeriod],
 		queryFn: () => reportService.getMonthlyReport(reportPeriod),
-		enabled: isMonthlyReportApi,
+		enabled: isMonthlyReportApi && hasRequiredDateFilters,
 	});
 
 	const monthlyReportDetailsQuery = useQuery({
 		queryKey: ["report", "monthly-report-details", reportPeriod],
 		queryFn: () => reportService.getMonthlyReportDetails(reportPeriod),
-		enabled: isMonthlyReportDetailsApi,
+		enabled: isMonthlyReportDetailsApi && hasRequiredDateFilters,
 	});
 
 	const customers = customerQuery.data?.list ?? [];

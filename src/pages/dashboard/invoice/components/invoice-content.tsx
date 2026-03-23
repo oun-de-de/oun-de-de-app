@@ -283,6 +283,30 @@ export function InvoiceContent({
 			}),
 		[activeCycle, handleExportPaymentReceipt, exportingPaymentId],
 	);
+	const filterConfig = useMemo(
+		() => ({
+			showTypeFilter: false,
+			showFieldFilter: true,
+			fieldOptions: INVOICE_FILTER_FIELD_OPTIONS,
+			fieldValue: fieldFilter,
+			searchValue,
+			onFieldChange: onFieldFilterChange,
+			onSearchChange,
+		}),
+		[fieldFilter, onFieldFilterChange, onSearchChange, searchValue],
+	);
+	const paginationConfig = useMemo(
+		() => ({
+			page: currentPage,
+			pageSize,
+			totalItems,
+			totalPages,
+			paginationItems,
+			onPageChange,
+			onPageSizeChange,
+		}),
+		[currentPage, onPageChange, onPageSizeChange, pageSize, paginationItems, totalItems, totalPages],
+	);
 
 	return (
 		<div className={`flex w-full flex-col gap-4 ${isLoading ? "opacity-60 pointer-events-none" : ""}`}>
@@ -407,28 +431,12 @@ export function InvoiceContent({
 				data={pagedData}
 				columns={columns}
 				onRowClick={handleOpenInvoiceExportPreview}
-				filterConfig={{
-					showTypeFilter: false,
-					showFieldFilter: true,
-					fieldOptions: INVOICE_FILTER_FIELD_OPTIONS,
-					fieldValue: fieldFilter,
-					searchValue,
-					onFieldChange: onFieldFilterChange,
-					onSearchChange,
-				}}
+				filterConfig={filterConfig}
 				sortingConfig={{
 					sorting,
 					onSortingChange,
 				}}
-				paginationConfig={{
-					page: currentPage,
-					pageSize,
-					totalItems,
-					totalPages,
-					paginationItems,
-					onPageChange,
-					onPageSizeChange,
-				}}
+				paginationConfig={paginationConfig}
 			/>
 		</div>
 	);

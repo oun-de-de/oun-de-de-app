@@ -1,4 +1,5 @@
 import { DefaultForm, type DefaultFormData, SmartDataTable } from "@/core/components/common";
+import { useCallback, useMemo } from "react";
 import { Button } from "@/core/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/core/ui/dialog";
 import { Input } from "@/core/ui/input";
@@ -42,6 +43,29 @@ export function SettingsContent({ activeItem }: SettingsContentProps) {
 		onAfterSave: closeForm,
 	});
 	const pagedRows = filteredRows.slice((page - 1) * pageSize, page * pageSize);
+	const paginationConfig = useMemo(
+		() => ({
+			page,
+			totalItems: filteredRows.length,
+			pageSize,
+			totalPages,
+			paginationItems: buildPagination(page, totalPages),
+			onPageChange: setPage,
+			onPageSizeChange: setPageSize,
+		}),
+		[filteredRows.length, page, pageSize, setPage, setPageSize, totalPages],
+	);
+	const handleDialogOpenChange = useCallback(
+		(open: boolean) => {
+			if (!open) closeForm();
+		},
+		[closeForm],
+	);
+	const handleSearchChange = useCallback(
+		(e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value),
+		[setSearch],
+	);
+	const handleDefaultFormSubmit = useCallback((data: DefaultFormData) => handleSave(data), [handleSave]);
 
 	return (
 		<div className="flex h-full min-h-0 flex-col gap-3">
@@ -66,7 +90,7 @@ export function SettingsContent({ activeItem }: SettingsContentProps) {
 							placeholder="Search settings…"
 							className="h-8 w-full sm:w-[220px]"
 							value={search}
-							onChange={(e) => setSearch(e.target.value)}
+							onChange={handleSearchChange}
 							disabled={!activeItem}
 						/>
 					</div>
@@ -80,15 +104,7 @@ export function SettingsContent({ activeItem }: SettingsContentProps) {
 						maxBodyHeight="100%"
 						data={pagedRows}
 						columns={columns}
-						paginationConfig={{
-							page,
-							totalItems: filteredRows.length,
-							pageSize,
-							totalPages,
-							paginationItems: buildPagination(page, totalPages),
-							onPageChange: setPage,
-							onPageSizeChange: setPageSize,
-						}}
+						paginationConfig={paginationConfig}
 					/>
 				</div>
 			) : (
@@ -102,7 +118,7 @@ export function SettingsContent({ activeItem }: SettingsContentProps) {
 				</div>
 			)}
 
-			<Dialog open={showForm} onOpenChange={(open) => !open && closeForm()}>
+			<Dialog open={showForm} onOpenChange={handleDialogOpenChange}>
 				<DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl lg:max-w-4xl">
 					<DialogHeader>
 						<DialogTitle className="text-sky-600">
@@ -113,7 +129,7 @@ export function SettingsContent({ activeItem }: SettingsContentProps) {
 						<DefaultForm
 							title={formMode === "create" ? `Add ${activeItem}` : `Edit ${activeItem}`}
 							fields={accountingFormFields}
-							onSubmit={(data) => handleSave(data as DefaultFormData)}
+							onSubmit={handleDefaultFormSubmit}
 							onCancel={closeForm}
 							defaultValues={(editItem as DefaultFormData | undefined) ?? undefined}
 							submitLabel={formMode === "create" ? "Create" : "Save"}

@@ -1,11 +1,16 @@
 import customerService from "@/core/api/services/customer-service";
+import { Calendar as CalendarIcon } from "lucide-react";
 import { Button } from "@/core/ui/button";
+import { Calendar } from "@/core/ui/calendar";
 import { Input } from "@/core/ui/input";
 import { Label } from "@/core/ui/label";
+import { Popover, PopoverContent, PopoverTrigger } from "@/core/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/core/ui/select";
+import { formatDateToYYYYMMDD } from "@/core/utils/date-utils";
 import { useQuery } from "@tanstack/react-query";
 import React from "react";
 import type { ReportFilterConfig } from "../report-types";
+import { formatFilterDateForDisplay } from "./report-table-utils";
 
 export type ReportFiltersValue = {
 	customerId: string;
@@ -22,6 +27,55 @@ type ReportFiltersProps = {
 	hasPendingChanges: boolean;
 	filterConfig: ReportFilterConfig;
 };
+
+function parseReportFilterDate(value?: string) {
+	if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return undefined;
+	return new Date(`${value}T00:00:00.000Z`);
+}
+
+type ReportDateFieldProps = {
+	id: string;
+	label: string;
+	value: string;
+	required?: boolean;
+	onChange: (value: string) => void;
+};
+
+function ReportDateField({ id, label, value, required, onChange }: ReportDateFieldProps) {
+	const selectedDate = parseReportFilterDate(value);
+	const displayValue = selectedDate ? formatFilterDateForDisplay(value) : "Select date";
+
+	return (
+		<div className="flex flex-col gap-1.5 text-red-500">
+			<Label htmlFor={id} className="text-slate-600">
+				{required ? "*" : null} {label}
+			</Label>
+			<Popover>
+				<PopoverTrigger asChild>
+					<Button
+						id={id}
+						type="button"
+						variant="outline"
+						className="h-10 justify-between px-3 text-slate-500 hover:bg-white"
+					>
+						<span>{displayValue}</span>
+						<CalendarIcon className="h-4 w-4 text-slate-400" />
+					</Button>
+				</PopoverTrigger>
+				<PopoverContent className="w-auto p-0" align="start">
+					<Calendar
+						mode="single"
+						selected={selectedDate}
+						onSelect={(date) => {
+							onChange(date ? formatDateToYYYYMMDD(date) : "");
+						}}
+						initialFocus
+					/>
+				</PopoverContent>
+			</Popover>
+		</div>
+	);
+}
 
 export const ReportFilters = React.memo(function ReportFilters({
 	value,
@@ -76,55 +130,40 @@ export const ReportFilters = React.memo(function ReportFilters({
 			)}
 
 			{filterConfig.dateRange && (
-				<div className="flex flex-col gap-1.5 text-red-500">
-					<Label htmlFor="report-date-from" className="text-slate-600">
-						* From
-					</Label>
-					<Input
-						id="report-date-from"
-						type="date"
-						value={fromDate}
-						onChange={(e) => onChange({ customerId, fromDate: e.target.value, toDate, useDateRange: true })}
-						className="h-10 text-slate-500"
-					/>
-				</div>
+				<ReportDateField
+					id="report-date-from"
+					label="From"
+					required
+					value={fromDate}
+					onChange={(nextFromDate) => onChange({ customerId, fromDate: nextFromDate, toDate, useDateRange: true })}
+				/>
 			)}
 
 			{filterConfig.dateRange && (
-				<div className="flex flex-col gap-1.5 text-red-500">
-					<Label htmlFor="report-date-to" className="text-slate-600">
-						* To
-					</Label>
-					<Input
-						id="report-date-to"
-						type="date"
-						value={toDate}
-						onChange={(e) => onChange({ customerId, fromDate, toDate: e.target.value, useDateRange: true })}
-						className="h-10 text-slate-500"
-					/>
-				</div>
+				<ReportDateField
+					id="report-date-to"
+					label="To"
+					required
+					value={toDate}
+					onChange={(nextToDate) => onChange({ customerId, fromDate, toDate: nextToDate, useDateRange: true })}
+				/>
 			)}
 
 			{filterConfig.singleDate && (
-				<div className="flex flex-col gap-1.5 text-red-500">
-					<Label htmlFor="report-date" className="text-slate-600">
-						* Date
-					</Label>
-					<Input
-						id="report-date"
-						type="date"
-						value={fromDate}
-						onChange={(e) =>
-							onChange({
-								customerId,
-								fromDate: e.target.value,
-								toDate: e.target.value,
-								useDateRange: true,
-							})
-						}
-						className="h-10 text-slate-500"
-					/>
-				</div>
+				<ReportDateField
+					id="report-date"
+					label="Date"
+					required
+					value={fromDate}
+					onChange={(nextDate) =>
+						onChange({
+							customerId,
+							fromDate: nextDate,
+							toDate: nextDate,
+							useDateRange: true,
+						})
+					}
+				/>
 			)}
 
 			{filterConfig.monthOnly && (
