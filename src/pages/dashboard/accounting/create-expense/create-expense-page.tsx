@@ -10,7 +10,7 @@ import { formatNumber } from "@/core/utils/formatters";
 import { CalendarDays, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 import type { CreateCashTransactionRequest } from "@/core/types/cash-transaction";
 import { ACCOUNTING_DRAFT_FORM_TEXT, ACCOUNTING_FORM_TRANSACTION_TYPES } from "../constants";
 import { AccountingSelectOptionContent } from "../components/accounting-select-option-content";
@@ -20,6 +20,7 @@ import { useGetCurrencyList } from "@/pages/dashboard/settings/hooks/use-setting
 import { createEmptyExpenseLine, type ExpenseLine } from "../utils/accounting-line-factories";
 import { formatDateTimeLocalInputValue } from "../utils/format-local-date-time";
 import { useCreateCashTransaction } from "@/pages/dashboard/accounting-center/hooks/use-create-cash-transaction";
+import { getChartAccountAccountTypeId } from "../utils/map-chart-account-result";
 
 const getChartAccountLabel = (code?: string, name?: string) => (code && name ? `${code} : ${name}` : "");
 
@@ -27,16 +28,17 @@ type ExpenseFormValues = {
 	refNo: string;
 	date: string;
 	currencyId: string;
-	cashAccount: string;
 	employeeId: string;
 	memo: string;
 };
 
+type ExpenseLineField = "accountCode" | "amount" | "customerId";
+
 export default function CreateExpensePage() {
 	const navigate = useNavigate();
-	const { accountTypes, chartAccounts, customerOptions, employeeOptions, isLoading, journalClassOptions } =
+	const { chartAccounts, customerOptions, employeeOptions, isLoading, journalClassOptions } =
 		useAccountingReferenceData({
-			accountTypesEnabled: true,
+			accountTypesEnabled: false,
 			journalTypesEnabled: false,
 			customersEnabled: true,
 			loadChartAccountType: true,
@@ -48,25 +50,24 @@ export default function CreateExpensePage() {
 			refNo: "EXPXXXXXXXXXX",
 			date: formatDateTimeLocalInputValue(),
 			currencyId: "",
-			cashAccount: "",
 			employeeId: "",
 			memo: "",
 		},
 	});
-	const [lines, setLines] = useState<ExpenseLine[]>([createEmptyExpenseLine(0)]);
+	const [lines, setLines] = useState<ExpenseLine[]>([createEmptyExpenseLine()]);
+	const [lineError, setLineError] = useState<{ lineId: string; field: ExpenseLineField } | null>(null);
 	const refNo = form.watch("refNo");
 	const date = form.watch("date");
 	const currencyId = form.watch("currencyId");
-	const cashAccount = form.watch("cashAccount");
 	const employeeId = form.watch("employeeId");
 	const memo = form.watch("memo");
 
 	const totalAmount = useMemo(() => lines.reduce((sum, line) => sum + (Number(line.amount) || 0), 0), [lines]);
 	const currencyOptions = useMemo(() => currencies.map((item) => ({ value: item.id, label: item.name })), [currencies]);
-	const selectedCashAccountLabel = useMemo(() => {
-		const selectedAccount = chartAccounts.find((account) => account.id === cashAccount);
-		return getChartAccountLabel(selectedAccount?.code, selectedAccount?.name);
-	}, [chartAccounts, cashAccount]);
+	const chartAccountMap = useMemo(
+		() => new Map(chartAccounts.map((account) => [account.id, account])),
+		[chartAccounts],
+	);
 	const defaultCurrencyId = currencies[1]?.id ?? currencies[0]?.id ?? "";
 
 	useEffect(() => {
@@ -76,15 +77,14 @@ export default function CreateExpensePage() {
 	}, [defaultCurrencyId, currencyId, form]);
 
 	const updateLine = <K extends keyof ExpenseLine>(id: string, field: K, value: ExpenseLine[K]) => {
+		if (lineError?.lineId === id && lineError.field === field) {
+			setLineError(null);
+		}
 		setLines((prev) => prev.map((line) => (line.id === id ? { ...line, [field]: value } : line)));
 	};
 
-	const updateAccountType = (id: string, accountTypeId: string) => {
-		updateLine(id, "accountTypeId", accountTypeId);
-	};
-
 	const addLine = () => {
-		setLines((prev) => [...prev, createEmptyExpenseLine(prev.length)]);
+		setLines((prev) => [...prev, createEmptyExpenseLine()]);
 	};
 
 	const removeLine = (id: string) => {
@@ -96,21 +96,15 @@ export default function CreateExpensePage() {
 			refNo: "EXPXXXXXXXXXX",
 			date: formatDateTimeLocalInputValue(),
 			currencyId: defaultCurrencyId,
-			cashAccount: "",
 			employeeId: "",
 			memo: "",
 		});
-		setLines([createEmptyExpenseLine(0)]);
+		setLines([createEmptyExpenseLine()]);
 	};
 
 	const buildPayload = (values: ExpenseFormValues): CreateCashTransactionRequest | null => {
 		if (!values.refNo.trim()) {
 			toast.error("Ref No is required");
-			return null;
-		}
-
-		if (!values.cashAccount) {
-			toast.error("Chart of Account is required");
 			return null;
 		}
 
@@ -122,28 +116,38 @@ export default function CreateExpensePage() {
 		const details: CreateCashTransactionRequest["cashTransactionDetails"] = [];
 
 		for (const [index, line] of lines.entries()) {
-			if (!line.accountTypeId) {
-				toast.error(`Line ${index + 1}: account type is required`);
+			if (!line.accountCode) {
+				setLineError({ lineId: line.id, field: "accountCode" });
+				toast.error(`Line ${index + 1}: account is required`);
 				return null;
 			}
 
-			if (!line.name) {
+			if (!line.customerId) {
+				setLineError({ lineId: line.id, field: "customerId" });
 				toast.error(`Line ${index + 1}: customer name is required`);
 				return null;
 			}
 
 			const amount = Number(line.amount);
 			if (!Number.isFinite(amount) || amount <= 0) {
+				setLineError({ lineId: line.id, field: "amount" });
 				toast.error(`Line ${index + 1}: amount must be greater than 0`);
 				return null;
 			}
 
+			const lineChartAccount = chartAccountMap.get(line.accountCode);
+			const accountTypeId = lineChartAccount ? getChartAccountAccountTypeId(lineChartAccount) : "";
+			if (!accountTypeId) {
+				toast.error(`Line ${index + 1}: account type could not be resolved`);
+				return null;
+			}
+
 			details.push({
-				chartOfAccountId: values.cashAccount,
-				accountTypeId: line.accountTypeId,
+				chartOfAccountId: line.accountCode,
+				accountTypeId,
 				memo: line.memo.trim() || undefined,
 				amount,
-				customerId: line.name,
+				customerId: line.customerId,
 				journalClassId: line.className || undefined,
 			});
 		}
@@ -203,6 +207,8 @@ export default function CreateExpensePage() {
 								<div className="w-full">
 									<Input
 										id="expense-ref-no"
+										name="refNo"
+										autoComplete="off"
 										value={refNo}
 										onChange={(event) => form.setValue("refNo", event.target.value)}
 										className="rounded-l-none"
@@ -217,6 +223,7 @@ export default function CreateExpensePage() {
 									<CalendarDays className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
 									<Input
 										id="expense-date"
+										name="date"
 										type="datetime-local"
 										value={date}
 										onChange={(event) => form.setValue("date", event.target.value)}
@@ -246,26 +253,6 @@ export default function CreateExpensePage() {
 						<div className="space-y-3">
 							<div className="space-y-1.5">
 								<Label className="text-slate-600">
-									<span className="text-rose-500">*</span> Cash & Cash Equivalents
-								</Label>
-								<Select value={cashAccount} onValueChange={(value) => form.setValue("cashAccount", value)}>
-									<SelectTrigger disabled={isLoading}>
-										{selectedCashAccountLabel || <SelectValue placeholder="Select" />}
-									</SelectTrigger>
-									<SelectContent>
-										{chartAccounts.map((account) => (
-											<SelectItem key={account.id} value={account.id} className="relative pr-32">
-												<AccountingSelectOptionContent
-													primary={getChartAccountLabel(account.code, account.name)}
-													secondary={account.accountType?.nature ?? "-"}
-												/>
-											</SelectItem>
-										))}
-									</SelectContent>
-								</Select>
-							</div>
-							<div className="space-y-1.5">
-								<Label className="text-slate-600">
 									<span className="text-rose-500">*</span> Employee
 								</Label>
 								<Select value={employeeId} onValueChange={(value) => form.setValue("employeeId", value)}>
@@ -287,6 +274,8 @@ export default function CreateExpensePage() {
 								</Label>
 								<Textarea
 									id="expense-memo"
+									name="memo"
+									autoComplete="off"
 									value={memo}
 									onChange={(event) => form.setValue("memo", event.target.value)}
 									placeholder="Enter expense note"
@@ -312,91 +301,125 @@ export default function CreateExpensePage() {
 									</tr>
 								</thead>
 								<tbody>
-									{lines.map((line, index) => (
-										<tr key={line.id} className="border-b align-top">
-											<td className="px-3 py-2">
-												<div className="flex h-9 w-9 items-center justify-center rounded bg-sky-50 text-sky-600">
-													{index + 1}
-												</div>
-											</td>
-											<td className="px-3 py-2 min-w-[260px]">
-												<Select value={line.accountTypeId} onValueChange={(value) => updateAccountType(line.id, value)}>
-													<SelectTrigger disabled={isLoading} className={index === 0 ? "border-sky-400" : undefined}>
-														{accountTypes.find((accountType) => accountType.id === line.accountTypeId)?.name || (
-															<SelectValue placeholder="Select account" />
-														)}
-													</SelectTrigger>
-													<SelectContent>
-														{accountTypes.map((accountType) => (
-															<SelectItem key={accountType.id} value={accountType.id} className="relative pr-28">
-																<AccountingSelectOptionContent
-																	primary={accountType.name}
-																	secondary={accountType.nature}
-																	rightPaddingClassName="pr-20"
-																/>
-															</SelectItem>
-														))}
-													</SelectContent>
-												</Select>
-											</td>
-											<td className="px-3 py-2 min-w-[180px]">
-												<Input
-													value={line.memo}
-													onChange={(event) => updateLine(line.id, "memo", event.target.value)}
-													placeholder="Memo"
-												/>
-											</td>
-											<td className="px-3 py-2 min-w-[160px]">
-												<Input
-													value={line.amount}
-													onChange={(event) => updateLine(line.id, "amount", event.target.value.replace(/[^\d.]/g, ""))}
-													placeholder="0"
-													className="text-right"
-												/>
-											</td>
-											<td className="px-3 py-2 min-w-[220px]">
-												<Select value={line.name} onValueChange={(value) => updateLine(line.id, "name", value)}>
-													<SelectTrigger disabled={isLoading}>
-														<SelectValue placeholder="Select customer" />
-													</SelectTrigger>
-													<SelectContent>
-														{customerOptions.map((option) => (
-															<SelectItem key={option.value} value={option.value}>
-																{option.label}
-															</SelectItem>
-														))}
-													</SelectContent>
-												</Select>
-											</td>
-											<td className="px-3 py-2 min-w-[160px]">
-												<Select
-													value={line.className}
-													onValueChange={(value) => updateLine(line.id, "className", value)}
-												>
-													<SelectTrigger disabled={isLoading}>
-														<SelectValue placeholder="Select class" />
-													</SelectTrigger>
-													<SelectContent>
-														{journalClassOptions.map((option) => (
-															<SelectItem key={option.value} value={option.value}>
-																{option.label}
-															</SelectItem>
-														))}
-													</SelectContent>
-												</Select>
-											</td>
-											<td className="px-3 py-2 text-center">
-												<Button
-													variant="ghost"
-													size="icon"
-													aria-label="Remove expense line"
-													onClick={() => removeLine(line.id)}
-												>
-													<Trash2 className="size-4 text-rose-500" />
-												</Button>
-											</td>
-										</tr>
-									))}
+									{lines.map((line, index) => {
+										const selectedLineAccount = chartAccountMap.get(line.accountCode);
+
+										return (
+											<tr key={line.id} className="border-b align-top">
+												<td className="px-3 py-2">
+													<div className="flex h-9 w-9 items-center justify-center rounded bg-sky-50 text-sky-600">
+														{index + 1}
+													</div>
+												</td>
+												<td className="px-3 py-2 min-w-[260px]">
+													<Select
+														value={line.accountCode}
+														onValueChange={(value) => updateLine(line.id, "accountCode", value)}
+													>
+														<SelectTrigger
+															disabled={isLoading}
+															className={
+																lineError?.lineId === line.id && lineError.field === "accountCode"
+																	? "border-rose-500 ring-1 ring-rose-500"
+																	: index === 0
+																		? "border-sky-400"
+																		: undefined
+															}
+														>
+															{selectedLineAccount ? (
+																getChartAccountLabel(selectedLineAccount.code, selectedLineAccount.name)
+															) : (
+																<SelectValue placeholder="Select account" />
+															)}
+														</SelectTrigger>
+														<SelectContent>
+															{chartAccounts.map((account) => (
+																<SelectItem key={account.id} value={account.id} className="relative pr-28">
+																	<AccountingSelectOptionContent
+																		primary={getChartAccountLabel(account.code, account.name)}
+																		secondary={account.accountType?.name ?? account.accountType?.nature ?? "-"}
+																		rightPaddingClassName="pr-20"
+																	/>
+																</SelectItem>
+															))}
+														</SelectContent>
+													</Select>
+												</td>
+												<td className="px-3 py-2 min-w-[180px]">
+													<Input
+														value={line.memo}
+														onChange={(event) => updateLine(line.id, "memo", event.target.value)}
+														placeholder="Memo"
+													/>
+												</td>
+												<td className="px-3 py-2 min-w-[160px]">
+													<Input
+														value={line.amount}
+														onChange={(event) =>
+															updateLine(line.id, "amount", event.target.value.replace(/[^\d.]/g, ""))
+														}
+														placeholder="0"
+														className={
+															lineError?.lineId === line.id && lineError.field === "amount"
+																? "border-rose-500 ring-1 ring-rose-500 text-right"
+																: "text-right"
+														}
+													/>
+												</td>
+												<td className="px-3 py-2 min-w-[220px]">
+													<Select
+														value={line.customerId}
+														onValueChange={(value) => updateLine(line.id, "customerId", value)}
+													>
+														<SelectTrigger
+															disabled={isLoading}
+															className={
+																lineError?.lineId === line.id && lineError.field === "customerId"
+																	? "border-rose-500 ring-1 ring-rose-500"
+																	: undefined
+															}
+														>
+															<SelectValue placeholder="Select customer" />
+														</SelectTrigger>
+														<SelectContent>
+															{customerOptions.map((option) => (
+																<SelectItem key={option.value} value={option.value}>
+																	{option.label}
+																</SelectItem>
+															))}
+														</SelectContent>
+													</Select>
+												</td>
+												<td className="px-3 py-2 min-w-[160px]">
+													<Select
+														value={line.className}
+														onValueChange={(value) => updateLine(line.id, "className", value)}
+													>
+														<SelectTrigger disabled={isLoading}>
+															<SelectValue placeholder="Select class" />
+														</SelectTrigger>
+														<SelectContent>
+															{journalClassOptions.map((option) => (
+																<SelectItem key={option.value} value={option.value}>
+																	{option.label}
+																</SelectItem>
+															))}
+														</SelectContent>
+													</Select>
+												</td>
+												<td className="px-3 py-2 text-center">
+													<Button
+														variant="ghost"
+														size="icon"
+														aria-label="Remove expense line"
+														onClick={() => removeLine(line.id)}
+													>
+														<Trash2 className="size-4 text-rose-500" />
+													</Button>
+												</td>
+											</tr>
+										);
+									})}
 								</tbody>
 							</table>
 						</div>
@@ -415,8 +438,8 @@ export default function CreateExpensePage() {
 					</div>
 
 					<div className="flex items-center justify-end gap-3">
-						<Button variant="outline" onClick={() => navigate("/dashboard/accounting")}>
-							Cancel
+						<Button asChild variant="outline">
+							<Link to="/dashboard/accounting">Cancel</Link>
 						</Button>
 						<SplitButton
 							variant="info"
