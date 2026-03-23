@@ -6,9 +6,8 @@ export function buildProductListColumns(): ReportTemplateColumn[] {
 		["no", "NO", "w-[5%]", "center"],
 		["name", "PRODUCT NAME", "w-[30%]"],
 		["unit", "UNIT", "w-[10%]", "center"],
-		["quantity", "QTY", "w-[10%]", "right"],
-		["cost", "COST", "w-[15%]", "right"],
-		["price", "PRICE", "w-[15%]", "right"],
+		["quantity", "DEFAULT QTY", "w-[10%]", "right"],
+		["price", "DEFAULT PRICE", "w-[15%]", "right"],
 	]);
 }
 

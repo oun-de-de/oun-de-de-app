@@ -20,7 +20,7 @@ const createProductSettingItem = (
 	values?: Pick<CreateProductSettings, "price" | "quantity">,
 ): ProductSettingItem => ({
 	productId: product.id,
-	price: values?.price ?? product.defaultProductSetting?.price ?? product.price ?? 0,
+	price: values?.price ?? product.defaultProductSetting?.price ?? 0,
 	quantity: product.isPackagedByQuantity ? (values?.quantity ?? product.defaultProductSetting?.quantity ?? 0) : 0,
 	productName: product.name,
 	productRef: product.refNo,
