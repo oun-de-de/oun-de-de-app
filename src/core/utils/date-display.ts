@@ -48,13 +48,11 @@ export function formatFlexibleDisplayDate(value?: string | Date | null, fallback
 		return `${dateParts.day}/${dateParts.month}/${dateParts.year}`;
 	}
 
-	// If it contains a time component and no timezone info, treat as UTC
+	// Normalize "YYYY-MM-DD HH:mm:ss" into an ISO-like local datetime string.
+	// If the backend omits timezone info, preserve that as local time instead of forcing UTC.
 	let toParse = normalized;
 	if (toParse.includes("T") || toParse.includes(" ")) {
 		toParse = toParse.replace(" ", "T");
-		if (!/[Z+-](?:\d{2}:\d{2}|\d{4}|\d{2})?$/.test(toParse) && !toParse.endsWith("Z")) {
-			toParse += "Z";
-		}
 	}
 
 	const parsed = new Date(toParse);

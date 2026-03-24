@@ -32,9 +32,19 @@ function toDateTimeLocalValue(value: string): string {
 	return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
-function toIsoOrNow(value: string): string {
-	const date = new Date(value);
-	return Number.isNaN(date.getTime()) ? new Date().toISOString() : date.toISOString();
+function toLocalDateTimeString(date: Date): string {
+	const pad = (n: number) => n.toString().padStart(2, "0");
+	return [
+		`${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`,
+		`${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`,
+	].join("T");
+}
+
+function toLocalDateTimeOrNow(value: string): string {
+	if (!value.trim()) return toLocalDateTimeString(new Date());
+
+	const normalized = value.includes("T") ? value : value.replace(" ", "T");
+	return normalized.length === 16 ? `${normalized}:00` : normalized;
 }
 
 export function createInitialRawWeightRecord(): DraftWeightRecord {
@@ -45,7 +55,7 @@ export function createInitialRawWeightRecord(): DraftWeightRecord {
 		quantityPerProduct: null,
 		quantity: null,
 		weight: null,
-		outTime: new Date().toISOString(),
+		outTime: toLocalDateTimeString(new Date()),
 		memo: null,
 		manual: true,
 	};
@@ -63,7 +73,7 @@ export function WeightRecordsBuilder({ products, records, onChange }: WeightReco
 				quantityPerProduct: null,
 				quantity: null,
 				weight: null,
-				outTime: new Date().toISOString(),
+				outTime: toLocalDateTimeString(new Date()),
 				memo: null,
 				manual: true,
 			},
@@ -188,7 +198,7 @@ export function WeightRecordsBuilder({ products, records, onChange }: WeightReco
 								<Input
 									type="datetime-local"
 									value={toDateTimeLocalValue(record.outTime)}
-									onChange={(e) => updateRecord(index, { outTime: toIsoOrNow(e.target.value) })}
+									onChange={(e) => updateRecord(index, { outTime: toLocalDateTimeOrNow(e.target.value) })}
 								/>
 							</div>
 						</div>

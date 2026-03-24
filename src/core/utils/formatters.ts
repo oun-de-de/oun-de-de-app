@@ -18,13 +18,10 @@ function parseToLocalTime(value: string): Date {
 	}
 
 	let normalized = value.trim();
-	// If it contains a time component
+	// Normalize "YYYY-MM-DD HH:mm:ss" into an ISO-like local datetime string.
+	// If the backend omits timezone info, preserve that as local time instead of forcing UTC.
 	if (normalized.includes("T") || normalized.includes(" ")) {
 		normalized = normalized.replace(" ", "T");
-		// If missing timezone indicator (Z or +/- offset), treat as UTC so browser converts to local
-		if (!/[Z+-](?:\d{2}:\d{2}|\d{4}|\d{2})?$/.test(normalized) && !normalized.endsWith("Z")) {
-			normalized += "Z";
-		}
 	}
 	return new Date(normalized);
 }
