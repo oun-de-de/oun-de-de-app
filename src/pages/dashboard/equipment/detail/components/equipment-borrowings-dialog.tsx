@@ -1,8 +1,11 @@
-import { useCallback, useState } from "react";
+import { CalendarIcon } from "lucide-react";
+import { format } from "date-fns";
+import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 import type { Customer } from "@/core/types/customer";
 import type { SellEquipmentRequest } from "@/core/types/inventory";
 import { Button } from "@/core/ui/button";
+import { Calendar } from "@/core/ui/calendar";
 import {
 	Dialog,
 	DialogContent,
@@ -14,10 +17,13 @@ import {
 } from "@/core/ui/dialog";
 import { Input } from "@/core/ui/input";
 import { Label } from "@/core/ui/label";
+import { Popover, PopoverContent, PopoverTrigger } from "@/core/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/core/ui/select";
+import { formatDisplayDate } from "@/core/utils/formatters";
 import { useInventoryBorrowings } from "../../hooks/use-inventory-items";
 import { useCreateBorrowing, useReturnBorrowing, useSellBorrowing } from "../../hooks/use-inventory-mutations";
 import { BorrowingsTable } from "./borrowings-table";
+import { Textarea } from "@/core/ui/textarea";
 
 type EquipmentBorrowingsDialogProps = {
 	itemId: string;
@@ -33,6 +39,16 @@ type PendingBorrowingAction =
 
 function toLocalMidnightDateTime(dateValue: string): string {
 	return `${dateValue}T00:00:00`;
+}
+
+function parseLocalDate(value: string): Date | undefined {
+	if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return undefined;
+	const [year, month, day] = value.split("-").map(Number);
+	return new Date(year, month - 1, day);
+}
+
+function formatDateForValue(date: Date): string {
+	return format(date, "yyyy-MM-dd");
 }
 
 export function EquipmentBorrowingsDialog({
@@ -69,6 +85,7 @@ export function EquipmentBorrowingsDialog({
 	const previewBorrowings = borrowings.slice(0, 5);
 	const totalHistoryPages = Math.max(1, Math.ceil(borrowings.length / historyPageSize));
 	const pagedBorrowings = borrowings.slice((historyPage - 1) * historyPageSize, historyPage * historyPageSize);
+	const selectedExpectedReturnDate = useMemo(() => parseLocalDate(expectedReturnDate), [expectedReturnDate]);
 	const resetBorrowingForm = useCallback(() => {
 		setCustomerId("");
 		setQuantity("1");
@@ -215,19 +232,44 @@ export function EquipmentBorrowingsDialog({
 								</SelectContent>
 							</Select>
 						</div>
-						<div className="space-y-1">
+						<div className="space-y-2">
 							<Label>Quantity</Label>
-							<Input type="number" min={1} value={quantity} onChange={(e) => setQuantity(e.target.value)} />
+							<Input
+								type="number"
+								min={1}
+								className="h-10"
+								value={quantity}
+								onChange={(e) => setQuantity(e.target.value)}
+							/>
 						</div>
 						<div className="space-y-2">
 							<Label>Expected Return Date</Label>
-							<Input type="date" value={expectedReturnDate} onChange={(e) => setExpectedReturnDate(e.target.value)} />
+							<Popover>
+								<PopoverTrigger asChild>
+									<Button
+										type="button"
+										variant="outline"
+										className="h-10 w-full justify-between px-3 text-slate-500 hover:bg-white"
+									>
+										<span>{expectedReturnDate ? formatDisplayDate(expectedReturnDate) : "Select date"}</span>
+										<CalendarIcon className="h-4 w-4 text-slate-400" />
+									</Button>
+								</PopoverTrigger>
+								<PopoverContent className="w-auto p-0" align="start">
+									<Calendar
+										mode="single"
+										selected={selectedExpectedReturnDate}
+										onSelect={(date) => setExpectedReturnDate(date ? formatDateForValue(date) : "")}
+										initialFocus
+									/>
+								</PopoverContent>
+							</Popover>
 						</div>
 					</div>
 
 					<div className="space-y-2">
 						<Label>Memo</Label>
-						<Input value={memo} onChange={(e) => setMemo(e.target.value)} placeholder="Additional notes…" />
+						<Textarea value={memo} onChange={(e) => setMemo(e.target.value)} placeholder="Additional notes…" />
 					</div>
 
 					<DialogFooter>
