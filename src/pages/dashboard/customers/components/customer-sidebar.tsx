@@ -23,7 +23,6 @@ const DEFAULT_ITEM_SIZE = 56;
 
 export function CustomerSidebar({
 	activeCustomerId,
-	activeCustomerName,
 	onSelect,
 	onToggle,
 	isCollapsed,
@@ -51,15 +50,19 @@ export function CustomerSidebar({
 	});
 
 	const customers = data?.list ?? [];
-	const total = data?.total ?? customers.length;
-	const hasVisibleActiveCustomer = activeCustomerId
-		? customers.some((customer) => customer.id === activeCustomerId)
-		: false;
-	const shouldShowPinnedActiveCustomer =
-		Boolean(activeCustomerId) && Boolean(activeCustomerName) && !hasVisibleActiveCustomer;
+	// Kept for reference: the sidebar previously pinned the active customer above the list
+	// when it was outside the current page/filter result. We intentionally disabled that UX
+	// to keep the list "clean" after back navigation.
+	//
+	// const hasVisibleActiveCustomer = activeCustomerId
+	// 	? customers.some((customer) => customer.id === activeCustomerId)
+	// 	: false;
+	// const shouldShowPinnedActiveCustomer =
+	// 	Boolean(activeCustomerId) && Boolean(activeCustomerName) && !hasVisibleActiveCustomer;
 	const pagination = useSidebarPagination({
 		data: customers,
 		pageSize: PAGE_SIZE,
+		resetKey: `${searchTerm}|${paymentTerm}`,
 	});
 
 	return (
@@ -81,7 +84,9 @@ export function CustomerSidebar({
 				<SidebarList.CollapsedHint text="Click to expand customer list" onClick={onToggle} />
 			) : (
 				<>
-					{shouldShowPinnedActiveCustomer ? (
+					{/* Preserved for reference. We intentionally keep this disabled to avoid
+					    showing a separately pinned "Selected Customer" block in the sidebar. */}
+					{/* {shouldShowPinnedActiveCustomer ? (
 						<div className="mt-2 space-y-2">
 							<div className="px-1 text-xs font-medium uppercase tracking-wide text-slate-500">Selected Customer</div>
 							<EntityListItem
@@ -95,7 +100,7 @@ export function CustomerSidebar({
 								className="rounded"
 							/>
 						</div>
-					) : null}
+					) : null} */}
 
 					<SidebarList.Body
 						key="expanded"
@@ -119,7 +124,7 @@ export function CustomerSidebar({
 					/>
 
 					<SidebarList.Footer
-						total={total}
+						total={pagination.total}
 						currentPage={pagination.page}
 						totalPages={pagination.totalPages}
 						rangeStart={pagination.rangeStart}

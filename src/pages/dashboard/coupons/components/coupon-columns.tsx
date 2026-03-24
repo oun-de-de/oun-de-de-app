@@ -1,4 +1,5 @@
 import type { ColumnDef } from "@tanstack/react-table";
+import { Link } from "react-router";
 import type { Coupon } from "@/core/types/coupon";
 import { getVehicleTypeLabel } from "@/core/types/vehicle";
 import { Badge } from "@/core/ui/badge";
@@ -28,17 +29,13 @@ export const getCouponColumns = ({
 	{
 		header: "Date",
 		accessorKey: "date",
+		size: 120,
 		cell: ({ row }) => formatDisplayDate(row.original.date),
 	},
 	{
-		header: "Status",
-		cell: ({ row }) => {
-			const isDeleted = Boolean(row.original.delAccNo?.trim());
-			return <Badge variant={isDeleted ? "destructive" : "success"}>{isDeleted ? "Deleted" : "Active"}</Badge>;
-		},
-		meta: {
-			bodyClassName: "text-center",
-		},
+		header: "Customer",
+		accessorKey: "customerName",
+		cell: ({ row }) => row.original.customerName || "-",
 	},
 	{
 		header: "Plate Number",
@@ -47,6 +44,26 @@ export const getCouponColumns = ({
 		meta: {
 			bodyClassName: "text-center",
 		},
+	},
+	{
+		header: "Weight Records",
+		size: 150,
+		cell: ({ row }) => {
+			const records = row.original.weightRecords;
+			const count = records?.length ?? 0;
+			return (
+				<Button size="sm" variant="link" onClick={() => onViewWeightRecords(row.original)}>
+					{count > 0 ? `View ${count} records` : "View records"}
+				</Button>
+			);
+		},
+		meta: {
+			bodyClassName: "text-center",
+		},
+	},
+	{
+		header: "Driver",
+		accessorKey: "driverName",
 	},
 	{
 		header: "Vehicle Type",
@@ -60,10 +77,6 @@ export const getCouponColumns = ({
 		},
 	},
 	{
-		header: "Driver",
-		accessorKey: "driverName",
-	},
-	{
 		header: "Employee",
 		accessorFn: (row) => row.employee?.username,
 		cell: ({ row }) => {
@@ -73,17 +86,38 @@ export const getCouponColumns = ({
 		},
 	},
 	{
-		header: "Weight Records",
+		header: "Invoice Ref",
+		accessorKey: "invoiceRefNo",
 		cell: ({ row }) => {
-			const records = row.original.weightRecords;
-			const count = records?.length ?? 0;
+			const invoiceRefNo = row.original.invoiceRefNo;
+			const cycleId = row.original.paymentTermCycleId;
+
+			if (!invoiceRefNo) return "-";
+			if (!cycleId) return invoiceRefNo;
+
 			return (
-				<Button size="sm" variant="link" onClick={() => onViewWeightRecords(row.original)}>
-					{count > 0 ? `View ${count} records` : "View records"}
-				</Button>
+				<Link
+					to={`/dashboard/invoice?cycleId=${cycleId}`}
+					className="font-medium text-primary underline-offset-4 hover:underline"
+				>
+					{invoiceRefNo}
+				</Link>
 			);
 		},
 	},
+	{
+		header: "Coupon ID",
+		accessorKey: "couponId",
+		cell: ({ row }) => (row.original.couponId != null ? row.original.couponId : "-"),
+		meta: {
+			bodyClassName: "text-center",
+		},
+	},
+	// {
+	//   header: 'Acc No.',
+	//   accessorKey: 'accNo',
+	//   cell: ({ row }) => row.original.accNo || '-',
+	// },
 	{
 		header: "Remark",
 		accessorKey: "remark",
@@ -99,6 +133,16 @@ export const getCouponColumns = ({
 		},
 		meta: {
 			bodyClassName: "text-right",
+		},
+	},
+	{
+		header: "Status",
+		cell: ({ row }) => {
+			const isDeleted = Boolean(row.original.delAccNo?.trim());
+			return <Badge variant={isDeleted ? "destructive" : "success"}>{isDeleted ? "Deleted" : "Active"}</Badge>;
+		},
+		meta: {
+			bodyClassName: "text-center",
 		},
 	},
 	{

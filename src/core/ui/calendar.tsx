@@ -60,9 +60,11 @@ function Calendar({
 	className,
 	classNames,
 	showOutsideDays = true,
-	captionLayout = "dropdown",
+	captionLayout = "buttons",
 	...props
-}: CalendarProps & { captionLayout?: "dropdown" | "buttons" | "dropdown-buttons" }) {
+}: CalendarProps & {
+	captionLayout?: "dropdown" | "buttons" | "dropdown-buttons";
+}) {
 	const [container, setContainer] = useState<HTMLDivElement | null>(null);
 	const handleRef = useCallback((element: HTMLDivElement | null) => {
 		setContainer(element);
@@ -80,7 +82,7 @@ function Calendar({
 						months: "flex flex-col sm:flex-row gap-2 justify-center",
 						month: "flex flex-col gap-3 items-center",
 						caption: "flex items-center justify-center w-full pb-2 gap-3",
-						caption_label: "hidden",
+						caption_label: "text-sm font-semibold text-slate-700 min-w-[8rem] text-center",
 						nav: "flex items-center gap-1",
 						nav_button: cn(
 							buttonVariants({ variant: "outline" }),

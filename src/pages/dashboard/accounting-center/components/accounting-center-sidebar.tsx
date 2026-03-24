@@ -38,6 +38,7 @@ export function AccountingCenterSidebar({
 
 	const pagination = useSidebarPagination({
 		data: filteredCounterparties,
+		resetKey: searchTerm,
 	});
 
 	return (
@@ -46,7 +47,7 @@ export function AccountingCenterSidebar({
 				showMainTypeFilter={false}
 				showStatusFilter={false}
 				onMenuClick={onToggle}
-				searchPlaceholder="Search name..."
+				searchPlaceholder="Search counterparty..."
 				onSearchChange={setSearchTerm}
 				isCollapsed={isCollapsed}
 			/>

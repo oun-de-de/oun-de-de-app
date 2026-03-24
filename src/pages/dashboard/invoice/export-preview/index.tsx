@@ -185,6 +185,16 @@ export default function InvoiceExportPreviewPage() {
 		() => formatPreviewTimestamp(sortedPreviewRows[0]?.date, REPORT_DEFAULT_DATE),
 		[sortedPreviewRows],
 	);
+	const customerSummaryText = useMemo(() => {
+		const uniqueCustomerNames = [...new Set(sortedPreviewRows.map((row) => row.customerName).filter(Boolean))];
+		if (uniqueCustomerNames.length === 1) {
+			return `Customer: ${uniqueCustomerNames[0]}`;
+		}
+		if (uniqueCustomerNames.length > 1) {
+			return `Customers: ${uniqueCustomerNames.length}`;
+		}
+		return "Customer: -";
+	}, [sortedPreviewRows]);
 	const invoiceSummaryText = useMemo(() => {
 		const uniqueRefNos = [...new Set(sortedPreviewRows.map((row) => row.refNo).filter(Boolean))];
 		if (uniqueRefNos.length === 1) {
@@ -196,7 +206,7 @@ export default function InvoiceExportPreviewPage() {
 		() => [
 			{
 				key: "left-meta",
-				rows: [invoiceSummaryText],
+				rows: [invoiceSummaryText, customerSummaryText],
 				align: "left",
 			},
 			{
@@ -210,7 +220,7 @@ export default function InvoiceExportPreviewPage() {
 				align: "right",
 			},
 		],
-		[invoiceSummaryText, reportDate],
+		[customerSummaryText, invoiceSummaryText, reportDate],
 	);
 
 	const totalBalance = useMemo(() => calculateTotalBalance(previewRows), [previewRows]);

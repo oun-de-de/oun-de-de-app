@@ -63,6 +63,7 @@ export function BorrowSidebar({ activeBorrowId, listState, updateState, onSelect
 
 	const pagination = useSidebarPagination({
 		data: filteredList,
+		resetKey: `${normalizedQuery}|${typeFilter}`,
 	});
 
 	return (

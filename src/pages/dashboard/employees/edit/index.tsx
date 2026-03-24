@@ -1,7 +1,11 @@
 import { useMemo } from "react";
 import { useNavigate, useParams } from "react-router";
+import { BackButton } from "@/core/components/common";
+import { Text } from "@/core/ui/typography";
 import { EmployeeForm, type EmployeeFormData } from "../components/employee-form";
 import { useEmployeeOperations, useGetEmployees } from "../hooks/use-employee";
+
+const EMPLOYEES_PATH = "/dashboard/employees";
 
 export default function EmployeeEditPage() {
 	const navigate = useNavigate();
@@ -22,7 +26,7 @@ export default function EmployeeEditPage() {
 					lastName: formData.lastName,
 				},
 			});
-			navigate("/dashboard/employees");
+			navigate(EMPLOYEES_PATH);
 		} catch (error) {
 			console.error("Failed to update employee", error);
 		}
@@ -38,10 +42,16 @@ export default function EmployeeEditPage() {
 
 	return (
 		<div className="flex flex-col h-full p-6 gap-6 overflow-auto flex-1">
+			<div className="flex items-center gap-3">
+				<BackButton appearance="icon" onClick={() => navigate(EMPLOYEES_PATH)} />
+				<Text className="font-semibold text-sky-600">Edit Employee</Text>
+			</div>
+
 			<EmployeeForm
 				onSubmit={handleSubmit}
-				onCancel={() => navigate("/dashboard/employees")}
+				onCancel={() => navigate(EMPLOYEES_PATH)}
 				mode="edit"
+				showTitle={false}
 				defaultValues={employee as any}
 			/>
 		</div>

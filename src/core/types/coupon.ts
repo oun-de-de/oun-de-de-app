@@ -43,11 +43,14 @@ export interface Coupon {
 	vehicle: Vehicle;
 	employee: CouponEmployee;
 	weightRecords: WeightRecord[];
+	customerName?: string | null;
 	couponNo: number | null;
 	couponId: number | null;
 	accNo: string | null;
 	delAccNo: string | null;
 	delDate: string | null;
+	invoiceId?: string | null;
+	paymentTermCycleId?: string | null;
 	invoiceRefNo?: string | null;
 }
 

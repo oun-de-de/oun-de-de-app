@@ -4,9 +4,15 @@ type UseSidebarPaginationProps<T> = {
 	data: T[];
 	enabled?: boolean;
 	pageSize?: number;
+	resetKey?: unknown;
 };
 
-export function useSidebarPagination<T>({ data, enabled = true, pageSize = 20 }: UseSidebarPaginationProps<T>) {
+export function useSidebarPagination<T>({
+	data,
+	enabled = true,
+	pageSize = 20,
+	resetKey,
+}: UseSidebarPaginationProps<T>) {
 	const [page, setPage] = useState(1);
 
 	// Auto-clamp/reset page when switching between enabled/disabled (desktop/mobile)
@@ -19,6 +25,11 @@ export function useSidebarPagination<T>({ data, enabled = true, pageSize = 20 }:
 			setPage(totalPages);
 		}
 	}, [enabled, page, totalPages]);
+
+	useEffect(() => {
+		if (!enabled) return;
+		setPage(1);
+	}, [enabled, resetKey]);
 
 	const handlePrev = useCallback(() => {
 		if (!enabled) return;

@@ -33,6 +33,7 @@ export function VendorSidebar({
 
 	const pagination = useSidebarPagination({
 		data: filteredVendors,
+		resetKey: searchValue,
 	});
 
 	return (
