@@ -1,7 +1,6 @@
 import { useMemo, useState } from "react";
 
 import { EntityListItem, SidebarList } from "@/core/components/common";
-import { up, useMediaQuery } from "@/core/hooks/use-media-query";
 import { useSidebarPagination } from "@/core/hooks/use-sidebar-pagination";
 import type { Product } from "@/core/types/product";
 import { cn } from "@/core/utils";
@@ -19,7 +18,6 @@ const DEFAULT_ITEM_SIZE = 56;
 
 export function ProductSidebar({ activeProductId, onSelect, onToggle, isCollapsed, products }: ProductSidebarProps) {
 	const [searchTerm, setSearchTerm] = useState("");
-	const isLgUp = useMediaQuery(up("lg"));
 
 	const filteredProducts = useMemo(() => {
 		const normalizedSearch = normalizeToken(searchTerm);
@@ -40,7 +38,6 @@ export function ProductSidebar({ activeProductId, onSelect, onToggle, isCollapse
 
 	const pagination = useSidebarPagination({
 		data: filteredProducts,
-		enabled: !isLgUp,
 	});
 
 	// Map products to EntityListItemData format (requires code)
@@ -83,12 +80,16 @@ export function ProductSidebar({ activeProductId, onSelect, onToggle, isCollapse
 
 					<SidebarList.Footer
 						total={pagination.total}
+						currentPage={pagination.page}
+						totalPages={pagination.totalPages}
+						rangeStart={pagination.rangeStart}
+						rangeEnd={pagination.rangeEnd}
 						isCollapsed={false}
 						onPrev={pagination.handlePrev}
 						onNext={pagination.handleNext}
 						hasPrev={pagination.hasPrev}
 						hasNext={pagination.hasNext}
-						showControls={!isLgUp && pagination.totalPages > 1}
+						showControls={pagination.totalPages > 1}
 					/>
 				</>
 			)}

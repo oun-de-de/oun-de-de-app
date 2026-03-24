@@ -1,5 +1,4 @@
 import { useMemo, useState } from "react";
-import { up, useMediaQuery } from "@/core/hooks/use-media-query";
 import { useSidebarPagination } from "@/core/hooks/use-sidebar-pagination";
 import { ACCOUNTING_ALL_TYPES_FILTER } from "../constants";
 import type { AccountingAccountListItem } from "../types";
@@ -15,7 +14,6 @@ export function useAccountingSidebarState({ items }: UseAccountingSidebarStatePa
 	const [typeFilter, setTypeFilter] = useState(ACCOUNTING_ALL_TYPES_FILTER);
 	const [searchValue, setSearchValue] = useState("");
 	const [statusFilter, setStatusFilter] = useState(ACCOUNTING_ACTIVE_STATUS_FILTER);
-	const isLgUp = useMediaQuery(up("lg"));
 
 	const filteredAccounts = useMemo(() => {
 		return items.filter((account) => {
@@ -43,11 +41,9 @@ export function useAccountingSidebarState({ items }: UseAccountingSidebarStatePa
 
 	const pagination = useSidebarPagination({
 		data: filteredAccounts,
-		enabled: !isLgUp,
 	});
 
 	return {
-		isLgUp,
 		pagination,
 		searchValue,
 		setSearchValue,

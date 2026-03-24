@@ -19,8 +19,15 @@ const listFooterVariants = cva("flex items-center text-xs text-muted-foreground 
 
 type ListFooterProps = VariantProps<typeof listFooterVariants> & {
 	total: number;
+	loadedCount?: number;
+	currentPage?: number;
+	totalPages?: number;
+	rangeStart?: number;
+	rangeEnd?: number;
 	onPrev?: () => void;
 	onNext?: () => void;
+	prevLabel?: string;
+	nextLabel?: string;
 	className?: string;
 	showCount?: boolean;
 	showControls?: boolean;
@@ -31,8 +38,15 @@ type ListFooterProps = VariantProps<typeof listFooterVariants> & {
 
 export function ListFooter({
 	total,
+	loadedCount,
+	currentPage,
+	totalPages,
+	rangeStart,
+	rangeEnd,
 	onPrev,
 	onNext,
+	prevLabel = "Previous",
+	nextLabel = "Next",
 	className,
 	variant,
 	showCount = true,
@@ -43,11 +57,20 @@ export function ListFooter({
 }: ListFooterProps) {
 	const isMinimal = variant === "minimal";
 	const shouldShowControls = showControls && (hasPrev || hasNext);
+	const shouldShowPageState =
+		shouldShowControls && typeof currentPage === "number" && typeof totalPages === "number" && totalPages > 1;
+	const summaryText =
+		shouldShowPageState && rangeStart && rangeEnd
+			? `Showing ${rangeStart}-${rangeEnd} of ${total}`
+			: loadedCount && loadedCount < total
+				? `Showing ${loadedCount} of ${total}`
+				: `Total ${total}`;
+	const pageText = shouldShowPageState ? `Page ${currentPage} of ${totalPages}` : null;
 
 	if (isCollapsed) {
 		return (
 			<div className={cn("flex flex-col items-center gap-1 pt-4 mt-auto", className)}>
-				<span className="text-[10px] font-medium">{total} total</span>
+				<span className="text-[10px] font-medium">{pageText ?? `${total} total`}</span>
 				{shouldShowControls && (
 					<span className="flex items-center gap-1">
 						<Button
@@ -56,6 +79,7 @@ export function ListFooter({
 							className="h-6 w-6"
 							onClick={hasPrev ? onPrev : undefined}
 							disabled={!hasPrev}
+							aria-label={prevLabel}
 						>
 							<Icon icon="mdi:chevron-left" />
 						</Button>
@@ -65,6 +89,7 @@ export function ListFooter({
 							className="h-6 w-6"
 							onClick={hasNext ? onNext : undefined}
 							disabled={!hasNext}
+							aria-label={nextLabel}
 						>
 							<Icon icon="mdi:chevron-right" />
 						</Button>
@@ -76,32 +101,39 @@ export function ListFooter({
 
 	return (
 		<div className={cn(listFooterVariants({ variant, className }))}>
-			{showCount && !isMinimal && <span>Total {total}</span>}
+			{showCount && !isMinimal && (
+				<div className="min-w-0 text-xs font-medium text-slate-600">
+					<span>{summaryText}</span>
+					{pageText ? <span className="block text-slate-400">{pageText.replace(" of ", "/")}</span> : null}
+				</div>
+			)}
 
 			{shouldShowControls && (
 				<span className="flex items-center gap-1">
 					<Button
-						variant="ghost"
+						variant="outline"
 						size="icon"
-						className="h-6 w-6"
+						className="h-8 w-8 shrink-0"
 						onClick={hasPrev ? onPrev : undefined}
 						disabled={!hasPrev}
+						aria-label={prevLabel}
 					>
 						<Icon icon="mdi:chevron-left" />
 					</Button>
 					<Button
-						variant="ghost"
+						variant="outline"
 						size="icon"
-						className="h-6 w-6"
+						className="h-8 w-8 shrink-0"
 						onClick={hasNext ? onNext : undefined}
 						disabled={!hasNext}
+						aria-label={nextLabel}
 					>
 						<Icon icon="mdi:chevron-right" />
 					</Button>
 				</span>
 			)}
 
-			{showCount && isMinimal && <span>{total} items</span>}
+			{showCount && isMinimal && <span>{summaryText}</span>}
 		</div>
 	);
 }

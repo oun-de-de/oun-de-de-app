@@ -77,10 +77,7 @@ export const frontendNavData: NavProps["data"] = [
 export const newActions = [
 	{
 		title: "Customers",
-		items: [
-			{ title: "Create Invoice", href: "/dashboard/invoice" },
-			{ title: "Create Receipt", href: "/dashboard/customers/create-receipt" },
-		],
+		items: [{ title: "Create Invoice", href: "/dashboard/invoice" }],
 	},
 	{
 		title: "Accounting",

@@ -1,7 +1,8 @@
-import { useInfiniteQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import couponService from "@/core/api/services/coupon-service";
 import { EntityListItem, SidebarList } from "@/core/components/common";
+import { useSidebarPagination } from "@/core/hooks/use-sidebar-pagination";
 import type { SelectOption } from "@/core/types/common";
 import type { Coupon } from "@/core/types/coupon";
 
@@ -21,18 +22,16 @@ const STATUS_OPTIONS: SelectOption[] = [
 export function CouponSidebar({ activeCouponId, onSelect, onToggle, isCollapsed }: CouponSidebarProps) {
 	const [searchTerm, setSearchTerm] = useState("");
 	const [status, setStatus] = useState("all");
-	const { data, fetchNextPage, hasNextPage } = useInfiniteQuery({
+	const { data } = useQuery({
 		queryKey: ["coupons", "sidebar", { search: searchTerm, status }],
-		queryFn: ({ pageParam = 1 }) =>
+		queryFn: () =>
 			couponService.getCouponList({
-				page: pageParam,
-				limit: 20,
+				page: 1,
+				limit: 1000,
 			}),
-		initialPageParam: 1,
-		getNextPageParam: (lastPage) => (lastPage.page < lastPage.pageCount ? lastPage.page + 1 : undefined),
 	});
 
-	const coupons = (data?.pages.flatMap((page) => page.list) ?? []).filter((coupon) => {
+	const coupons = (data?.list ?? []).filter((coupon) => {
 		const matchesSearch =
 			!searchTerm ||
 			coupon.driverName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -42,8 +41,11 @@ export function CouponSidebar({ activeCouponId, onSelect, onToggle, isCollapsed 
 
 		return matchesSearch && matchesStatus;
 	});
-	const totalFromApi = data?.pages[0]?.total ?? 0;
-	const total = totalFromApi > 0 ? totalFromApi : coupons.length;
+	const total = coupons.length;
+	const pagination = useSidebarPagination({
+		data: coupons,
+		pageSize: 20,
+	});
 
 	return (
 		<SidebarList>
@@ -64,7 +66,7 @@ export function CouponSidebar({ activeCouponId, onSelect, onToggle, isCollapsed 
 				<>
 					<SidebarList.Body
 						className="mt-4 flex-1 min-h-0 divide-y divide-border-gray-300"
-						data={coupons}
+						data={pagination.pagedData}
 						estimateSize={56}
 						height="100%"
 						renderItem={(item: Coupon, style) => (
@@ -84,12 +86,16 @@ export function CouponSidebar({ activeCouponId, onSelect, onToggle, isCollapsed 
 
 					<SidebarList.Footer
 						total={total}
+						currentPage={pagination.page}
+						totalPages={pagination.totalPages}
+						rangeStart={pagination.rangeStart}
+						rangeEnd={pagination.rangeEnd}
 						isCollapsed={false}
-						onPrev={() => {}}
-						onNext={() => fetchNextPage()}
-						hasPrev={false}
-						hasNext={!!hasNextPage}
-						showControls={!!hasNextPage}
+						onPrev={pagination.handlePrev}
+						onNext={pagination.handleNext}
+						hasPrev={pagination.hasPrev}
+						hasNext={pagination.hasNext}
+						showControls={pagination.totalPages > 1}
 					/>
 				</>
 			)}

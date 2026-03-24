@@ -1,7 +1,8 @@
-import { useInfiniteQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import customerService from "@/core/api/services/customer-service";
 import { EntityListItem, SidebarList } from "@/core/components/common";
+import { useSidebarPagination } from "@/core/hooks/use-sidebar-pagination";
 import type { SelectOption } from "@/core/types/common";
 import type { Customer } from "@/core/types/customer";
 import { cn } from "@/core/utils";
@@ -38,29 +39,28 @@ export function CustomerSidebar({
 		setPaymentTerm(/^\d+$/.test(nextValue) ? nextValue : "");
 	};
 
-	const { data, hasNextPage, fetchNextPage } = useInfiniteQuery({
+	const { data } = useQuery({
 		queryKey: ["customers", "sidebar", { name: searchTerm, paymentTerm }],
-		queryFn: ({ pageParam }) =>
+		queryFn: () =>
 			customerService.getCustomerList({
-				page: pageParam,
-				limit: PAGE_SIZE,
+				page: 1,
+				limit: 1000,
 				name: searchTerm || undefined,
 				paymentTerm: paymentTerm ? Number(paymentTerm) : undefined,
 			}),
-		initialPageParam: 1,
-		getNextPageParam: (lastPage, allPages) => {
-			const nextPage = allPages.length + 1;
-			return nextPage <= lastPage.pageCount ? nextPage : undefined;
-		},
 	});
 
-	const customers = data?.pages.flatMap((p) => p.list) ?? [];
-	const total = data?.pages[0]?.total ?? customers.length;
+	const customers = data?.list ?? [];
+	const total = data?.total ?? customers.length;
 	const hasVisibleActiveCustomer = activeCustomerId
 		? customers.some((customer) => customer.id === activeCustomerId)
 		: false;
 	const shouldShowPinnedActiveCustomer =
 		Boolean(activeCustomerId) && Boolean(activeCustomerName) && !hasVisibleActiveCustomer;
+	const pagination = useSidebarPagination({
+		data: customers,
+		pageSize: PAGE_SIZE,
+	});
 
 	return (
 		<SidebarList>
@@ -100,7 +100,7 @@ export function CustomerSidebar({
 					<SidebarList.Body
 						key="expanded"
 						className={cn("mt-2 flex-1 min-h-0 divide-y divide-border-gray-300")}
-						data={customers}
+						data={pagination.pagedData}
 						estimateSize={DEFAULT_ITEM_SIZE}
 						height="100%"
 						renderItem={(customer: Customer, style) => (
@@ -120,11 +120,16 @@ export function CustomerSidebar({
 
 					<SidebarList.Footer
 						total={total}
+						currentPage={pagination.page}
+						totalPages={pagination.totalPages}
+						rangeStart={pagination.rangeStart}
+						rangeEnd={pagination.rangeEnd}
 						isCollapsed={false}
-						onNext={() => fetchNextPage()}
-						hasPrev={false}
-						hasNext={hasNextPage}
-						showControls={hasNextPage}
+						onPrev={pagination.handlePrev}
+						onNext={pagination.handleNext}
+						hasPrev={pagination.hasPrev}
+						hasNext={pagination.hasNext}
+						showControls={pagination.totalPages > 1}
 					/>
 				</>
 			)}
