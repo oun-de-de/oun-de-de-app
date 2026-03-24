@@ -34,6 +34,7 @@ export function EquipmentSidebar({ activeItemId, onSelect, onToggle, isCollapsed
 
 	const pagination = useSidebarPagination({
 		data: filteredList,
+		resetKey: searchTerm,
 	});
 
 	const sidebarData = pagination.pagedData.map((item) => ({

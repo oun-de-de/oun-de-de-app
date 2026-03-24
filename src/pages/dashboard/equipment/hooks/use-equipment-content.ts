@@ -1,10 +1,14 @@
 import { useCallback, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
-import { toUtcIsoStartOfDay } from "@/core/utils/date-utils";
 import type { ItemRow } from "../components/item-columns";
 import { filterItemRows, itemColumns, mapItemsToRows, paginateItemRows } from "../components/item-columns";
 import { useInventoryItems } from "./use-inventory-items";
 import { useCreateBorrowing, useCreateItem, useUpdateStock } from "./use-inventory-mutations";
+
+function toLocalMidnightDateTime(dateValue: string): string | undefined {
+	if (!dateValue) return undefined;
+	return `${dateValue}T00:00:00`;
+}
 
 export function useEquipmentContent(activeItemId: string | null) {
 	const itemId = activeItemId ?? undefined;
@@ -51,13 +55,13 @@ export function useEquipmentContent(activeItemId: string | null) {
 	const [borrowMemo, setBorrowMemo] = useState("");
 
 	const handleBorrow = useCallback(() => {
-		const expectedReturnDateIso = toUtcIsoStartOfDay(borrowExpectedReturnDate);
-		if (!expectedReturnDateIso) return;
+		const expectedReturnDate = toLocalMidnightDateTime(borrowExpectedReturnDate);
+		if (!expectedReturnDate) return;
 		createBorrowingMutation.mutate(
 			{
 				customerId: borrowCustomerId,
 				quantity: Number(borrowQty),
-				expectedReturnDate: expectedReturnDateIso,
+				expectedReturnDate,
 				memo: borrowMemo,
 			},
 			{

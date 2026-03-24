@@ -38,6 +38,7 @@ export function ProductSidebar({ activeProductId, onSelect, onToggle, isCollapse
 
 	const pagination = useSidebarPagination({
 		data: filteredProducts,
+		resetKey: searchTerm,
 	});
 
 	// Map products to EntityListItemData format (requires code)

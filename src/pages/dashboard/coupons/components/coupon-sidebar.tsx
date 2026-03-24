@@ -15,8 +15,8 @@ type CouponSidebarProps = {
 
 const STATUS_OPTIONS: SelectOption[] = [
 	{ value: "all", label: "All Status" },
-	{ value: "completed", label: "Completed" },
-	{ value: "pending", label: "Pending" },
+	{ value: "active", label: "Active" },
+	{ value: "deleted", label: "Deleted" },
 ];
 
 export function CouponSidebar({ activeCouponId, onSelect, onToggle, isCollapsed }: CouponSidebarProps) {
@@ -37,7 +37,8 @@ export function CouponSidebar({ activeCouponId, onSelect, onToggle, isCollapsed 
 			coupon.driverName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
 			coupon.vehicle?.licensePlate?.toLowerCase().includes(searchTerm.toLowerCase());
 
-		const matchesStatus = status === "all";
+		const isDeleted = Boolean(coupon.delAccNo?.trim());
+		const matchesStatus = status === "all" || (status === "deleted" ? isDeleted : !isDeleted);
 
 		return matchesSearch && matchesStatus;
 	});
@@ -45,6 +46,7 @@ export function CouponSidebar({ activeCouponId, onSelect, onToggle, isCollapsed 
 	const pagination = useSidebarPagination({
 		data: coupons,
 		pageSize: 20,
+		resetKey: `${searchTerm}|${status}`,
 	});
 
 	return (
@@ -56,6 +58,7 @@ export function CouponSidebar({ activeCouponId, onSelect, onToggle, isCollapsed 
 				searchPlaceholder="Search coupons..."
 				onSearchChange={setSearchTerm}
 				statusOptions={STATUS_OPTIONS}
+				statusValue={status}
 				onStatusChange={setStatus}
 				isCollapsed={isCollapsed}
 			/>

@@ -31,6 +31,10 @@ type PendingBorrowingAction =
 	| { type: "return"; borrowingId: string; customerName: string }
 	| null;
 
+function toLocalMidnightDateTime(dateValue: string): string {
+	return `${dateValue}T00:00:00`;
+}
+
 export function EquipmentBorrowingsDialog({
 	itemId,
 	customers,
@@ -165,7 +169,7 @@ export function EquipmentBorrowingsDialog({
 			toast.error("Expected return date is required");
 			return;
 		}
-		const normalizedExpectedReturnDate = new Date(`${expectedReturnDate}T00:00:00.000Z`).toISOString();
+		const normalizedExpectedReturnDate = toLocalMidnightDateTime(expectedReturnDate);
 
 		createBorrowing.mutate(
 			{

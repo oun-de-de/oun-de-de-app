@@ -41,6 +41,7 @@ export function useAccountingSidebarState({ items }: UseAccountingSidebarStatePa
 
 	const pagination = useSidebarPagination({
 		data: filteredAccounts,
+		resetKey: `${typeFilter}|${searchValue}|${statusFilter}`,
 	});
 
 	return {
