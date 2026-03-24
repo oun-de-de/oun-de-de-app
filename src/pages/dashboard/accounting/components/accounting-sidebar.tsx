@@ -12,7 +12,7 @@ type AccountingSidebarProps = {
 };
 
 export function AccountingSidebar({ items, activeAccountId, onSelect, onToggle, isCollapsed }: AccountingSidebarProps) {
-	const { isLgUp, pagination, searchValue, setSearchValue, statusFilter, setStatusFilter, typeFilter, setTypeFilter } =
+	const { pagination, searchValue, setSearchValue, statusFilter, setStatusFilter, typeFilter, setTypeFilter } =
 		useAccountingSidebarState({ items });
 
 	return (
@@ -54,12 +54,16 @@ export function AccountingSidebar({ items, activeAccountId, onSelect, onToggle, 
 
 					<SidebarList.Footer
 						total={pagination.total}
+						currentPage={pagination.page}
+						totalPages={pagination.totalPages}
+						rangeStart={pagination.rangeStart}
+						rangeEnd={pagination.rangeEnd}
 						isCollapsed={false}
 						onPrev={pagination.handlePrev}
 						onNext={pagination.handleNext}
 						hasPrev={pagination.hasPrev}
 						hasNext={pagination.hasNext}
-						showControls={!isLgUp && pagination.totalPages > 1}
+						showControls={pagination.totalPages > 1}
 					/>
 				</>
 			)}

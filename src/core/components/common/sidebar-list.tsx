@@ -37,6 +37,7 @@ export function SidebarToggleButton({ onClick, isCollapsed, variant = "info", cl
 			size="icon"
 			className={cn("h-8 w-8 shrink-0 hidden lg:block", className)}
 			onClick={onClick}
+			aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
 		>
 			<Icon icon={isCollapsed ? "mdi:menu-open" : "mdi:menu"} />
 		</Button>

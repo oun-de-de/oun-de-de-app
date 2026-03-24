@@ -1,6 +1,5 @@
 import { useMemo } from "react";
 import { EntityListItem, SidebarList } from "@/core/components/common";
-import { up, useMediaQuery } from "@/core/hooks/use-media-query";
 import { useSidebarPagination } from "@/core/hooks/use-sidebar-pagination";
 import { formatKHR } from "@/core/utils/formatters";
 import { useLoans } from "../hooks/use-loans";
@@ -34,7 +33,6 @@ const matchSearch = (item: BorrowSidebarItem, normalizedQuery: string) =>
 
 export function BorrowSidebar({ activeBorrowId, listState, updateState, onSelect, onToggle, isCollapsed }: Props) {
 	const { searchValue, typeFilter } = listState;
-	const isLgUp = useMediaQuery(up("lg"));
 	const normalizedQuery = normalizeText(searchValue);
 
 	const { data: loansResponse } = useLoans();
@@ -65,7 +63,6 @@ export function BorrowSidebar({ activeBorrowId, listState, updateState, onSelect
 
 	const pagination = useSidebarPagination({
 		data: filteredList,
-		enabled: !isLgUp,
 	});
 
 	return (
@@ -102,12 +99,16 @@ export function BorrowSidebar({ activeBorrowId, listState, updateState, onSelect
 
 					<SidebarList.Footer
 						total={pagination.total}
+						currentPage={pagination.page}
+						totalPages={pagination.totalPages}
+						rangeStart={pagination.rangeStart}
+						rangeEnd={pagination.rangeEnd}
 						isCollapsed={false}
 						onPrev={pagination.handlePrev}
 						onNext={pagination.handleNext}
 						hasPrev={pagination.hasPrev}
 						hasNext={pagination.hasNext}
-						showControls={!isLgUp && pagination.totalPages > 1}
+						showControls={pagination.totalPages > 1}
 					/>
 				</>
 			)}

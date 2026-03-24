@@ -36,10 +36,15 @@ export function useSidebarPagination<T>({ data, enabled = true, pageSize = 20 }:
 		return data.slice(start, start + pageSize);
 	}, [data, enabled, page, pageSize]);
 
+	const rangeStart = total === 0 ? 0 : (page - 1) * pageSize + 1;
+	const rangeEnd = enabled ? Math.min(total, page * pageSize) : total;
+
 	return {
 		page,
 		totalPages,
 		total,
+		rangeStart,
+		rangeEnd,
 		hasPrev: page > 1,
 		hasNext: page < totalPages,
 		handlePrev,

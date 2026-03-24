@@ -34,10 +34,7 @@ export const backendNavData: NavProps["data"] = convert(convertFlatToTree(DB_MEN
 export const newActions = [
 	{
 		title: "Customers",
-		items: [
-			{ title: "Create Invoice", href: "/dashboard/invoice" },
-			{ title: "Create Receipt", href: "/dashboard/customers/create-receipt" },
-		],
+		items: [{ title: "Create Invoice", href: "/dashboard/invoice" }],
 	},
 	{
 		title: "Accounting",

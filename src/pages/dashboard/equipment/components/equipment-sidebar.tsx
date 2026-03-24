@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
 import { EntityListItem, SidebarList } from "@/core/components/common";
-import { up, useMediaQuery } from "@/core/hooks/use-media-query";
 import { useSidebarPagination } from "@/core/hooks/use-sidebar-pagination";
 import type { InventoryItem } from "@/core/types/inventory";
 import { cn } from "@/core/utils";
@@ -24,7 +23,6 @@ const DEFAULT_ITEM_SIZE = 56;
 
 export function EquipmentSidebar({ activeItemId, onSelect, onToggle, isCollapsed }: Props) {
 	const [searchTerm, setSearchTerm] = useState("");
-	const isLgUp = useMediaQuery(up("lg"));
 	const normalizedQuery = normalizeText(searchTerm);
 
 	const { data: items = [] } = useInventoryItems();
@@ -36,7 +34,6 @@ export function EquipmentSidebar({ activeItemId, onSelect, onToggle, isCollapsed
 
 	const pagination = useSidebarPagination({
 		data: filteredList,
-		enabled: !isLgUp,
 	});
 
 	const sidebarData = pagination.pagedData.map((item) => ({
@@ -84,12 +81,16 @@ export function EquipmentSidebar({ activeItemId, onSelect, onToggle, isCollapsed
 
 					<SidebarList.Footer
 						total={pagination.total}
+						currentPage={pagination.page}
+						totalPages={pagination.totalPages}
+						rangeStart={pagination.rangeStart}
+						rangeEnd={pagination.rangeEnd}
 						isCollapsed={false}
 						onPrev={pagination.handlePrev}
 						onNext={pagination.handleNext}
 						hasPrev={pagination.hasPrev}
 						hasNext={pagination.hasNext}
-						showControls={!isLgUp && pagination.totalPages > 1}
+						showControls={pagination.totalPages > 1}
 					/>
 				</>
 			)}

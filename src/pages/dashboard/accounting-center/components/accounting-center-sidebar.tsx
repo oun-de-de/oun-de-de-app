@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
 import { EntityListItem, SidebarList } from "@/core/components/common";
-import { up, useMediaQuery } from "@/core/hooks/use-media-query";
 import type { CashTransactionCounterparty } from "@/core/types/cash-transaction";
 import { useSidebarPagination } from "@/core/hooks/use-sidebar-pagination";
 import { cn } from "@/core/utils";
@@ -23,7 +22,6 @@ export function AccountingCenterSidebar({
 	isCollapsed,
 }: AccountingCenterSidebarProps) {
 	const [searchTerm, setSearchTerm] = useState("");
-	const isLgUp = useMediaQuery(up("lg"));
 
 	const filteredCounterparties = useMemo(() => {
 		const normalizedSearch = normalizeToken(searchTerm);
@@ -40,7 +38,6 @@ export function AccountingCenterSidebar({
 
 	const pagination = useSidebarPagination({
 		data: filteredCounterparties,
-		enabled: !isLgUp,
 	});
 
 	return (
@@ -77,12 +74,16 @@ export function AccountingCenterSidebar({
 
 					<SidebarList.Footer
 						total={pagination.total}
+						currentPage={pagination.page}
+						totalPages={pagination.totalPages}
+						rangeStart={pagination.rangeStart}
+						rangeEnd={pagination.rangeEnd}
 						isCollapsed={false}
 						onPrev={pagination.handlePrev}
 						onNext={pagination.handleNext}
 						hasPrev={pagination.hasPrev}
 						hasNext={pagination.hasNext}
-						showControls={!isLgUp && pagination.totalPages > 1}
+						showControls={pagination.totalPages > 1}
 					/>
 				</>
 			)}

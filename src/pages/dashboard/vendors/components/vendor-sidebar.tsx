@@ -1,7 +1,6 @@
 import { useMemo } from "react";
 import { vendorList } from "@/_mock/data/dashboard";
 import { EntityListItem, SidebarList } from "@/core/components/common";
-import { up, useMediaQuery } from "@/core/hooks/use-media-query";
 import { useSidebarPagination } from "@/core/hooks/use-sidebar-pagination";
 import { normalizeToken } from "@/core/utils/dashboard-utils";
 
@@ -22,7 +21,6 @@ export function VendorSidebar({
 	onToggle,
 	isCollapsed,
 }: VendorSidebarProps) {
-	const isLgUp = useMediaQuery(up("lg"));
 	const filteredVendors = useMemo(() => {
 		const normalizedQuery = normalizeToken(searchValue);
 		if (!normalizedQuery) return vendorList;
@@ -35,7 +33,6 @@ export function VendorSidebar({
 
 	const pagination = useSidebarPagination({
 		data: filteredVendors,
-		enabled: !isLgUp,
 	});
 
 	return (
@@ -72,12 +69,16 @@ export function VendorSidebar({
 
 					<SidebarList.Footer
 						total={pagination.total}
+						currentPage={pagination.page}
+						totalPages={pagination.totalPages}
+						rangeStart={pagination.rangeStart}
+						rangeEnd={pagination.rangeEnd}
 						isCollapsed={false}
 						onPrev={pagination.handlePrev}
 						onNext={pagination.handleNext}
 						hasPrev={pagination.hasPrev}
 						hasNext={pagination.hasNext}
-						showControls={!isLgUp && pagination.totalPages > 1}
+						showControls={pagination.totalPages > 1}
 					/>
 				</>
 			)}
