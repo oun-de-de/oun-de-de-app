@@ -126,11 +126,11 @@ export interface ProductSettings {
 	productId: string;
 	customerId: string;
 	price: number;
-	quantity: number;
+	quantity: number | null;
 }
 
 export interface CreateProductSettings {
 	productId: string;
-	quantity: number;
+	quantity?: number | null;
 	price: number;
 }

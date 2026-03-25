@@ -46,7 +46,7 @@ const toPayload = (settings: ProductSettingItem[]) =>
 	settings.map(({ productId, price, quantity, isPackagedByQuantity }) => ({
 		productId,
 		price,
-		quantity: isPackagedByQuantity ? quantity : 0,
+		quantity: isPackagedByQuantity ? quantity : null,
 	}));
 
 export const useProductSettingsForm = (customerId?: string) => {
@@ -90,14 +90,20 @@ export const useProductSettingsForm = (customerId?: string) => {
 	}, []);
 
 	const handleRemove = useCallback(
-		async (productId: string) => {
+		(productId: string) => {
 			if (existingProductIds.has(productId)) {
-				toast.info("Delete product setting is not supported yet");
+				const product = productById.get(productId);
+				if (!product) return;
+
+				setSettings((prev) =>
+					prev.map((item) => (item.productId === productId ? createProductSettingItem(product) : item)),
+				);
+				toast.success("Product setting reset to default");
 				return;
 			}
 			setSettings((prev) => prev.filter((item) => item.productId !== productId));
 		},
-		[existingProductIds],
+		[existingProductIds, productById],
 	);
 
 	const handleChange = useCallback((productId: string, field: "price" | "quantity", value: string) => {

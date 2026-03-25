@@ -1,10 +1,11 @@
 import type { ColumnDef } from "@tanstack/react-table";
-import { Copy, Trash2 } from "lucide-react";
+import { Copy, RotateCcw, Trash2 } from "lucide-react";
 import { useMemo } from "react";
 import { toast } from "sonner";
 import { SmartDataTable } from "@/core/components/common/smart-data-table";
 import { Button } from "@/core/ui/button";
 import { Input } from "@/core/ui/input";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/core/ui/tooltip";
 import type { ProductSettingItem } from "../hooks/use-product-settings-form";
 
 const getColumns = (
@@ -55,17 +56,32 @@ const getColumns = (
 		header: "Quantity",
 		accessorKey: "quantity",
 		size: 100,
-		cell: ({ row }) => (
-			<Input
-				type="number"
-				value={row.original.quantity}
-				onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-					onChange(row.original.productId, "quantity", e.target.value)
-				}
-				className="w-full h-8"
-				disabled={!row.original.isPackagedByQuantity}
-			/>
-		),
+		cell: ({ row }) => {
+			const quantityInput = (
+				<Input
+					type="number"
+					value={row.original.quantity ?? ""}
+					onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+						onChange(row.original.productId, "quantity", e.target.value)
+					}
+					className="w-full h-8"
+					disabled={!row.original.isPackagedByQuantity}
+				/>
+			);
+
+			if (row.original.isPackagedByQuantity) return quantityInput;
+
+			return (
+				<TooltipProvider>
+					<Tooltip>
+						<TooltipTrigger asChild>
+							<div className="w-full cursor-help">{quantityInput}</div>
+						</TooltipTrigger>
+						<TooltipContent side="top">This product does not use quantity.</TooltipContent>
+					</Tooltip>
+				</TooltipProvider>
+			);
+		},
 	},
 	{
 		header: "Price",
@@ -82,21 +98,41 @@ const getColumns = (
 	},
 	{
 		id: "actions",
-		header: "",
-		size: 30,
-		cell: ({ row }) => (
-			<div className="flex justify-center">
-				<Button
-					variant="ghost"
-					size="icon"
-					onClick={() => onRemove(row.original.productId)}
-					className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50 disabled:opacity-50"
-					disabled={existingProductIds.has(row.original.productId)}
-				>
-					<Trash2 className="h-4 w-4" />
-				</Button>
-			</div>
-		),
+		size: 40,
+		cell: ({ row }) => {
+			const isExisting = existingProductIds.has(row.original.productId);
+			const actionLabel = isExisting
+				? `Reset ${row.original.productName} to default`
+				: `Remove ${row.original.productName}`;
+			const actionTooltip = isExisting
+				? "Reset this customer-specific setting back to the product default values."
+				: "Remove this unsaved product setting.";
+			const ActionIcon = isExisting ? RotateCcw : Trash2;
+			const actionClassName = isExisting
+				? "text-amber-600 hover:text-amber-700 hover:bg-amber-50"
+				: "text-red-500 hover:text-red-700 hover:bg-red-50";
+
+			return (
+				<div className="flex justify-center">
+					<TooltipProvider>
+						<Tooltip>
+							<TooltipTrigger asChild>
+								<Button
+									variant="ghost"
+									size="icon"
+									onClick={() => onRemove(row.original.productId)}
+									className={actionClassName}
+									aria-label={actionLabel}
+								>
+									<ActionIcon />
+								</Button>
+							</TooltipTrigger>
+							<TooltipContent side="top">{actionTooltip}</TooltipContent>
+						</Tooltip>
+					</TooltipProvider>
+				</div>
+			);
+		},
 	},
 ];
 
@@ -116,7 +152,12 @@ export function SelectedProductsList({ settings, existingProductIds, onChange, o
 	return (
 		<div className="border rounded-md overflow-hidden flex flex-col h-full">
 			<div className="bg-gray-100 px-4 py-3 border-b shrink-0 flex items-center justify-between">
-				<span className="font-medium text-sm">Selected Products</span>
+				<div className="flex flex-col">
+					<span className="font-medium text-sm">Selected Products</span>
+					<span className="text-xs text-gray-500">
+						Existing items reset to default. Newly added items can be removed.
+					</span>
+				</div>
 			</div>
 			<div className="flex-1 overflow-hidden">
 				<SmartDataTable
