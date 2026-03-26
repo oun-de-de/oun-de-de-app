@@ -19,6 +19,10 @@ export const getCouponColumns = ({
 	onEditCoupon,
 }: CouponColumnsOptions): ColumnDef<Coupon>[] => [
 	{
+		header: "Coupon Id",
+		accessorKey: "id",
+	},
+	{
 		header: "Coupon No.",
 		accessorKey: "couponNo",
 		size: 80,
