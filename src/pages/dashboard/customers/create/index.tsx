@@ -2,6 +2,7 @@ import { useMutation } from "@tanstack/react-query";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
 import customerService from "@/core/api/services/customer-service";
+import { BackButton } from "@/core/components/common";
 import type { CreateCustomer } from "@/core/types/customer";
 import { Text } from "@/core/ui/typography";
 import { toUtcIsoPreferNowIfToday } from "@/core/utils/date-utils";
@@ -76,6 +77,7 @@ export default function CreateCustomerPage() {
 		<div className="flex flex-col h-full p-6 gap-6">
 			{/* Header */}
 			<div className="flex items-center gap-3">
+				<BackButton appearance="icon" onClick={handleCancel} />
 				<Text className="font-semibold text-sky-600">Create New Customer</Text>
 			</div>
 

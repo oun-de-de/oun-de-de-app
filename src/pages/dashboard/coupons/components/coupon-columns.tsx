@@ -20,15 +20,13 @@ export const getCouponColumns = ({
 }: CouponColumnsOptions): ColumnDef<Coupon>[] => [
 	{
 		header: "Coupon Id",
-		accessorKey: "id",
+		accessorKey: "couponId",
+		size: 100,
 	},
 	{
 		header: "Coupon No.",
 		accessorKey: "couponNo",
-		size: 80,
-		meta: {
-			bodyClassName: "text-center",
-		},
+		size: 100,
 	},
 	{
 		header: "Date",

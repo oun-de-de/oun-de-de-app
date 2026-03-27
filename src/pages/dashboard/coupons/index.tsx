@@ -111,6 +111,7 @@ export default function CouponsPage() {
 				page: listState.page,
 				limit: listState.pageSize,
 				customerId: activeCustomer?.id || undefined,
+				sort: "couponNo,desc",
 			}),
 	});
 
