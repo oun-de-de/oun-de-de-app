@@ -2,10 +2,10 @@ import { useCallback, useEffect, useMemo, useRef } from "react";
 import { useLocation, useNavigate, useParams, useSearchParams } from "react-router";
 import { toast } from "sonner";
 import type { CustomerDetail } from "@/core/types/customer";
-import type { CreateVehicle, Vehicle } from "@/core/types/vehicle";
 import { BackButton } from "@/core/components/common";
 import { Separator } from "@/core/ui/separator";
 import { Text } from "@/core/ui/typography";
+import { normalizeVehicleType, type CreateVehicle, type Vehicle } from "@/core/types/vehicle";
 import type { CustomerFormData } from "../create/components/customer-form";
 import { CustomerForm } from "../create/components/customer-form";
 import { useCreateCustomerVehicles } from "../hooks/use-create-customer-vehicles";
@@ -46,8 +46,17 @@ const getFormResetKey = (customer?: CustomerDetail, vehicles?: Vehicle[]) => {
 	].join("|");
 };
 
-const splitVehicles = (vehicles: CustomerFormData["vehicles"] = []) => {
+const splitVehicles = (vehicles: CustomerFormData["vehicles"] = [], initialVehicles: Vehicle[] = []) => {
 	const formVehicles = vehicles;
+	const initialVehicleMap = new Map(
+		initialVehicles.map((vehicle) => [
+			vehicle.id,
+			{
+				vehicleType: normalizeVehicleType(vehicle.vehicleType),
+				licensePlate: vehicle.licensePlate,
+			},
+		]),
+	);
 
 	return {
 		newVehicles: formVehicles
@@ -55,7 +64,20 @@ const splitVehicles = (vehicles: CustomerFormData["vehicles"] = []) => {
 			.map((vehicle) => ({ vehicleType: vehicle.vehicleType, licensePlate: vehicle.licensePlate })),
 		existingVehicles: formVehicles.flatMap((vehicle) =>
 			isExistingVehicle(vehicle) && vehicle.vehicleType && vehicle.licensePlate
-				? [{ id: vehicle.id, vehicleType: vehicle.vehicleType, licensePlate: vehicle.licensePlate }]
+				? (() => {
+						const initialVehicle = initialVehicleMap.get(vehicle.id);
+						if (!initialVehicle) {
+							return [{ id: vehicle.id, vehicleType: vehicle.vehicleType, licensePlate: vehicle.licensePlate }];
+						}
+
+						const hasChanged =
+							initialVehicle.vehicleType !== normalizeVehicleType(vehicle.vehicleType) ||
+							initialVehicle.licensePlate !== vehicle.licensePlate;
+
+						return hasChanged
+							? [{ id: vehicle.id, vehicleType: vehicle.vehicleType, licensePlate: vehicle.licensePlate }]
+							: [];
+					})()
 				: [],
 		),
 	};
@@ -134,7 +156,7 @@ export default function CustomerEditPage() {
 			const payload = mapCustomerFormToUpdatePayload(formData, { skipPaymentTerm: shouldSkipPaymentTerm });
 			await updateCustomerInfo(payload);
 
-			const { newVehicles, existingVehicles } = splitVehicles(formData.vehicles);
+			const { newVehicles, existingVehicles } = splitVehicles(formData.vehicles, vehicles);
 
 			if (newVehicles.length > 0) await createCustomerVehicles(newVehicles);
 			if (existingVehicles.length > 0) await updateCustomerVehicles(existingVehicles);
@@ -142,7 +164,7 @@ export default function CustomerEditPage() {
 			toast.success("Customer updated successfully");
 			navigate(CUSTOMERS_PATH);
 		},
-		[customer?.paymentTerm, updateCustomerInfo, createCustomerVehicles, updateCustomerVehicles, navigate],
+		[customer?.paymentTerm, updateCustomerInfo, createCustomerVehicles, updateCustomerVehicles, navigate, vehicles],
 	);
 
 	if (isLoading) return <div className="p-6">Loading...</div>;
