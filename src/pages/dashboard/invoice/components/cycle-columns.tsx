@@ -1,19 +1,8 @@
 import type { ColumnDef } from "@tanstack/react-table";
-import { getCycleStatusLabel, type Cycle } from "@/core/types/cycle";
+import { getCycleStatusLabel, getCycleStatusVariant, type Cycle } from "@/core/types/cycle";
 import { formatFlexibleDisplayDate } from "@/core/utils/date-display";
 import { Badge } from "@/core/ui/badge";
 import { formatKHR } from "../utils/formatters";
-
-function getCycleStatusVariant(status: Cycle["status"]): "success" | "warning" | "error" {
-	switch (status) {
-		case "CLOSED":
-			return "success";
-		case "OPEN":
-			return "warning";
-		case "OVERDUE":
-			return "error";
-	}
-}
 
 export function getCycleColumns(): ColumnDef<Cycle>[] {
 	return [

@@ -103,10 +103,12 @@ export default function InvoiceExportPreviewPage() {
 	const state = (location.state as InvoiceExportPreviewLocationState | null) ?? null;
 	const searchParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
 	const autoPrintStorageKey = useMemo(() => `invoice-export-auto-print:${location.key}`, [location.key]);
+	const isReceiptPath = location.pathname.endsWith("/receipt-preview");
 	const requestedPaperSizeMode = searchParams.get("paper");
 	const requestedOrientationMode = searchParams.get("orientation");
 	const requestedTemplateMode = searchParams.get("template");
 	const requestedSortMode = searchParams.get("sort");
+	const requestedMode = searchParams.get("mode");
 	const initialPaperSizeMode =
 		requestedPaperSizeMode === "a5" || requestedPaperSizeMode === "a4" || requestedPaperSizeMode === "letter"
 			? requestedPaperSizeMode
@@ -185,6 +187,13 @@ export default function InvoiceExportPreviewPage() {
 		() => formatPreviewTimestamp(sortedPreviewRows[0]?.date, REPORT_DEFAULT_DATE),
 		[sortedPreviewRows],
 	);
+	const receiptPaymentDate = useMemo(
+		() => formatPreviewTimestamp(state?.receiptPaymentDate, reportDate),
+		[reportDate, state?.receiptPaymentDate],
+	);
+	const receiptPaymentCode = state?.receiptPaymentCode?.trim() || sortedPreviewRows[0]?.refNo || "-";
+	const isReceiptExport =
+		isReceiptPath || requestedMode === "receipt" || Boolean(state?.receiptPaymentAmount !== undefined);
 	const customerSummaryText = useMemo(() => {
 		const uniqueCustomerNames = [...new Set(sortedPreviewRows.map((row) => row.customerName).filter(Boolean))];
 		if (uniqueCustomerNames.length === 1) {
@@ -197,11 +206,14 @@ export default function InvoiceExportPreviewPage() {
 	}, [sortedPreviewRows]);
 	const invoiceSummaryText = useMemo(() => {
 		const uniqueRefNos = [...new Set(sortedPreviewRows.map((row) => row.refNo).filter(Boolean))];
+		if (isReceiptExport) {
+			return `Receipt No: ${receiptPaymentCode}`;
+		}
 		if (uniqueRefNos.length === 1) {
 			return `Invoice No: ${uniqueRefNos[0]}`;
 		}
 		return `Total Invoices: ${uniqueRefNos.length}`;
-	}, [sortedPreviewRows]);
+	}, [isReceiptExport, receiptPaymentCode, sortedPreviewRows]);
 	const metaColumns = useMemo<ReportTemplateMetaColumn[]>(
 		() => [
 			{
@@ -216,15 +228,18 @@ export default function InvoiceExportPreviewPage() {
 			},
 			{
 				key: "right-meta",
-				rows: [`Date: ${reportDate}`],
+				rows: [`Date: ${isReceiptExport ? receiptPaymentDate : reportDate}`],
 				align: "right",
 			},
 		],
-		[customerSummaryText, invoiceSummaryText, reportDate],
+		[customerSummaryText, invoiceSummaryText, isReceiptExport, receiptPaymentDate, reportDate],
 	);
 
 	const totalBalance = useMemo(() => calculateTotalBalance(previewRows), [previewRows]);
-	const totalReceived = useMemo(() => calculateTotalReceived(previewRows), [previewRows]);
+	const totalReceived = useMemo(
+		() => state?.receiptPaymentAmount ?? calculateTotalReceived(previewRows),
+		[previewRows, state?.receiptPaymentAmount],
+	);
 	const totalQuantity = useMemo(
 		() => sortedPreviewRows.reduce((sum, row) => sum + getRowQuantity(row), 0),
 		[sortedPreviewRows],
@@ -273,6 +288,11 @@ export default function InvoiceExportPreviewPage() {
 	}, []);
 
 	const handleBack = useCallback(() => {
+		if (state?.returnPath) {
+			navigate(state.returnPath);
+			return;
+		}
+
 		const cycleId = searchParams.get("cycleId") ?? state?.cycleId;
 		const customerId = searchParams.get("customerId") ?? state?.customerId;
 		const customerName = searchParams.get("customerName") ?? state?.customerName;
@@ -469,18 +489,22 @@ export default function InvoiceExportPreviewPage() {
 							<div className="mb-2 border-t border-slate-500 pt-2 text-[14px] font-bold">
 								<div className="flex items-center justify-between gap-4">
 									<div>Customer : {sortedPreviewRows[0]?.customerName || "-"}</div>
-									<div>Ref No : {sortedPreviewRows[0]?.refNo || "-"}</div>
+									<div>
+										{isReceiptExport ? "Receipt No" : "Ref No"} : {receiptPaymentCode}
+									</div>
 								</div>
 								<div className="mt-1 flex items-center justify-between gap-4">
 									<div>Phone :</div>
-									<div>Date : {reportDate}</div>
+									<div>Date : {isReceiptExport ? receiptPaymentDate : reportDate}</div>
 								</div>
 							</div>
 
 							<table className="w-full border-collapse text-[13px]">
 								<thead>
 									<tr>
-										<th className="border border-slate-500 px-2 py-1.5 text-center font-bold">ល.រ</th>
+										<th className="border border-slate-500 px-2 py-1.5 text-center font-bold">
+											{isReceiptExport ? "PAYMENT CODE" : "ល.រ"}
+										</th>
 										<th className="border border-slate-500 px-2 py-1.5 text-center font-bold">PRODUCT</th>
 										<th className="border border-slate-500 px-2 py-1.5 text-center font-bold">UNIT</th>
 										<th className="border border-slate-500 px-2 py-1.5 text-center font-bold">QTY</th>
@@ -492,7 +516,9 @@ export default function InvoiceExportPreviewPage() {
 								<tbody>
 									{sortedPreviewRows.map((row, index) => (
 										<tr key={`${row.refNo}-${index}`}>
-											<td className="border border-slate-500 px-2 py-2 text-center">{index + 1}</td>
+											<td className="border border-slate-500 px-2 py-2 text-center">
+												{isReceiptExport ? receiptPaymentCode : index + 1}
+											</td>
 											<td className="border border-slate-500 px-2 py-2 text-center">{row.productName || "-"}</td>
 											<td className="border border-slate-500 px-2 py-2 text-center">{row.unit || "-"}</td>
 											<td className="border border-slate-500 px-2 py-2 text-center">
@@ -552,11 +578,13 @@ export default function InvoiceExportPreviewPage() {
 						<ReportTemplateTable
 							className={cn("invoice-export-print-target invoice-print-sheet", tableClassName)}
 							showSections={showSections}
-							title="Open Invoice On Period By Group"
-							subtitle={reportDate}
+							title={isReceiptExport ? "Payment Receipt" : "Open Invoice On Period By Group"}
+							subtitle={isReceiptExport ? receiptPaymentDate : reportDate}
 							headerContent={
 								<div className="invoice-print-header flex flex-col items-center gap-1 text-center">
-									<div className="text-[10px] text-slate-500">Open Invoice On Period By Group</div>
+									<div className="text-[10px] text-slate-500">
+										{isReceiptExport ? "Payment Receipt" : "Open Invoice On Period By Group"}
+									</div>
 									<div className="text-xl font-bold leading-none text-slate-700">{REPORT_KHMER_TITLE}</div>
 									<div className="text-sm font-semibold text-slate-600 underline underline-offset-2">
 										TEL: 070669898

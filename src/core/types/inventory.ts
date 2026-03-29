@@ -1,4 +1,5 @@
 export type InventoryItemType = "CONSUMABLE" | "EQUIPMENT";
+export type CreateInventoryItemType = "consumable" | "equipment";
 export type InventoryUnitType = "COUNT";
 export type InventoryTransactionType = "IN" | "OUT";
 export type InventoryTransactionReason = "PURCHASE" | "CONSUME" | "BORROW" | "RETURN" | "SOLD";
@@ -29,7 +30,7 @@ export interface InitStockRequest {
 
 export interface CreateInventoryItem {
 	name: string;
-	type: InventoryItemType;
+	type: CreateInventoryItemType;
 	unitId?: string;
 	initStock?: InitStockRequest;
 	alertThreshold?: number;

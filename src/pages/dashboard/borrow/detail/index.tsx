@@ -11,7 +11,7 @@ import type { InvoiceExportPreviewLocationState } from "@/core/types/invoice";
 import { formatDisplayDate, formatDisplayDateTime, formatKHR } from "@/core/utils/formatters";
 import { useRouter } from "@/routes/hooks/use-router";
 import { useCallback, useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router";
+import { useLocation, useNavigate, useParams } from "react-router";
 import { ReportLayout } from "../../reports/components/layout/report-layout";
 import {
 	type ReportTemplateColumn,
@@ -32,6 +32,7 @@ function formatLoanStatusLabel(status?: "normal" | "due" | "complete") {
 export default function BorrowDetailPage() {
 	const { id } = useParams<{ id: string }>();
 	const router = useRouter();
+	const location = useLocation();
 	const navigate = useNavigate();
 	const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
 	const [shouldUpdateDueDate, setShouldUpdateDueDate] = useState(true);
@@ -213,12 +214,13 @@ export default function BorrowDetailPage() {
 					balance: 0,
 				},
 			],
+			returnPath: location.pathname,
 			autoPrint: true,
 			initialPaperSizeMode: "a5",
 			initialOrientationMode: "landscape",
 		};
 
-		navigate("/dashboard/invoice/export-preview?paper=a5&orientation=landscape", {
+		navigate("/dashboard/loan/receipt-preview?paper=a5&orientation=landscape", {
 			state: exportPreviewState,
 		});
 	};
@@ -312,16 +314,16 @@ export default function BorrowDetailPage() {
 							<Text variant="body2" className="text-slate-500">
 								Principal Amount
 							</Text>
-							<Text variant="body2" className="font-medium">
+							<div className="rounded-md border border-sky-200 px-3 py-1 text-sm font-semibold text-sky-700">
 								{formatKHR(loan.principalAmount)}
-							</Text>
+							</div>
 						</div>
 						<Separator />
 						<div className="flex items-center justify-between">
 							<Text variant="body2" className="text-slate-500">
 								Next Due Date
 							</Text>
-							<Text variant="body2" className="font-medium">
+							<Text variant="body2" className="text-base font-semibold text-amber-950">
 								{currentDue ? formatDisplayDate(currentDue.dueDate) : "-"}
 							</Text>
 						</div>
@@ -330,7 +332,7 @@ export default function BorrowDetailPage() {
 							<Text variant="body2" className="text-slate-500">
 								Next Payment
 							</Text>
-							<Text variant="body2" className="font-medium">
+							<Text variant="body2" className="text-base font-semibold text-amber-950">
 								{currentDue ? formatKHR(currentDue.amount) : "-"}
 							</Text>
 						</div>

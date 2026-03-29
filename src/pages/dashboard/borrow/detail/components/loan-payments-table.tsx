@@ -53,7 +53,7 @@ export function LoanPaymentsTable({ payments, onExportReceipt }: LoanPaymentsTab
 				cell: ({ row }) =>
 					onExportReceipt ? (
 						<div className="flex justify-center">
-							<Button size="sm" variant="outline" onClick={() => onExportReceipt(row.original)}>
+							<Button size="sm" variant="secondary" onClick={() => onExportReceipt(row.original)}>
 								Export Receipt
 							</Button>
 						</div>
