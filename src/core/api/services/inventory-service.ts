@@ -13,9 +13,12 @@ export enum InventoryApi {
 	Items = "/inventory/items",
 }
 
-const getItems = (): Promise<InventoryItem[]> =>
+const getItems = ({ params }: { params?: { sort?: string } }): Promise<InventoryItem[]> =>
 	apiClient.get<InventoryItem[]>({
 		url: InventoryApi.Items,
+		params: {
+			sort: params?.sort,
+		},
 	});
 
 const createItem = (data: CreateInventoryItem): Promise<InventoryItem> =>

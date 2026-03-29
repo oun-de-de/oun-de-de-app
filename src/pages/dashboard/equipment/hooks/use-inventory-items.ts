@@ -13,7 +13,10 @@ const EMPTY_ITEM_ID = "";
 export function useInventoryItems() {
 	return useQuery({
 		queryKey: INVENTORY_QUERY_KEYS.items,
-		queryFn: inventoryService.getItems,
+		queryFn: () =>
+			inventoryService.getItems({
+				params: { sort: "code,desc" },
+			}),
 	});
 }
 

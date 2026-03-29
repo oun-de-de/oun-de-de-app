@@ -460,6 +460,7 @@ export default function InvoiceExportPreviewPage() {
 						onExport={handleConfirmExport}
 						onPrint={handlePrint}
 						onCopy={handleCopy}
+						showExport={!isReceiptExport}
 						isExporting={isExporting}
 						isExportDisabled={selectedInvoiceIds.length === 0 || isExporting || exportQuery.isLoading}
 					/>
