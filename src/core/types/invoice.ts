@@ -51,6 +51,10 @@ export interface InvoiceExportPreviewLocationState {
 	customerId?: string;
 	customerName?: string;
 	cycleId?: string;
+	returnPath?: string;
+	receiptPaymentAmount?: number;
+	receiptPaymentCode?: string;
+	receiptPaymentDate?: string;
 	autoPrint?: boolean;
 	initialPaperSizeMode?: "a4" | "a5" | "letter";
 	initialOrientationMode?: "portrait" | "landscape";

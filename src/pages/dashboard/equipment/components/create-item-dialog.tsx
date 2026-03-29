@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { EquipmentCreateType } from "@/core/types/equipment";
-import type { CreateInventoryItem, InventoryItemType } from "@/core/types/inventory";
+import type { CreateInventoryItem } from "@/core/types/inventory";
 import { Button } from "@/core/ui/button";
 import {
 	Dialog,
@@ -60,7 +60,6 @@ export function CreateItemDialog({ onSubmit, isPending }: CreateItemDialogProps)
 
 		setErrors({});
 
-		const mappedType: InventoryItemType = type === "equipment" ? "EQUIPMENT" : "CONSUMABLE";
 		const parsedQuantityOnHand = Number(quantityOnHand);
 		const parsedAlertThreshold = Number(alertThreshold);
 		const parsedExpense = Number(expense);
@@ -68,7 +67,7 @@ export function CreateItemDialog({ onSubmit, isPending }: CreateItemDialogProps)
 
 		onSubmit({
 			name: normalizedName,
-			type: mappedType,
+			type,
 			...(unitId ? { unitId } : {}),
 			...(normalizedRefCode
 				? {

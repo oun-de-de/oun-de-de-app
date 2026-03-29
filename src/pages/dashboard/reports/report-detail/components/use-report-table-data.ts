@@ -135,7 +135,7 @@ export function useReportTableData({ reportSlug, filters, sortMode }: UseReportT
 
 	const inventoryItemsQuery = useQuery({
 		queryKey: ["report", "inventory-items"],
-		queryFn: () => inventoryService.getItems(),
+		queryFn: () => inventoryService.getItems({}),
 		enabled: isAssetList,
 	});
 

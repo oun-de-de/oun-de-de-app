@@ -41,6 +41,7 @@ type ExportPreviewToolbarProps = {
 	onExport: () => void;
 	onPrint: () => void;
 	onCopy: () => void;
+	showExport?: boolean;
 	isExporting: boolean;
 	isExportDisabled: boolean;
 };
@@ -62,6 +63,7 @@ export function ExportPreviewToolbar({
 	onExport,
 	onPrint,
 	onCopy,
+	showExport = true,
 	isExporting,
 	isExportDisabled,
 }: ExportPreviewToolbarProps) {
@@ -213,16 +215,18 @@ export function ExportPreviewToolbar({
 							<Icon icon="mdi:cog-outline" size="1.2em" />
 							<span className="text-xs font-medium">Customize</span>
 						</Button>
-						<Button
-							variant="ghost"
-							size="sm"
-							className={toolbarButtonClassName}
-							onClick={onExport}
-							disabled={isExportDisabled}
-						>
-							<Icon icon="mdi:file-excel-outline" size="1.2em" />
-							<span className="text-xs font-medium">{isExporting ? "Exporting…" : "Export Excel"}</span>
-						</Button>
+						{showExport ? (
+							<Button
+								variant="ghost"
+								size="sm"
+								className={toolbarButtonClassName}
+								onClick={onExport}
+								disabled={isExportDisabled}
+							>
+								<Icon icon="mdi:file-excel-outline" size="1.2em" />
+								<span className="text-xs font-medium">{isExporting ? "Exporting…" : "Export Excel"}</span>
+							</Button>
+						) : null}
 						<Button variant="ghost" size="sm" type="button" className={toolbarButtonClassName} onClick={onPrint}>
 							<Icon icon="mdi:printer-outline" size="1.2em" />
 							<span className="text-xs font-medium">Print</span>

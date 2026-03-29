@@ -5,7 +5,7 @@ import { SmartDataTable, SummaryStatCard } from "@/core/components/common";
 import Icon from "@/core/components/icon/icon";
 import invoiceService from "@/core/api/services/invoice-service";
 import type { SummaryStatCardData } from "@/core/types/common";
-import type { Cycle, CyclePayment } from "@/core/types/cycle";
+import { getCycleStatusCardColor, type Cycle, type CyclePayment } from "@/core/types/cycle";
 import type { Invoice, InvoiceExportPreviewRow } from "@/core/types/invoice";
 import { BackButton } from "@/core/components/common";
 import { Button } from "@/core/ui/button";
@@ -193,7 +193,12 @@ export function InvoiceContent({
 		() =>
 			activeCycle
 				? [
-						{ label: "Status", value: activeCycle.status, color: "bg-amber-500", icon: "mdi:information-outline" },
+						{
+							label: "Status",
+							value: activeCycle.status,
+							color: getCycleStatusCardColor(activeCycle.status),
+							icon: "mdi:information-outline",
+						},
 						{
 							label: "Total Amount",
 							value: formatKHR(activeCycle.totalAmount),
@@ -225,7 +230,20 @@ export function InvoiceContent({
 	const allSummaryCards = useMemo(() => [...summaryCards, ...cycleSummaryCards], [summaryCards, cycleSummaryCards]);
 
 	const openExportPreview = useCallback(
-		(invoices: Invoice[], options?: { autoPrint?: boolean }) => {
+		(
+			invoices: Invoice[],
+			options?: {
+				autoPrint?: boolean;
+				receiptPaymentAmount?: number;
+				receiptPaymentCode?: string;
+				receiptPaymentDate?: string;
+				mode?: "invoice" | "receipt";
+				paper?: "a4" | "a5" | "letter";
+				orientation?: "portrait" | "landscape";
+				template?: "standard" | "compact" | "detailed";
+				sort?: "default" | "date-desc" | "date-asc" | "customer-asc" | "balance-desc";
+			},
+		) => {
 			if (invoices.length === 0) return;
 
 			const exportState = {
@@ -233,9 +251,22 @@ export function InvoiceContent({
 				customerId: activeCycle?.customerId,
 				customerName: activeCycle?.customerName,
 				cycleId: activeCycle?.id,
+				receiptPaymentAmount: options?.receiptPaymentAmount,
+				receiptPaymentCode: options?.receiptPaymentCode,
+				receiptPaymentDate: options?.receiptPaymentDate,
 				autoPrint: options?.autoPrint ?? false,
 			};
-			navigate(`/dashboard/invoice/export-preview?ids=${exportState.selectedInvoiceIds.join(",")}`, {
+			const searchParams = new URLSearchParams();
+			searchParams.set("ids", exportState.selectedInvoiceIds.join(","));
+			if (options?.mode) searchParams.set("mode", options.mode);
+			if (options?.paper) searchParams.set("paper", options.paper);
+			if (options?.orientation) searchParams.set("orientation", options.orientation);
+			if (options?.template) searchParams.set("template", options.template);
+			if (options?.sort) searchParams.set("sort", options.sort);
+
+			const previewPath =
+				options?.mode === "receipt" ? "/dashboard/invoice/receipt-preview" : "/dashboard/invoice/export-preview";
+			navigate(`${previewPath}?${searchParams.toString()}`, {
 				state: exportState,
 			});
 		},
@@ -268,7 +299,17 @@ export function InvoiceContent({
 					toast.error("No invoices found for this cycle");
 					return;
 				}
-				openExportPreview(invoices, { autoPrint: true });
+				openExportPreview(invoices, {
+					mode: "receipt",
+					autoPrint: true,
+					receiptPaymentAmount: payment.amount,
+					receiptPaymentCode: payment.code,
+					receiptPaymentDate: payment.paymentDate,
+					paper: "a5",
+					orientation: "landscape",
+					template: "standard",
+					sort: "default",
+				});
 			} finally {
 				setExportingPaymentId(null);
 			}

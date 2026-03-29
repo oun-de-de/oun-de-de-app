@@ -1,181 +1,40 @@
-import { useCallback, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useNavigate } from "react-router";
-import type { ItemRow } from "../components/item-columns";
-import { filterItemRows, itemColumns, mapItemsToRows, paginateItemRows } from "../components/item-columns";
 import { useInventoryItems } from "./use-inventory-items";
-import { useCreateBorrowing, useCreateItem, useUpdateStock } from "./use-inventory-mutations";
+import { useEquipmentForms } from "./use-equipment-forms";
+import { useEquipmentTable } from "./use-equipment-table";
 
-function toLocalMidnightDateTime(dateValue: string): string | undefined {
-	if (!dateValue) return undefined;
-	return `${dateValue}T00:00:00`;
+function buildSummaryCards(items: Array<{ quantityOnHand: number; alertThreshold: number }>) {
+	const totalOnHand = items.reduce((sum, item) => sum + item.quantityOnHand, 0);
+	const lowStockCount = items.filter((item) => item.quantityOnHand <= item.alertThreshold).length;
+
+	return [
+		{ label: "Items", value: items.length, color: "bg-blue-500", icon: "mdi:package-variant" },
+		{ label: "Total On Hand", value: totalOnHand, color: "bg-green-500", icon: "mdi:counter" },
+		{ label: "Low Stock", value: lowStockCount, color: "bg-orange-500", icon: "mdi:alert-circle-outline" },
+	];
 }
 
 export function useEquipmentContent(activeItemId: string | null) {
 	const itemId = activeItemId ?? undefined;
 	const navigate = useNavigate();
 
-	// --- API data ---
 	const { data: items = [] } = useInventoryItems();
-
-	// --- Mutations ---
-	const updateStockMutation = useUpdateStock(itemId);
-	const createBorrowingMutation = useCreateBorrowing(itemId);
-	const createItemMutation = useCreateItem();
-
-	// --- Stock In form ---
-	const [stockInQty, setStockInQty] = useState("1");
-	const [stockInNote, setStockInNote] = useState("");
-	const [stockInReason, setStockInReason] = useState("purchase");
-	const [stockInExpense, setStockInExpense] = useState("");
-
-	const handleStockIn = useCallback(() => {
-		const parsedExpense = Number(stockInExpense);
-		updateStockMutation.mutate(
-			{
-				quantity: Number(stockInQty),
-				reason: stockInReason,
-				memo: stockInNote,
-				...(Number.isFinite(parsedExpense) && parsedExpense > 0 ? { expense: parsedExpense } : {}),
-			},
-			{
-				onSuccess: () => {
-					setStockInQty("1");
-					setStockInNote("");
-					setStockInReason("purchase");
-					setStockInExpense("");
-				},
-			},
-		);
-	}, [updateStockMutation, stockInQty, stockInReason, stockInNote, stockInExpense]);
-
-	// --- Borrow form ---
-	const [borrowQty, setBorrowQty] = useState("1");
-	const [borrowCustomerId, setBorrowCustomerId] = useState("");
-	const [borrowExpectedReturnDate, setBorrowExpectedReturnDate] = useState("");
-	const [borrowMemo, setBorrowMemo] = useState("");
-
-	const handleBorrow = useCallback(() => {
-		const expectedReturnDate = toLocalMidnightDateTime(borrowExpectedReturnDate);
-		if (!expectedReturnDate) return;
-		createBorrowingMutation.mutate(
-			{
-				customerId: borrowCustomerId,
-				quantity: Number(borrowQty),
-				expectedReturnDate,
-				memo: borrowMemo,
-			},
-			{
-				onSuccess: () => {
-					setBorrowQty("1");
-					setBorrowCustomerId("");
-					setBorrowExpectedReturnDate("");
-					setBorrowMemo("");
-				},
-			},
-		);
-	}, [createBorrowingMutation, borrowCustomerId, borrowQty, borrowExpectedReturnDate, borrowMemo]);
-
-	// --- Table state ---
-	const [tableTypeFilter, setTableTypeFilter] = useState("all");
-	const [tableFieldFilter, setTableFieldFilter] = useState("name");
-	const [tableSearchValue, setTableSearchValue] = useState("");
-	const [tablePage, setTablePage] = useState(1);
-	const [tablePageSize, setTablePageSize] = useState(20);
-
-	// --- Derived data ---
-	const activeItem = activeItemId ? (items.find((item) => item.id === activeItemId) ?? null) : null;
-
-	const allRows = useMemo(() => mapItemsToRows(activeItem ? [activeItem] : items), [items, activeItem]);
-	const filteredRows = useMemo(
-		() => filterItemRows(allRows, tableTypeFilter, tableFieldFilter, tableSearchValue),
-		[allRows, tableTypeFilter, tableFieldFilter, tableSearchValue],
+	const activeItem = useMemo(
+		() => (activeItemId ? (items.find((item) => item.id === activeItemId) ?? null) : null),
+		[activeItemId, items],
 	);
-	const { pagedRows, totalItems, totalPages, currentPage } = useMemo(
-		() => paginateItemRows(filteredRows, tablePage, tablePageSize),
-		[filteredRows, tablePage, tablePageSize],
-	);
-	const columns = useMemo(
-		() =>
-			itemColumns({
-				onUpdateStock: (itemId) => navigate(`/dashboard/equipment/${itemId}?action=stock`),
-				onBorrowings: (itemId) => navigate(`/dashboard/equipment/${itemId}?action=borrowings`),
-			}),
-		[navigate],
-	);
-
-	// --- Summary cards ---
-	const summaryCards = useMemo(() => {
-		const displayItems = activeItem ? [activeItem] : items;
-		const totalOnHand = displayItems.reduce((sum, item) => sum + item.quantityOnHand, 0);
-		const lowStockCount = displayItems.filter((item) => item.quantityOnHand <= item.alertThreshold).length;
-		return [
-			{ label: "Items", value: displayItems.length, color: "bg-blue-500", icon: "mdi:package-variant" },
-			{ label: "Total On Hand", value: totalOnHand, color: "bg-green-500", icon: "mdi:counter" },
-			{ label: "Low Stock", value: lowStockCount, color: "bg-orange-500", icon: "mdi:alert-circle-outline" },
-		];
-	}, [items, activeItem]);
-
-	const handleRowClick = useCallback((row: ItemRow) => {
-		return `/dashboard/equipment/${row.id}`;
-	}, []);
+	const displayItems = useMemo(() => (activeItem ? [activeItem] : items), [activeItem, items]);
+	const forms = useEquipmentForms(itemId);
+	const table = useEquipmentTable(displayItems, navigate);
+	const summaryCards = useMemo(() => buildSummaryCards(displayItems), [displayItems]);
 
 	return {
 		items,
 		activeItem,
 		summaryCards,
-
-		// Stock In
-		stockIn: {
-			qty: stockInQty,
-			note: stockInNote,
-			reason: stockInReason,
-			expense: stockInExpense,
-			setQty: setStockInQty,
-			setNote: setStockInNote,
-			setReason: setStockInReason,
-			setExpense: setStockInExpense,
-			submit: handleStockIn,
-			isPending: updateStockMutation.isPending,
-		},
-
-		// Borrow
-		borrow: {
-			qty: borrowQty,
-			customerId: borrowCustomerId,
-			expectedReturnDate: borrowExpectedReturnDate,
-			memo: borrowMemo,
-			setQty: setBorrowQty,
-			setCustomerId: setBorrowCustomerId,
-			setExpectedReturnDate: setBorrowExpectedReturnDate,
-			setMemo: setBorrowMemo,
-			submit: handleBorrow,
-			isPending: createBorrowingMutation.isPending,
-		},
-
-		// Create Item
-		createItem: {
-			mutate: createItemMutation.mutate,
-			isPending: createItemMutation.isPending,
-		},
-
-		// Transaction table
-		table: {
-			columns,
-			pagedRows,
-			currentPage,
-			totalItems,
-			totalPages,
-			typeFilter: tableTypeFilter,
-			fieldFilter: tableFieldFilter,
-			searchValue: tableSearchValue,
-			pageSize: tablePageSize,
-			setTypeFilter: setTableTypeFilter,
-			setFieldFilter: setTableFieldFilter,
-			setSearchValue: setTableSearchValue,
-			setPage: setTablePage,
-			setPageSize: setTablePageSize,
-		},
-
-		getRowLink: handleRowClick,
+		...forms,
+		table,
+		getRowLink: table.getRowLink,
 	};
 }
