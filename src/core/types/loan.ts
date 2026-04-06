@@ -31,12 +31,14 @@ export type Installment = {
 };
 
 export type CreateLoanRequest = {
+	code: string;
 	borrowerType: BorrowerType;
 	borrowerId: string;
 	principalAmount: number;
 	loanInstallmentAmount: number;
 	dueWarningDays?: number;
 	startDate: string;
+	memo?: string;
 };
 
 export type LoanPayment = {

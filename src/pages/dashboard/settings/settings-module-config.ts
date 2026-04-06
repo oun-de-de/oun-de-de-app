@@ -1,6 +1,7 @@
 export type SettingsQueryResource =
 	| "warehouses"
 	| "units"
+	| "suppliers"
 	| "currencies"
 	| "accountTypes"
 	| "chartAccounts"
@@ -26,6 +27,12 @@ export const SETTINGS_ITEM_CONFIG: Record<string, SettingsItemConfig> = {
 	},
 	Unit: {
 		queries: ["units"],
+		formKind: "default",
+		supportsCreate: true,
+		supportsEdit: true,
+	},
+	Supplier: {
+		queries: ["suppliers"],
 		formKind: "default",
 		supportsCreate: true,
 		supportsEdit: true,

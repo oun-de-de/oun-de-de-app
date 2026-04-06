@@ -98,7 +98,7 @@ export function SettingsContent({ activeItem }: SettingsContentProps) {
 			</div>
 
 			{activeItem ? (
-				<div className="flex min-h-0 flex-1 overflow-hidden">
+				<div className="flex min-h-0 flex-1 overflow-hidden p-2 md:p-4">
 					<SmartDataTable
 						className="flex-1 min-h-0"
 						maxBodyHeight="100%"

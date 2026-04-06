@@ -3,6 +3,7 @@ import type { InventoryItem } from "@/core/types/inventory";
 import { Badge } from "@/core/ui/badge";
 import { Button } from "@/core/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/core/ui/dropdown-menu";
+import { formatKHR } from "@/core/utils/formatters";
 
 export type ItemRow = {
 	id: string;
@@ -10,6 +11,8 @@ export type ItemRow = {
 	name: string;
 	type: string;
 	unit: string;
+	supplier: string;
+	unitPrice: number;
 	quantityOnHand: number;
 	alertThreshold: number;
 };
@@ -26,6 +29,8 @@ export function mapItemsToRows(items: InventoryItem[]): ItemRow[] {
 		name: item.name,
 		type: item.type,
 		unit: item.unit?.name ?? "-",
+		supplier: item.supplier?.name ?? "-",
+		unitPrice: item.unitPrice ?? 0,
 		quantityOnHand: item.quantityOnHand,
 		alertThreshold: item.alertThreshold,
 	}));
@@ -47,8 +52,13 @@ export function filterItemRows(
 
 		if (fieldFilter === "name") return row.name.toLowerCase().includes(normalized);
 		if (fieldFilter === "code") return row.code.toLowerCase().includes(normalized);
+		if (fieldFilter === "supplier") return row.supplier.toLowerCase().includes(normalized);
 
-		return row.name.toLowerCase().includes(normalized) || row.code.toLowerCase().includes(normalized);
+		return (
+			row.name.toLowerCase().includes(normalized) ||
+			row.code.toLowerCase().includes(normalized) ||
+			row.supplier.toLowerCase().includes(normalized)
+		);
 	});
 }
 
@@ -78,6 +88,13 @@ export function itemColumns({ onUpdateStock, onBorrowings }: ItemRowActionHandle
 	return [
 		{ accessorKey: "code", header: "Code" },
 		{ accessorKey: "name", header: "Name" },
+		{ accessorKey: "supplier", header: "Supplier" },
+		{
+			accessorKey: "unitPrice",
+			header: "Unit Price",
+			cell: ({ row }) => formatKHR(row.original.unitPrice),
+			meta: { bodyClassName: "text-right" },
+		},
 		{
 			accessorKey: "type",
 			header: "Type",
@@ -125,7 +142,7 @@ export function itemColumns({ onUpdateStock, onBorrowings }: ItemRowActionHandle
 								onUpdateStock(row.original.id);
 							}}
 						>
-							Update
+							Update Stock
 						</Button>
 						{row.original.type === "EQUIPMENT" && (
 							<Button

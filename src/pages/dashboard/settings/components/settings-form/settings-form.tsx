@@ -56,7 +56,7 @@ export function SettingsForm({
 			variant="compact"
 			inputVariant="default"
 			inputSize="lg"
-			columns={1}
+			columns={2}
 			className="gap-4 space-y-4"
 			showTitle={showTitle}
 		/>

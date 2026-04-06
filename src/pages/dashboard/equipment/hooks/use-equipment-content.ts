@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useNavigate } from "react-router";
 import { useInventoryItems } from "./use-inventory-items";
-import { useEquipmentForms } from "./use-equipment-forms";
+import { useCreateItem } from "./use-inventory-mutations";
 import { useEquipmentTable } from "./use-equipment-table";
 
 function buildSummaryCards(items: Array<{ quantityOnHand: number; alertThreshold: number }>) {
@@ -16,16 +16,15 @@ function buildSummaryCards(items: Array<{ quantityOnHand: number; alertThreshold
 }
 
 export function useEquipmentContent(activeItemId: string | null) {
-	const itemId = activeItemId ?? undefined;
 	const navigate = useNavigate();
 
 	const { data: items = [] } = useInventoryItems();
+	const createItemMutation = useCreateItem();
 	const activeItem = useMemo(
 		() => (activeItemId ? (items.find((item) => item.id === activeItemId) ?? null) : null),
 		[activeItemId, items],
 	);
 	const displayItems = useMemo(() => (activeItem ? [activeItem] : items), [activeItem, items]);
-	const forms = useEquipmentForms(itemId);
 	const table = useEquipmentTable(displayItems, navigate);
 	const summaryCards = useMemo(() => buildSummaryCards(displayItems), [displayItems]);
 
@@ -33,7 +32,10 @@ export function useEquipmentContent(activeItemId: string | null) {
 		items,
 		activeItem,
 		summaryCards,
-		...forms,
+		createItem: {
+			mutate: createItemMutation.mutate,
+			isPending: createItemMutation.isPending,
+		},
 		table,
 		getRowLink: table.getRowLink,
 	};

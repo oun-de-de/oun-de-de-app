@@ -15,7 +15,14 @@ const PRICE_RULE_TYPE_OPTIONS = [
 
 export const SETTINGS_FIELDS: Record<string, FormFieldConfig[]> = {
 	Unit: [
-		{ name: "name", label: "Name", type: "text", placeholder: "Enter unit name", required: true },
+		{
+			name: "name",
+			label: "Name",
+			type: "text",
+			placeholder: "Enter unit name",
+			required: true,
+			className: "md:col-span-2",
+		},
 		{
 			name: "descr",
 			label: "Description",
@@ -73,7 +80,14 @@ export const SETTINGS_FIELDS: Record<string, FormFieldConfig[]> = {
 		{ name: "isActive", label: "Active", type: "switch", defaultValue: true },
 	],
 	Warehouse: [
-		{ name: "name", label: "Name", type: "text", placeholder: "Enter warehouse name", required: true },
+		{
+			name: "name",
+			label: "Name",
+			type: "text",
+			placeholder: "Enter warehouse name",
+			required: true,
+			className: "md:col-span-2",
+		},
 		{
 			name: "descr",
 			label: "Description",
@@ -85,7 +99,14 @@ export const SETTINGS_FIELDS: Record<string, FormFieldConfig[]> = {
 		{ name: "location", label: "Location", type: "text", placeholder: "Enter location" },
 	],
 	Currency: [
-		{ name: "name", label: "Name", type: "text", placeholder: "Enter currency name", required: true },
+		{
+			name: "name",
+			label: "Name",
+			type: "text",
+			placeholder: "Enter currency name",
+			required: true,
+			className: "md:col-span-2",
+		},
 		{
 			name: "descr",
 			label: "Description",
@@ -94,6 +115,26 @@ export const SETTINGS_FIELDS: Record<string, FormFieldConfig[]> = {
 			className: "md:col-span-2",
 			rows: 5,
 		},
+	],
+	Supplier: [
+		{
+			name: "name",
+			label: "Name",
+			type: "text",
+			placeholder: "Enter supplier name",
+			required: true,
+			className: "md:col-span-2",
+		},
+		{
+			name: "descr",
+			label: "Description",
+			type: "textarea",
+			placeholder: "Enter description",
+			className: "md:col-span-2",
+			rows: 4,
+		},
+		{ name: "address", label: "Address", type: "text", placeholder: "Enter address" },
+		{ name: "telephone", label: "Telephone", type: "text", placeholder: "Enter telephone" },
 	],
 };
 

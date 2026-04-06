@@ -36,3 +36,18 @@ export interface CreateCurrency {
 	name: string;
 	descr?: string;
 }
+
+export interface Supplier {
+	id: string;
+	name: string;
+	descr: string;
+	address: string;
+	telephone: string;
+}
+
+export interface CreateSupplier {
+	name: string;
+	descr?: string;
+	address?: string;
+	telephone?: string;
+}

@@ -1,19 +1,58 @@
-import { useEffect, useMemo, useState } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMemo } from "react";
+import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
+import { z } from "zod";
+
 import { SmartDataTable } from "@/core/components/common";
-import type { Cycle, CyclePayment } from "@/core/types/cycle";
+import { type Cycle, type CyclePayment, getCycleStatusLabel, getCycleStatusVariant } from "@/core/types/cycle";
+import { Badge } from "@/core/ui/badge";
 import { Button } from "@/core/ui/button";
+import { RefreshCw } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/core/ui/dialog";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/core/ui/form";
 import { Input } from "@/core/ui/input";
 import { Label } from "@/core/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/core/ui/tabs";
-import { cn } from "@/core/utils";
 import { formatFlexibleDisplayDate } from "@/core/utils/date-display";
-import { useCyclePaymentState } from "../hooks/use-cycle-payment-state";
+import { cn } from "@/core/utils";
+
+import { useCyclePaymentDialogState } from "../hooks/use-cycle-payment-dialog-state";
 import { useCyclePayments } from "../hooks/use-cycle-payments";
+import {
+	digitsOnly,
+	getLoanFormDefaults,
+	getPaymentFormDefaults,
+	toApiLocalDateStart,
+	toApiLocalDateTime,
+} from "../utils/cycle-payment-utils";
 import { formatKHR } from "../utils/formatters";
 import { getPaymentColumns } from "./payment-columns";
+import { FormDateTimeLocalPicker } from "../../accounting/components/form-date-time-local-picker";
+
+function getPaymentSchema(maxAmount: number) {
+	return z.object({
+		paymentCode: z.string().trim().min(1, "Payment code is required"),
+		amount: z
+			.string()
+			.min(1, "Payment amount is required")
+			.refine((val) => Number(val) > 0, "Amount must be greater than 0")
+			.refine((val) => Number(val) <= maxAmount, "Amount cannot exceed cycle balance"),
+		paymentDateTime: z.string().trim().min(1, "Payment date is required"),
+	});
+}
+
+const loanSchema = z.object({
+	loanStartDate: z.string().trim().min(1, "Loan start date is required"),
+	monthlyAmount: z
+		.string()
+		.min(1, "Monthly amount is required")
+		.refine((val) => Number(val) > 0, "Amount must be greater than 0"),
+	dueWarningDays: z.string().refine((val) => Number(val) >= 0, "Must be 0 or greater"),
+});
+
+type LoanFormValues = z.infer<typeof loanSchema>;
 
 type CyclePaymentDialogProps = {
 	open: boolean;
@@ -26,69 +65,6 @@ type CyclePaymentDialogProps = {
 	exportingPaymentId?: string | null;
 };
 
-function normalizeInputValue(value: string): string | undefined {
-	const normalized = value.trim();
-	return normalized || undefined;
-}
-
-function toApiLocalDateTime(dateTimeLocal: string): string | undefined {
-	const normalized = normalizeInputValue(dateTimeLocal);
-	if (!normalized) return undefined;
-	const [datePart, timePart] = normalized.split("T");
-	if (!datePart || !timePart) return undefined;
-	return `${datePart}T${timePart.length === 5 ? `${timePart}:00` : timePart}`;
-}
-
-function toApiLocalDateStart(dateOnly: string): string | undefined {
-	const normalized = normalizeInputValue(dateOnly);
-	if (!normalized) return undefined;
-	return `${normalized}T00:00:00`;
-}
-
-function getLocalDateParts(date = new Date()) {
-	const year = date.getFullYear();
-	const month = String(date.getMonth() + 1).padStart(2, "0");
-	const day = String(date.getDate()).padStart(2, "0");
-	return { year, month, day };
-}
-
-function getLocalToday(): string {
-	const now = new Date();
-	const { year, month, day } = getLocalDateParts(now);
-	return `${year}-${month}-${day}`;
-}
-
-function getLocalNowDateTime(): string {
-	const now = new Date();
-	const { year, month, day } = getLocalDateParts(now);
-	const hours = String(now.getHours()).padStart(2, "0");
-	const minutes = String(now.getMinutes()).padStart(2, "0");
-	return `${year}-${month}-${day}T${hours}:${minutes}`;
-}
-
-function digitsOnly(value: string): string {
-	return value.replace(/\D/g, "");
-}
-
-function generateNextPaymentCode(payments: CyclePayment[]): string {
-	const REC_PREFIX = "REC-";
-	let maxNumber = 0;
-	let padding = 3;
-
-	for (const payment of payments) {
-		const normalizedCode = payment.code?.trim().toUpperCase();
-		if (!normalizedCode?.startsWith(REC_PREFIX)) continue;
-
-		const numericPart = normalizedCode.slice(REC_PREFIX.length);
-		if (!/^\d+$/.test(numericPart)) continue;
-
-		maxNumber = Math.max(maxNumber, Number(numericPart));
-		padding = Math.max(padding, numericPart.length);
-	}
-
-	return `${REC_PREFIX}${String(maxNumber + 1).padStart(padding, "0")}`;
-}
-
 export function CyclePaymentDialog({
 	open,
 	onOpenChange,
@@ -100,133 +76,103 @@ export function CyclePaymentDialog({
 	exportingPaymentId,
 }: CyclePaymentDialogProps) {
 	const navigate = useNavigate();
-	const [amountInputError, setAmountInputError] = useState("");
+
 	const { payments, isLoadingPayments, createPayment, isCreatingPayment, convertToLoan, isConvertingToLoan } =
 		useCyclePayments(cycle?.id);
+	const currentCycleBalance = Math.max(
+		0,
+		(cycle?.totalAmount ?? 0) -
+			(isLoadingPayments
+				? (cycle?.totalPaidAmount ?? 0)
+				: payments.reduce((sum, payment) => sum + (payment.amount ?? 0), 0)),
+	);
 
-	const ui = useCyclePaymentState({
-		cycle,
-		payments,
-		historyOnly,
-		isLoadingPayments,
-		isCreatingPayment,
-		isConvertingToLoan,
-	});
-	const { state, setters, derived } = ui;
-	const {
-		setActiveTab,
-		setAmount,
-		setPaymentCode,
-		setPaymentDateTime,
-		setMonthlyAmount,
-		setLoanStartDate,
-		setDueWarningDays,
-	} = setters;
 	const paymentColumns = useMemo(
-		() =>
-			getPaymentColumns({
-				onExportReceipt,
-				exportingPaymentId,
-			}),
+		() => getPaymentColumns({ onExportReceipt, exportingPaymentId }),
 		[onExportReceipt, exportingPaymentId],
 	);
 
-	useEffect(() => {
-		if (!open) return;
-		const today = getLocalToday();
-		const nowDateTime = getLocalNowDateTime();
-		const nextPaymentCode = generateNextPaymentCode(payments);
-		setActiveTab(defaultTab);
-		setAmount("");
-		setPaymentCode(nextPaymentCode);
-		setAmountInputError("");
-		setPaymentDateTime(nowDateTime);
-		setMonthlyAmount("");
-		setLoanStartDate(today);
-		setDueWarningDays("5");
-	}, [
-		open,
-		defaultTab,
+	// Forms
+	const paymentSchema = useMemo(() => getPaymentSchema(currentCycleBalance), [currentCycleBalance]);
+	const paymentForm = useForm<z.infer<typeof paymentSchema>>({
+		resolver: zodResolver(paymentSchema),
+		defaultValues: getPaymentFormDefaults(),
+	});
+
+	const loanForm = useForm<LoanFormValues>({
+		resolver: zodResolver(loanSchema),
+		defaultValues: getLoanFormDefaults(),
+	});
+
+	const {
+		activeTab,
 		setActiveTab,
-		setAmount,
-		setPaymentDateTime,
-		setMonthlyAmount,
-		setLoanStartDate,
-		setDueWarningDays,
+		page,
+		setPage,
+		pageSize,
+		setPageSize,
+		pagedData,
+		totalPages,
+		totalPaidAmount,
+		cycleBalance,
+		isFetchingPaymentCode,
+		applyGeneratedPaymentCode,
+	} = useCyclePaymentDialogState({
+		open,
+		cycle,
+		defaultTab,
+		historyOnly,
 		payments,
-	]);
+		isLoadingPayments,
+		paymentForm,
+		loanForm,
+	});
 
-	const handleSubmit = async () => {
-		if (!derived.hasCycle) return;
-		if (!state.paymentDateTime) {
-			toast.error("Payment date is required");
-			return;
-		}
-		if (!derived.hasValidAmount) {
-			toast.error("Payment amount must be greater than 0");
-			return;
-		}
-		if (!state.paymentCode.trim()) {
-			toast.error("Payment code is required");
-			return;
-		}
-		if (derived.isAmountExceeded) {
-			toast.error("Payment amount cannot exceed remaining balance");
-			return;
-		}
-
+	const onPaymentSubmit = async (values: z.infer<typeof paymentSchema>) => {
+		if (!cycle) return;
 		try {
-			const paymentDate = toApiLocalDateTime(state.paymentDateTime);
+			const paymentDate = toApiLocalDateTime(values.paymentDateTime);
 			if (!paymentDate) {
 				toast.error("Payment date is invalid");
 				return;
 			}
-
 			await createPayment({
-				code: state.paymentCode.trim(),
-				amount: derived.parsedAmount,
+				code: values.paymentCode.trim(),
+				amount: Number(values.amount),
 				paymentDate,
 			});
 			onOpenChange(false);
-		} catch {
-			// Expected to be handled by the mutation's onError callback
+		} catch (e) {
+			if (import.meta.env.DEV) {
+				console.error("Payment submission failed:", e);
+			}
 		}
 	};
 
-	const handleConvertToLoan = async () => {
-		if (!derived.hasCycle) return;
-		if (derived.cycleBalance <= 0) {
+	const onLoanSubmit = async (values: LoanFormValues) => {
+		if (!cycle) return;
+		if (cycleBalance <= 0) {
 			toast.error("Cycle balance must be greater than 0 to convert");
 			return;
 		}
-		if (!state.loanStartDate) {
-			toast.error("Loan start date is required");
-			return;
-		}
-		if (!derived.hasValidMonthlyAmount) {
-			toast.error("Monthly amount must be greater than 0");
-			return;
-		}
-		if (!derived.hasValidDueWarningDays) {
-			toast.error("Due date warning days must be 0 or greater");
-			return;
-		}
-
 		try {
-			const startDate = toApiLocalDateStart(state.loanStartDate);
+			const startDate = toApiLocalDateStart(values.loanStartDate);
 			if (!startDate) {
 				toast.error("Loan start date is invalid");
 				return;
 			}
-
 			const loan = await convertToLoan({
-				loanInstallmentAmount: derived.parsedMonthlyAmount,
+				loanInstallmentAmount: Number(values.monthlyAmount),
 				startDate,
-				dueWarningDays: derived.parsedDueWarningDays,
+				dueWarningDays: Number(values.dueWarningDays),
 			});
 			onOpenChange(false);
 			navigate(`/dashboard/loan/${loan.id}`);
-		} catch (_error) {}
+		} catch (e) {
+			if (import.meta.env.DEV) {
+				console.error("Loan conversion failed:", e);
+			}
+		}
 	};
 
 	return (
@@ -236,7 +182,7 @@ export function CyclePaymentDialog({
 					<DialogTitle>
 						{historyOnly
 							? "Payment Histories"
-							: defaultTab === "loan"
+							: activeTab === "loan"
 								? "Convert Cycle To Loan"
 								: "Create Cycle Payment"}
 					</DialogTitle>
@@ -246,19 +192,40 @@ export function CyclePaymentDialog({
 							: "No cycle selected"}
 					</DialogDescription>
 				</DialogHeader>
-				<div className="min-h-0 flex-1 overflow-y-auto pr-0 sm:pr-1">
+				<div className="min-h-0 flex-1 overflow-y-auto p-1 -m-1 sm:pr-2">
 					{cycle && (
-						<div className="grid grid-cols-1 gap-2 rounded-md border bg-slate-50 p-3 text-xs text-slate-600 sm:grid-cols-2 xl:grid-cols-3">
-							<div>Status: {cycle.status}</div>
-							<div>Customer: {cycle.customerName}</div>
-							<div>Total: {formatKHR(cycle.totalAmount)}</div>
-							<div>Paid: {formatKHR(derived.totalPaidAmount)}</div>
-							<div>Balance: {formatKHR(derived.cycleBalance)}</div>
+						<div className="grid grid-cols-2 gap-3 rounded-md border border-slate-200 bg-slate-50 p-4 text-xs shadow-sm md:grid-cols-5">
+							<div className="col-span-2 flex flex-col justify-center border-b border-slate-200 pb-2 md:col-span-1 md:border-b-0 md:border-r md:pb-0">
+								<span className="mb-0.5 font-medium text-slate-500">Customer</span>
+								<span className="font-semibold text-slate-800 line-clamp-1" title={cycle.customerName}>
+									{cycle.customerName}
+								</span>
+							</div>
+							<div className="flex flex-col justify-center items-start">
+								<span className="mb-0.5 font-medium text-slate-500">Status</span>
+								<Badge variant={getCycleStatusVariant(cycle.status)}>{getCycleStatusLabel(cycle.status)}</Badge>
+							</div>
+							<div className="flex flex-col justify-center">
+								<span className="mb-0.5 font-medium text-slate-500">Total</span>
+								<span className="font-semibold text-slate-800">{formatKHR(cycle.totalAmount)}</span>
+							</div>
+							<div className="flex flex-col justify-center">
+								<span className="mb-0.5 font-medium text-slate-500">Paid</span>
+								<span className="font-semibold text-green-700">{formatKHR(totalPaidAmount)}</span>
+							</div>
+							<div className="flex flex-col justify-center">
+								<span className="mb-0.5 font-medium text-slate-500">Balance</span>
+								<span className="font-bold text-red-600">{formatKHR(cycleBalance)}</span>
+							</div>
 						</div>
 					)}
 
 					{!historyOnly && (
-						<Tabs value={state.activeTab} onValueChange={setters.setActiveTab} className="mt-2 w-full">
+						<Tabs
+							value={activeTab}
+							onValueChange={(val) => setActiveTab(val as "payment" | "loan")}
+							className="mt-2 w-full"
+						>
 							{!hideTabSwitch && (
 								<TabsList className="grid h-auto w-full grid-cols-1 gap-1 sm:grid-cols-2">
 									<TabsTrigger value="payment" className="whitespace-normal px-3 py-2 text-center">
@@ -269,148 +236,211 @@ export function CyclePaymentDialog({
 									</TabsTrigger>
 								</TabsList>
 							)}
-							<TabsContent value="payment" className="space-y-4 pt-4">
-								<div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-									<div className="space-y-1.5">
-										<Label htmlFor="cycle-payment-code">Payment Code</Label>
-										<Input
-											id="cycle-payment-code"
-											type="text"
-											value={state.paymentCode}
-											onChange={(e) => setPaymentCode(e.target.value)}
-											placeholder="Enter payment code"
-											disabled={isCreatingPayment}
-										/>
-									</div>
-									<div className="space-y-1.5">
-										<Label htmlFor="cycle-payment-amount">Amount</Label>
-										<Input
-											id="cycle-payment-amount"
-											type="text"
-											inputMode="numeric"
-											pattern="[0-9]*"
-											className={cn(amountInputError && "border-red-500 focus-visible:ring-red-500")}
-											value={state.amount}
-											onChange={(e) => {
-												const rawValue = e.target.value;
-												const normalizedValue = digitsOnly(rawValue);
-												setAmount(normalizedValue);
-												setAmountInputError(rawValue !== normalizedValue ? "Only numbers are allowed" : "");
-											}}
-											placeholder="Enter payment amount"
-											disabled={isCreatingPayment}
-										/>
-										{amountInputError ? (
-											<p className="text-[10px] font-medium text-red-500">{amountInputError}</p>
-										) : null}
-									</div>
-									<div className="space-y-1.5 sm:col-span-2">
-										<Label htmlFor="cycle-payment-date">Payment Date Time</Label>
-										<Input
-											id="cycle-payment-date"
-											type="datetime-local"
-											value={state.paymentDateTime}
-											onChange={(e) => setters.setPaymentDateTime(e.target.value)}
-											disabled={isCreatingPayment}
-										/>
-									</div>
-								</div>
-								<div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
-									Remaining balance: <span className="font-semibold">{formatKHR(derived.cycleBalance)}</span>
-								</div>
-							</TabsContent>
-							<TabsContent value="loan" className="space-y-4 pt-4">
-								<div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
-									Remaining balance: <span className="font-semibold">{formatKHR(derived.cycleBalance)}</span>
-								</div>
-								<div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
-									<div className="space-y-1.5">
-										<Label htmlFor="cycle-loan-monthly-amount">Monthly Amount (៛)</Label>
-										<div className="relative">
-											<span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 font-bold text-slate-400">
-												៛
-											</span>
-											<Input
-												id="cycle-loan-monthly-amount"
-												type="number"
-												min={1}
-												value={state.monthlyAmount}
-												onChange={(e) => setters.setMonthlyAmount(e.target.value)}
-												placeholder="0"
-												disabled={isConvertingToLoan}
-												className="pl-7"
+							<div className="mb-2 mt-4 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+								Remaining balance: <span className="font-semibold">{formatKHR(cycleBalance)}</span>
+							</div>
+							<TabsContent value="payment" className="space-y-4">
+								<Form {...paymentForm}>
+									<form id="payment-form" onSubmit={paymentForm.handleSubmit(onPaymentSubmit)} className="space-y-4">
+										<div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+											<FormField
+												control={paymentForm.control}
+												name="paymentCode"
+												render={({ field, fieldState }) => (
+													<FormItem>
+														<FormLabel>Payment Code</FormLabel>
+														<div className="relative group">
+															<FormControl>
+																<Input
+																	{...field}
+																	placeholder="Enter payment code"
+																	disabled={isCreatingPayment}
+																	className="pr-10"
+																/>
+															</FormControl>
+															<button
+																type="button"
+																onClick={() => applyGeneratedPaymentCode(true)}
+																disabled={isFetchingPaymentCode || isCreatingPayment}
+																className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 flex items-center justify-center rounded-md text-slate-400 hover:text-sky-500 hover:bg-sky-50 transition-colors disabled:opacity-50"
+																title="Refresh Payment Code"
+															>
+																<RefreshCw className={cn("h-3.5 w-3.5", isFetchingPaymentCode && "animate-spin")} />
+															</button>
+														</div>
+														{fieldState.error && (
+															<p className="text-xs text-rose-500 mt-1">{fieldState.error.message}</p>
+														)}
+													</FormItem>
+												)}
+											/>
+											<FormField
+												control={paymentForm.control}
+												name="amount"
+												render={({ field, fieldState }) => (
+													<FormItem>
+														<FormLabel>Amount</FormLabel>
+														<FormControl>
+															<Input
+																{...field}
+																type="text"
+																inputMode="numeric"
+																placeholder="Enter payment amount"
+																disabled={isCreatingPayment}
+																onChange={(e) => field.onChange(digitsOnly(e.target.value))}
+															/>
+														</FormControl>
+														{fieldState.error && (
+															<p className="text-xs text-rose-500 mt-1">{fieldState.error.message}</p>
+														)}
+													</FormItem>
+												)}
+											/>
+											<FormField
+												control={paymentForm.control}
+												name="paymentDateTime"
+												render={({ fieldState }) => (
+													<FormItem className="sm:col-span-2">
+														<FormLabel>Payment Date Time</FormLabel>
+														<FormControl>
+															<FormDateTimeLocalPicker
+																control={paymentForm.control}
+																name="paymentDateTime"
+																error={fieldState.error?.message}
+																disabled={isCreatingPayment}
+															/>
+														</FormControl>
+													</FormItem>
+												)}
 											/>
 										</div>
-									</div>
-									<div className="space-y-1.5">
-										<Label htmlFor="cycle-loan-start-date">Loan Start Date</Label>
-										<Input
-											id="cycle-loan-start-date"
-											type="date"
-											value={state.loanStartDate}
-											onChange={(e) => setters.setLoanStartDate(e.target.value)}
-											disabled={isConvertingToLoan}
-										/>
-									</div>
-									<div className="space-y-1.5">
-										<Label htmlFor="cycle-loan-due-warning-days">Due Date Warning Days</Label>
-										<Input
-											id="cycle-loan-due-warning-days"
-											type="number"
-											min={0}
-											value={state.dueWarningDays}
-											onChange={(e) => setDueWarningDays(e.target.value)}
-											placeholder="Enter warning days"
-											disabled={isConvertingToLoan}
-										/>
-									</div>
-								</div>
+									</form>
+								</Form>
+							</TabsContent>
+							<TabsContent value="loan" className="space-y-4">
+								<Form {...loanForm}>
+									<form id="loan-form" onSubmit={loanForm.handleSubmit(onLoanSubmit)} className="space-y-4">
+										<div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+											<FormField
+												control={loanForm.control}
+												name="monthlyAmount"
+												render={({ field }) => (
+													<FormItem>
+														<FormLabel>Monthly Amount (៛)</FormLabel>
+														<div className="relative">
+															<span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 font-bold text-slate-400">
+																៛
+															</span>
+															<FormControl>
+																<Input
+																	{...field}
+																	type="text"
+																	inputMode="numeric"
+																	placeholder="0"
+																	className="pl-7"
+																	disabled={isConvertingToLoan}
+																	onChange={(e) => field.onChange(digitsOnly(e.target.value))}
+																/>
+															</FormControl>
+														</div>
+														<FormMessage />
+													</FormItem>
+												)}
+											/>
+											<FormField
+												control={loanForm.control}
+												name="loanStartDate"
+												render={({ field }) => (
+													<FormItem>
+														<FormLabel>Loan Start Date</FormLabel>
+														<FormControl>
+															<Input
+																{...field}
+																type="date"
+																disabled={isConvertingToLoan}
+																className="relative [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-3"
+															/>
+														</FormControl>
+														<FormMessage />
+													</FormItem>
+												)}
+											/>
+											<FormField
+												control={loanForm.control}
+												name="dueWarningDays"
+												render={({ field }) => (
+													<FormItem>
+														<FormLabel>Due Date Warning Days</FormLabel>
+														<FormControl>
+															<Input
+																{...field}
+																type="text"
+																inputMode="numeric"
+																placeholder="Enter warning days"
+																disabled={isConvertingToLoan}
+																onChange={(e) => field.onChange(digitsOnly(e.target.value))}
+															/>
+														</FormControl>
+														<FormMessage />
+													</FormItem>
+												)}
+											/>
+										</div>
+									</form>
+								</Form>
 							</TabsContent>
 						</Tabs>
 					)}
 
-					<div className="mt-2 flex min-h-0 flex-col space-y-2">
+					<div className="mt-4 flex min-h-0 flex-col space-y-2">
 						<Label className="text-sm font-semibold">Payment Histories</Label>
 						<SmartDataTable
 							className="rounded-md border border-slate-200 pb-2"
-							maxBodyHeight="clamp(180px, 30vh, 320px)"
-							minBodyHeight="clamp(140px, 22vh, 200px)"
+							maxBodyHeight="none"
+							minBodyHeight="0"
 							variant="borderless"
-							data={derived.pagedData}
+							data={pagedData}
 							columns={paymentColumns}
 							paginationConfig={{
-								page: state.page,
-								pageSize: state.pageSize,
+								page,
+								pageSize,
 								totalItems: payments.length,
-								totalPages: derived.totalPages,
-								paginationItems: Array.from({ length: derived.totalPages }, (_, i) => i + 1),
-								onPageChange: setters.setPage,
-								onPageSizeChange: setters.setPageSize,
+								totalPages,
+								paginationItems: Array.from({ length: totalPages }, (_, i) => i + 1),
+								onPageChange: setPage,
+								onPageSizeChange: setPageSize,
 							}}
 						/>
 						{isLoadingPayments && <p className="text-xs text-slate-500">Loading payments...</p>}
 					</div>
 				</div>
 
-				<DialogFooter className="shrink-0 border-t pt-3 sm:flex-wrap">
+				<DialogFooter className="shrink-0 border-t pt-3 sm:flex-wrap sm:gap-2 mr-0 sm:mr-1">
 					<Button
+						type="button"
 						variant="outline"
 						onClick={() => onOpenChange(false)}
-						disabled={derived.isBusy}
+						disabled={isCreatingPayment || isConvertingToLoan}
 						className="w-full whitespace-nowrap sm:w-auto"
 					>
 						Close
 					</Button>
-					{!historyOnly && state.activeTab === "payment" ? (
-						<Button onClick={handleSubmit} disabled={!derived.canSubmit} className="w-full whitespace-nowrap sm:w-auto">
+					{!historyOnly && activeTab === "payment" ? (
+						<Button
+							type="submit"
+							form="payment-form"
+							disabled={isCreatingPayment || !cycle} // Disable if no cycle or payment is being created
+							className="w-full whitespace-nowrap sm:w-auto mt-2 sm:mt-0"
+						>
 							{isCreatingPayment ? "Saving..." : "Create Payment"}
 						</Button>
 					) : !historyOnly ? (
 						<Button
+							type="submit"
+							form="loan-form"
 							variant="destructive"
-							onClick={handleConvertToLoan}
-							disabled={!derived.canConvertToLoan}
-							className="w-full whitespace-nowrap sm:w-auto"
+							disabled={isConvertingToLoan || cycleBalance <= 0} // Disable if no cycle or payment is being created
+							className="w-full whitespace-nowrap sm:w-auto mt-2 sm:mt-0"
 						>
 							{isConvertingToLoan ? "Converting..." : "Convert To Loan"}
 						</Button>

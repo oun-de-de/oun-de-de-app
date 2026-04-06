@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import settingService from "@/core/api/services/setting-service";
-import type { CreateCurrency, CreateUnit, CreateWarehouse } from "@/core/types/setting";
+import type { CreateCurrency, CreateSupplier, CreateUnit, CreateWarehouse } from "@/core/types/setting";
 
 type SettingsQueryOptions = {
 	enabled?: boolean;
@@ -107,6 +107,45 @@ export const useCreateCurrency = () => {
 		},
 		onError: () => {
 			toast.error("Failed to create currency");
+		},
+	});
+};
+
+export const useGetSupplierList = (options?: SettingsQueryOptions) => {
+	return useQuery({
+		queryKey: ["supplier-list"],
+		queryFn: settingService.getSupplierList,
+		enabled: options?.enabled ?? true,
+		staleTime: SETTINGS_STALE_TIME,
+	});
+};
+
+export const useCreateSupplier = () => {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: (data: CreateSupplier) => settingService.createSupplier(data),
+		onSuccess: () => {
+			toast.success("Supplier created successfully");
+			queryClient.invalidateQueries({ queryKey: ["supplier-list"] });
+		},
+		onError: () => {
+			toast.error("Failed to create supplier");
+		},
+	});
+};
+
+export const useUpdateSupplier = () => {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: ({ id, data }: { id: string; data: CreateSupplier }) => settingService.updateSupplier(id, data),
+		onSuccess: () => {
+			toast.success("Supplier updated successfully");
+			queryClient.invalidateQueries({ queryKey: ["supplier-list"] });
+		},
+		onError: () => {
+			toast.error("Failed to update supplier");
 		},
 	});
 };

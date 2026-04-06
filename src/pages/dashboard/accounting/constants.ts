@@ -40,6 +40,11 @@ export const ACCOUNTING_FORM_TRANSACTION_TYPES = {
 	revenue: "DEBIT",
 } as const;
 
+export const ACCOUNTING_TRANSACTION_TYPE_TO_API = {
+	[ACCOUNTING_FORM_TRANSACTION_TYPES.expense]: "credit",
+	[ACCOUNTING_FORM_TRANSACTION_TYPES.revenue]: "debit",
+} as const;
+
 export const ACCOUNTING_CREATE_OPTION_TARGETS = [
 	{ label: "Create Expense", path: "/dashboard/accounting/create-expense", isDraftOnly: false },
 	{ label: "Create Cash Transaction", path: "/dashboard/accounting/create-cash-transaction", isDraftOnly: false },
