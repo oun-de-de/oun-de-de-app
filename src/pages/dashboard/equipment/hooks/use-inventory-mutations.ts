@@ -5,6 +5,7 @@ import type {
 	CreateBorrowingRequest,
 	CreateInventoryItem,
 	SellEquipmentRequest,
+	UpdateInventoryItem,
 	UpdateStockRequest,
 } from "@/core/types/inventory";
 import { INVENTORY_QUERY_KEYS } from "./use-inventory-items";
@@ -70,6 +71,18 @@ export function useUpdateStock(itemId?: string) {
 		},
 		successMessage: "Stock updated successfully",
 		errorMessage: "Failed to update stock",
+	});
+}
+
+export function useUpdateItem(itemId?: string) {
+	return useInventoryMutation<UpdateInventoryItem>({
+		itemId,
+		mutationFn: (data: UpdateInventoryItem) => {
+			const requiredItemId = assertItemId(itemId);
+			return inventoryService.updateItem(requiredItemId, data);
+		},
+		successMessage: "Item updated successfully",
+		errorMessage: "Failed to update item",
 	});
 }
 

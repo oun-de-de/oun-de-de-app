@@ -25,7 +25,7 @@ const FIELD_OPTIONS = [
 
 export default function EquipmentDetailPage() {
 	const router = useRouter();
-	const { activeItem, isItemLoading, stockUpdate, table } = useEquipmentDetail();
+	const { activeItem, isItemLoading, stockUpdate, table, units, suppliers, updateItem } = useEquipmentDetail();
 	const [isUpdateStockOpen, setIsUpdateStockOpen] = useState(false);
 	const [isBorrowingsOpen, setIsBorrowingsOpen] = useState(false);
 	const [searchParams, setSearchParams] = useSearchParams();
@@ -111,15 +111,9 @@ export default function EquipmentDetailPage() {
 						item={activeItem}
 						open={isUpdateStockOpen}
 						onOpenChange={handleUpdateStockOpenChange}
-						quantity={stockUpdate.qty}
-						reason={stockUpdate.reason}
-						memo={stockUpdate.memo}
-						expense={stockUpdate.expense}
-						onQuantityChange={stockUpdate.setQty}
-						onReasonChange={stockUpdate.setReason}
-						onMemoChange={stockUpdate.setMemo}
-						onExpenseChange={stockUpdate.setExpense}
-						onSubmit={() => stockUpdate.submit(() => handleUpdateStockOpenChange(false))}
+						form={stockUpdate.form}
+						onRegenerateRefCode={() => stockUpdate.regenerateRefCode()}
+						onSubmit={(values) => stockUpdate.submit(values, () => handleUpdateStockOpenChange(false))}
 						isPending={stockUpdate.isPending}
 					/>
 					{isEquipment && (
@@ -134,7 +128,13 @@ export default function EquipmentDetailPage() {
 			</div>
 
 			<div className="flex-1 min-h-0 overflow-auto space-y-6">
-				<EquipmentInfoCard item={activeItem} onUpdate={() => {}} />
+				<EquipmentInfoCard
+					item={activeItem}
+					units={units}
+					suppliers={suppliers}
+					onUpdate={updateItem.submit}
+					isUpdating={updateItem.isPending}
+				/>
 
 				<SmartDataTable
 					className="flex-1 min-h-0"

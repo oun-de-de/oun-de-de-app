@@ -1,0 +1,137 @@
+import { useQuery } from "@tanstack/react-query";
+import { useEffect, useMemo, useRef, useState } from "react";
+import type { UseFormReturn } from "react-hook-form";
+import { toast } from "sonner";
+import cycleService from "@/core/api/services/cycle-service";
+import type { Cycle, CyclePayment } from "@/core/types/cycle";
+import { getLoanFormDefaults, getPaymentFormDefaults } from "../utils/cycle-payment-utils";
+
+type PaymentFormValues = {
+	paymentCode: string;
+	amount: string;
+	paymentDateTime: string;
+};
+
+type LoanFormValues = {
+	loanStartDate: string;
+	monthlyAmount: string;
+	dueWarningDays: string;
+};
+
+type UseCyclePaymentDialogStateParams = {
+	open: boolean;
+	cycle: Cycle | null;
+	defaultTab: "payment" | "loan";
+	historyOnly: boolean;
+	payments: CyclePayment[];
+	isLoadingPayments: boolean;
+	paymentForm: UseFormReturn<PaymentFormValues>;
+	loanForm: UseFormReturn<LoanFormValues>;
+};
+
+export function useCyclePaymentDialogState({
+	open,
+	cycle,
+	defaultTab,
+	historyOnly,
+	payments,
+	isLoadingPayments,
+	paymentForm,
+	loanForm,
+}: UseCyclePaymentDialogStateParams) {
+	const [activeTab, setActiveTab] = useState<"payment" | "loan">(defaultTab);
+	const [page, setPage] = useState(1);
+	const [pageSize, setPageSize] = useState(10);
+	const hasGeneratedCodeRef = useRef(false);
+
+	const totalPaidAmount = isLoadingPayments
+		? (cycle?.totalPaidAmount ?? 0)
+		: payments.reduce((sum, payment) => sum + (payment.amount ?? 0), 0);
+	const cycleBalance = Math.max(0, (cycle?.totalAmount ?? 0) - totalPaidAmount);
+	const totalPages = Math.ceil(payments.length / pageSize) || 1;
+	const pagedData = useMemo(() => payments.slice((page - 1) * pageSize, page * pageSize), [payments, page, pageSize]);
+
+	useEffect(() => {
+		if (page > totalPages) {
+			setPage(totalPages);
+		}
+	}, [page, totalPages]);
+
+	const { refetch: refetchPaymentCode, isFetching: isFetchingPaymentCode } = useQuery({
+		queryKey: ["payment-code", "cycle-payment-dialog", cycle?.id],
+		queryFn: () => cycleService.generatePaymentCode(),
+		enabled: false,
+		staleTime: 0,
+		refetchOnWindowFocus: false,
+	});
+
+	const applyGeneratedPaymentCode = async (force = false) => {
+		if (!cycle || historyOnly) return;
+		if (!force && hasGeneratedCodeRef.current) return;
+
+		try {
+			const paymentCodeBeforeFetch = paymentForm.getValues("paymentCode").trim();
+			const result = await refetchPaymentCode();
+			const generatedCode = result.data?.code?.trim();
+			if (!generatedCode) {
+				hasGeneratedCodeRef.current = false;
+				toast.error("Failed to auto-generate payment code");
+				return;
+			}
+
+			const paymentCodeAfterFetch = paymentForm.getValues("paymentCode").trim();
+			if (!force && paymentCodeAfterFetch !== paymentCodeBeforeFetch) {
+				hasGeneratedCodeRef.current = false;
+				return;
+			}
+
+			hasGeneratedCodeRef.current = true;
+			paymentForm.setValue("paymentCode", generatedCode, { shouldValidate: true });
+		} catch (error) {
+			hasGeneratedCodeRef.current = false;
+			console.error("Failed to generate payment code:", error);
+			toast.error("Failed to auto-generate payment code");
+		}
+	};
+
+	useEffect(() => {
+		if (!open) {
+			hasGeneratedCodeRef.current = false;
+			return;
+		}
+
+		hasGeneratedCodeRef.current = false;
+		setActiveTab(defaultTab);
+		setPage(1);
+		paymentForm.reset(getPaymentFormDefaults());
+		loanForm.reset(getLoanFormDefaults());
+	}, [open, cycle?.id, defaultTab, paymentForm, loanForm]);
+
+	useEffect(() => {
+		if (open && cycle && activeTab === "payment" && !historyOnly) {
+			void applyGeneratedPaymentCode(false);
+		}
+	}, [open, cycle, activeTab, historyOnly]);
+
+	useEffect(() => {
+		if (!open || activeTab !== "payment" || isFetchingPaymentCode) return;
+		if (!paymentForm.getValues("paymentCode")) {
+			paymentForm.setFocus("paymentCode");
+		}
+	}, [open, activeTab, isFetchingPaymentCode, paymentForm]);
+
+	return {
+		activeTab,
+		setActiveTab,
+		page,
+		setPage,
+		pageSize,
+		setPageSize,
+		pagedData,
+		totalPages,
+		totalPaidAmount,
+		cycleBalance,
+		isFetchingPaymentCode,
+		applyGeneratedPaymentCode,
+	};
+}

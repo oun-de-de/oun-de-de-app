@@ -215,7 +215,7 @@ export default function CreateAccountingEntryPage() {
 			}
 			resetForm();
 		} catch {
-			// Error toast is handled by the network layer.
+			// Error toast
 		}
 	};
 
@@ -250,9 +250,12 @@ export default function CreateAccountingEntryPage() {
 								<Label className="text-slate-600">
 									<span className="text-rose-500">*</span> Date
 								</Label>
-								<div className="relative">
-									<CalendarDays className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
-									<Input name="date" autoComplete="off" value={displayedDate} disabled className="pl-9" />
+								<div className="h-11 w-full flex items-center justify-between px-3 border border-slate-200 rounded-lg bg-slate-50/50 text-gray-900 font-medium cursor-not-allowed transition-colors">
+									<div className="flex items-center gap-2">
+										<CalendarDays className="size-4 text-slate-400" />
+										<span className="text-base">{displayedDate}</span>
+									</div>
+									<CalendarDays className="size-4 text-slate-400 opacity-0" /> {/* Spacer to match Trigger */}
 								</div>
 							</div>
 							<div className="space-y-2">

@@ -1,4 +1,4 @@
-import type { PagePaginatedResponse, PaginatedResponse } from "@/core/types/common";
+import type { PagePaginatedResponse, PaginatedResponse, CodeResponse } from "@/core/types/common";
 import type {
 	BorrowerType,
 	CreateLoanPaymentRequest,
@@ -158,6 +158,16 @@ const updateLoan = (loanId: string, data: UpdateLoanRequest): Promise<Loan> =>
 		})
 		.then(normalizeLoan);
 
+const generateLoanCode = (): Promise<CodeResponse> =>
+	apiClient.get<CodeResponse>({
+		url: `${LoanApi.Loans}/generate-loan-code`,
+	});
+
+const generatePaymentCode = (): Promise<CodeResponse> =>
+	apiClient.get<CodeResponse>({
+		url: `${LoanApi.Loans}/generate-payment-code`,
+	});
+
 export default {
 	getLoans,
 	createLoan,
@@ -167,4 +177,6 @@ export default {
 	postponeLoan,
 	extendLoan,
 	updateLoan,
+	generateLoanCode,
+	generatePaymentCode,
 };

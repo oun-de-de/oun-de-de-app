@@ -19,6 +19,7 @@ const EQUIPMENT_TYPE_OPTIONS = [
 const EQUIPMENT_FIELD_OPTIONS = [
 	{ value: "name", label: "Name" },
 	{ value: "code", label: "Code" },
+	{ value: "supplier", label: "Supplier" },
 ];
 
 const SEARCH_PLACEHOLDER = "Search items";

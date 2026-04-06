@@ -1,4 +1,4 @@
-import type { PagePaginatedResponse } from "@/core/types/common";
+import type { CodeResponse, PagePaginatedResponse } from "@/core/types/common";
 import type { ConvertToLoanRequest, CreatePaymentRequest, Cycle, CyclePayment, CycleStatus } from "@/core/types/cycle";
 import type { Loan } from "@/core/types/loan";
 import type { Pagination } from "@/core/types/pagination";
@@ -93,6 +93,11 @@ const convertToLoan = (cycleId: string, data: ConvertToLoanRequest): Promise<Loa
 		data,
 	});
 
+const generatePaymentCode = (): Promise<CodeResponse> =>
+	apiClient.get<CodeResponse>({
+		url: `${CycleApi.List}/generate-payment-code`,
+	});
+
 export default {
 	getCycles,
 	getAllCycles,
@@ -100,4 +105,5 @@ export default {
 	getPayments,
 	createPayment,
 	convertToLoan,
+	generatePaymentCode,
 };

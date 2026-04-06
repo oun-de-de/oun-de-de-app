@@ -8,7 +8,7 @@ export const SETTINGS_TOP_TABS = [
 ] as const;
 
 export const SETTINGS_MENU_BY_TAB: Record<(typeof SETTINGS_TOP_TABS)[number], string[]> = {
-	Items: ["Unit", "Warehouse"],
+	Items: ["Unit", "Warehouse", "Supplier"],
 	// Vendors: [],
 	// Customers: [],
 	Accounting: ["Chart of Accounts", "Journal Class", "Journal Type", "Account Type"],

@@ -5,6 +5,7 @@ import type {
 	InventoryItem,
 	InventoryTransaction,
 	SellEquipmentRequest,
+	UpdateInventoryItem,
 	UpdateStockRequest,
 } from "@/core/types/inventory";
 import { apiClient } from "../apiClient";
@@ -30,6 +31,12 @@ const createItem = (data: CreateInventoryItem): Promise<InventoryItem> =>
 const getItem = (itemId: string): Promise<InventoryItem> =>
 	apiClient.get<InventoryItem>({
 		url: `${InventoryApi.Items}/${itemId}`,
+	});
+
+const updateItem = (itemId: string, data: UpdateInventoryItem): Promise<InventoryItem> =>
+	apiClient.put<InventoryItem>({
+		url: `${InventoryApi.Items}/${itemId}`,
+		data,
 	});
 
 const updateStock = (itemId: string, data: UpdateStockRequest): Promise<InventoryTransaction> =>
@@ -73,6 +80,7 @@ export default {
 	getItems,
 	createItem,
 	getItem,
+	updateItem,
 	updateStock,
 	getBorrowings,
 	createBorrowing,

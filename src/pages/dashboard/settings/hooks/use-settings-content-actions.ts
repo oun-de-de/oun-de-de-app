@@ -2,13 +2,15 @@ import { toast } from "sonner";
 import type { DefaultFormData } from "@/core/components/common";
 import type { AccountTypeNature } from "@/core/types/accounting";
 import type { SettingsRow } from "@/core/types/common";
-import type { UnitType } from "@/core/types/setting";
+import type { CreateSupplier, UnitType } from "@/core/types/setting";
 import { useCreateAccountingSetting } from "./use-accounting-settings";
 import {
 	useCreateCurrency,
+	useCreateSupplier,
 	useCreateUnit,
 	useCreateWarehouse,
 	useUpdateUnit,
+	useUpdateSupplier,
 	useUpdateWarehouse,
 } from "./use-settings";
 
@@ -30,6 +32,8 @@ export function useSettingsContentActions({
 	const { mutateAsync: createUnit, isPending: isCreatingUnit } = useCreateUnit();
 	const { mutateAsync: updateUnit, isPending: isUpdatingUnit } = useUpdateUnit();
 	const { mutateAsync: createCurrency, isPending: isCreatingCurrency } = useCreateCurrency();
+	const { mutateAsync: createSupplier, isPending: isCreatingSupplier } = useCreateSupplier();
+	const { mutateAsync: updateSupplier, isPending: isUpdatingSupplier } = useUpdateSupplier();
 	const {
 		createAccountType,
 		createChartOfAccount,
@@ -76,6 +80,20 @@ export function useSettingsContentActions({
 					descr: String(formData.descr ?? "").trim() || undefined,
 				});
 				successMessage = `${activeItem} has been created`;
+			} else if (activeItem === "Supplier") {
+				const supplierData: CreateSupplier = {
+					name: String(formData.name ?? "").trim(),
+					descr: String(formData.descr ?? "").trim() || undefined,
+					address: String(formData.address ?? "").trim() || undefined,
+					telephone: String(formData.telephone ?? "").trim() || undefined,
+				};
+
+				if (formMode === "edit" && editItem?.id) {
+					await updateSupplier({ id: editItem.id, data: supplierData });
+				} else {
+					await createSupplier(supplierData);
+				}
+				successMessage = formMode === "edit" ? `${activeItem} has been updated` : `${activeItem} has been created`;
 			} else if (activeItem === "Chart of Accounts") {
 				await createChartOfAccount.mutateAsync({
 					code: String(formData.code ?? "").trim(),
@@ -115,8 +133,10 @@ export function useSettingsContentActions({
 			}
 
 			onAfterSave();
-		} catch {
-			// Error handled in mutation or network layer
+		} catch (error) {
+			if (import.meta.env.DEV) {
+				console.error("Failed to save settings:", error);
+			}
 		}
 	};
 
@@ -128,6 +148,8 @@ export function useSettingsContentActions({
 			isCreatingUnit ||
 			isUpdatingUnit ||
 			isCreatingCurrency ||
+			isCreatingSupplier ||
+			isUpdatingSupplier ||
 			isSavingAccounting,
 	};
 }

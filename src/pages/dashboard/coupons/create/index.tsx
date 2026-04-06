@@ -2,16 +2,18 @@ import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
+
 import couponService from "@/core/api/services/coupon-service";
 import employeeService from "@/core/api/services/employee-service";
 import productService from "@/core/api/services/product-service";
 import vehicleService from "@/core/api/services/vehicle-service";
-import type { DefaultFormData } from "@/core/components/common";
+import { BackButton, type DefaultFormData } from "@/core/components/common";
 import type { CreateCouponRequest } from "@/core/types/coupon";
 import { Button } from "@/core/ui/button";
 import { Text } from "@/core/ui/typography";
 import { toUtcIsoStartOfDay } from "@/core/utils/date-utils";
 import { getEmployeeDisplayName } from "@/pages/dashboard/employees/utils/employee-utils";
+
 import { CouponForm } from "./components/coupon-form";
 import {
 	createInitialRawWeightRecord,
@@ -38,7 +40,9 @@ function toDateInputValue(value: string): string {
 
 function validateCumulativeWeightRecords(records: DraftWeightRecord[]): string | null {
 	if (records.length === 0) return "At least one weight record is required.";
-	if (records[0].productName !== null) return "The first record must be raw vehicle weighing (productName = null).";
+	if (records[0].productName !== null) {
+		return "The first record must be raw vehicle weighing (productName = null).";
+	}
 
 	let previousWeight: number | null = null;
 	for (let i = 0; i < records.length; i++) {
@@ -186,7 +190,10 @@ export default function CreateCouponPage() {
 		<div className="flex flex-col h-full p-6 gap-6">
 			{/* Header */}
 			<div className="flex items-center gap-3 justify-between">
-				<Text className="font-semibold text-sky-600">Create New Coupon</Text>
+				<div className="flex items-center gap-3">
+					<BackButton onClick={() => navigate("/dashboard/coupons")} />
+					<Text className="font-semibold text-sky-600">Create New Coupon</Text>
+				</div>
 				<Button type="button" variant="outline" onClick={handleFillSampleData}>
 					Fill Sample Data
 				</Button>

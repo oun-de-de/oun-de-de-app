@@ -55,6 +55,14 @@ export function useBorrowDetail(loanId: string) {
 		enabled: !!loanId,
 	});
 
+	const paymentCodeQuery = useQuery({
+		queryKey: ["loan-payment-code", loanId],
+		queryFn: () => loanService.generatePaymentCode(),
+		enabled: false,
+		staleTime: 0,
+		refetchOnWindowFocus: false,
+	});
+
 	const payments = toPaymentRecords(loanPaymentsQuery.data ?? []);
 	const currentDue: CurrentLoanDue | null =
 		loanQuery.data && loanQuery.data.status !== "complete"
@@ -147,5 +155,7 @@ export function useBorrowDetail(loanId: string) {
 		isExtendingLoan,
 		updateLoan,
 		isUpdatingLoan,
+		isGeneratingPaymentCode: paymentCodeQuery.isFetching,
+		regeneratePaymentCode: () => paymentCodeQuery.refetch(),
 	};
 }

@@ -8,7 +8,7 @@ import type {
 	JournalTypeResult,
 } from "@/core/types/accounting";
 import type { SettingsRow } from "@/core/types/common";
-import type { Currency, Unit, Warehouse } from "@/core/types/setting";
+import type { Currency, Supplier, Unit, Warehouse } from "@/core/types/setting";
 import { getChartAccountAccountTypeId } from "@/pages/dashboard/accounting/utils/map-chart-account-result";
 import { ACCOUNTING_SETTINGS_PLACEHOLDER_ITEMS, ACCOUNTING_SETTINGS_SUPPORTED_ITEMS } from "../constants";
 import { getSettingsItemConfig } from "../settings-module-config";
@@ -100,6 +100,7 @@ type SettingsContentDataParams = {
 	activeItem: string;
 	warehouses?: Warehouse[];
 	units?: Unit[];
+	suppliers?: Supplier[];
 	currencies?: Currency[];
 	accountTypes: AccountTypeResult[];
 	chartAccounts: ChartOfAccountResult[];
@@ -111,6 +112,7 @@ export function getSettingsContentData({
 	activeItem,
 	warehouses,
 	units,
+	suppliers,
 	currencies,
 	accountTypes,
 	chartAccounts,
@@ -123,6 +125,17 @@ export function getSettingsContentData({
 
 	if (activeItem === "Unit") {
 		return units || [];
+	}
+
+	if (activeItem === "Supplier") {
+		return (suppliers || []).map((item) => ({
+			id: item.id,
+			name: item.name,
+			descr: item.descr ?? "",
+			address: item.address ?? "",
+			telephone: item.telephone ?? "",
+			type: "Supplier",
+		}));
 	}
 
 	if (activeItem === "Currency") {
@@ -185,10 +198,14 @@ export function getSettingsContentData({
 export function filterSettingsRows(data: SettingsRow[], search: string) {
 	const normalizedSearch = search.toLowerCase();
 	return data.filter((row) => {
-		return (
-			row.name.toLowerCase().includes(normalizedSearch) ||
-			row.code?.toLowerCase().includes(normalizedSearch) ||
-			row.descr?.toLowerCase().includes(normalizedSearch)
-		);
+		const searchableValues = [
+			row.name,
+			"code" in row ? row.code : undefined,
+			"descr" in row ? row.descr : undefined,
+			"address" in row ? row.address : undefined,
+			"telephone" in row ? row.telephone : undefined,
+		];
+
+		return searchableValues.some((value) => value?.toLowerCase().includes(normalizedSearch));
 	});
 }

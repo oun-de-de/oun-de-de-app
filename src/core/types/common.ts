@@ -71,14 +71,45 @@ export type AccountingRow = {
 	cr: string;
 };
 
-export type SettingsRow = {
+type BaseSettingsRow = {
 	id?: string;
 	name: string;
 	type: string;
-	code?: string;
+};
+
+export type WarehouseSettingsRow = BaseSettingsRow & {
+	type: "Warehouse";
 	descr?: string;
 	location?: string;
 };
+
+export type SupplierSettingsRow = BaseSettingsRow & {
+	type: "Supplier";
+	descr?: string;
+	address?: string;
+	telephone?: string;
+};
+
+export type CurrencySettingsRow = BaseSettingsRow & {
+	type: "Currency";
+	descr?: string;
+};
+
+export type UnitSettingsRow = BaseSettingsRow & {
+	descr?: string;
+};
+
+export type AccountingSettingsRow = BaseSettingsRow & {
+	code?: string;
+	descr?: string;
+};
+
+export type SettingsRow =
+	| WarehouseSettingsRow
+	| SupplierSettingsRow
+	| CurrencySettingsRow
+	| UnitSettingsRow
+	| AccountingSettingsRow;
 
 export type AuditLogRow = {
 	date: string;
@@ -154,4 +185,8 @@ export type PagePaginatedResponse<T> = {
 		totalElements: number;
 		totalPages: number;
 	};
+};
+
+export type CodeResponse = {
+	code: string;
 };
