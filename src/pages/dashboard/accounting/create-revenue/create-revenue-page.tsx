@@ -26,6 +26,7 @@ import {
 	generateCashTransactionDateTime,
 	cashTransactionFormSchema,
 } from "../utils/accounting-form-utils";
+import { formatDateTimeLocalApiValueFromInput } from "../utils/format-local-date-time";
 
 export default function CreateRevenuePage() {
 	const navigate = useNavigate();
@@ -78,6 +79,12 @@ export default function CreateRevenuePage() {
 	}, [defaultCurrencyId, form]);
 
 	const onFormSubmit = async (values: CashTransactionFormValues, mode: "close" | "new") => {
+		const serializedDate = formatDateTimeLocalApiValueFromInput(values.date);
+		if (!serializedDate) {
+			toast.error("Date is invalid");
+			return;
+		}
+
 		const details: CreateCashTransactionRequest["cashTransactionDetails"] = [];
 
 		for (const line of values.details) {
@@ -102,7 +109,7 @@ export default function CreateRevenuePage() {
 		const payload: CreateCashTransactionRequest = {
 			refNo: values.refNo.trim(),
 			type: ACCOUNTING_TRANSACTION_TYPE_TO_API[ACCOUNTING_FORM_TRANSACTION_TYPES.revenue],
-			date: new Date(values.date).toISOString(),
+			date: serializedDate,
 			currencyId: values.currencyId,
 			employeeId: values.employeeId,
 			memo: values.memo.trim() || undefined,

@@ -7,7 +7,7 @@ import invoiceService from "@/core/api/services/invoice-service";
 import loanService from "@/core/api/services/loan-service";
 import productService from "@/core/api/services/product-service";
 import reportService from "@/core/api/services/report-service";
-import { formatDateToYYYYMMDD, getTodayUTC } from "@/core/utils/date-utils";
+import { formatDateToYYYYMMDD } from "@/pages/dashboard/accounting/utils/format-local-date-time";
 import type { InvoiceExportPreviewRow } from "@/core/types/invoice";
 import type { SortMode } from "../../../invoice/export-preview/constants";
 import type { ReportTemplateRow } from "../../components/layout/report-template-table";
@@ -75,7 +75,7 @@ export function useReportTableData({ reportSlug, filters, sortMode }: UseReportT
 	const isInventoryStockReportApi = isInventoryStockReportApiDataSource(dataSource);
 	const isMonthlyReportApi = isMonthlyReportApiDataSource(dataSource);
 	const isMonthlyReportDetailsApi = isMonthlyReportDetailsApiDataSource(dataSource);
-	const defaultReportDate = formatDateToYYYYMMDD(getTodayUTC());
+	const defaultReportDate = formatDateToYYYYMMDD(new Date());
 	const defaultReportPeriod = defaultReportDate.slice(0, 7);
 	const hasRequiredDateFilters =
 		requiresMonth || requiresSingleDate

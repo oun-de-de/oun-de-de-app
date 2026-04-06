@@ -2,7 +2,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 import type { Installment } from "@/core/types/loan";
 import { Badge } from "@/core/ui/badge";
 import { Button } from "@/core/ui/button";
-import { formatDisplayDate, formatKHR } from "@/core/utils/formatters";
+import { formatDisplayDate, formatDisplayDateTime, formatKHR } from "@/core/utils/formatters";
 
 type InstallmentsColumnsOptions = {
 	isPayPending?: boolean;
@@ -65,7 +65,7 @@ export function getInstallmentsColumns({
 			accessorKey: "paidAt",
 			header: "Paid At",
 			size: 120,
-			cell: ({ row }) => formatDisplayDate(row.original.paidAt),
+			cell: ({ row }) => formatDisplayDateTime(row.original.paidAt),
 		},
 		{
 			id: "action",

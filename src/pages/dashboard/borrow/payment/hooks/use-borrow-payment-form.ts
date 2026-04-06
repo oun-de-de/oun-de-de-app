@@ -8,8 +8,7 @@ import { z } from "zod";
 import customerService from "@/core/api/services/customer-service";
 import employeeService from "@/core/api/services/employee-service";
 import loanService from "@/core/api/services/loan-service";
-
-import { getTodayUTC, toUtcIsoPreferNowIfToday } from "@/core/utils/date-utils";
+import { formatDateStartLocalApiValue } from "@/pages/dashboard/accounting/utils/format-local-date-time";
 
 const borrowPaymentSchema = z
 	.object({
@@ -54,7 +53,7 @@ export function useBorrowPaymentForm() {
 			depositAmount: 0,
 			monthlyAmount: 0,
 			dueWarningDays: 7,
-			dueDate: getTodayUTC(),
+			dueDate: new Date(),
 		},
 	});
 
@@ -135,7 +134,7 @@ export function useBorrowPaymentForm() {
 			principalAmount: values.depositAmount,
 			loanInstallmentAmount: values.monthlyAmount,
 			dueWarningDays: values.dueWarningDays,
-			startDate: toUtcIsoPreferNowIfToday(values.dueDate) ?? values.dueDate.toISOString(),
+			startDate: formatDateStartLocalApiValue(values.dueDate),
 		});
 	};
 

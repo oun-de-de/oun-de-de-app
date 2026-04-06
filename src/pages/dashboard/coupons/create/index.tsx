@@ -11,7 +11,7 @@ import { BackButton, type DefaultFormData } from "@/core/components/common";
 import type { CreateCouponRequest } from "@/core/types/coupon";
 import { Button } from "@/core/ui/button";
 import { Text } from "@/core/ui/typography";
-import { toUtcIsoStartOfDay } from "@/core/utils/date-utils";
+import { formatDateStartLocalApiValueFromInput } from "@/pages/dashboard/accounting/utils/format-local-date-time";
 import { getEmployeeDisplayName } from "@/pages/dashboard/employees/utils/employee-utils";
 
 import { CouponForm } from "./components/coupon-form";
@@ -28,10 +28,13 @@ function toNumberOrUndefined(value: unknown): number | undefined {
 }
 
 function toIsoDateOrUndefined(value: unknown): string | undefined {
-	return toUtcIsoStartOfDay(value);
+	return typeof value === "string" ? formatDateStartLocalApiValueFromInput(value) : undefined;
 }
 
 function toDateInputValue(value: string): string {
+	const directDateMatch = value.match(/^(\d{4}-\d{2}-\d{2})(?:$|T)/);
+	if (directDateMatch) return directDateMatch[1];
+
 	const date = new Date(value);
 	if (Number.isNaN(date.getTime())) return "";
 	const pad = (n: number) => n.toString().padStart(2, "0");
@@ -151,8 +154,14 @@ export default function CreateCouponPage() {
 				return;
 			}
 
+			const serializedDate = toIsoDateOrUndefined(data.date);
+			if (!serializedDate) {
+				toast.error("Date is invalid");
+				return;
+			}
+
 			const couponData: CreateCouponRequest = {
-				date: toIsoDateOrUndefined(data.date),
+				date: serializedDate,
 				vehicleId: data.vehicleId as string,
 				driverName: (data.driverName as string) || undefined,
 				employeeId: data.employeeId as string,

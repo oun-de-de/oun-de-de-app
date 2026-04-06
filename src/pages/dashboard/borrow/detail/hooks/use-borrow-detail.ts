@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import loanService from "@/core/api/services/loan-service";
 import type { CreateLoanPaymentRequest, Loan, LoanPayment, UpdateLoanRequest } from "@/core/types/loan";
-import { getTodayUTC, toUtcIsoPreferNowIfToday } from "@/core/utils/date-utils";
+import { formatDateTimeLocalApiValue } from "@/pages/dashboard/accounting/utils/format-local-date-time";
 
 export type LoanDueWarning = "due-soon" | "overdue" | null;
 
@@ -92,7 +92,7 @@ export function useBorrowDetail(loanId: string) {
 		mutationFn: (data: Omit<CreateLoanPaymentRequest, "paymentDate"> & { paymentDate?: string }) =>
 			loanService.createPayment(loanId, {
 				...data,
-				paymentDate: data.paymentDate ?? toUtcIsoPreferNowIfToday(getTodayUTC()) ?? new Date().toISOString(),
+				paymentDate: data.paymentDate ?? formatDateTimeLocalApiValue(),
 			}),
 		onSuccess: () => {
 			toast.success("Loan payment created successfully");

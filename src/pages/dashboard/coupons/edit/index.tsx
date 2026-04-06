@@ -10,7 +10,7 @@ import vehicleService from "@/core/api/services/vehicle-service";
 import type { Coupon, UpdateCouponRequest } from "@/core/types/coupon";
 import { Button } from "@/core/ui/button";
 import { Text } from "@/core/ui/typography";
-import { toUtcIsoStartOfDay } from "@/core/utils/date-utils";
+import { formatDateStartLocalApiValueFromInput } from "@/pages/dashboard/accounting/utils/format-local-date-time";
 import { getEmployeeDisplayName } from "@/pages/dashboard/employees/utils/employee-utils";
 import { CouponForm } from "../create/components/coupon-form";
 import {
@@ -27,6 +27,8 @@ const getCouponDraftStorageKey = (couponId: string) => `coupon-edit:draft:${coup
 
 function toDateInputValue(value: string | null | undefined): string {
 	if (!value) return "";
+	const directDateMatch = value.match(/^(\d{4}-\d{2}-\d{2})(?:$|T)/);
+	if (directDateMatch) return directDateMatch[1];
 	const date = new Date(value);
 	if (Number.isNaN(date.getTime())) return "";
 	const pad = (n: number) => n.toString().padStart(2, "0");
@@ -204,8 +206,14 @@ export default function EditCouponPage() {
 			return;
 		}
 
+		const serializedDate = typeof data.date === "string" ? formatDateStartLocalApiValueFromInput(data.date) : undefined;
+		if (!serializedDate) {
+			toast.error("Date is invalid");
+			return;
+		}
+
 		await updateCoupon({
-			date: toUtcIsoStartOfDay(data.date),
+			date: serializedDate,
 			driverName: (data.driverName as string) || undefined,
 			employeeId: (data.employeeId as string) || undefined,
 			remark: (data.remark as string) || undefined,

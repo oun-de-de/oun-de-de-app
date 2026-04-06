@@ -5,14 +5,14 @@ import customerService from "@/core/api/services/customer-service";
 import { BackButton } from "@/core/components/common";
 import type { CreateCustomer } from "@/core/types/customer";
 import { Text } from "@/core/ui/typography";
-import { toUtcIsoPreferNowIfToday } from "@/core/utils/date-utils";
+import { formatDateStartLocalApiValueFromInput } from "@/pages/dashboard/accounting/utils/format-local-date-time";
 import { useFormOptions } from "../hooks/use-form-options";
 import { resolvePaymentTermFromInput } from "../utils/payment-term";
 import { CustomerForm, type CustomerFormData } from "./components/customer-form";
 
 export default function CreateCustomerPage() {
 	const navigate = useNavigate();
-	const { employeeOptions, customerOptions } = useFormOptions();
+	const { employeeOptions, customerOptions, warehouseOptions } = useFormOptions();
 
 	const { mutateAsync: createCustomer } = useMutation({
 		mutationFn: async (data: CreateCustomer) => {
@@ -29,8 +29,8 @@ export default function CreateCustomerPage() {
 	});
 
 	const handleSubmit = async (data: CustomerFormData) => {
-		const registerDateIso = toUtcIsoPreferNowIfToday(data.registerDate);
-		if (!registerDateIso) {
+		const registerDate = formatDateStartLocalApiValueFromInput(data.registerDate);
+		if (!registerDate) {
 			toast.error("Invalid register date");
 			return;
 		}
@@ -46,7 +46,7 @@ export default function CreateCustomerPage() {
 		const referredById = data.referredById && data.referredById !== "none" ? data.referredById : undefined;
 
 		const payload: CreateCustomer = {
-			registerDate: new Date(registerDateIso),
+			registerDate,
 			code: data.code,
 			name: data.name,
 			status: true,
@@ -91,6 +91,7 @@ export default function CreateCustomerPage() {
 						showTitle={false}
 						employeeOptions={employeeOptions}
 						customerOptions={customerOptions}
+						warehouseOptions={warehouseOptions}
 					/>
 				</div>
 			</div>

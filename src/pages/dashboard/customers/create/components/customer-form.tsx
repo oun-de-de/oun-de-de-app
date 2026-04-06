@@ -37,6 +37,7 @@ type CustomerFormProps = {
 	showTitle?: boolean;
 	employeeOptions?: { label: string; value: string }[];
 	customerOptions?: { label: string; value: string }[];
+	warehouseOptions?: { label: string; value: string }[];
 	formResetKey?: string;
 };
 
@@ -48,12 +49,17 @@ export function CustomerForm({
 	showTitle = true,
 	employeeOptions = [],
 	customerOptions = [],
+	warehouseOptions = [],
 	formResetKey,
 }: CustomerFormProps) {
 	const title = mode === "create" ? "Add Customer" : "Edit Customer";
 
 	const fields = useMemo<FormFieldConfig[]>(() => {
-		return CUSTOMER_FIELDS.filter((field) => !(mode === "create" && field.name === "status"))
+		return CUSTOMER_FIELDS.filter((field) => {
+			if (mode === "create" && field.name === "status") return false;
+			if (mode === "edit" && field.name === "warehouseId") return false;
+			return true;
+		})
 			.map((field) => {
 				if (field.name === "registerDate") {
 					return { ...field, required: mode === "create", disabled: mode === "edit" };
@@ -63,6 +69,9 @@ export function CustomerForm({
 				}
 				if (field.name === "referredById") {
 					return { ...field, options: customerOptions };
+				}
+				if (field.name === "warehouseId") {
+					return { ...field, options: warehouseOptions };
 				}
 				if (field.name === "code") {
 					return { ...field };
@@ -78,7 +87,7 @@ export function CustomerForm({
 					className: "col-span-2",
 				},
 			]);
-	}, [customerOptions, employeeOptions, mode]);
+	}, [customerOptions, employeeOptions, mode, warehouseOptions]);
 
 	return (
 		<DefaultForm<CustomerFormData>

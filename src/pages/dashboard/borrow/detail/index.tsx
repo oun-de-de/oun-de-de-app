@@ -416,7 +416,7 @@ export default function BorrowDetailPage() {
 								Created At
 							</Text>
 							<Text variant="body2" className="font-medium">
-								{formatDisplayDate(loan.createdAt)}
+								{formatDisplayDateTime(loan.createdAt)}
 							</Text>
 						</div>
 					</div>

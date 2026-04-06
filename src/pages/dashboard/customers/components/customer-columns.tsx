@@ -24,7 +24,7 @@ export const columns: ColumnDef<Customer>[] = [
 	{
 		header: "Code",
 		accessorKey: "code",
-		size: 120,
+		size: 140,
 		cell: ({ row }) => <span className="font-mono">{row.original.code}</span>,
 	},
 	{

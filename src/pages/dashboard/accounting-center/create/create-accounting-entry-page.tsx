@@ -19,7 +19,10 @@ import {
 	createEmptyTransactionLine,
 	type TransactionLine,
 } from "@/pages/dashboard/accounting/utils/accounting-line-factories";
-import { formatLocalDateTime } from "@/pages/dashboard/accounting/utils/format-local-date-time";
+import {
+	formatDateTimeLocalApiValue,
+	formatLocalDateTime,
+} from "@/pages/dashboard/accounting/utils/format-local-date-time";
 import { getChartAccountAccountTypeId } from "@/pages/dashboard/accounting/utils/map-chart-account-result";
 import { useGetCurrencyList } from "@/pages/dashboard/settings/hooks/use-settings";
 import { useCreateCashTransaction } from "../hooks/use-create-cash-transaction";
@@ -194,7 +197,7 @@ export default function CreateAccountingEntryPage() {
 		return {
 			refNo,
 			type: transactionType.toLowerCase() as Lowercase<typeof transactionType>,
-			date: date.toISOString(),
+			date: formatDateTimeLocalApiValue(date),
 			currencyId: currencyId || undefined,
 			employeeId,
 			memo: memo.trim() || undefined,
