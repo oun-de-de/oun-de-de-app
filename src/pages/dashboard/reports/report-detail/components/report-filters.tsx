@@ -6,7 +6,7 @@ import { Input } from "@/core/ui/input";
 import { Label } from "@/core/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/core/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/core/ui/select";
-import { formatDateToYYYYMMDD } from "@/core/utils/date-utils";
+import { formatDateToYYYYMMDD } from "@/pages/dashboard/accounting/utils/format-local-date-time";
 import { useQuery } from "@tanstack/react-query";
 import React from "react";
 import type { ReportFilterConfig } from "../report-types";
@@ -30,7 +30,16 @@ type ReportFiltersProps = {
 
 function parseReportFilterDate(value?: string) {
 	if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return undefined;
-	return new Date(`${value}T00:00:00.000Z`);
+	const [year, month, day] = value.split("-").map(Number);
+	const date = new Date(year, month - 1, day);
+	if (
+		date.getFullYear() !== year ||
+		date.getMonth() !== month - 1 ||
+		date.getDate() !== day
+	) {
+		return undefined;
+	}
+	return date;
 }
 
 type ReportDateFieldProps = {

@@ -1,5 +1,5 @@
 import type { PaymentTerm } from "@/core/types/customer";
-import { toUtcIsoStartOfDay } from "@/core/utils/date-utils";
+import { formatDateStartLocalApiValueFromInput } from "@/pages/dashboard/accounting/utils/format-local-date-time";
 
 const hasValue = (value: unknown) => value !== undefined && value !== null && value !== "";
 
@@ -19,7 +19,7 @@ export function resolvePaymentTermFromInput(input: { paymentTerm?: unknown; star
 		return { error: "Payment term duration must be a non-negative number" };
 	}
 
-	const startDate = toUtcIsoStartOfDay(startDateRaw);
+	const startDate = typeof startDateRaw === "string" ? formatDateStartLocalApiValueFromInput(startDateRaw) : undefined;
 	if (!startDate) return { error: "Payment term start date is invalid" };
 
 	return { paymentTerm: { duration, startDate } };

@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { useGetWarehouseList } from "@/pages/dashboard/settings/hooks/use-settings";
 import { getEmployeeDisplayName } from "@/pages/dashboard/employees/utils/employee-utils";
 import { useGetCustomers } from "./use-get-customers";
 import { useGetEmployees } from "./use-get-employees";
@@ -6,6 +7,7 @@ import { useGetEmployees } from "./use-get-employees";
 export const useFormOptions = () => {
 	const { data: employees } = useGetEmployees();
 	const { data: customersList } = useGetCustomers({ page: 1, limit: 1000 });
+	const { data: warehouses } = useGetWarehouseList();
 
 	const employeeOptions = useMemo(
 		() =>
@@ -27,5 +29,14 @@ export const useFormOptions = () => {
 		}));
 	}, [customersList]);
 
-	return { employeeOptions, customerOptions };
+	const warehouseOptions = useMemo(
+		() =>
+			(warehouses || []).map((warehouse) => ({
+				label: warehouse.name,
+				value: warehouse.id,
+			})),
+		[warehouses],
+	);
+
+	return { employeeOptions, customerOptions, warehouseOptions };
 };

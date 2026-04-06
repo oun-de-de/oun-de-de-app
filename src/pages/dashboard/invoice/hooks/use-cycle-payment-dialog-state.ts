@@ -4,7 +4,6 @@ import type { UseFormReturn } from "react-hook-form";
 import { toast } from "sonner";
 import cycleService from "@/core/api/services/cycle-service";
 import type { Cycle, CyclePayment } from "@/core/types/cycle";
-import { getLoanFormDefaults, getPaymentFormDefaults } from "../utils/cycle-payment-utils";
 
 type PaymentFormValues = {
 	paymentCode: string;
@@ -27,6 +26,8 @@ type UseCyclePaymentDialogStateParams = {
 	isLoadingPayments: boolean;
 	paymentForm: UseFormReturn<PaymentFormValues>;
 	loanForm: UseFormReturn<LoanFormValues>;
+	createPaymentFormDefaults: () => PaymentFormValues;
+	createLoanFormDefaults: () => LoanFormValues;
 };
 
 export function useCyclePaymentDialogState({
@@ -38,6 +39,8 @@ export function useCyclePaymentDialogState({
 	isLoadingPayments,
 	paymentForm,
 	loanForm,
+	createPaymentFormDefaults,
+	createLoanFormDefaults,
 }: UseCyclePaymentDialogStateParams) {
 	const [activeTab, setActiveTab] = useState<"payment" | "loan">(defaultTab);
 	const [page, setPage] = useState(1);
@@ -103,9 +106,9 @@ export function useCyclePaymentDialogState({
 		hasGeneratedCodeRef.current = false;
 		setActiveTab(defaultTab);
 		setPage(1);
-		paymentForm.reset(getPaymentFormDefaults());
-		loanForm.reset(getLoanFormDefaults());
-	}, [open, cycle?.id, defaultTab, paymentForm, loanForm]);
+		paymentForm.reset(createPaymentFormDefaults());
+		loanForm.reset(createLoanFormDefaults());
+	}, [open, cycle?.id, defaultTab, paymentForm, loanForm, createPaymentFormDefaults, createLoanFormDefaults]);
 
 	useEffect(() => {
 		if (open && cycle && activeTab === "payment" && !historyOnly) {

@@ -1,5 +1,5 @@
 import type { FormFieldConfig } from "@/core/components/common";
-import { formatDateToYYYYMMDD } from "@/core/utils/date-utils";
+import { getLocalToday } from "@/pages/dashboard/accounting/utils/format-local-date-time";
 
 export const COUPON_FIELDS: FormFieldConfig[] = [
 	{
@@ -7,7 +7,7 @@ export const COUPON_FIELDS: FormFieldConfig[] = [
 		label: "Date",
 		type: "date",
 		required: true,
-		defaultValue: formatDateToYYYYMMDD(new Date()),
+		defaultValue: getLocalToday(),
 	},
 	{
 		name: "vehicleId",

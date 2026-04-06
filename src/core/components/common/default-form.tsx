@@ -1,7 +1,8 @@
 import { cva, type VariantProps } from "class-variance-authority";
 import { type ComponentProps, type ReactNode, useEffect, useMemo, useRef } from "react";
-import { type DefaultValues, type RegisterOptions, useForm, type ValidationRule } from "react-hook-form";
-import { FormActions, FormProvider, FormSelect, FormSwitch, FormTextarea, FormTextField } from "@/core/components/form";
+import { type DefaultValues, type FieldPath, type RegisterOptions, useForm, type ValidationRule } from "react-hook-form";
+import { FormDatePicker } from "@/pages/dashboard/accounting/components/form-date-picker";
+import { FormActions, FormField, FormProvider, FormSelect, FormSwitch, FormTextarea, FormTextField } from "@/core/components/form";
 import { Text } from "@/core/ui/typography";
 import { cn } from "@/core/utils";
 
@@ -165,7 +166,29 @@ export function DefaultForm<TFormData extends DefaultFormData = DefaultFormData>
 				return <FormTextarea {...baseProps} variant={inputVariant} size={inputSize} rows={field.rows} />;
 
 			case "date":
-				return <FormTextField {...textFieldProps} type="date" variant={inputVariant} size={inputSize} />;
+				return (
+					<FormField
+						key={field.name}
+						name={field.name}
+						label={field.label}
+						helperText={field.helperText}
+						requiredMark={field.required}
+						containerClassName={field.className}
+					>
+						{({ error }) => (
+							<FormDatePicker
+								control={methods.control}
+								name={field.name as FieldPath<TFormData>}
+								placeholder={field.placeholder ?? "Select date"}
+								error={error}
+								disabled={field.disabled}
+								rules={rules as RegisterOptions<TFormData, FieldPath<TFormData>>}
+								valueMode="date-string"
+								hideError
+							/>
+						)}
+					</FormField>
+				);
 
 			case "custom":
 				return (

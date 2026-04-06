@@ -23,6 +23,7 @@ export function useEquipmentTable(items: InventoryItem[], navigate: NavigateFunc
 	const columns = useMemo(
 		() =>
 			itemColumns({
+				onEdit: (itemId) => navigate(`/dashboard/equipment/${itemId}`),
 				onUpdateStock: (itemId) => navigate(`/dashboard/equipment/${itemId}?action=stock`),
 				onBorrowings: (itemId) => navigate(`/dashboard/equipment/${itemId}?action=borrowings`),
 			}),

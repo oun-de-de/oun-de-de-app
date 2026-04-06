@@ -17,16 +17,15 @@ import { Label } from "@/core/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/core/ui/tabs";
 import { formatFlexibleDisplayDate } from "@/core/utils/date-display";
 import { cn } from "@/core/utils";
+import {
+	formatDateStartLocalApiValueFromInput,
+	formatDateTimeLocalApiValueFromInput,
+	getLocalNowDateTime,
+	getLocalToday,
+} from "@/pages/dashboard/accounting/utils/format-local-date-time";
 
 import { useCyclePaymentDialogState } from "../hooks/use-cycle-payment-dialog-state";
 import { useCyclePayments } from "../hooks/use-cycle-payments";
-import {
-	digitsOnly,
-	getLoanFormDefaults,
-	getPaymentFormDefaults,
-	toApiLocalDateStart,
-	toApiLocalDateTime,
-} from "../utils/cycle-payment-utils";
 import { formatKHR } from "../utils/formatters";
 import { getPaymentColumns } from "./payment-columns";
 import { FormDateTimeLocalPicker } from "../../accounting/components/form-date-time-local-picker";
@@ -53,6 +52,31 @@ const loanSchema = z.object({
 });
 
 type LoanFormValues = z.infer<typeof loanSchema>;
+type PaymentFormValues = {
+	paymentCode: string;
+	amount: string;
+	paymentDateTime: string;
+};
+
+function digitsOnly(value: string): string {
+	return value.replace(/\D/g, "");
+}
+
+export function createPaymentFormDefaults(): PaymentFormValues {
+	return {
+		paymentCode: "",
+		amount: "",
+		paymentDateTime: getLocalNowDateTime(),
+	};
+}
+
+export function createLoanFormDefaults(): LoanFormValues {
+	return {
+		loanStartDate: getLocalToday(),
+		monthlyAmount: "",
+		dueWarningDays: "5",
+	};
+}
 
 type CyclePaymentDialogProps = {
 	open: boolean;
@@ -94,14 +118,14 @@ export function CyclePaymentDialog({
 
 	// Forms
 	const paymentSchema = useMemo(() => getPaymentSchema(currentCycleBalance), [currentCycleBalance]);
-	const paymentForm = useForm<z.infer<typeof paymentSchema>>({
+	const paymentForm = useForm<PaymentFormValues>({
 		resolver: zodResolver(paymentSchema),
-		defaultValues: getPaymentFormDefaults(),
+		defaultValues: createPaymentFormDefaults(),
 	});
 
 	const loanForm = useForm<LoanFormValues>({
 		resolver: zodResolver(loanSchema),
-		defaultValues: getLoanFormDefaults(),
+		defaultValues: createLoanFormDefaults(),
 	});
 
 	const {
@@ -126,12 +150,14 @@ export function CyclePaymentDialog({
 		isLoadingPayments,
 		paymentForm,
 		loanForm,
+		createPaymentFormDefaults,
+		createLoanFormDefaults,
 	});
 
 	const onPaymentSubmit = async (values: z.infer<typeof paymentSchema>) => {
 		if (!cycle) return;
 		try {
-			const paymentDate = toApiLocalDateTime(values.paymentDateTime);
+			const paymentDate = formatDateTimeLocalApiValueFromInput(values.paymentDateTime);
 			if (!paymentDate) {
 				toast.error("Payment date is invalid");
 				return;
@@ -156,7 +182,7 @@ export function CyclePaymentDialog({
 			return;
 		}
 		try {
-			const startDate = toApiLocalDateStart(values.loanStartDate);
+			const startDate = formatDateStartLocalApiValueFromInput(values.loanStartDate);
 			if (!startDate) {
 				toast.error("Loan start date is invalid");
 				return;

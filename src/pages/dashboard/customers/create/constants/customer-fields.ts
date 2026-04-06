@@ -1,5 +1,5 @@
 import type { FormFieldConfig } from "@/core/components/common";
-import { formatDateToYYYYMMDD } from "@/core/utils/date-utils";
+import { getLocalToday } from "@/pages/dashboard/accounting/utils/format-local-date-time";
 
 export const CUSTOMER_FIELDS: FormFieldConfig[] = [
 	{
@@ -7,7 +7,7 @@ export const CUSTOMER_FIELDS: FormFieldConfig[] = [
 		label: "Register Date",
 		type: "date",
 		required: true,
-		defaultValue: formatDateToYYYYMMDD(new Date()),
+		defaultValue: getLocalToday(),
 	},
 	{
 		name: "code",

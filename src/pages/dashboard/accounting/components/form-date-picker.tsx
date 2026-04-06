@@ -1,10 +1,17 @@
 import { CalendarIcon, CalendarDays } from "lucide-react";
 import { format, isValid, parseISO } from "date-fns";
-import { Controller, type Control, type FieldValues, type FieldPath } from "react-hook-form";
+import {
+	Controller,
+	type Control,
+	type FieldPath,
+	type FieldValues,
+	type RegisterOptions,
+} from "react-hook-form";
 import { Button } from "@/core/ui/button";
 import { Calendar } from "@/core/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/core/ui/popover";
 import { cn } from "@/core/utils";
+import { formatDateToYYYYMMDD } from "@/pages/dashboard/accounting/utils/format-local-date-time";
 
 interface FormDatePickerProps<
 	TFieldValues extends FieldValues = FieldValues,
@@ -16,15 +23,14 @@ interface FormDatePickerProps<
 	error?: string;
 	className?: string;
 	disabled?: boolean;
+	rules?: RegisterOptions<TFieldValues, TName>;
+	valueMode?: "date" | "date-string";
+	hideError?: boolean;
 }
 
-/**
- * Helper to ensure we have a valid Date object regardless of whether the form holds a Date or an ISO string.
- * Strictly typed to avoid 'any'.
- */
 function toDateFromValue(value: string | Date | null | undefined): Date | undefined {
 	if (!value) return undefined;
-	if (value instanceof Date) return value;
+	if (value instanceof Date) return isValid(value) ? value : undefined;
 	if (typeof value === "string") {
 		const parsed = parseISO(value);
 		return isValid(parsed) ? parsed : undefined;
@@ -47,25 +53,17 @@ export function FormDatePicker<
 	error,
 	className,
 	disabled,
+	rules,
+	valueMode = "date",
+	hideError = false,
 }: FormDatePickerProps<TFieldValues, TName>) {
 	return (
 		<Controller
 			control={control}
 			name={name}
-			render={({ field }) => {
+			rules={rules}
+			render={({ field, fieldState }) => {
 				const dateValue = toDateFromValue(field.value);
-
-				/**
-				 * IMPORTANT: Since we store dates as UTC midnight (T00:00:00.000Z), rendering them with
-				 * local-time functions (like format or new Date() components) would cause a shift
-				 * for users in non-UTC timezones.
-				 *
-				 * To fix this, we create a 'displayDate' that effectively treats the UTC parts
-				 * as local parts for the purpose of the UI components.
-				 */
-				const displayDate = dateValue
-					? new Date(dateValue.getUTCFullYear(), dateValue.getUTCMonth(), dateValue.getUTCDate())
-					: undefined;
 
 				return (
 					<div className={cn("space-y-2 w-full", className)}>
@@ -75,15 +73,18 @@ export function FormDatePicker<
 									type="button"
 									variant="outline"
 									disabled={disabled}
+									ref={field.ref}
+									onBlur={field.onBlur}
+									aria-invalid={fieldState.invalid || !!error}
 									className={cn(
 										"h-11 w-full justify-between text-left font-medium text-base border-slate-200 rounded-lg bg-slate-50/50 transition-colors",
-										displayDate ? "text-gray-900" : "text-gray-400",
+										dateValue ? "text-gray-900" : "text-gray-400",
 										error && "border-rose-500 ring-rose-500",
 									)}
 								>
 									<div className="flex items-center gap-2">
 										<CalendarDays className="size-4 text-slate-400" />
-										{displayDate ? format(displayDate, "dd/MM/yyyy") : <span>{placeholder}</span>}
+										{dateValue ? format(dateValue, "dd/MM/yyyy") : <span>{placeholder}</span>}
 									</div>
 									<CalendarIcon className="h-4 w-4 text-slate-400" />
 								</Button>
@@ -91,21 +92,19 @@ export function FormDatePicker<
 							<PopoverContent className="w-auto p-0" align="start">
 								<Calendar
 									mode="single"
-									selected={displayDate}
+									selected={dateValue}
 									onSelect={(date) => {
 										if (!date) {
-											field.onChange(undefined);
+											field.onChange(valueMode === "date-string" ? "" : undefined);
 											return;
 										}
-										// Convert local date selection back to UTC at midnight for storage
-										const utcDate = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-										field.onChange(utcDate);
+										field.onChange(valueMode === "date-string" ? formatDateToYYYYMMDD(date) : date);
 									}}
 									initialFocus
 								/>
 							</PopoverContent>
 						</Popover>
-						{error && (
+						{!hideError && error && (
 							<p className="text-rose-500 text-xs font-medium px-1 animate-in fade-in slide-in-from-top-1">{error}</p>
 						)}
 					</div>

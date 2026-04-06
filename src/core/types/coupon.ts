@@ -92,3 +92,7 @@ export interface DeleteCouponRequest {
 	delAccNo?: string;
 	delDate?: string;
 }
+
+export function isCouponDeleted(coupon: Pick<Coupon, "delAccNo" | "delDate">): boolean {
+	return Boolean(coupon.delAccNo?.trim() || coupon.delDate?.trim());
+}

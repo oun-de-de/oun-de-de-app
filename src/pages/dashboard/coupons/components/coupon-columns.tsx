@@ -1,6 +1,6 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { Link } from "react-router";
-import type { Coupon } from "@/core/types/coupon";
+import { isCouponDeleted, type Coupon } from "@/core/types/coupon";
 import { getVehicleTypeLabel } from "@/core/types/vehicle";
 import { Badge } from "@/core/ui/badge";
 import { Button } from "@/core/ui/button";
@@ -140,8 +140,19 @@ export const getCouponColumns = ({
 	{
 		header: "Status",
 		cell: ({ row }) => {
-			const isDeleted = Boolean(row.original.delAccNo?.trim());
+			const isDeleted = isCouponDeleted(row.original);
 			return <Badge variant={isDeleted ? "destructive" : "success"}>{isDeleted ? "Deleted" : "Active"}</Badge>;
+		},
+		meta: {
+			bodyClassName: "text-center",
+		},
+	},
+	{
+		header: "Delete Date",
+		accessorKey: "delDate",
+		cell: ({ row }) => {
+			const delDate = row.original.delDate?.split("T")[0] ?? row.original.delDate;
+			return formatDisplayDate(delDate);
 		},
 		meta: {
 			bodyClassName: "text-center",
@@ -150,7 +161,7 @@ export const getCouponColumns = ({
 	{
 		header: "Actions",
 		cell: ({ row }) => {
-			const isDeleted = Boolean(row.original.delAccNo?.trim());
+			const isDeleted = isCouponDeleted(row.original);
 			return (
 				<div className="flex items-center justify-center gap-2">
 					<Button

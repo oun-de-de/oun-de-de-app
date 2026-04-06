@@ -4,7 +4,7 @@ import couponService from "@/core/api/services/coupon-service";
 import { EntityListItem, SidebarList } from "@/core/components/common";
 import { useSidebarPagination } from "@/core/hooks/use-sidebar-pagination";
 import type { SelectOption } from "@/core/types/common";
-import type { Coupon } from "@/core/types/coupon";
+import { isCouponDeleted, type Coupon } from "@/core/types/coupon";
 
 type CouponSidebarProps = {
 	activeCouponId: string | null;
@@ -37,7 +37,7 @@ export function CouponSidebar({ activeCouponId, onSelect, onToggle, isCollapsed 
 			coupon.driverName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
 			coupon.vehicle?.licensePlate?.toLowerCase().includes(searchTerm.toLowerCase());
 
-		const isDeleted = Boolean(coupon.delAccNo?.trim());
+		const isDeleted = isCouponDeleted(coupon);
 		const matchesStatus = status === "all" || (status === "deleted" ? isDeleted : !isDeleted);
 
 		return matchesSearch && matchesStatus;

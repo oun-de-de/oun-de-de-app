@@ -1,26 +1,24 @@
-import { formatDateToYYYYMMDD, getTodayUTC } from "@/core/utils/date-utils";
+import { formatDateToYYYYMMDD } from "@/pages/dashboard/accounting/utils/format-local-date-time";
 import type { ReportColumnVisibility, ReportSectionVisibility } from "../components/layout/report-toolbar";
 
-const today = getTodayUTC();
+const today = new Date();
 
 function formatDateToDDMMYYYY(date: Date): string {
-	const day = String(date.getUTCDate()).padStart(2, "0");
-	const month = String(date.getUTCMonth() + 1).padStart(2, "0");
-	const year = date.getUTCFullYear();
+	const day = String(date.getDate()).padStart(2, "0");
+	const month = String(date.getMonth() + 1).padStart(2, "0");
+	const year = date.getFullYear();
 	return `${day}/${month}/${year}`;
 }
 
 export function formatReportTimestamp(employeeName: string, date: Date): string {
 	const weekday = new Intl.DateTimeFormat("en-US", {
 		weekday: "short",
-		timeZone: "UTC",
 	}).format(date);
 	const time = new Intl.DateTimeFormat("en-GB", {
 		hour: "2-digit",
 		minute: "2-digit",
 		second: "2-digit",
 		hour12: false,
-		timeZone: "UTC",
 	}).format(date);
 
 	return `By ${employeeName}, ${weekday} ${formatDateToDDMMYYYY(date)} ${time}`;
