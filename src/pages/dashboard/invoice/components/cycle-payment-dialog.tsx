@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 
 import { SmartDataTable } from "@/core/components/common";
+import { useDialogSubmitHandler } from "@/core/hooks/use-dialog-submit-handler";
 import { type Cycle, type CyclePayment, getCycleStatusLabel, getCycleStatusVariant } from "@/core/types/cycle";
 import { Badge } from "@/core/ui/badge";
 import { Button } from "@/core/ui/button";
@@ -153,26 +154,32 @@ export function CyclePaymentDialog({
 		createPaymentFormDefaults,
 		createLoanFormDefaults,
 	});
+	const submitAndClose = useDialogSubmitHandler({
+		closeDialog: () => onOpenChange(false),
+	});
 
 	const onPaymentSubmit = async (values: z.infer<typeof paymentSchema>) => {
 		if (!cycle) return;
-		try {
-			const paymentDate = formatDateTimeLocalApiValueFromInput(values.paymentDateTime);
-			if (!paymentDate) {
-				toast.error("Payment date is invalid");
-				return;
-			}
-			await createPayment({
-				code: values.paymentCode.trim(),
-				amount: Number(values.amount),
-				paymentDate,
-			});
-			onOpenChange(false);
-		} catch (e) {
-			if (import.meta.env.DEV) {
-				console.error("Payment submission failed:", e);
-			}
+		const paymentDate = formatDateTimeLocalApiValueFromInput(values.paymentDateTime);
+		if (!paymentDate) {
+			toast.error("Payment date is invalid");
+			return;
 		}
+
+		await submitAndClose(async () => {
+			try {
+				await createPayment({
+					code: values.paymentCode.trim(),
+					amount: Number(values.amount),
+					paymentDate,
+				});
+			} catch (e) {
+				if (import.meta.env.DEV) {
+					console.error("Payment submission failed:", e);
+				}
+				throw e;
+			}
+		});
 	};
 
 	const onLoanSubmit = async (values: LoanFormValues) => {
@@ -181,28 +188,31 @@ export function CyclePaymentDialog({
 			toast.error("Cycle balance must be greater than 0 to convert");
 			return;
 		}
-		try {
-			const startDate = formatDateStartLocalApiValueFromInput(values.loanStartDate);
-			if (!startDate) {
-				toast.error("Loan start date is invalid");
-				return;
-			}
-			const loan = await convertToLoan({
-				loanInstallmentAmount: Number(values.monthlyAmount),
-				startDate,
-				dueWarningDays: Number(values.dueWarningDays),
-			});
-			onOpenChange(false);
-			navigate(`/dashboard/loan/${loan.id}`);
-		} catch (e) {
-			if (import.meta.env.DEV) {
-				console.error("Loan conversion failed:", e);
-			}
+		const startDate = formatDateStartLocalApiValueFromInput(values.loanStartDate);
+		if (!startDate) {
+			toast.error("Loan start date is invalid");
+			return;
 		}
+
+		await submitAndClose(async () => {
+			try {
+				const loan = await convertToLoan({
+					loanInstallmentAmount: Number(values.monthlyAmount),
+					startDate,
+					dueWarningDays: Number(values.dueWarningDays),
+				});
+				navigate(`/dashboard/loan/${loan.id}`);
+			} catch (e) {
+				if (import.meta.env.DEV) {
+					console.error("Loan conversion failed:", e);
+				}
+				throw e;
+			}
+		});
 	};
 
 	return (
-		<Dialog open={open} onOpenChange={onOpenChange}>
+		<Dialog open={open} onOpenChange={isCreatingPayment || isConvertingToLoan ? undefined : onOpenChange}>
 			<DialogContent className="flex max-h-[calc(100vh-1rem)] w-[calc(100vw-1rem)] max-w-[calc(100vw-1rem)] flex-col overflow-hidden gap-3 p-3 sm:max-h-[calc(100vh-2rem)] sm:max-w-3xl sm:gap-4 sm:p-4 xl:max-w-5xl xl:p-6">
 				<DialogHeader className="pr-8 sm:pr-10">
 					<DialogTitle>

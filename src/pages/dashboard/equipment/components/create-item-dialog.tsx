@@ -1,8 +1,3 @@
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useState } from "react";
-import { useForm, type SubmitHandler } from "react-hook-form";
-import { z } from "zod";
-
 import type { CreateInventoryItem, CreateInventoryItemType } from "@/core/types/inventory";
 import { Button } from "@/core/ui/button";
 import {
@@ -19,52 +14,25 @@ import { Label } from "@/core/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/core/ui/select";
 import { useGetSupplierList, useGetUnitList } from "../../settings/hooks/use-settings";
 import { SELECT_NONE_VALUE } from "@/core/constants/form";
-
-const createItemSchema = z.object({
-	name: z.string().trim().min(1, "Name is required"),
-	type: z.enum(["consumable", "equipment"]),
-	unitId: z.string().optional(),
-	supplierId: z.string().optional(),
-	unitPrice: z.coerce.number().min(0, "Unit price must be 0 or greater"),
-	alertThreshold: z.coerce.number().min(0),
-	refCode: z.string().optional(),
-	quantityOnHand: z.coerce.number().min(0),
-	expense: z.coerce.number().optional(),
-});
-
-type CreateItemFormValues = z.infer<typeof createItemSchema>;
+import { useDialogOpenState } from "@/core/hooks/use-dialog-open-state";
+import { useDialogSubmitHandler } from "@/core/hooks/use-dialog-submit-handler";
+import { useCreateItemForm } from "../hooks/use-create-item-form";
 
 type CreateItemDialogProps = {
-	onSubmit: (data: CreateInventoryItem) => void;
+	onSubmit: (data: CreateInventoryItem) => Promise<unknown>;
 	isPending?: boolean;
 };
 
 export function CreateItemDialog({ onSubmit, isPending }: CreateItemDialogProps) {
-	const [open, setOpen] = useState(false);
 	const { data: units } = useGetUnitList();
 	const { data: suppliers } = useGetSupplierList();
-
-	const form = useForm<CreateItemFormValues>({
-		resolver: zodResolver(createItemSchema),
-		defaultValues: {
-			name: "",
-			type: "consumable",
-			unitId: "",
-			supplierId: "",
-			unitPrice: 0,
-			alertThreshold: 0,
-			refCode: "",
-			quantityOnHand: 0,
-			expense: undefined,
-		},
-	});
+	const { form, submit, reset: resetForm } = useCreateItemForm({ onSubmit });
 
 	const {
 		register,
 		handleSubmit,
 		setValue,
 		watch,
-		reset,
 		formState: { errors },
 	} = form;
 
@@ -73,38 +41,16 @@ export function CreateItemDialog({ onSubmit, isPending }: CreateItemDialogProps)
 	const supplierId = watch("supplierId");
 	const refCode = watch("refCode");
 
-	const handleOpenChange = (nextOpen: boolean) => {
-		if (!nextOpen) {
-			reset();
-		}
-		setOpen(nextOpen);
-	};
-
-	const onFormSubmit: SubmitHandler<CreateItemFormValues> = (values) => {
-		const normalizedRefCode = values.refCode?.trim();
-
-		onSubmit({
-			name: values.name.trim(),
-			type: values.type,
-			unitPrice: values.unitPrice,
-			...(values.unitId && values.unitId !== SELECT_NONE_VALUE ? { unitId: values.unitId } : {}),
-			...(values.supplierId && values.supplierId !== SELECT_NONE_VALUE ? { supplierId: values.supplierId } : {}),
-			...(normalizedRefCode
-				? {
-						initStock: {
-							refCode: normalizedRefCode,
-							quantityOnHand: values.quantityOnHand,
-							...(values.expense && values.expense > 0 ? { expense: values.expense } : {}),
-						},
-					}
-				: {}),
-			alertThreshold: values.alertThreshold,
-		});
-		handleOpenChange(false);
-	};
+	const dialog = useDialogOpenState({
+		isDismissDisabled: isPending,
+		onClose: resetForm,
+	});
+	const submitAndClose = useDialogSubmitHandler({
+		closeDialog: dialog.close,
+	});
 
 	return (
-		<Dialog open={open} onOpenChange={handleOpenChange}>
+		<Dialog open={dialog.open} onOpenChange={dialog.onOpenChange}>
 			<DialogTrigger asChild>
 				<Button size="sm" className="gap-1">
 					New Item
@@ -192,7 +138,17 @@ export function CreateItemDialog({ onSubmit, isPending }: CreateItemDialogProps)
 							</div>
 							<div className="space-y-2">
 								<Label htmlFor="item-threshold">Alert Threshold</Label>
-								<Input id="item-threshold" autoComplete="off" type="number" min={0} {...register("alertThreshold")} />
+								<Input
+									id="item-threshold"
+									autoComplete="off"
+									type="number"
+									min={0}
+									step="1"
+									placeholder="1"
+									{...register("alertThreshold", {
+										setValueAs: (value) => (value === "" ? undefined : Number(value)),
+									})}
+								/>
 							</div>
 						</div>
 						<div className="space-y-2">
@@ -228,7 +184,7 @@ export function CreateItemDialog({ onSubmit, isPending }: CreateItemDialogProps)
 								placeholder="e.g. initial-stock-001"
 							/>
 						</div>
-						<div className="grid grid-cols-2 gap-4">
+						<div className="grid grid-cols-1 gap-4">
 							<div className="space-y-2">
 								<Label htmlFor="item-qty">Qty On Hand</Label>
 								<Input
@@ -240,27 +196,15 @@ export function CreateItemDialog({ onSubmit, isPending }: CreateItemDialogProps)
 									disabled={!refCode?.trim()}
 								/>
 							</div>
-							<div className="space-y-2">
-								<Label htmlFor="item-expense">Expense</Label>
-								<Input
-									id="item-expense"
-									autoComplete="off"
-									type="number"
-									min={0}
-									{...register("expense")}
-									placeholder="0.00"
-									disabled={!refCode?.trim()}
-								/>
-							</div>
 						</div>
 					</div>
 				</div>
 
 				<DialogFooter>
-					<Button variant="outline" onClick={() => handleOpenChange(false)}>
+					<Button variant="outline" onClick={() => dialog.onOpenChange(false)} disabled={isPending}>
 						Cancel
 					</Button>
-					<Button onClick={handleSubmit(onFormSubmit)} disabled={isPending}>
+					<Button onClick={handleSubmit((values) => submitAndClose(() => submit(values)))} disabled={isPending}>
 						{isPending ? "Creating..." : "Create Item"}
 					</Button>
 				</DialogFooter>

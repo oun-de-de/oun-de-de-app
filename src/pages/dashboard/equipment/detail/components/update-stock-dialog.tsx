@@ -18,7 +18,7 @@ type UpdateStockDialogProps = {
 	onOpenChange: (open: boolean) => void;
 	form: UseFormReturn<UpdateStockFormValues>;
 	onRegenerateRefCode: () => void;
-	onSubmit: (values: UpdateStockFormValues) => void;
+	onSubmit: (values: UpdateStockFormValues) => Promise<unknown>;
 	isPending?: boolean;
 };
 
@@ -62,7 +62,7 @@ export function UpdateStockDialog({
 	const currentReason = form.watch("reason");
 
 	return (
-		<Dialog open={open} onOpenChange={onOpenChange}>
+		<Dialog open={open} onOpenChange={isPending ? undefined : onOpenChange}>
 			<DialogTrigger asChild>
 				<Button size="sm" className="gap-1">
 					Update Stock

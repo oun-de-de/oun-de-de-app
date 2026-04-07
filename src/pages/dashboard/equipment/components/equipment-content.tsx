@@ -1,7 +1,6 @@
 import { BackButton, SmartDataTable, SummaryStatCard } from "@/core/components/common";
 import { Text } from "@/core/ui/typography";
-import { useCallback, useMemo } from "react";
-import { useNavigate } from "react-router";
+import { useCallback } from "react";
 import { useEquipmentContent } from "../hooks/use-equipment-content";
 import { CreateItemDialog } from "./create-item-dialog";
 
@@ -10,59 +9,11 @@ type Props = {
 	onClearSelection: () => void;
 };
 
-const EQUIPMENT_TYPE_OPTIONS = [
-	{ value: "all", label: "All Type" },
-	{ value: "consumable", label: "Consumable" },
-	{ value: "equipment", label: "Equipment" },
-];
-
-const EQUIPMENT_FIELD_OPTIONS = [
-	{ value: "name", label: "Name" },
-	{ value: "code", label: "Code" },
-	{ value: "supplier", label: "Supplier" },
-];
-
-const SEARCH_PLACEHOLDER = "Search items";
-
 export function EquipmentContent({ activeItemId, onClearSelection }: Props) {
-	const navigate = useNavigate();
-	const { activeItem, summaryCards, createItem, table, getRowLink } = useEquipmentContent(activeItemId);
+	const { activeItem, summaryCards, createItem, table, filterConfig, handleRowClick } = useEquipmentContent(activeItemId);
 	const handleBack = useCallback(() => {
 		onClearSelection();
 	}, [onClearSelection]);
-	const handleCreateItem = useCallback(
-		(data: Parameters<typeof createItem.mutate>[0]) => createItem.mutate(data),
-		[createItem],
-	);
-	const handleRowClick = useCallback(
-		(row: (typeof table.pagedRows)[number]) => {
-			const link = getRowLink(row);
-			if (link) navigate(link);
-		},
-		[getRowLink, navigate],
-	);
-	const filterConfig = useMemo(
-		() => ({
-			showTypeFilter: false,
-			typeOptions: EQUIPMENT_TYPE_OPTIONS,
-			fieldOptions: EQUIPMENT_FIELD_OPTIONS,
-			typeValue: table.typeFilter,
-			fieldValue: table.fieldFilter,
-			searchValue: table.searchValue,
-			onTypeChange: table.setTypeFilter,
-			onFieldChange: table.setFieldFilter,
-			onSearchChange: table.setSearchValue,
-			searchPlaceholder: SEARCH_PLACEHOLDER,
-		}),
-		[
-			table.fieldFilter,
-			table.searchValue,
-			table.setFieldFilter,
-			table.setSearchValue,
-			table.setTypeFilter,
-			table.typeFilter,
-		],
-	);
 
 	return (
 		<>
@@ -75,7 +26,7 @@ export function EquipmentContent({ activeItemId, onClearSelection }: Props) {
 					</Text>
 				</div>
 				<div className="flex gap-2">
-					<CreateItemDialog onSubmit={handleCreateItem} isPending={createItem.isPending} />
+					<CreateItemDialog onSubmit={createItem.submit} isPending={createItem.isPending} />
 				</div>
 			</div>
 			{/* Summary */}

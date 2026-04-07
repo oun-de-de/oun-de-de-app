@@ -11,6 +11,7 @@ import { EquipmentBorrowingsDialog } from "./components/equipment-borrowings-dia
 import { EquipmentInfoCard } from "./components/equipment-info-card";
 import { UpdateStockDialog } from "./components/update-stock-dialog";
 import { useEquipmentDetail } from "./hooks/use-equipment-detail";
+import { useDialogSubmitHandler } from "@/core/hooks/use-dialog-submit-handler";
 
 const TYPE_OPTIONS = [
 	{ value: "all", label: "All Type" },
@@ -42,6 +43,9 @@ export default function EquipmentDetailPage() {
 		}
 		setIsUpdateStockOpen(open);
 	};
+	const submitStockUpdateAndClose = useDialogSubmitHandler({
+		closeDialog: () => handleUpdateStockOpenChange(false),
+	});
 	const clearActionParam = useCallback(() => {
 		setSearchParams(
 			(prev) => {
@@ -113,7 +117,7 @@ export default function EquipmentDetailPage() {
 						onOpenChange={handleUpdateStockOpenChange}
 						form={stockUpdate.form}
 						onRegenerateRefCode={() => stockUpdate.regenerateRefCode()}
-						onSubmit={(values) => stockUpdate.submit(values, () => handleUpdateStockOpenChange(false))}
+						onSubmit={(values) => submitStockUpdateAndClose(() => stockUpdate.submit(values))}
 						isPending={stockUpdate.isPending}
 					/>
 					{isEquipment && (
