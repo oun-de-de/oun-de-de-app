@@ -17,6 +17,7 @@
 		"noEmit": true,
 		"jsx": "react-jsx",
 		"esModuleInterop": true,
+		"types": ["vitest/globals", "vitest/jsdom"],
 
 		"strict": true,
 		"strictNullChecks": true,

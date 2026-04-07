@@ -1,17 +1,12 @@
 import { BackButton } from "@/core/components/common";
 import { Badge } from "@/core/ui/badge";
 import { Button } from "@/core/ui/button";
-import { Checkbox } from "@/core/ui/checkbox";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/core/ui/dialog";
-import { Input } from "@/core/ui/input";
-import { Label } from "@/core/ui/label";
 import { Separator } from "@/core/ui/separator";
 import { Text } from "@/core/ui/typography";
 import type { InvoiceExportPreviewLocationState } from "@/core/types/invoice";
 import { formatDisplayDate, formatDisplayDateTime, formatKHR } from "@/core/utils/formatters";
 import { useRouter } from "@/routes/hooks/use-router";
-import { Loader2, RefreshCw } from "lucide-react";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo } from "react";
 import { useLocation, useNavigate, useParams } from "react-router";
 import { ReportLayout } from "../../reports/components/layout/report-layout";
 import {
@@ -21,8 +16,15 @@ import {
 	ReportTemplateTable,
 } from "../../reports/components/layout/report-template-table";
 import { formatReportTimestamp } from "../../reports/report-detail/constants";
+import {
+	BorrowMoreDialog,
+	CreatePaymentDialog,
+	EditLoanTermsDialog,
+	PostponeDueDateDialog,
+} from "./components/borrow-detail-dialogs";
 import { LoanPaymentsTable } from "./components/loan-payments-table";
 import { useBorrowDetail } from "./hooks/use-borrow-detail";
+import { useBorrowDetailDialogs } from "./hooks/use-borrow-detail-dialogs";
 
 function formatLoanStatusLabel(status?: "normal" | "due" | "complete") {
 	if (status === "due") return "Due";
@@ -35,16 +37,6 @@ export default function BorrowDetailPage() {
 	const router = useRouter();
 	const location = useLocation();
 	const navigate = useNavigate();
-	const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
-	const [shouldUpdateDueDate, setShouldUpdateDueDate] = useState(true);
-	const [paymentCode, setPaymentCode] = useState("");
-	const [paymentAmount, setPaymentAmount] = useState("");
-	const [isBorrowMoreDialogOpen, setIsBorrowMoreDialogOpen] = useState(false);
-	const [additionalAmount, setAdditionalAmount] = useState("");
-	const [isEditTermsDialogOpen, setIsEditTermsDialogOpen] = useState(false);
-	const [isPostponeDialogOpen, setIsPostponeDialogOpen] = useState(false);
-	const [installmentAmountInput, setInstallmentAmountInput] = useState("");
-	const [dueWarningDaysInput, setDueWarningDaysInput] = useState("");
 	const {
 		loan,
 		isLoading,
@@ -62,29 +54,45 @@ export default function BorrowDetailPage() {
 		isGeneratingPaymentCode,
 		regeneratePaymentCode,
 	} = useBorrowDetail(id || "");
-	const paymentCodeRef = useRef(paymentCode);
-
-	const setPaymentCodeValue = useCallback((value: string) => {
-		paymentCodeRef.current = value;
-		setPaymentCode(value);
-	}, []);
-
-	const applyGeneratedPaymentCode = useCallback(
-		async (force = false) => {
-			const paymentCodeBeforeFetch = paymentCodeRef.current.trim();
-			const result = await regeneratePaymentCode();
-			const generatedCode = result.data?.code?.trim();
-			if (!generatedCode) return;
-
-			const paymentCodeAfterFetch = paymentCodeRef.current.trim();
-			if (!force && paymentCodeAfterFetch !== paymentCodeBeforeFetch) {
-				return;
-			}
-
-			setPaymentCodeValue(generatedCode);
-		},
-		[regeneratePaymentCode, setPaymentCodeValue],
-	);
+	const {
+		isPaymentDialogOpen,
+		setIsPaymentDialogOpen,
+		shouldUpdateDueDate,
+		setShouldUpdateDueDate,
+		paymentCode,
+		setPaymentCodeValue,
+		paymentAmount,
+		setPaymentAmount,
+		isBorrowMoreDialogOpen,
+		setIsBorrowMoreDialogOpen,
+		additionalAmount,
+		setAdditionalAmount,
+		isEditTermsDialogOpen,
+		setIsEditTermsDialogOpen,
+		isPostponeDialogOpen,
+		setIsPostponeDialogOpen,
+		installmentAmountInput,
+		setInstallmentAmountInput,
+		dueWarningDaysInput,
+		setDueWarningDaysInput,
+		applyGeneratedPaymentCode,
+		openPaymentDialog,
+		openEditTermsDialog,
+		handleCreatePayment,
+		handleBorrowMore,
+		handleUpdateLoanTerms,
+		handlePostponeLoan,
+		resetPaymentDialog,
+		resetBorrowMoreDialog,
+	} = useBorrowDetailDialogs({
+		currentDue,
+		loan,
+		createPayment,
+		extendLoan,
+		updateLoan,
+		postponeLoan,
+		regeneratePaymentCode,
+	});
 
 	const paidTotal = loan?.paidAmount ?? 0;
 	const remainingBalance = loan ? Math.max(loan.principalAmount - paidTotal, 0) : 0;
@@ -171,48 +179,6 @@ export default function BorrowDetailPage() {
 		router.push("/dashboard/loan");
 	}, [router]);
 
-	const handleCreatePayment = async () => {
-		const parsedAmount = Number(paymentAmount);
-		if (!currentDue || !Number.isFinite(parsedAmount) || parsedAmount <= 0) return;
-		if (!paymentCode.trim()) return;
-		await createPayment({
-			code: paymentCode.trim(),
-			amount: parsedAmount,
-			shouldUpdateDueDate,
-		});
-		setIsPaymentDialogOpen(false);
-		setPaymentCodeValue("");
-		setPaymentAmount(currentDue ? String(currentDue.amount) : "");
-	};
-
-	const handleBorrowMore = async () => {
-		const parsedAmount = Number(additionalAmount);
-		if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) return;
-		await extendLoan(parsedAmount);
-		setIsBorrowMoreDialogOpen(false);
-		setAdditionalAmount("");
-	};
-
-	const handleOpenEditTermsDialog = () => {
-		if (!loan || loan.status === "complete") return;
-		setInstallmentAmountInput(String(loan.installmentAmount ?? ""));
-		setDueWarningDaysInput(String(loan.dueWarningDays ?? 5));
-		setIsEditTermsDialogOpen(true);
-	};
-
-	const handleUpdateLoanTerms = async () => {
-		const parsedInstallmentAmount = Number(installmentAmountInput);
-		const parsedDueWarningDays = Number(dueWarningDaysInput);
-		if (!Number.isFinite(parsedInstallmentAmount) || parsedInstallmentAmount <= 0) return;
-		if (!Number.isFinite(parsedDueWarningDays) || parsedDueWarningDays < 0 || parsedDueWarningDays > 29) return;
-
-		await updateLoan({
-			installmentAmount: parsedInstallmentAmount,
-			dueWarningDays: parsedDueWarningDays,
-		});
-		setIsEditTermsDialogOpen(false);
-	};
-
 	const handlePrintPayments = () => {
 		if (payments.length === 0) return;
 		window.print();
@@ -288,13 +254,7 @@ export default function BorrowDetailPage() {
 					<Button
 						size="sm"
 						className="bg-sky-600 text-white shadow-sm hover:bg-sky-700"
-						onClick={() => {
-							setPaymentCodeValue("");
-							setPaymentAmount(currentDue ? String(currentDue.amount) : "");
-							setShouldUpdateDueDate(true);
-							setIsPaymentDialogOpen(true);
-							void applyGeneratedPaymentCode(false);
-						}}
+						onClick={openPaymentDialog}
 						disabled={!currentDue || isCreatingPayment}
 					>
 						Create Payment
@@ -317,7 +277,7 @@ export default function BorrowDetailPage() {
 						<Text variant="subTitle1" className="font-semibold">
 							Information
 						</Text>
-						<Button size="sm" variant="secondary" onClick={handleOpenEditTermsDialog} disabled={isLoanComplete}>
+						<Button size="sm" variant="secondary" onClick={openEditTermsDialog} disabled={isLoanComplete}>
 							Edit Terms
 						</Button>
 					</div>
@@ -449,251 +409,53 @@ export default function BorrowDetailPage() {
 				/>
 			</ReportLayout>
 
-			<Dialog open={isPaymentDialogOpen} onOpenChange={setIsPaymentDialogOpen}>
-				<DialogContent className="sm:max-w-lg">
-					<DialogHeader>
-						<DialogTitle>Create Loan Payment</DialogTitle>
-						<DialogDescription>Record a payment for this loan.</DialogDescription>
-					</DialogHeader>
-					<div className="grid gap-4 text-sm">
-						<div className="rounded-md border bg-slate-50 px-4 py-3">
-							<div className="flex items-center justify-between gap-4">
-								<span className="text-slate-500">Borrower</span>
-								<span className="font-medium text-slate-900">{loan.borrowerName}</span>
-							</div>
-							<div className="mt-2 flex items-center justify-between gap-4">
-								<span className="text-slate-500">Due date</span>
-								<span className="font-medium text-slate-900">
-									{currentDue ? formatDisplayDate(currentDue.dueDate) : "-"}
-								</span>
-							</div>
-						</div>
-						<div className="space-y-1.5">
-							<Label htmlFor="loan-payment-code">Payment Code</Label>
-							<div className="relative group">
-								<Input
-									id="loan-payment-code"
-									type="text"
-									value={paymentCode}
-									onChange={(event) => setPaymentCodeValue(event.target.value)}
-									placeholder="Enter payment code"
-									disabled={isCreatingPayment || isGeneratingPaymentCode}
-									className="pr-10"
-								/>
-								<button
-									type="button"
-									onClick={() => void applyGeneratedPaymentCode(true)}
-									disabled={isCreatingPayment || isGeneratingPaymentCode}
-									className="absolute right-2 top-1/2 -translate-y-1/2 flex h-7 w-7 items-center justify-center rounded-md text-slate-400 hover:bg-slate-100 hover:text-slate-600 focus:outline-none focus:ring-1 focus:ring-slate-200 disabled:opacity-50"
-									title="Regenerate code"
-								>
-									{isGeneratingPaymentCode ? (
-										<Loader2 className="h-4 w-4 animate-spin text-sky-600" />
-									) : (
-										<RefreshCw className="h-4 w-4 transition-transform group-hover:rotate-180 duration-500" />
-									)}
-								</button>
-							</div>
-						</div>
+			<CreatePaymentDialog
+				open={isPaymentDialogOpen}
+				onOpenChange={setIsPaymentDialogOpen}
+				borrowerName={loan.borrowerName}
+				currentDue={currentDue}
+				paymentCode={paymentCode}
+				onPaymentCodeChange={setPaymentCodeValue}
+				paymentAmount={paymentAmount}
+				onPaymentAmountChange={(value) => setPaymentAmount(value.replace(/[^\d.]/g, ""))}
+				shouldUpdateDueDate={shouldUpdateDueDate}
+				onShouldUpdateDueDateChange={setShouldUpdateDueDate}
+				onRegeneratePaymentCode={() => void applyGeneratedPaymentCode(true)}
+				onCancel={resetPaymentDialog}
+				onSubmit={handleCreatePayment}
+				isCreatingPayment={isCreatingPayment}
+				isGeneratingPaymentCode={isGeneratingPaymentCode}
+			/>
 
-						<div className="space-y-1.5">
-							<Label htmlFor="loan-payment-amount">Amount</Label>
-							<div className="relative">
-								<Input
-									id="loan-payment-amount"
-									type="text"
-									inputMode="numeric"
-									value={paymentAmount}
-									onChange={(event) => setPaymentAmount(event.target.value.replace(/[^\d.]/g, ""))}
-									placeholder="Enter amount"
-									disabled={isCreatingPayment}
-									className="pr-14"
-								/>
-								<span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs font-medium text-slate-400">
-									KHR
-								</span>
-							</div>
-						</div>
-						<div className="flex items-start gap-3 rounded-md border px-4 py-3">
-							<Checkbox
-								id="loan-payment-update-due-date"
-								checked={shouldUpdateDueDate}
-								onCheckedChange={(checked) => setShouldUpdateDueDate(checked === true)}
-							/>
-							<div className="space-y-1">
-								<Label htmlFor="loan-payment-update-due-date" className="cursor-pointer">
-									Update next due date after receiving this payment
-								</Label>
-								<Text variant="caption" className="leading-5 text-slate-500">
-									Use this when the payment should also move the next due date forward.
-								</Text>
-							</div>
-						</div>
-					</div>
-					<DialogFooter>
-						<Button
-							variant="outline"
-							onClick={() => {
-								setIsPaymentDialogOpen(false);
-								setShouldUpdateDueDate(true);
-								setPaymentCodeValue("");
-								setPaymentAmount(currentDue ? String(currentDue.amount) : "");
-							}}
-							disabled={isCreatingPayment}
-						>
-							Cancel
-						</Button>
-						<Button
-							onClick={handleCreatePayment}
-							disabled={
-								!currentDue ||
-								isCreatingPayment ||
-								!paymentCode.trim() ||
-								!Number.isFinite(Number(paymentAmount)) ||
-								Number(paymentAmount) <= 0
-							}
-						>
-							{isCreatingPayment ? "Creating..." : "Create Payment"}
-						</Button>
-					</DialogFooter>
-				</DialogContent>
-			</Dialog>
+			<BorrowMoreDialog
+				open={isBorrowMoreDialogOpen}
+				onOpenChange={setIsBorrowMoreDialogOpen}
+				additionalAmount={additionalAmount}
+				onAdditionalAmountChange={setAdditionalAmount}
+				onCancel={resetBorrowMoreDialog}
+				onSubmit={handleBorrowMore}
+				isExtendingLoan={isExtendingLoan}
+			/>
 
-			<Dialog open={isBorrowMoreDialogOpen} onOpenChange={setIsBorrowMoreDialogOpen}>
-				<DialogContent className="sm:max-w-lg">
-					<DialogHeader>
-						<DialogTitle>Add More Borrowed Amount</DialogTitle>
-						<DialogDescription>
-							Create an additional loan entry for this borrower using the current 30-day payment schedule.
-						</DialogDescription>
-					</DialogHeader>
-					<div className="space-y-3">
-						<div className="space-y-1.5">
-							<Label htmlFor="borrow-more-amount">Borrowed Amount</Label>
-							<Input
-								id="borrow-more-amount"
-								type="number"
-								min={1}
-								value={additionalAmount}
-								onChange={(event) => setAdditionalAmount(event.target.value)}
-								placeholder="Enter amount"
-								disabled={isExtendingLoan}
-							/>
-						</div>
-					</div>
-					<DialogFooter>
-						<Button
-							variant="outline"
-							onClick={() => {
-								setIsBorrowMoreDialogOpen(false);
-								setAdditionalAmount("");
-							}}
-							disabled={isExtendingLoan}
-						>
-							Cancel
-						</Button>
-						<Button
-							onClick={handleBorrowMore}
-							disabled={isExtendingLoan || !Number.isFinite(Number(additionalAmount)) || Number(additionalAmount) <= 0}
-						>
-							{isExtendingLoan ? "Creating..." : "Confirm"}
-						</Button>
-					</DialogFooter>
-				</DialogContent>
-			</Dialog>
+			<PostponeDueDateDialog
+				open={isPostponeDialogOpen}
+				onOpenChange={setIsPostponeDialogOpen}
+				borrowerName={loan.borrowerName}
+				currentDue={currentDue}
+				onSubmit={handlePostponeLoan}
+				isPostponing={isPostponing}
+			/>
 
-			<Dialog open={isPostponeDialogOpen} onOpenChange={setIsPostponeDialogOpen}>
-				<DialogContent className="sm:max-w-md">
-					<DialogHeader>
-						<DialogTitle>Postpone Due Date</DialogTitle>
-						<DialogDescription>
-							Move the current due date forward for this loan. Use this only when the borrower needs an approved
-							extension.
-						</DialogDescription>
-					</DialogHeader>
-					<div className="rounded-md border bg-slate-50 px-4 py-3 text-sm">
-						<div className="flex items-center justify-between gap-4">
-							<span className="text-slate-500">Borrower</span>
-							<span className="font-medium text-slate-900">{loan.borrowerName}</span>
-						</div>
-						<div className="mt-2 flex items-center justify-between gap-4">
-							<span className="text-slate-500">Current due date</span>
-							<span className="font-medium text-slate-900">
-								{currentDue ? formatDisplayDate(currentDue.dueDate) : "-"}
-							</span>
-						</div>
-					</div>
-					<DialogFooter>
-						<Button variant="outline" onClick={() => setIsPostponeDialogOpen(false)} disabled={isPostponing}>
-							Cancel
-						</Button>
-						<Button
-							variant="warning"
-							onClick={async () => {
-								await postponeLoan();
-								setIsPostponeDialogOpen(false);
-							}}
-							disabled={isPostponing || !currentDue}
-						>
-							{isPostponing ? "Postponing..." : "Confirm Postpone"}
-						</Button>
-					</DialogFooter>
-				</DialogContent>
-			</Dialog>
-
-			<Dialog open={isEditTermsDialogOpen} onOpenChange={setIsEditTermsDialogOpen}>
-				<DialogContent className="sm:max-w-lg">
-					<DialogHeader>
-						<DialogTitle>Update Loan Terms</DialogTitle>
-						<DialogDescription>Adjust the installment amount and due warning period for this loan.</DialogDescription>
-					</DialogHeader>
-					<div className="space-y-3">
-						<div className="space-y-1.5">
-							<Label htmlFor="loan-installment-amount">Installment Amount</Label>
-							<Input
-								id="loan-installment-amount"
-								type="number"
-								min={1}
-								value={installmentAmountInput}
-								onChange={(event) => setInstallmentAmountInput(event.target.value)}
-								placeholder="Enter installment amount"
-								disabled={isUpdatingLoan}
-							/>
-						</div>
-						<div className="space-y-1.5">
-							<Label htmlFor="loan-due-warning-days">Due Warning Days</Label>
-							<Input
-								id="loan-due-warning-days"
-								type="number"
-								min={0}
-								max={29}
-								value={dueWarningDaysInput}
-								onChange={(event) => setDueWarningDaysInput(event.target.value)}
-								placeholder="Enter due warning days"
-								disabled={isUpdatingLoan}
-							/>
-						</div>
-					</div>
-					<DialogFooter>
-						<Button variant="outline" onClick={() => setIsEditTermsDialogOpen(false)} disabled={isUpdatingLoan}>
-							Cancel
-						</Button>
-						<Button
-							onClick={handleUpdateLoanTerms}
-							disabled={
-								isUpdatingLoan ||
-								!Number.isFinite(Number(installmentAmountInput)) ||
-								Number(installmentAmountInput) <= 0 ||
-								!Number.isFinite(Number(dueWarningDaysInput)) ||
-								Number(dueWarningDaysInput) < 0 ||
-								Number(dueWarningDaysInput) > 29
-							}
-						>
-							{isUpdatingLoan ? "Updating..." : "Save Changes"}
-						</Button>
-					</DialogFooter>
-				</DialogContent>
-			</Dialog>
+			<EditLoanTermsDialog
+				open={isEditTermsDialogOpen}
+				onOpenChange={setIsEditTermsDialogOpen}
+				installmentAmountInput={installmentAmountInput}
+				onInstallmentAmountInputChange={setInstallmentAmountInput}
+				dueWarningDaysInput={dueWarningDaysInput}
+				onDueWarningDaysInputChange={setDueWarningDaysInput}
+				onSubmit={handleUpdateLoanTerms}
+				isUpdatingLoan={isUpdatingLoan}
+			/>
 		</div>
 	);
 }

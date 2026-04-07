@@ -49,7 +49,7 @@ export function InvoiceBatchUpdateDialog({
 	};
 
 	return (
-		<Dialog open={open} onOpenChange={onOpenChange}>
+		<Dialog open={open} onOpenChange={isUpdating ? undefined : onOpenChange}>
 			<DialogContent className="sm:max-w-[425px]">
 				<DialogHeader>
 					<DialogTitle>Update {selectedCount} Invoice(s)</DialogTitle>

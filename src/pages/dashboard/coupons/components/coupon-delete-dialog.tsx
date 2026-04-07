@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import couponService from "@/core/api/services/coupon-service";
+import { useDialogSubmitHandler } from "@/core/hooks/use-dialog-submit-handler";
 import type { Coupon } from "@/core/types/coupon";
 import { Button } from "@/core/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/core/ui/dialog";
@@ -29,6 +30,9 @@ export function CouponDeleteDialog({ open, onOpenChange, coupon }: CouponDeleteD
 	const queryClient = useQueryClient();
 	const [delAccNo, setDelAccNo] = useState("");
 	const [delDate, setDelDate] = useState("");
+	const submitAndClose = useDialogSubmitHandler({
+		closeDialog: () => onOpenChange(false),
+	});
 
 	useEffect(() => {
 		setDelAccNo(coupon?.delAccNo ?? "");
@@ -50,7 +54,6 @@ export function CouponDeleteDialog({ open, onOpenChange, coupon }: CouponDeleteD
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["coupons"] });
 			toast.success("Coupon deleted successfully");
-			onOpenChange(false);
 		},
 		onError: (error) => {
 			const message = error instanceof Error ? error.message : "Failed to delete coupon";
@@ -59,7 +62,7 @@ export function CouponDeleteDialog({ open, onOpenChange, coupon }: CouponDeleteD
 	});
 
 	return (
-		<Dialog open={open} onOpenChange={onOpenChange}>
+		<Dialog open={open} onOpenChange={isPending ? undefined : onOpenChange}>
 			<DialogContent className="sm:max-w-[480px]">
 				<DialogHeader>
 					<DialogTitle>Delete Coupon</DialogTitle>
@@ -91,7 +94,12 @@ export function CouponDeleteDialog({ open, onOpenChange, coupon }: CouponDeleteD
 					<Button variant="outline" onClick={() => onOpenChange(false)} disabled={isPending}>
 						Cancel
 					</Button>
-					<Button variant="destructive" className="text-white" onClick={() => deleteCoupon()} disabled={isPending || !coupon?.couponNo}>
+					<Button
+						variant="destructive"
+						className="text-white"
+						onClick={() => submitAndClose(() => deleteCoupon())}
+						disabled={isPending || !coupon?.couponNo}
+					>
 						{isPending ? "Deleting..." : "Delete Coupon"}
 					</Button>
 				</DialogFooter>

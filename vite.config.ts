@@ -66,6 +66,15 @@ export default defineConfig(({ mode }) => {
 			exclude: ["@iconify/react"],
 		},
 
+		test: {
+			globals: true,
+			environment: "jsdom",
+			setupFiles: ["./src/test/setup.ts"],
+			css: true,
+			include: ["src/**/*.{test,spec}.{ts,tsx}"],
+			exclude: ["node_modules", "dist"],
+		},
+
 		esbuild: {
 			drop: isProduction ? ["console", "debugger"] : [],
 			legalComments: "none",

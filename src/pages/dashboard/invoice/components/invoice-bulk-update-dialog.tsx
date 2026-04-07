@@ -1,6 +1,7 @@
 import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { useDialogSubmitHandler } from "@/core/hooks/use-dialog-submit-handler";
 import { Button } from "@/core/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/core/ui/dialog";
 import { Input } from "@/core/ui/input";
@@ -46,6 +47,12 @@ export function InvoiceBulkUpdateDialog({
 	onSuccess,
 }: InvoiceBulkUpdateDialogProps) {
 	const updateMutation = useUpdateInvoices();
+	const submitAndClose = useDialogSubmitHandler({
+		closeDialog: () => {
+			onOpenChange(false);
+			onSuccess?.();
+		},
+	});
 
 	// Form State
 	const [customerName, setCustomerName] = useState("");
@@ -71,16 +78,15 @@ export function InvoiceBulkUpdateDialog({
 			return;
 		}
 
-		updateMutation.mutate(payload, {
-			onSuccess: () => {
+		void submitAndClose(async () => {
+			try {
+				await updateMutation.mutateAsync(payload);
 				toast.success(`Successfully updated ${selectedIds.length} invoice(s).`);
-				onOpenChange(false);
-				onSuccess?.();
-			},
-			onError: (err) => {
+			} catch (err) {
 				toast.error("Failed to update invoices. Please try again.");
 				console.error("Bulk update error:", err);
-			},
+				throw err;
+			}
 		});
 	};
 

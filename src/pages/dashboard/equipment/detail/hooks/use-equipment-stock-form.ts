@@ -100,7 +100,7 @@ export function useEquipmentStockForm(item: InventoryItem | null) {
 		}
 	}, [reason, refCodeMode, refCode, regenerateRefCode]);
 
-	const handleSubmit = async (values: UpdateStockFormValues, onSuccess?: () => void) => {
+	const handleSubmit = async (values: UpdateStockFormValues) => {
 		if (!item) return;
 
 		const parsedQty = Number(values.quantity);
@@ -124,11 +124,11 @@ export function useEquipmentStockForm(item: InventoryItem | null) {
 			}
 
 			reset();
-			onSuccess?.();
 		} catch (e) {
 			if (import.meta.env.DEV) {
 				console.error("Stock update failed:", e);
 			}
+			throw e;
 		}
 	};
 

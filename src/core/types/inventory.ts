@@ -36,7 +36,6 @@ export interface InventoryItem {
 export interface InitStockRequest {
 	refCode: string;
 	quantityOnHand: number;
-	expense?: number;
 }
 
 export interface CreateInventoryItem {
