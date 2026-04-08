@@ -3,7 +3,11 @@ import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import cashTransactionService from "@/core/api/services/cash-transaction-service";
 import type { AccountingRow } from "@/core/types/common";
 import type { CashTransactionFlattenResult } from "@/core/types/cash-transaction";
-import { ACCOUNTING_ALL_TYPES_FILTER, ACCOUNTING_QUERY_KEYS, ACCOUNTING_REFERENCE_PAGE_SIZE } from "../constants";
+import {
+	ACCOUNTING_ALL_TYPES_FILTER,
+	ACCOUNTING_FILTER_PAGE_SIZE,
+	ACCOUNTING_QUERY_KEYS,
+} from "../constants";
 
 function formatAccountingDate(value?: string) {
 	if (!value) return "-";
@@ -66,20 +70,22 @@ export function useAccountingTransactions({
 	const normalizedSearchValue = searchValue.trim();
 	const shouldFilterClientSide = typeFilter !== ACCOUNTING_ALL_TYPES_FILTER || normalizedSearchValue !== "";
 	const resolvedFieldFilter = normalizedSearchValue ? fieldFilter : "all";
+	const requestedLimit = shouldFilterClientSide ? ACCOUNTING_FILTER_PAGE_SIZE : pageSize;
+	const requestedPage = shouldFilterClientSide ? 1 : page;
 
 	const { data, isLoading, isError } = useQuery({
 		queryKey: [
 			...ACCOUNTING_QUERY_KEYS.cashTransactions,
-			page,
-			pageSize,
+			requestedPage,
+			requestedLimit,
 			typeFilter,
 			resolvedFieldFilter,
 			normalizedSearchValue,
 		],
 		queryFn: () =>
 			cashTransactionService.listCashTransactions({
-				page: 1,
-				limit: ACCOUNTING_REFERENCE_PAGE_SIZE,
+				page: requestedPage,
+				limit: requestedLimit,
 			}),
 		placeholderData: keepPreviousData,
 		staleTime: 5 * 60 * 1000,
@@ -87,34 +93,39 @@ export function useAccountingTransactions({
 		refetchOnReconnect: false,
 	});
 
-	const rows = useMemo<AccountingRow[]>(() => {
-		const mappedRows = (data?.list ?? []).map(mapCashTransactionToAccountingRow);
-		const filteredRows = shouldFilterClientSide
-			? filterRows(mappedRows, typeFilter, resolvedFieldFilter, normalizedSearchValue)
-			: mappedRows;
-		const startIndex = (page - 1) * pageSize;
-		return filteredRows.slice(startIndex, startIndex + pageSize);
-	}, [data?.list, normalizedSearchValue, page, pageSize, resolvedFieldFilter, shouldFilterClientSide, typeFilter]);
+	const mappedRows = useMemo(
+		() => (data?.list ?? []).map(mapCashTransactionToAccountingRow),
+		[data?.list],
+	);
 
-	const filteredTotalItems = useMemo(() => {
+	const filteredRows = useMemo(() => {
 		if (!shouldFilterClientSide) {
-			return data?.total ?? 0;
+			return mappedRows;
 		}
 
-		return filterRows(
-			(data?.list ?? []).map(mapCashTransactionToAccountingRow),
-			typeFilter,
-			resolvedFieldFilter,
-			normalizedSearchValue,
-		).length;
-	}, [data?.list, data?.total, normalizedSearchValue, resolvedFieldFilter, shouldFilterClientSide, typeFilter]);
+		return filterRows(mappedRows, typeFilter, resolvedFieldFilter, normalizedSearchValue);
+	}, [mappedRows, normalizedSearchValue, resolvedFieldFilter, shouldFilterClientSide, typeFilter]);
+
+	const rows = useMemo<AccountingRow[]>(() => {
+		if (!shouldFilterClientSide) {
+			return filteredRows;
+		}
+
+		const startIndex = (page - 1) * pageSize;
+		return filteredRows.slice(startIndex, startIndex + pageSize);
+	}, [filteredRows, page, pageSize, shouldFilterClientSide]);
+
+	const totalItems = shouldFilterClientSide ? filteredRows.length : (data?.total ?? 0);
+	const totalPages = shouldFilterClientSide
+		? Math.max(1, Math.ceil(totalItems / pageSize))
+		: (data?.pageCount ?? Math.max(1, Math.ceil(totalItems / pageSize)));
 
 	return {
 		rows,
-		page: data?.page ?? page,
-		pageSize: data?.pageSize ?? pageSize,
-		totalItems: filteredTotalItems,
-		totalPages: Math.max(1, Math.ceil(filteredTotalItems / pageSize)),
+		page: shouldFilterClientSide ? page : (data?.page ?? page),
+		pageSize: shouldFilterClientSide ? pageSize : (data?.pageSize ?? pageSize),
+		totalItems,
+		totalPages,
 		isLoading,
 		isError,
 	};

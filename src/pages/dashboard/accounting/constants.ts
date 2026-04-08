@@ -1,4 +1,5 @@
 export const ACCOUNTING_REFERENCE_PAGE_SIZE = 1000;
+export const ACCOUNTING_FILTER_PAGE_SIZE = 10000;
 
 export const ACCOUNTING_QUERY_KEYS = {
 	accountTypes: ["accounting-account-types"] as const,
