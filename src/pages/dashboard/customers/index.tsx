@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router";
 import customerService from "@/core/api/services/customer-service";
 import { DashboardSplitView } from "@/core/components/common/dashboard-split-view";
 import { useSidebarCollapse } from "@/core/hooks/use-sidebar-collapse";
@@ -10,11 +11,67 @@ import { CustomerContent } from "./components/customer-content";
 import { CustomerSidebar } from "./components/customer-sidebar";
 import { useCustomerListActions, useCustomerListState } from "./stores/customer-list-store";
 
+const DEFAULT_FIELD_FILTER = "name";
+const DEFAULT_PAGE = 1;
+const DEFAULT_PAGE_SIZE = 20;
+
+const normalizePositiveInt = (value: string | null, fallback: number) => {
+	if (!value) return fallback;
+	const parsed = Number.parseInt(value, 10);
+	return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+};
+
 export default function CustomersPage() {
+	const [searchParams, setSearchParams] = useSearchParams();
 	const [activeCustomer, setActiveCustomer] = useState<Customer | null>(null);
 	const listState = useCustomerListState();
 	const { updateState } = useCustomerListActions();
 	const { isCollapsed, handleToggle } = useSidebarCollapse();
+	const urlListState = useMemo(
+		() => ({
+			fieldFilter: searchParams.get("field") || DEFAULT_FIELD_FILTER,
+			searchValue: searchParams.get("search") || "",
+			page: normalizePositiveInt(searchParams.get("page"), DEFAULT_PAGE),
+			pageSize: normalizePositiveInt(searchParams.get("pageSize"), DEFAULT_PAGE_SIZE),
+		}),
+		[searchParams],
+	);
+
+	useEffect(() => {
+		const hasChanged =
+			listState.fieldFilter !== urlListState.fieldFilter ||
+			listState.searchValue !== urlListState.searchValue ||
+			listState.page !== urlListState.page ||
+			listState.pageSize !== urlListState.pageSize;
+
+		if (hasChanged) {
+			updateState(urlListState);
+		}
+	}, [
+		listState.fieldFilter,
+		listState.page,
+		listState.pageSize,
+		listState.searchValue,
+		updateState,
+		urlListState,
+	]);
+
+	useEffect(() => {
+		setSearchParams(
+			(prev) => {
+				const next = new URLSearchParams(prev);
+				next.set("field", listState.fieldFilter || DEFAULT_FIELD_FILTER);
+				if (listState.searchValue.trim()) next.set("search", listState.searchValue);
+				else next.delete("search");
+				if (listState.page > DEFAULT_PAGE) next.set("page", String(listState.page));
+				else next.delete("page");
+				if (listState.pageSize !== DEFAULT_PAGE_SIZE) next.set("pageSize", String(listState.pageSize));
+				else next.delete("pageSize");
+				return next;
+			},
+			{ replace: true },
+		);
+	}, [listState.fieldFilter, listState.page, listState.pageSize, listState.searchValue, setSearchParams]);
 
 	// clear active customer when user starts searching
 	useEffect(() => {

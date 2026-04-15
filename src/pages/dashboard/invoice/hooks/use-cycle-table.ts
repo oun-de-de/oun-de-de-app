@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import cycleService from "@/core/api/services/cycle-service";
 import type { CycleStatus } from "@/core/types/cycle";
 import { buildPagination } from "@/core/utils/dashboard-utils";
@@ -7,7 +7,7 @@ import { formatKHR } from "../utils/formatters";
 
 const DEFAULT_CYCLE_SORT = "startDate,desc";
 
-export function useCycleTable(customerId: string | null, requireCustomer = false) {
+export function useCycleTable(customerId: string | null, requireCustomer = false, initialDuration?: number | null) {
 	const [searchValue, setSearchValue] = useState("");
 	const [duration, setDuration] = useState(0);
 	const [status, setStatus] = useState<CycleStatus | "all">("all");
@@ -18,6 +18,15 @@ export function useCycleTable(customerId: string | null, requireCustomer = false
 	const isQueryEnabled = requireCustomer ? !!customerId : true;
 	const normalizedSearchValue = searchValue.trim().toLowerCase();
 	const isSearching = normalizedSearchValue !== "";
+
+	useEffect(() => {
+		setSearchValue("");
+		setDuration(initialDuration && initialDuration > 0 ? initialDuration : 0);
+		setStatus("all");
+		setFromDate("");
+		setToDate("");
+		setPage(1);
+	}, [customerId, initialDuration]);
 
 	const query = useQuery({
 		queryKey: ["cycles", customerId, fromDate, toDate, duration, status, page, pageSize],

@@ -29,6 +29,7 @@ const PRODUCT_SETTINGS_ANCHOR_ID = "product-settings";
 const WAREHOUSE_SETTINGS_ANCHOR_ID = "warehouse-settings";
 
 type CustomerEditLocationState = {
+	returnTo?: string;
 	scrollTo?: string;
 };
 
@@ -110,6 +111,7 @@ export default function CustomerEditPage() {
 	const containerRef = useRef<HTMLDivElement>(null);
 	const locationState = location.state as CustomerEditLocationState | null;
 	const scrollTarget = searchParams.get("section") ?? locationState?.scrollTo ?? null;
+	const returnTo = locationState?.returnTo ?? CUSTOMERS_PATH;
 
 	const { data: customer, isLoading } = useGetCustomer(id);
 	const { data: vehicles } = useGetCustomerVehicles(id);
@@ -162,9 +164,9 @@ export default function CustomerEditPage() {
 			if (existingVehicles.length > 0) await updateCustomerVehicles(existingVehicles);
 
 			toast.success("Customer updated successfully");
-			navigate(CUSTOMERS_PATH);
+			navigate(returnTo);
 		},
-		[customer?.paymentTerm, updateCustomerInfo, createCustomerVehicles, updateCustomerVehicles, navigate, vehicles],
+		[customer?.paymentTerm, updateCustomerInfo, createCustomerVehicles, updateCustomerVehicles, navigate, returnTo, vehicles],
 	);
 
 	if (isLoading) return <div className="p-6">Loading...</div>;
@@ -173,14 +175,14 @@ export default function CustomerEditPage() {
 	return (
 		<div ref={containerRef} className="flex flex-col h-full p-6 gap-6 overflow-auto flex-1">
 			<div className="flex items-center gap-3">
-				<BackButton appearance="icon" onClick={() => navigate(CUSTOMERS_PATH)} />
+				<BackButton appearance="icon" onClick={() => navigate(returnTo)} />
 				<Text className="font-semibold text-sky-600">Edit Customer</Text>
 			</div>
 
 			<div className="flex-1 w-full">
 				<CustomerForm
 					onSubmit={handleSubmit}
-					onCancel={() => navigate(CUSTOMERS_PATH)}
+					onCancel={() => navigate(returnTo)}
 					mode="edit"
 					showTitle={false}
 					defaultValues={defaultValues}

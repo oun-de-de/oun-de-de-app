@@ -27,6 +27,7 @@ type CycleContentProps = {
 	customerName: string | null;
 	onSelectCycle: (cycle: Cycle) => void;
 	requireCustomer?: boolean;
+	initialDuration?: number | null;
 };
 
 const sanitizeDurationInput = (value: string) => value.replace(/\D+/g, "");
@@ -50,7 +51,13 @@ function normalizeDurationInput(value: string) {
 	return sanitizeDurationInput(trimmedValue);
 }
 
-export function CycleContent({ customerId, customerName, onSelectCycle, requireCustomer = false }: CycleContentProps) {
+export function CycleContent({
+	customerId,
+	customerName,
+	onSelectCycle,
+	requireCustomer = false,
+	initialDuration,
+}: CycleContentProps) {
 	const navigate = useNavigate();
 	const {
 		cycles,
@@ -74,7 +81,7 @@ export function CycleContent({ customerId, customerName, onSelectCycle, requireC
 		onPageChange,
 		onPageSizeChange,
 		isLoading,
-	} = useCycleTable(customerId, requireCustomer);
+	} = useCycleTable(customerId, requireCustomer, initialDuration);
 
 	const [durationInput, setDurationInput] = useState(() => getDurationDisplayValue(duration));
 	const durationAnchorRef = useComboboxAnchor();

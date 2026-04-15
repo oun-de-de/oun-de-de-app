@@ -9,6 +9,24 @@ export enum CycleApi {
 	List = "/cycles",
 }
 
+export function normalizeLoanStartDate(value: string): string {
+	const normalized = value.trim();
+	if (!normalized) return normalized;
+	if (/^\d{4}-\d{2}-\d{2}$/.test(normalized)) {
+		return new Date(`${normalized}T00:00:00`).toISOString();
+	}
+	if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/.test(normalized)) {
+		return new Date(normalized).toISOString();
+	}
+
+	const parsed = new Date(normalized);
+	if (Number.isNaN(parsed.getTime())) {
+		return normalized;
+	}
+
+	return parsed.toISOString();
+}
+
 const getCycles = (params: {
 	customerId?: string;
 	from?: string;
@@ -90,7 +108,10 @@ const createPayment = (cycleId: string, data: CreatePaymentRequest): Promise<Cyc
 const convertToLoan = (cycleId: string, data: ConvertToLoanRequest): Promise<Loan> =>
 	apiClient.post<Loan>({
 		url: `${CycleApi.List}/${cycleId}/convert-to-loan`,
-		data,
+		data: {
+			...data,
+			startDate: normalizeLoanStartDate(data.startDate),
+		},
 	});
 
 const generatePaymentCode = (): Promise<CodeResponse> =>

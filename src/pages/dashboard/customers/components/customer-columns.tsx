@@ -13,6 +13,11 @@ const formatPaymentTypeLabel = (value: string) =>
 		.map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
 		.join(" ");
 
+const formatPaymentTermDays = (customer: Customer) => {
+	const duration = customer.paymentTerm?.duration;
+	return duration ? `${duration} day${duration === 1 ? "" : "s"}` : "-";
+};
+
 export const columns: ColumnDef<Customer>[] = [
 	{
 		header: "Register Date",
@@ -49,6 +54,13 @@ export const columns: ColumnDef<Customer>[] = [
 				</Badge>
 			);
 		},
+	},
+	{
+		header: "Payment Term (Day)",
+		id: "paymentTermDays",
+		size: 130,
+		meta: { bodyClassName: "text-center" },
+		cell: ({ row }) => formatPaymentTermDays(row.original),
 	},
 	{
 		header: "Customer Type",

@@ -1,5 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
-import { useNavigate } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 import { toast } from "sonner";
 import customerService from "@/core/api/services/customer-service";
 import { BackButton } from "@/core/components/common";
@@ -12,7 +12,9 @@ import { CustomerForm, type CustomerFormData } from "./components/customer-form"
 
 export default function CreateCustomerPage() {
 	const navigate = useNavigate();
+	const location = useLocation();
 	const { employeeOptions, customerOptions, warehouseOptions } = useFormOptions();
+	const returnTo = (location.state as { returnTo?: string } | null)?.returnTo ?? "/dashboard/customers";
 
 	const { mutateAsync: createCustomer } = useMutation({
 		mutationFn: async (data: CreateCustomer) => {
@@ -20,7 +22,7 @@ export default function CreateCustomerPage() {
 		},
 		onSuccess: () => {
 			toast.success("Customer has been created successfully");
-			navigate("/dashboard/customers");
+			navigate(returnTo);
 		},
 		onError: (error) => {
 			console.error(error);
@@ -71,7 +73,7 @@ export default function CreateCustomerPage() {
 		await createCustomer(payload);
 	};
 
-	const handleCancel = () => navigate("/dashboard/customers");
+	const handleCancel = () => navigate(returnTo);
 
 	return (
 		<div className="flex flex-col h-full p-6 gap-6">

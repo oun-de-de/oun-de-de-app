@@ -24,6 +24,7 @@ import {
 	getLocalNowDateTime,
 	getLocalToday,
 } from "@/pages/dashboard/accounting/utils/format-local-date-time";
+import { FormDatePicker } from "@/pages/dashboard/accounting/components/form-date-picker";
 
 import { useCyclePaymentDialogState } from "../hooks/use-cycle-payment-dialog-state";
 import { useCyclePayments } from "../hooks/use-cycle-payments";
@@ -386,15 +387,17 @@ export function CyclePaymentDialog({
 											<FormField
 												control={loanForm.control}
 												name="loanStartDate"
-												render={({ field }) => (
+												render={({ fieldState }) => (
 													<FormItem>
 														<FormLabel>Loan Start Date</FormLabel>
 														<FormControl>
-															<Input
-																{...field}
-																type="date"
+															<FormDatePicker
+																control={loanForm.control}
+																name="loanStartDate"
 																disabled={isConvertingToLoan}
-																className="relative [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-3"
+																error={fieldState.error?.message}
+																valueMode="date-string"
+																hideError
 															/>
 														</FormControl>
 														<FormMessage />

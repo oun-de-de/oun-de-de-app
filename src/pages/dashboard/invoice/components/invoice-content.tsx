@@ -1,6 +1,6 @@
 import type { OnChangeFn, SortingState } from "@tanstack/react-table";
 import { useCallback, useMemo, useState } from "react";
-import { useNavigate } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 import { SmartDataTable, SummaryStatCard } from "@/core/components/common";
 import Icon from "@/core/components/icon/icon";
 import invoiceService from "@/core/api/services/invoice-service";
@@ -99,6 +99,7 @@ export function InvoiceContent({
 	activeCycle = null,
 }: InvoiceContentProps) {
 	const navigate = useNavigate();
+	const location = useLocation();
 	const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false);
 	const [updateTargetIds, setUpdateTargetIds] = useState<string[]>([]);
 	const [updateInitialValues, setUpdateInitialValues] = useState<{ customerName?: string }>({});
@@ -212,6 +213,12 @@ export function InvoiceContent({
 							icon: "mdi:cash-check",
 						},
 						{
+							label: "Remaining Balance",
+							value: formatKHR((activeCycle.totalAmount ?? 0) - (activeCycle.totalPaidAmount ?? 0)),
+							color: "bg-amber-500",
+							icon: "mdi:cash-remove",
+						},
+						{
 							label: "Start Date",
 							value: formatFlexibleDisplayDate(activeCycle.startDate),
 							color: "bg-slate-500",
@@ -251,6 +258,7 @@ export function InvoiceContent({
 				customerId: activeCycle?.customerId,
 				customerName: activeCycle?.customerName,
 				cycleId: activeCycle?.id,
+				returnPath: `${location.pathname}${location.search}`,
 				receiptPaymentAmount: options?.receiptPaymentAmount,
 				receiptPaymentCode: options?.receiptPaymentCode,
 				receiptPaymentDate: options?.receiptPaymentDate,
@@ -270,7 +278,7 @@ export function InvoiceContent({
 				state: exportState,
 			});
 		},
-		[activeCycle, navigate],
+		[activeCycle, location.pathname, location.search, navigate],
 	);
 
 	const handleOpenExportPreview = () => {

@@ -42,11 +42,20 @@ const TEMPLATE_COLUMNS: TemplateColumn[] = [
 	{ label: "MEMO", width: 30, map: (row) => row.memo ?? "" },
 ];
 
-export function buildInvoiceExportBlob(rows: InvoiceExportLineApi[]): Blob {
-	const headerRow = TEMPLATE_COLUMNS.map((column) => column.label);
-	const dataRows = rows.map((row, index) => TEMPLATE_COLUMNS.map((column) => column.map(row, index)));
+export function buildInvoiceExportBlob(
+	rows: InvoiceExportLineApi[],
+	options?: {
+		includeReceived?: boolean;
+	},
+): Blob {
+	const visibleColumns =
+		options?.includeReceived === false
+			? TEMPLATE_COLUMNS.filter((column) => column.label !== "RECEIVED")
+			: TEMPLATE_COLUMNS;
+	const headerRow = visibleColumns.map((column) => column.label);
+	const dataRows = rows.map((row, index) => visibleColumns.map((column) => column.map(row, index)));
 	const worksheet = XLSX.utils.aoa_to_sheet([headerRow, ...dataRows]);
-	worksheet["!cols"] = TEMPLATE_COLUMNS.map((column) => ({ wch: column.width }));
+	worksheet["!cols"] = visibleColumns.map((column) => ({ wch: column.width }));
 
 	const workbook = XLSX.utils.book_new();
 	XLSX.utils.book_append_sheet(workbook, worksheet, "Invoice Export");
