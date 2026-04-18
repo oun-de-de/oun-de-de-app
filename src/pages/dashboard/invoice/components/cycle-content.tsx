@@ -27,6 +27,7 @@ type CycleContentProps = {
 	customerName: string | null;
 	onSelectCycle: (cycle: Cycle) => void;
 	requireCustomer?: boolean;
+	initialDuration?: number | null;
 };
 
 const sanitizeDurationInput = (value: string) => value.replace(/\D+/g, "");
@@ -50,7 +51,13 @@ function normalizeDurationInput(value: string) {
 	return sanitizeDurationInput(trimmedValue);
 }
 
-export function CycleContent({ customerId, customerName, onSelectCycle, requireCustomer = false }: CycleContentProps) {
+export function CycleContent({
+	customerId,
+	customerName,
+	onSelectCycle,
+	requireCustomer = false,
+	initialDuration,
+}: CycleContentProps) {
 	const navigate = useNavigate();
 	const {
 		cycles,
@@ -74,7 +81,7 @@ export function CycleContent({ customerId, customerName, onSelectCycle, requireC
 		onPageChange,
 		onPageSizeChange,
 		isLoading,
-	} = useCycleTable(customerId, requireCustomer);
+	} = useCycleTable(customerId, requireCustomer, initialDuration);
 
 	const [durationInput, setDurationInput] = useState(() => getDurationDisplayValue(duration));
 	const durationAnchorRef = useComboboxAnchor();
@@ -128,9 +135,9 @@ export function CycleContent({ customerId, customerName, onSelectCycle, requireC
 	}
 
 	return (
-		<div className={`flex w-full flex-col gap-4 ${isLoading ? "opacity-60 pointer-events-none" : ""}`}>
+		<div className={`flex h-full min-h-0 w-full flex-1 flex-col gap-3 overflow-hidden ${isLoading ? "opacity-60 pointer-events-none" : ""}`}>
 			{/* Header */}
-			<div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-2">
+			<div className="shrink-0 flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-2">
 				<div className="flex items-center gap-2">
 					<Text variant="body2" className="text-muted-foreground">
 						{customerName ? `Cycles for ${customerName}` : "Select a customer"}
@@ -143,104 +150,108 @@ export function CycleContent({ customerId, customerName, onSelectCycle, requireC
 				</div>
 			</div>
 			{/* Summary */}
-			<div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
+			<div className="shrink-0 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
 				{summaryCards.map((card) => (
 					<SummaryStatCard key={card.label} {...card} />
 				))}
 			</div>
 
 			{/* Filters: Search + Duration + Status + Date Range */}
-			<div className="flex flex-wrap items-center justify gap-2 rounded-lg border p-4">
-				<div className="space-y-1.5">
-					<Label>Search</Label>
-					<Input
-						type="text"
-						value={searchValue}
-						onChange={(e) => setSearchValue(e.target.value)}
-						placeholder="Search customer..."
-						className="w-[220px]"
-					/>
-				</div>
+			<div className="shrink-0 rounded-lg border p-4">
+				<div className="grid grid-cols-1 gap-x-4 gap-y-2 md:grid-cols-[minmax(360px,1.45fr)_minmax(210px,0.85fr)_minmax(210px,0.85fr)]">
+					<div className="space-y-1.5">
+						<Label>Search</Label>
+						<Input
+							type="text"
+							value={searchValue}
+							onChange={(e) => setSearchValue(e.target.value)}
+							placeholder="Search customer..."
+							className="w-full"
+						/>
+					</div>
 
-				<div className="space-y-1.5">
-					<Label>Duration</Label>
-					<Combobox<(typeof durationOptions)[number]>
-						items={durationOptions}
-						value={selectedDurationOption}
-						inputValue={durationInput}
-						onValueChange={(option) => {
-							const nextDuration = Number(option?.value ?? 0);
-							setDurationInput(option?.label ?? ALL_DURATION_LABEL);
-							onDurationChange(nextDuration);
-						}}
-						onInputValueChange={(nextInputValue) => {
-							const normalizedInput = normalizeDurationInput(nextInputValue);
-							setDurationInput(normalizedInput);
-							onDurationChange(
-								normalizedInput === "" || normalizedInput === ALL_DURATION_LABEL ? 0 : Number(normalizedInput),
-							);
-						}}
-					>
-						<div ref={durationAnchorRef} className="w-[180px]">
-							<ComboboxInput className={cn("w-full bg-background")} placeholder="Duration" aria-label="Duration" />
+					<div className="space-y-1.5">
+						<Label>Duration</Label>
+						<Combobox<(typeof durationOptions)[number]>
+							items={durationOptions}
+							value={selectedDurationOption}
+							inputValue={durationInput}
+							onValueChange={(option) => {
+								const nextDuration = Number(option?.value ?? 0);
+								setDurationInput(option?.label ?? ALL_DURATION_LABEL);
+								onDurationChange(nextDuration);
+							}}
+							onInputValueChange={(nextInputValue) => {
+								const normalizedInput = normalizeDurationInput(nextInputValue);
+								setDurationInput(normalizedInput);
+								onDurationChange(
+									normalizedInput === "" || normalizedInput === ALL_DURATION_LABEL ? 0 : Number(normalizedInput),
+								);
+							}}
+						>
+							<div ref={durationAnchorRef} className="w-full">
+								<ComboboxInput className={cn("w-full bg-background")} placeholder="Duration" aria-label="Duration" />
+							</div>
+							<ComboboxContent anchor={durationAnchorRef}>
+								<ComboboxEmpty>No matching duration.</ComboboxEmpty>
+								<ComboboxList>{(option) => <ComboboxItem value={option}>{option.label}</ComboboxItem>}</ComboboxList>
+							</ComboboxContent>
+						</Combobox>
+					</div>
+
+					<div className="space-y-1.5">
+						<Label>Status</Label>
+						<Select value={status} onValueChange={(value) => onStatusChange(value as CycleStatus | "all")}>
+							<SelectTrigger className="w-full" aria-label="Status">
+								<SelectValue placeholder="Status" />
+							</SelectTrigger>
+							<SelectContent>
+								{CYCLE_STATUS_OPTIONS.map((option) => (
+									<SelectItem key={option.value} value={option.value}>
+										{option.label}
+									</SelectItem>
+								))}
+							</SelectContent>
+						</Select>
+					</div>
+
+					<div className="grid grid-cols-1 gap-3 md:col-span-3 md:grid-cols-[170px_170px_auto] md:justify-start">
+						<div className="space-y-1.5">
+							<Label>From</Label>
+							<Input
+								type="date"
+								value={fromDate}
+								max={toDate || undefined}
+								onChange={(e) => setFromDate(e.target.value)}
+								className="w-full md:w-[170px]"
+							/>
 						</div>
-						<ComboboxContent anchor={durationAnchorRef}>
-							<ComboboxEmpty>No matching duration.</ComboboxEmpty>
-							<ComboboxList>{(option) => <ComboboxItem value={option}>{option.label}</ComboboxItem>}</ComboboxList>
-						</ComboboxContent>
-					</Combobox>
-				</div>
 
-				<div className="space-y-1.5">
-					<Label>Status</Label>
-					<Select value={status} onValueChange={(value) => onStatusChange(value as CycleStatus | "all")}>
-						<SelectTrigger className="w-[180px]" aria-label="Status">
-							<SelectValue placeholder="Status" />
-						</SelectTrigger>
-						<SelectContent>
-							{CYCLE_STATUS_OPTIONS.map((option) => (
-								<SelectItem key={option.value} value={option.value}>
-									{option.label}
-								</SelectItem>
-							))}
-						</SelectContent>
-					</Select>
-				</div>
+						<div className="space-y-1.5">
+							<Label>To</Label>
+							<Input
+								type="date"
+								value={toDate}
+								min={fromDate || undefined}
+								onChange={(e) => setToDate(e.target.value)}
+								className="w-full md:w-[170px]"
+							/>
+						</div>
 
-				<div className="space-y-1.5">
-					<Label>From</Label>
-					<Input
-						type="date"
-						value={fromDate}
-						max={toDate || undefined}
-						onChange={(e) => setFromDate(e.target.value)}
-						className="w-[180px]"
-					/>
-				</div>
-
-				<div className="space-y-1.5">
-					<Label>To</Label>
-					<Input
-						type="date"
-						value={toDate}
-						min={fromDate || undefined}
-						onChange={(e) => setToDate(e.target.value)}
-						className="w-[180px]"
-					/>
-				</div>
-
-				<div className="space-y-1.5">
-					<div className="h-2" aria-hidden="true" />
-					<Button size="sm" className="h-8" onClick={handleResetDefault}>
-						Reset Default
-					</Button>
+						<div className="flex items-end justify-start">
+							<Button size="sm" className="h-8" onClick={handleResetDefault}>
+								Reset Default
+							</Button>
+						</div>
+					</div>
 				</div>
 			</div>
 
 			{/* Cycles Table */}
 			<SmartDataTable
-				className="flex-1 min-h-0"
+				className="flex-1 min-h-0 w-full overflow-hidden"
 				maxBodyHeight="100%"
+				minBodyHeight="0"
 				data={cycles}
 				columns={columns}
 				onRowClick={handleRowClick}

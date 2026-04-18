@@ -15,7 +15,7 @@ export enum LoanApi {
 	Loans = "/loans",
 }
 
-type LoanApiResponse = Omit<Loan, "borrowerType" | "createdAt" | "status"> & {
+export type LoanApiResponse = Omit<Loan, "borrowerType" | "createdAt" | "status"> & {
 	borrowerType: string;
 	status: string;
 	createdAt?: string;
@@ -48,7 +48,7 @@ function normalizeLoanStatus(value: string): LoanStatus {
 	return "normal";
 }
 
-function normalizeLoan(data: LoanApiResponse): Loan {
+export function normalizeLoan(data: LoanApiResponse): Loan {
 	return {
 		...data,
 		borrowerType: normalizeBorrowerType(data.borrowerType),

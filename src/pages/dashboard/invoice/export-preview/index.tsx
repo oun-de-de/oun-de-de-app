@@ -154,8 +154,12 @@ export default function InvoiceExportPreviewPage() {
 	const [orientationMode, setOrientationMode] = useState<OrientationMode>(initialOrientationMode);
 	const [sortMode, setSortMode] = useState<SortMode>(initialSortMode);
 	const [hasAutoPrinted, setHasAutoPrinted] = useState(false);
+	const showReceivedColumnByDefault =
+		isReceiptPath || requestedMode === "receipt" || Boolean(state?.receiptPaymentAmount !== undefined);
 	const [columnVisibility, setColumnVisibility] = useState<Record<string, boolean>>(() =>
-		Object.fromEntries(columns.map((column) => [column.id, true])),
+		Object.fromEntries(
+			columns.map((column) => [column.id, column.id === "received" ? showReceivedColumnByDefault : true]),
+		),
 	);
 
 	const previewRows = useMemo(
@@ -240,6 +244,16 @@ export default function InvoiceExportPreviewPage() {
 		() => state?.receiptPaymentAmount ?? calculateTotalReceived(previewRows),
 		[previewRows, state?.receiptPaymentAmount],
 	);
+	const summaryRows = useMemo(
+		() =>
+			isReceiptExport
+				? [
+						{ key: "received", label: "Received: ", value: `${formatNumber(totalReceived)} ៛` },
+						{ key: "total-balance", label: "Total Balance: ", value: `${formatNumber(totalBalance)} ៛` },
+					]
+				: [{ key: "total-balance", label: "Total Balance: ", value: `${formatNumber(totalBalance)} ៛` }],
+		[isReceiptExport, totalBalance, totalReceived],
+	);
 	const totalQuantity = useMemo(
 		() => sortedPreviewRows.reduce((sum, row) => sum + getRowQuantity(row), 0),
 		[sortedPreviewRows],
@@ -266,7 +280,9 @@ export default function InvoiceExportPreviewPage() {
 				toast.error("No invoice data available for export");
 				return;
 			}
-			const blob = buildInvoiceExportBlob(exportLines);
+			const blob = buildInvoiceExportBlob(exportLines, {
+				includeReceived: isReceiptExport,
+			});
 			const url = window.URL.createObjectURL(blob);
 			const link = document.createElement("a");
 			link.href = url;
@@ -555,13 +571,15 @@ export default function InvoiceExportPreviewPage() {
 										<span>{formatNumber(totalQuantity)}</span>
 									</div>
 									<div className="flex justify-between">
-										<span>Received:</span>
-										<span>{formatNumber(totalReceived)}៛</span>
-									</div>
-									<div className="flex justify-between">
 										<span>Total Balance:</span>
 										<span>{formatNumber(totalBalance)}៛</span>
 									</div>
+									{isReceiptExport ? (
+										<div className="flex justify-between">
+											<span>Received:</span>
+											<span>{formatNumber(totalReceived)}៛</span>
+										</div>
+									) : null}
 									<div className="flex justify-between">
 										<span>Total:</span>
 										<span>{formatNumber(totalAmount)}៛</span>
@@ -596,10 +614,7 @@ export default function InvoiceExportPreviewPage() {
 							columns={columns}
 							hiddenColumnKeys={hiddenColumnKeys}
 							rows={reportRows}
-							summaryRows={[
-								{ key: "received", label: "Received: ", value: `${formatNumber(totalReceived)} ៛` },
-								{ key: "total-balance", label: "Total Balance: ", value: `${formatNumber(totalBalance)} ៛` },
-							]}
+							summaryRows={summaryRows}
 							timestampText={timestampText}
 							footerText={REPORT_FOOTER_TEXT}
 						/>

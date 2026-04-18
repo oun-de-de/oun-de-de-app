@@ -3,10 +3,29 @@ import type { ConvertToLoanRequest, CreatePaymentRequest, Cycle, CyclePayment, C
 import type { Loan } from "@/core/types/loan";
 import type { Pagination } from "@/core/types/pagination";
 import { mapPagePaginatedResponseToPagination } from "@/core/utils/pagination";
+import { normalizeLoan, type LoanApiResponse } from "./loan-service";
 import { apiClient } from "../apiClient";
 
 export enum CycleApi {
 	List = "/cycles",
+}
+
+export function normalizeLoanStartDate(value: string): string {
+	const normalized = value.trim();
+	if (!normalized) return normalized;
+	if (/^\d{4}-\d{2}-\d{2}$/.test(normalized)) {
+		return new Date(`${normalized}T00:00:00`).toISOString();
+	}
+	if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/.test(normalized)) {
+		return new Date(normalized).toISOString();
+	}
+
+	const parsed = new Date(normalized);
+	if (Number.isNaN(parsed.getTime())) {
+		return normalized;
+	}
+
+	return parsed.toISOString();
 }
 
 const getCycles = (params: {
@@ -88,10 +107,15 @@ const createPayment = (cycleId: string, data: CreatePaymentRequest): Promise<Cyc
 	});
 
 const convertToLoan = (cycleId: string, data: ConvertToLoanRequest): Promise<Loan> =>
-	apiClient.post<Loan>({
+	apiClient
+		.post<LoanApiResponse>({
 		url: `${CycleApi.List}/${cycleId}/convert-to-loan`,
-		data,
-	});
+		data: {
+			...data,
+			startDate: normalizeLoanStartDate(data.startDate),
+		},
+		})
+		.then(normalizeLoan);
 
 const generatePaymentCode = (): Promise<CodeResponse> =>
 	apiClient.get<CodeResponse>({

@@ -2,7 +2,7 @@ import { SmartDataTable } from "@/core/components/common";
 import { useCallback, useMemo } from "react";
 import type { Customer } from "@/core/types/customer";
 import { Text } from "@/core/ui/typography";
-import { useNavigate } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 import type { ListState } from "../stores/customer-list-store";
 import { FILTER_FIELD_OPTIONS, FILTER_TYPE_OPTIONS } from "../utils/customer-utils";
 import CustomerButtonActions from "./customer-button-actions";
@@ -31,11 +31,13 @@ export function CustomerContent({
 	paginationItems,
 }: CustomerContentProps) {
 	const navigate = useNavigate();
+	const location = useLocation();
 	// const summaryStats = getSummaryStats(activeCustomer);
 	const searchPlaceholder = listState.fieldFilter === "payment_term" ? "Enter payment term in days" : "Search...";
+	const returnTo = `${location.pathname}${location.search}`;
 	const handleRowClick = useCallback(
-		(customer: Customer) => navigate(`/dashboard/customers/edit/${customer.id}`),
-		[navigate],
+		(customer: Customer) => navigate(`/dashboard/customers/edit/${customer.id}`, { state: { returnTo } }),
+		[navigate, returnTo],
 	);
 	const handleTypeChange = useCallback((value: string) => updateState({ typeFilter: value, page: 1 }), [updateState]);
 	const handleFieldChange = useCallback((value: string) => updateState({ fieldFilter: value, page: 1 }), [updateState]);

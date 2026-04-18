@@ -66,6 +66,19 @@ export function getInvoiceColumns({
 			header: "Customer",
 			accessorKey: "customerName",
 		},
+		// Temporarily hidden until the invoice table receives a reliable balance source.
+		// The list API does not expose balance directly, so this column depends on the
+		// commented-out enrichment flow in invoice-content.tsx.
+		// {
+		// 	header: "Remaining Balance",
+		// 	accessorKey: "balance",
+		// 	size: 150,
+		// 	meta: { bodyClassName: "text-right" },
+		// 	cell: ({ row }) => {
+		// 		const balance = row.original.balance;
+		// 		return balance === null || balance === undefined ? "-" : formatKHR(balance);
+		// 	},
+		// },
 		{
 			header: "Actions",
 			id: "actions",

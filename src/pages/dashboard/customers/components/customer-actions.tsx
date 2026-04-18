@@ -1,7 +1,7 @@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/core/ui/dropdown-menu";
 import Icon from "@/core/components/icon/icon";
 import { useQueryClient } from "@tanstack/react-query";
-import { useNavigate } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 import { customerQueryOptions } from "../hooks/use-get-customer";
 
 type CustomerActionsProps = {
@@ -11,11 +11,13 @@ type CustomerActionsProps = {
 
 export function CustomerActions({ customerId, customerName }: CustomerActionsProps) {
 	const navigate = useNavigate();
+	const location = useLocation();
 	const queryClient = useQueryClient();
+	const returnTo = `${location.pathname}${location.search}`;
 
 	const editUrl = `/dashboard/customers/edit/${customerId}`;
 
-	const handleEdit = () => navigate(editUrl);
+	const handleEdit = () => navigate(editUrl, { state: { returnTo } });
 
 	const handleViewInvoices = () => {
 		const params = new URLSearchParams({ customerId, customerName });
@@ -24,7 +26,7 @@ export function CustomerActions({ customerId, customerName }: CustomerActionsPro
 
 	const handleScrollTo = (section: string) => {
 		const params = new URLSearchParams({ section });
-		navigate(`${editUrl}?${params.toString()}`);
+		navigate(`${editUrl}?${params.toString()}`, { state: { returnTo, scrollTo: section } });
 	};
 
 	// prefetch customer data

@@ -1,6 +1,6 @@
 import type { OnChangeFn, SortingState } from "@tanstack/react-table";
 import { useCallback, useMemo, useState } from "react";
-import { useNavigate } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 import { SmartDataTable, SummaryStatCard } from "@/core/components/common";
 import Icon from "@/core/components/icon/icon";
 import invoiceService from "@/core/api/services/invoice-service";
@@ -99,6 +99,7 @@ export function InvoiceContent({
 	activeCycle = null,
 }: InvoiceContentProps) {
 	const navigate = useNavigate();
+	const location = useLocation();
 	const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false);
 	const [updateTargetIds, setUpdateTargetIds] = useState<string[]>([]);
 	const [updateInitialValues, setUpdateInitialValues] = useState<{ customerName?: string }>({});
@@ -107,6 +108,39 @@ export function InvoiceContent({
 	const [isConvertDialogOpen, setIsConvertDialogOpen] = useState(false);
 	const [exportingPaymentId, setExportingPaymentId] = useState<string | null>(null);
 	const { payments, isLoadingPayments } = useCyclePayments(activeCycle?.id);
+	// This enrichment flow was used to backfill invoice balances from the export-detail endpoint
+	// because the invoice list API does not return balance. It is currently disabled together
+	// with the "Remaining Balance" column to keep the invoice table on the simpler list payload.
+	// const visibleInvoiceIds = useMemo(() => pagedData.map((invoice) => invoice.id), [pagedData]);
+	// const { data: visibleInvoiceDetails = [] } = useQuery({
+	// 	queryKey: ["invoice-export-lines", visibleInvoiceIds],
+	// 	queryFn: () => invoiceService.listInvoiceDetails(visibleInvoiceIds),
+	// 	enabled: visibleInvoiceIds.length > 0,
+	// });
+	// const invoiceBalanceByRefNo = useMemo(() => {
+	// 	const balances = new Map<string, number>();
+	//
+	// 	for (const line of visibleInvoiceDetails) {
+	// 		const refNo = line.refNo?.trim();
+	// 		if (!refNo) continue;
+	//
+	// 		const previewRow = toInvoiceExportPreviewRow(line);
+	// 		const balance = getPreviewRowBalance(previewRow, getPreviewRowOriginalAmount(previewRow));
+	// 		if (balance === null || balance === undefined) continue;
+	//
+	// 		balances.set(refNo, Math.max(balances.get(refNo) ?? 0, balance));
+	// 	}
+	//
+	// 	return balances;
+	// }, [visibleInvoiceDetails]);
+	// const tableInvoices = useMemo(
+	// 	() =>
+	// 		pagedData.map((invoice) => ({
+	// 			...invoice,
+	// 			balance: invoiceBalanceByRefNo.get(invoice.refNo) ?? invoice.balance ?? null,
+	// 		})),
+	// 	[invoiceBalanceByRefNo, pagedData],
+	// );
 	const {
 		selectedInvoiceIds,
 		selectedInvoiceById,
@@ -212,6 +246,12 @@ export function InvoiceContent({
 							icon: "mdi:cash-check",
 						},
 						{
+							label: "Remaining Balance",
+							value: formatKHR((activeCycle.totalAmount ?? 0) - (activeCycle.totalPaidAmount ?? 0)),
+							color: "bg-amber-500",
+							icon: "mdi:cash-remove",
+						},
+						{
 							label: "Start Date",
 							value: formatFlexibleDisplayDate(activeCycle.startDate),
 							color: "bg-slate-500",
@@ -251,6 +291,7 @@ export function InvoiceContent({
 				customerId: activeCycle?.customerId,
 				customerName: activeCycle?.customerName,
 				cycleId: activeCycle?.id,
+				returnPath: `${location.pathname}${location.search}`,
 				receiptPaymentAmount: options?.receiptPaymentAmount,
 				receiptPaymentCode: options?.receiptPaymentCode,
 				receiptPaymentDate: options?.receiptPaymentDate,
@@ -270,7 +311,7 @@ export function InvoiceContent({
 				state: exportState,
 			});
 		},
-		[activeCycle, navigate],
+		[activeCycle, location.pathname, location.search, navigate],
 	);
 
 	const handleOpenExportPreview = () => {
@@ -454,6 +495,7 @@ export function InvoiceContent({
 					<SmartDataTable
 						className="min-w-0 max-h-[280px] overflow-hidden rounded-md border border-slate-200"
 						maxBodyHeight="280px"
+						minBodyHeight="0"
 						variant="borderless"
 						data={displayedPayments}
 						columns={paymentColumns}
@@ -463,8 +505,9 @@ export function InvoiceContent({
 			)}
 
 			<SmartDataTable
-				className="flex-1 min-h-0 w-full"
-				maxBodyHeight="100%"
+				className="min-h-0 w-full"
+				minBodyHeight="0"
+				fillAvailableHeight={false}
 				data={pagedData}
 				columns={columns}
 				onRowClick={handleOpenInvoiceExportPreview}

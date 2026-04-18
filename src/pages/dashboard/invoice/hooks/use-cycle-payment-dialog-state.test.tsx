@@ -20,6 +20,7 @@ type PaymentFormValues = {
 };
 
 type LoanFormValues = {
+	loanCode: string;
 	loanStartDate: string;
 	monthlyAmount: string;
 	dueWarningDays: string;
@@ -43,6 +44,7 @@ const paymentDefaults = () => ({
 });
 
 const loanDefaults = () => ({
+	loanCode: "",
 	loanStartDate: "2025-01-01",
 	monthlyAmount: "",
 	dueWarningDays: "5",
@@ -86,6 +88,7 @@ function renderCycleDialogState(options?: { open?: boolean; historyOnly?: boolea
 			});
 			const loanForm = useForm<LoanFormValues>({
 				defaultValues: {
+					loanCode: "",
 					loanStartDate: "2025-01-01",
 					monthlyAmount: "",
 					dueWarningDays: "5",

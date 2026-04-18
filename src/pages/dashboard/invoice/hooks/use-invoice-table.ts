@@ -86,10 +86,11 @@ export function useInvoiceTable({ customerName, customerId, cycleId }: UseInvoic
 	const currentPage = Math.min(page, totalPages);
 
 	useEffect(() => {
+		if (!invoicePage) return;
 		if (page > totalPages) {
 			updateState({ page: totalPages });
 		}
-	}, [page, totalPages, updateState]);
+	}, [invoicePage, page, totalPages, updateState]);
 
 	const pagedData = useMemo(() => {
 		if (!isSearching) return invoices;

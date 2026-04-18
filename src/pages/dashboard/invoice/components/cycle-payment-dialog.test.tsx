@@ -5,12 +5,15 @@ import type { ReactNode } from "react";
 import { useState } from "react";
 
 import cycleService from "@/core/api/services/cycle-service";
+import loanService from "@/core/api/services/loan-service";
 import type { Cycle } from "@/core/types/cycle";
 import { CyclePaymentDialog } from "./cycle-payment-dialog";
 
 const navigateMock = vi.fn();
 const createPaymentMock = vi.fn();
+const convertToLoanMock = vi.fn();
 let isCreatingPayment = false;
+let isConvertingToLoan = false;
 
 vi.mock("react-router", () => ({
 	useNavigate: () => navigateMock,
@@ -26,8 +29,8 @@ vi.mock("../hooks/use-cycle-payments", () => ({
 		isLoadingPayments: false,
 		createPayment: createPaymentMock,
 		isCreatingPayment,
-		convertToLoan: vi.fn(),
-		isConvertingToLoan: false,
+		convertToLoan: convertToLoanMock,
+		isConvertingToLoan,
 	}),
 }));
 
@@ -40,6 +43,12 @@ vi.mock("../../accounting/components/form-date-time-local-picker", () => ({
 vi.mock("@/core/api/services/cycle-service", () => ({
 	default: {
 		generatePaymentCode: vi.fn(),
+	},
+}));
+
+vi.mock("@/core/api/services/loan-service", () => ({
+	default: {
+		generateLoanCode: vi.fn(),
 	},
 }));
 
@@ -72,12 +81,18 @@ function createWrapper() {
 
 function renderDialog(props?: {
 	createPaymentImpl?: typeof createPaymentMock;
+	convertToLoanImpl?: typeof convertToLoanMock;
 	isPending?: boolean;
+	isConverting?: boolean;
 	onOpenChangeSpy?: (open: boolean) => void;
 }) {
 	const wrapper = createWrapper();
 	isCreatingPayment = props?.isPending ?? false;
+	isConvertingToLoan = props?.isConverting ?? false;
 	createPaymentMock.mockImplementation(props?.createPaymentImpl ?? vi.fn().mockResolvedValue(undefined));
+	convertToLoanMock.mockImplementation(
+		props?.convertToLoanImpl ?? vi.fn().mockResolvedValue({ id: "loan-1" }),
+	);
 
 	function TestHarness() {
 		const [open, setOpen] = useState(true);
@@ -111,7 +126,9 @@ describe("CyclePaymentDialog", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
 		isCreatingPayment = false;
+		isConvertingToLoan = false;
 		vi.mocked(cycleService.generatePaymentCode).mockResolvedValue({ code: "PAY-001" });
+		vi.mocked(loanService.generateLoanCode).mockResolvedValue({ code: "LOAN-001" });
 	});
 
 	it("closes and resets after a successful payment submit", async () => {
@@ -213,5 +230,67 @@ describe("CyclePaymentDialog", () => {
 
 		expect(onOpenChangeSpy).not.toHaveBeenCalledWith(false);
 		expect(screen.getByText("Create Cycle Payment")).toBeInTheDocument();
+	});
+
+	it("submits loan conversion with generated loan code and navigates to loan detail", async () => {
+		const user = userEvent.setup();
+		renderDialog({
+			convertToLoanImpl: vi.fn().mockResolvedValue({ id: "loan-99" }),
+		});
+
+		await user.click(screen.getByRole("tab", { name: "Convert to Loan" }));
+
+		await waitFor(() => {
+			expect(screen.getByLabelText(/Loan Code/i)).toHaveValue("LOAN-001");
+		});
+
+		await user.type(screen.getByLabelText(/Monthly Amount/i), "55");
+		await user.clear(screen.getByLabelText(/Due Date Warning Days/i));
+		await user.type(screen.getByLabelText(/Due Date Warning Days/i), "7");
+		await user.click(screen.getByRole("button", { name: "Convert To Loan" }));
+
+		await waitFor(() => {
+			expect(convertToLoanMock).toHaveBeenCalledTimes(1);
+		});
+
+		const payload = convertToLoanMock.mock.calls[0]?.[0];
+		expect(payload).toMatchObject({
+			code: "LOAN-001",
+			loanInstallmentAmount: 55,
+			dueWarningDays: 7,
+		});
+		expect(payload.startDate).toMatch(/T00:00:00/);
+
+		await waitFor(() => {
+			expect(navigateMock).toHaveBeenCalledWith("/dashboard/loan/loan-99");
+		});
+	});
+
+	it("does not send due warning days when the field is left blank", async () => {
+		const user = userEvent.setup();
+		renderDialog({
+			convertToLoanImpl: vi.fn().mockResolvedValue({ id: "loan-100" }),
+		});
+
+		await user.click(screen.getByRole("tab", { name: "Convert to Loan" }));
+
+		await waitFor(() => {
+			expect(screen.getByLabelText(/Loan Code/i)).toHaveValue("LOAN-001");
+		});
+
+		await user.type(screen.getByLabelText(/Monthly Amount/i), "80");
+		await user.clear(screen.getByLabelText(/Due Date Warning Days/i));
+		await user.click(screen.getByRole("button", { name: "Convert To Loan" }));
+
+		await waitFor(() => {
+			expect(convertToLoanMock).toHaveBeenCalledTimes(1);
+		});
+
+		const payload = convertToLoanMock.mock.calls[0]?.[0];
+		expect(payload).toMatchObject({
+			code: "LOAN-001",
+			loanInstallmentAmount: 80,
+		});
+		expect(payload).not.toHaveProperty("dueWarningDays");
 	});
 });

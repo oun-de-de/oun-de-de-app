@@ -24,6 +24,7 @@ import {
 	getLocalNowDateTime,
 	getLocalToday,
 } from "@/pages/dashboard/accounting/utils/format-local-date-time";
+import { FormDatePicker } from "@/pages/dashboard/accounting/components/form-date-picker";
 
 import { useCyclePaymentDialogState } from "../hooks/use-cycle-payment-dialog-state";
 import { useCyclePayments } from "../hooks/use-cycle-payments";
@@ -44,12 +45,17 @@ function getPaymentSchema(maxAmount: number) {
 }
 
 const loanSchema = z.object({
+	loanCode: z.string().trim().min(1, "Loan code is required"),
 	loanStartDate: z.string().trim().min(1, "Loan start date is required"),
 	monthlyAmount: z
 		.string()
 		.min(1, "Monthly amount is required")
 		.refine((val) => Number(val) > 0, "Amount must be greater than 0"),
-	dueWarningDays: z.string().refine((val) => Number(val) >= 0, "Must be 0 or greater"),
+	dueWarningDays: z
+		.string()
+		.trim()
+		.refine((val) => val === "" || Number.isInteger(Number(val)), "Must be a whole number")
+		.refine((val) => val === "" || Number(val) >= 0, "Must be 0 or greater"),
 });
 
 type LoanFormValues = z.infer<typeof loanSchema>;
@@ -73,6 +79,7 @@ export function createPaymentFormDefaults(): PaymentFormValues {
 
 export function createLoanFormDefaults(): LoanFormValues {
 	return {
+		loanCode: "",
 		loanStartDate: getLocalToday(),
 		monthlyAmount: "",
 		dueWarningDays: "5",
@@ -142,6 +149,8 @@ export function CyclePaymentDialog({
 		cycleBalance,
 		isFetchingPaymentCode,
 		applyGeneratedPaymentCode,
+		isFetchingLoanCode,
+		applyGeneratedLoanCode,
 	} = useCyclePaymentDialogState({
 		open,
 		cycle,
@@ -196,10 +205,14 @@ export function CyclePaymentDialog({
 
 		await submitAndClose(async () => {
 			try {
+				const normalizedDueWarningDays = values.dueWarningDays.trim();
 				const loan = await convertToLoan({
+					code: values.loanCode.trim(),
 					loanInstallmentAmount: Number(values.monthlyAmount),
 					startDate,
-					dueWarningDays: Number(values.dueWarningDays),
+					...(normalizedDueWarningDays === ""
+						? {}
+						: { dueWarningDays: Number(normalizedDueWarningDays) }),
 				});
 				navigate(`/dashboard/loan/${loan.id}`);
 			} catch (e) {
@@ -359,6 +372,37 @@ export function CyclePaymentDialog({
 										<div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
 											<FormField
 												control={loanForm.control}
+												name="loanCode"
+												render={({ field, fieldState }) => (
+													<FormItem>
+														<FormLabel>Loan Code</FormLabel>
+														<div className="relative group">
+															<FormControl>
+																<Input
+																	{...field}
+																	placeholder="Enter loan code"
+																	disabled={isConvertingToLoan}
+																	className="pr-10"
+																/>
+															</FormControl>
+															<button
+																type="button"
+																onClick={() => applyGeneratedLoanCode(true)}
+																disabled={isFetchingLoanCode || isConvertingToLoan}
+																className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 flex items-center justify-center rounded-md text-slate-400 hover:text-sky-500 hover:bg-sky-50 transition-colors disabled:opacity-50"
+																title="Refresh Loan Code"
+															>
+																<RefreshCw className={cn("h-3.5 w-3.5", isFetchingLoanCode && "animate-spin")} />
+															</button>
+														</div>
+														{fieldState.error && (
+															<p className="text-xs text-rose-500 mt-1">{fieldState.error.message}</p>
+														)}
+													</FormItem>
+												)}
+											/>
+											<FormField
+												control={loanForm.control}
 												name="monthlyAmount"
 												render={({ field }) => (
 													<FormItem>
@@ -386,15 +430,17 @@ export function CyclePaymentDialog({
 											<FormField
 												control={loanForm.control}
 												name="loanStartDate"
-												render={({ field }) => (
+												render={({ fieldState }) => (
 													<FormItem>
 														<FormLabel>Loan Start Date</FormLabel>
 														<FormControl>
-															<Input
-																{...field}
-																type="date"
+															<FormDatePicker
+																control={loanForm.control}
+																name="loanStartDate"
 																disabled={isConvertingToLoan}
-																className="relative [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-3"
+																error={fieldState.error?.message}
+																valueMode="date-string"
+																hideError
 															/>
 														</FormControl>
 														<FormMessage />
@@ -476,7 +522,7 @@ export function CyclePaymentDialog({
 							form="loan-form"
 							variant="destructive"
 							disabled={isConvertingToLoan || cycleBalance <= 0} // Disable if no cycle or payment is being created
-							className="w-full whitespace-nowrap sm:w-auto mt-2 sm:mt-0"
+							className="w-full whitespace-nowrap text-white sm:w-auto mt-2 sm:mt-0"
 						>
 							{isConvertingToLoan ? "Converting..." : "Convert To Loan"}
 						</Button>
