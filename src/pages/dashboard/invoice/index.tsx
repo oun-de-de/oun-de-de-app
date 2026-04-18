@@ -120,16 +120,19 @@ export default function InvoicePage() {
 
 	const updateInvoiceSearchParams = useCallback(
 		(next: { customerId?: string | null; customerName?: string | null; cycleId?: string | null }) => {
-			setSearchParams((prev) => {
-				const params = new URLSearchParams(prev);
-				if (next.customerId) params.set("customerId", next.customerId);
-				else params.delete("customerId");
-				if (next.customerName) params.set("customerName", next.customerName);
-				else params.delete("customerName");
-				if (next.cycleId) params.set("cycleId", next.cycleId);
-				else params.delete("cycleId");
-				return params;
-			});
+			setSearchParams(
+				(prev) => {
+					const params = new URLSearchParams(prev);
+					if (next.customerId) params.set("customerId", next.customerId);
+					else params.delete("customerId");
+					if (next.customerName) params.set("customerName", next.customerName);
+					else params.delete("customerName");
+					if (next.cycleId) params.set("cycleId", next.cycleId);
+					else params.delete("cycleId");
+					return params;
+				},
+				{ replace: true },
+			);
 		},
 		[setSearchParams],
 	);
@@ -155,26 +158,26 @@ export default function InvoicePage() {
 		(cycle: Cycle) => {
 			setActiveCycleSnapshot(cycle);
 			setActiveCycleId(cycle.id);
-			setActiveCustomerId((prev) => (prev === cycle.customerId ? prev : cycle.customerId));
-			setActiveCustomerName((prev) => (prev === cycle.customerName ? prev : cycle.customerName));
 			updateInvoiceSearchParams({
-				customerId: cycle.customerId,
-				customerName: cycle.customerName,
+				customerId: activeCustomerId,
+				customerName: activeCustomerName,
 				cycleId: cycle.id,
 			});
 		},
-		[updateInvoiceSearchParams],
+		[activeCustomerId, activeCustomerName, updateInvoiceSearchParams],
 	);
 
 	const handleBackToCycles = useCallback(() => {
 		setActiveCycleSnapshot(null);
 		setActiveCycleId(null);
+		setActiveCustomerId(null);
+		setActiveCustomerName(null);
 		updateInvoiceSearchParams({
-			customerId: activeCustomerId,
-			customerName: activeCustomerName,
+			customerId: null,
+			customerName: null,
 			cycleId: null,
 		});
-	}, [activeCustomerId, activeCustomerName, updateInvoiceSearchParams]);
+	}, [updateInvoiceSearchParams]);
 
 	// Invoice table — only used when a cycle is selected
 	const invoiceTable = useInvoiceTable({

@@ -1,45 +1,91 @@
 import { useQuery } from "@tanstack/react-query";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useSearchParams } from "react-router";
+import { useDebounce } from "@/core/hooks/use-debounce";
 import cycleService from "@/core/api/services/cycle-service";
 import type { CycleStatus } from "@/core/types/cycle";
 import { buildPagination } from "@/core/utils/dashboard-utils";
 import { formatKHR } from "../utils/formatters";
 
 const DEFAULT_CYCLE_SORT = "startDate,desc";
+const DEFAULT_PAGE = 1;
+const DEFAULT_PAGE_SIZE = 20;
+const CYCLE_SEARCH_KEY = "cycleSearch";
 
 export function useCycleTable(customerId: string | null, requireCustomer = false, initialDuration?: number | null) {
-	const [searchValue, setSearchValue] = useState("");
-	const [duration, setDuration] = useState(0);
+	const [searchParams, setSearchParams] = useSearchParams();
+	const [searchValue, setSearchValue] = useState(() => searchParams.get(CYCLE_SEARCH_KEY) ?? "");
+	const [duration, setDuration] = useState(() => (initialDuration && initialDuration > 0 ? initialDuration : 0));
 	const [status, setStatus] = useState<CycleStatus | "all">("all");
 	const [fromDate, setFromDate] = useState("");
 	const [toDate, setToDate] = useState("");
-	const [page, setPage] = useState(1);
-	const [pageSize, setPageSize] = useState(20);
+	const [page, setPage] = useState(DEFAULT_PAGE);
+	const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
+	const previousCustomerIdRef = useRef<string | null>(customerId);
 	const isQueryEnabled = requireCustomer ? !!customerId : true;
 	const normalizedSearchValue = searchValue.trim().toLowerCase();
+	const debouncedSearchValue = useDebounce(searchValue, 300);
 	const isSearching = normalizedSearchValue !== "";
+	const cycleQueryParams = useMemo(
+		() => ({
+			customerId: customerId ?? undefined,
+			from: fromDate ? `${fromDate}T00:00:00` : undefined,
+			to: toDate ? `${toDate}T23:59:59` : undefined,
+			duration: duration > 0 ? duration : undefined,
+			status: status === "all" ? undefined : status,
+			sort: DEFAULT_CYCLE_SORT,
+		}),
+		[customerId, duration, fromDate, status, toDate],
+	);
+
+	const updateCycleSearchParam = useCallback(
+		(value: string) => {
+			setSearchParams(
+				(prev) => {
+					const next = new URLSearchParams(prev);
+					if (value.trim()) next.set(CYCLE_SEARCH_KEY, value);
+					else next.delete(CYCLE_SEARCH_KEY);
+					return next;
+				},
+				{ replace: true },
+			);
+		},
+		[setSearchParams],
+	);
 
 	useEffect(() => {
+		const nextSearchValue = searchParams.get(CYCLE_SEARCH_KEY) ?? "";
+		setSearchValue((current) => (current === nextSearchValue ? current : nextSearchValue));
+	}, [searchParams]);
+
+	useEffect(() => {
+		const currentSearchParam = searchParams.get(CYCLE_SEARCH_KEY) ?? "";
+		if (debouncedSearchValue !== searchValue) return;
+		if (debouncedSearchValue === currentSearchParam) return;
+		updateCycleSearchParam(debouncedSearchValue);
+	}, [debouncedSearchValue, searchParams, searchValue, updateCycleSearchParam]);
+
+	useEffect(() => {
+		if (previousCustomerIdRef.current === customerId) return;
+
+		previousCustomerIdRef.current = customerId;
 		setSearchValue("");
 		setDuration(initialDuration && initialDuration > 0 ? initialDuration : 0);
 		setStatus("all");
 		setFromDate("");
 		setToDate("");
-		setPage(1);
-	}, [customerId, initialDuration]);
+		setPage(DEFAULT_PAGE);
+		setPageSize(DEFAULT_PAGE_SIZE);
+		updateCycleSearchParam("");
+	}, [customerId, initialDuration, updateCycleSearchParam]);
 
 	const query = useQuery({
 		queryKey: ["cycles", customerId, fromDate, toDate, duration, status, page, pageSize],
 		queryFn: () =>
 			cycleService.getCycles({
-				customerId: customerId ?? undefined,
-				from: fromDate ? `${fromDate}T00:00:00` : undefined,
-				to: toDate ? `${toDate}T23:59:59` : undefined,
-				duration: duration > 0 ? duration : undefined,
-				status: status === "all" ? undefined : status,
+				...cycleQueryParams,
 				page,
 				size: pageSize,
-				sort: DEFAULT_CYCLE_SORT,
 			}),
 		enabled: isQueryEnabled,
 	});
@@ -47,12 +93,7 @@ export function useCycleTable(customerId: string | null, requireCustomer = false
 		queryKey: ["cycles", "search", customerId, fromDate, toDate, duration, status],
 		queryFn: () =>
 			cycleService.getAllCycles({
-				customerId: customerId ?? undefined,
-				from: fromDate ? `${fromDate}T00:00:00` : undefined,
-				to: toDate ? `${toDate}T23:59:59` : undefined,
-				duration: duration > 0 ? duration : undefined,
-				status: status === "all" ? undefined : status,
-				sort: DEFAULT_CYCLE_SORT,
+				...cycleQueryParams,
 			}),
 		enabled: isQueryEnabled && isSearching,
 	});
@@ -75,24 +116,39 @@ export function useCycleTable(customerId: string | null, requireCustomer = false
 	}, [currentPage, isSearching, pageSize, query.data?.list, searchedCycles]);
 	const summarySourceCycles = isSearching ? searchedCycles : (query.data?.list ?? []);
 
-	const onPageChange = useCallback((value: number) => setPage(value), []);
+	const onPageChange = useCallback(
+		(value: number) => {
+			setPage(value);
+		},
+		[],
+	);
 	const onPageSizeChange = useCallback((value: number) => {
 		setPageSize(value);
-		setPage(1);
+		setPage(DEFAULT_PAGE);
 	}, []);
 
 	const onDurationChange = useCallback((value: number) => {
 		setDuration(value);
-		setPage(1);
+		setPage(DEFAULT_PAGE);
 	}, []);
 
 	const onStatusChange = useCallback((value: CycleStatus | "all") => {
 		setStatus(value);
-		setPage(1);
+		setPage(DEFAULT_PAGE);
 	}, []);
 	const setCycleSearchValue = useCallback((value: string) => {
 		setSearchValue(value);
-		setPage(1);
+		setPage(DEFAULT_PAGE);
+	}, []);
+
+	const setCycleFromDate = useCallback((value: string) => {
+		setFromDate(value);
+		setPage(DEFAULT_PAGE);
+	}, []);
+
+	const setCycleToDate = useCallback((value: string) => {
+		setToDate(value);
+		setPage(DEFAULT_PAGE);
 	}, []);
 
 	const onResetFilters = useCallback(() => {
@@ -101,8 +157,10 @@ export function useCycleTable(customerId: string | null, requireCustomer = false
 		setStatus("all");
 		setFromDate("");
 		setToDate("");
-		setPage(1);
-	}, []);
+		setPage(DEFAULT_PAGE);
+		setPageSize(DEFAULT_PAGE_SIZE);
+		updateCycleSearchParam("");
+	}, [updateCycleSearchParam]);
 
 	const summaryCards = useMemo(() => {
 		const totalAmount = summarySourceCycles.reduce((sum, cycle) => sum + (cycle.totalAmount ?? 0), 0);
@@ -131,8 +189,8 @@ export function useCycleTable(customerId: string | null, requireCustomer = false
 		status,
 		fromDate,
 		toDate,
-		setFromDate,
-		setToDate,
+		setFromDate: setCycleFromDate,
+		setToDate: setCycleToDate,
 		onDurationChange,
 		onStatusChange,
 		onResetFilters,

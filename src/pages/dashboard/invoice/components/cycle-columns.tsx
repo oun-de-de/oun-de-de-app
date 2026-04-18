@@ -18,16 +18,19 @@ export function getCycleColumns(): ColumnDef<Cycle>[] {
 		{
 			accessorKey: "customerName",
 			header: "Customer",
+			size: 220,
 			cell: ({ row }) => <span className="font-medium text-sky-600">{row.original.customerName}</span>,
 		},
 		{
 			accessorKey: "startDate",
 			header: "Start Date",
+			size: 150,
 			cell: ({ row }) => formatFlexibleDisplayDate(row.original.startDate),
 		},
 		{
 			accessorKey: "endDate",
 			header: "End Date",
+			size: 150,
 			cell: ({ row }) => formatFlexibleDisplayDate(row.original.endDate),
 		},
 		{
@@ -42,18 +45,21 @@ export function getCycleColumns(): ColumnDef<Cycle>[] {
 		{
 			id: "totalAmount",
 			header: "Total Amount",
+			size: 170,
 			cell: ({ row }) => formatKHR(row.original.totalAmount),
 			meta: { bodyClassName: "text-right" },
 		},
 		{
 			id: "totalPaidAmount",
 			header: "Paid",
+			size: 150,
 			cell: ({ row }) => formatKHR(row.original.totalPaidAmount),
 			meta: { bodyClassName: "text-right" },
 		},
 		{
 			id: "balanceAmount",
-			header: "Balance",
+			header: "Remaining Balance",
+			size: 150,
 			cell: ({ row }) => formatKHR((row.original.totalAmount ?? 0) - (row.original.totalPaidAmount ?? 0)),
 			meta: { bodyClassName: "text-right" },
 		},

@@ -122,6 +122,8 @@ type SmartDataTableProps<T> = {
 	loading?: boolean;
 	/** Number of skeleton rows to render when loading */
 	loadingRowCount?: number;
+	/** Stretch the table viewport to fill remaining vertical space */
+	fillAvailableHeight?: boolean;
 };
 
 /**
@@ -179,6 +181,7 @@ export function SmartDataTable<T extends object>({
 	enableFilterBar = true,
 	loading = false,
 	loadingRowCount = 12,
+	fillAvailableHeight = true,
 }: SmartDataTableProps<T>) {
 	const scrollRef = useRef<HTMLDivElement>(null);
 	const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -304,7 +307,7 @@ export function SmartDataTable<T extends object>({
 				/>
 			)}
 
-			<div className="relative flex-1 min-h-0 min-w-0">
+			<div className={cn("relative min-h-0 min-w-0", fillAvailableHeight && "flex-1")}>
 				{canScrollLeft && (
 					<ScrollArrowButton $side="left" type="button" onClick={() => scrollByAmount(-240)} aria-label="Scroll left">
 						<Icon icon="mdi:chevron-left" size={16} />
@@ -316,7 +319,7 @@ export function SmartDataTable<T extends object>({
 					</ScrollArrowButton>
 				)}
 				<div
-					className="h-full w-full min-w-0 overflow-auto"
+					className={cn("w-full min-w-0 overflow-auto", fillAvailableHeight && "h-full")}
 					style={{ minHeight: minBodyHeight, maxHeight: maxBodyHeight }}
 					ref={scrollRef}
 					onScroll={updateScrollState}
@@ -419,27 +422,29 @@ export function SmartDataTable<T extends object>({
 			</div>
 
 			{paginationConfig && (
-				<TablePagination
-					pages={paginationConfig.paginationItems}
-					currentPage={paginationConfig.page}
-					totalPages={paginationConfig.totalPages}
-					totalItems={paginationConfig.totalItems}
-					pageSize={paginationConfig.pageSize}
-					pageSizeOptions={[10, 20, 50, 100]}
-					goToValue={goToPageValue}
-					onPrev={
-						paginationConfig.page > 1 ? () => paginationConfig.onPageChange(paginationConfig.page - 1) : undefined
-					}
-					onNext={
-						paginationConfig.page < paginationConfig.totalPages
-							? () => paginationConfig.onPageChange(paginationConfig.page + 1)
-							: undefined
-					}
-					onPageChange={paginationConfig.onPageChange}
-					onPageSizeChange={paginationConfig.onPageSizeChange}
-					onGoToChange={setGoToPageValue}
-					onGoToSubmit={paginationConfig.onPageChange}
-				/>
+				<div className="shrink-0 pt-2">
+					<TablePagination
+						pages={paginationConfig.paginationItems}
+						currentPage={paginationConfig.page}
+						totalPages={paginationConfig.totalPages}
+						totalItems={paginationConfig.totalItems}
+						pageSize={paginationConfig.pageSize}
+						pageSizeOptions={[10, 20, 50, 100]}
+						goToValue={goToPageValue}
+						onPrev={
+							paginationConfig.page > 1 ? () => paginationConfig.onPageChange(paginationConfig.page - 1) : undefined
+						}
+						onNext={
+							paginationConfig.page < paginationConfig.totalPages
+								? () => paginationConfig.onPageChange(paginationConfig.page + 1)
+								: undefined
+						}
+						onPageChange={paginationConfig.onPageChange}
+						onPageSizeChange={paginationConfig.onPageSizeChange}
+						onGoToChange={setGoToPageValue}
+						onGoToSubmit={paginationConfig.onPageChange}
+					/>
+				</div>
 			)}
 		</div>
 	);

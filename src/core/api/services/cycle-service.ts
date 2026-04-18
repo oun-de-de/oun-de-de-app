@@ -3,6 +3,7 @@ import type { ConvertToLoanRequest, CreatePaymentRequest, Cycle, CyclePayment, C
 import type { Loan } from "@/core/types/loan";
 import type { Pagination } from "@/core/types/pagination";
 import { mapPagePaginatedResponseToPagination } from "@/core/utils/pagination";
+import { normalizeLoan, type LoanApiResponse } from "./loan-service";
 import { apiClient } from "../apiClient";
 
 export enum CycleApi {
@@ -106,13 +107,15 @@ const createPayment = (cycleId: string, data: CreatePaymentRequest): Promise<Cyc
 	});
 
 const convertToLoan = (cycleId: string, data: ConvertToLoanRequest): Promise<Loan> =>
-	apiClient.post<Loan>({
+	apiClient
+		.post<LoanApiResponse>({
 		url: `${CycleApi.List}/${cycleId}/convert-to-loan`,
 		data: {
 			...data,
 			startDate: normalizeLoanStartDate(data.startDate),
 		},
-	});
+		})
+		.then(normalizeLoan);
 
 const generatePaymentCode = (): Promise<CodeResponse> =>
 	apiClient.get<CodeResponse>({

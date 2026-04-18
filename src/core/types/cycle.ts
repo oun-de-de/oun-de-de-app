@@ -69,6 +69,7 @@ export interface CreatePaymentRequest {
 }
 
 export interface ConvertToLoanRequest {
+	code: string;
 	loanInstallmentAmount: number;
 	startDate: string;
 	dueWarningDays?: number;

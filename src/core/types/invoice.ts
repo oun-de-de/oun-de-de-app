@@ -4,6 +4,9 @@ export interface Invoice {
 	customerName: string;
 	date: string;
 	type?: string;
+	// Temporarily disabled because the invoice list endpoint does not return balance yet.
+	// Re-enable together with the invoice table balance enrichment flow.
+	// balance?: number | null;
 
 	// Report Fields
 	couponId?: string;
