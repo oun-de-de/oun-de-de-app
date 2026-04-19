@@ -13,7 +13,6 @@ import { useCustomerListActions, useCustomerListState } from "./stores/customer-
 
 const DEFAULT_FIELD_FILTER = "name";
 const DEFAULT_PAGE = 1;
-const DEFAULT_PAGE_SIZE = 20;
 
 const normalizePositiveInt = (value: string | null, fallback: number) => {
 	if (!value) return fallback;
@@ -25,7 +24,6 @@ const parseCustomerListSearchParams = (searchParams: URLSearchParams) => ({
 	fieldFilter: searchParams.get("field") || DEFAULT_FIELD_FILTER,
 	searchValue: searchParams.get("search") || "",
 	page: normalizePositiveInt(searchParams.get("page"), DEFAULT_PAGE),
-	pageSize: normalizePositiveInt(searchParams.get("pageSize"), DEFAULT_PAGE_SIZE),
 });
 
 type CustomerListSearchState = ReturnType<typeof parseCustomerListSearchParams>;
@@ -33,8 +31,7 @@ type CustomerListSearchState = ReturnType<typeof parseCustomerListSearchParams>;
 const isCustomerListSearchStateEqual = (left: CustomerListSearchState, right: CustomerListSearchState) =>
 	left.fieldFilter === right.fieldFilter &&
 	left.searchValue === right.searchValue &&
-	left.page === right.page &&
-	left.pageSize === right.pageSize;
+	left.page === right.page;
 
 const buildCustomerListSearchParams = (searchParams: URLSearchParams, listState: CustomerListSearchState) => {
 	const next = new URLSearchParams(searchParams);
@@ -43,8 +40,7 @@ const buildCustomerListSearchParams = (searchParams: URLSearchParams, listState:
 	else next.delete("search");
 	if (listState.page > DEFAULT_PAGE) next.set("page", String(listState.page));
 	else next.delete("page");
-	if (listState.pageSize !== DEFAULT_PAGE_SIZE) next.set("pageSize", String(listState.pageSize));
-	else next.delete("pageSize");
+	next.delete("pageSize");
 	return next;
 };
 
@@ -69,7 +65,6 @@ export default function CustomersPage() {
 					fieldFilter: currentListState.fieldFilter,
 					searchValue: currentListState.searchValue,
 					page: currentListState.page,
-					pageSize: currentListState.pageSize,
 				},
 				urlListState,
 			)
