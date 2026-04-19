@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router";
 import customerService from "@/core/api/services/customer-service";
 import { DashboardSplitView } from "@/core/components/common/dashboard-split-view";
@@ -21,53 +21,68 @@ const normalizePositiveInt = (value: string | null, fallback: number) => {
 	return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
 };
 
+const parseCustomerListSearchParams = (searchParams: URLSearchParams) => ({
+	fieldFilter: searchParams.get("field") || DEFAULT_FIELD_FILTER,
+	searchValue: searchParams.get("search") || "",
+	page: normalizePositiveInt(searchParams.get("page"), DEFAULT_PAGE),
+	pageSize: normalizePositiveInt(searchParams.get("pageSize"), DEFAULT_PAGE_SIZE),
+});
+
+type CustomerListSearchState = ReturnType<typeof parseCustomerListSearchParams>;
+
+const isCustomerListSearchStateEqual = (left: CustomerListSearchState, right: CustomerListSearchState) =>
+	left.fieldFilter === right.fieldFilter &&
+	left.searchValue === right.searchValue &&
+	left.page === right.page &&
+	left.pageSize === right.pageSize;
+
+const buildCustomerListSearchParams = (searchParams: URLSearchParams, listState: CustomerListSearchState) => {
+	const next = new URLSearchParams(searchParams);
+	next.set("field", listState.fieldFilter || DEFAULT_FIELD_FILTER);
+	if (listState.searchValue.trim()) next.set("search", listState.searchValue);
+	else next.delete("search");
+	if (listState.page > DEFAULT_PAGE) next.set("page", String(listState.page));
+	else next.delete("page");
+	if (listState.pageSize !== DEFAULT_PAGE_SIZE) next.set("pageSize", String(listState.pageSize));
+	else next.delete("pageSize");
+	return next;
+};
+
 export default function CustomersPage() {
 	const [searchParams, setSearchParams] = useSearchParams();
 	const [activeCustomer, setActiveCustomer] = useState<Customer | null>(null);
 	const listState = useCustomerListState();
+	const listStateRef = useRef(listState);
 	const { updateState } = useCustomerListActions();
 	const { isCollapsed, handleToggle } = useSidebarCollapse();
-	const urlListState = useMemo(
-		() => ({
-			fieldFilter: searchParams.get("field") || DEFAULT_FIELD_FILTER,
-			searchValue: searchParams.get("search") || "",
-			page: normalizePositiveInt(searchParams.get("page"), DEFAULT_PAGE),
-			pageSize: normalizePositiveInt(searchParams.get("pageSize"), DEFAULT_PAGE_SIZE),
-		}),
-		[searchParams],
-	);
+	const urlListState = useMemo(() => parseCustomerListSearchParams(searchParams), [searchParams]);
 
 	useEffect(() => {
-		const hasChanged =
-			listState.fieldFilter !== urlListState.fieldFilter ||
-			listState.searchValue !== urlListState.searchValue ||
-			listState.page !== urlListState.page ||
-			listState.pageSize !== urlListState.pageSize;
+		listStateRef.current = listState;
+	}, [listState]);
 
-		if (hasChanged) {
+	useEffect(() => {
+		const currentListState = listStateRef.current;
+		if (
+			!isCustomerListSearchStateEqual(
+				{
+					fieldFilter: currentListState.fieldFilter,
+					searchValue: currentListState.searchValue,
+					page: currentListState.page,
+					pageSize: currentListState.pageSize,
+				},
+				urlListState,
+			)
+		) {
 			updateState(urlListState);
 		}
-	}, [
-		listState.fieldFilter,
-		listState.page,
-		listState.pageSize,
-		listState.searchValue,
-		updateState,
-		urlListState,
-	]);
+	}, [updateState, urlListState]);
 
 	useEffect(() => {
 		setSearchParams(
 			(prev) => {
-				const next = new URLSearchParams(prev);
-				next.set("field", listState.fieldFilter || DEFAULT_FIELD_FILTER);
-				if (listState.searchValue.trim()) next.set("search", listState.searchValue);
-				else next.delete("search");
-				if (listState.page > DEFAULT_PAGE) next.set("page", String(listState.page));
-				else next.delete("page");
-				if (listState.pageSize !== DEFAULT_PAGE_SIZE) next.set("pageSize", String(listState.pageSize));
-				else next.delete("pageSize");
-				return next;
+				const next = buildCustomerListSearchParams(prev, listState);
+				return next.toString() === prev.toString() ? prev : next;
 			},
 			{ replace: true },
 		);

@@ -1,6 +1,7 @@
 import { cva, type VariantProps } from "class-variance-authority";
 import Icon from "@/core/components/icon/icon";
 import { Button } from "@/core/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/core/ui/select";
 import { cn } from "@/core/utils";
 
 const listFooterVariants = cva("flex items-center text-xs text-muted-foreground transition-colors mt-auto", {
@@ -34,6 +35,9 @@ type ListFooterProps = VariantProps<typeof listFooterVariants> & {
 	hasPrev?: boolean;
 	hasNext?: boolean;
 	isCollapsed?: boolean;
+	pageSize?: number;
+	pageSizeOptions?: number[];
+	onPageSizeChange?: (size: number) => void;
 };
 
 export function ListFooter({
@@ -54,11 +58,16 @@ export function ListFooter({
 	hasPrev = true,
 	hasNext = true,
 	isCollapsed,
+	pageSize,
+	pageSizeOptions,
+	onPageSizeChange,
 }: ListFooterProps) {
 	const isMinimal = variant === "minimal";
 	const shouldShowControls = showControls && (hasPrev || hasNext);
 	const shouldShowPageState =
 		shouldShowControls && typeof currentPage === "number" && typeof totalPages === "number" && totalPages > 1;
+	const shouldShowPageSizeSelector =
+		typeof pageSize === "number" && !!pageSizeOptions?.length && typeof onPageSizeChange === "function";
 	const summaryText =
 		shouldShowPageState && rangeStart && rangeEnd
 			? `Showing ${rangeStart}-${rangeEnd} of ${total}`
@@ -108,30 +117,47 @@ export function ListFooter({
 				</div>
 			)}
 
-			{shouldShowControls && (
-				<span className="flex items-center gap-1">
-					<Button
-						variant="outline"
-						size="icon"
-						className="h-8 w-8 shrink-0"
-						onClick={hasPrev ? onPrev : undefined}
-						disabled={!hasPrev}
-						aria-label={prevLabel}
-					>
-						<Icon icon="mdi:chevron-left" />
-					</Button>
-					<Button
-						variant="outline"
-						size="icon"
-						className="h-8 w-8 shrink-0"
-						onClick={hasNext ? onNext : undefined}
-						disabled={!hasNext}
-						aria-label={nextLabel}
-					>
-						<Icon icon="mdi:chevron-right" />
-					</Button>
-				</span>
-			)}
+			<div className="flex items-center gap-2">
+				{shouldShowPageSizeSelector && (
+					<Select value={String(pageSize)} onValueChange={(value) => onPageSizeChange?.(Number(value))}>
+						<SelectTrigger className="h-8 w-[64px] text-xs">
+							<SelectValue placeholder={`${pageSize}`} />
+						</SelectTrigger>
+						<SelectContent>
+							{pageSizeOptions.map((size) => (
+								<SelectItem key={size} value={String(size)}>
+									{size}
+								</SelectItem>
+							))}
+						</SelectContent>
+					</Select>
+				)}
+
+				{shouldShowControls && (
+					<span className="flex items-center gap-1">
+						<Button
+							variant="outline"
+							size="icon"
+							className="h-8 w-8 shrink-0"
+							onClick={hasPrev ? onPrev : undefined}
+							disabled={!hasPrev}
+							aria-label={prevLabel}
+						>
+							<Icon icon="mdi:chevron-left" />
+						</Button>
+						<Button
+							variant="outline"
+							size="icon"
+							className="h-8 w-8 shrink-0"
+							onClick={hasNext ? onNext : undefined}
+							disabled={!hasNext}
+							aria-label={nextLabel}
+						>
+							<Icon icon="mdi:chevron-right" />
+						</Button>
+					</span>
+				)}
+			</div>
 
 			{showCount && isMinimal && <span>{summaryText}</span>}
 		</div>

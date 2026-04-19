@@ -18,7 +18,8 @@ type CustomerSidebarProps = {
 };
 
 const STATUS_OPTIONS: SelectOption[] = [{ value: "all", label: "All" }];
-const PAGE_SIZE = 10;
+const DEFAULT_PAGE_SIZE = 10;
+const PAGE_SIZE_OPTIONS = [10, 20, 50];
 const DEFAULT_ITEM_SIZE = 56;
 
 export function CustomerSidebar({
@@ -31,6 +32,7 @@ export function CustomerSidebar({
 	const [searchTerm, setSearchTerm] = useState("");
 	const [paymentTermInput, setPaymentTermInput] = useState("");
 	const [paymentTerm, setPaymentTerm] = useState("");
+	const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
 
 	const handlePaymentTermChange = (value: string) => {
 		const nextValue = value.trim().toLowerCase();
@@ -61,8 +63,8 @@ export function CustomerSidebar({
 	// 	Boolean(activeCustomerId) && Boolean(activeCustomerName) && !hasVisibleActiveCustomer;
 	const pagination = useSidebarPagination({
 		data: customers,
-		pageSize: PAGE_SIZE,
-		resetKey: `${searchTerm}|${paymentTerm}`,
+		pageSize,
+		resetKey: `${searchTerm}|${paymentTerm}|${pageSize}`,
 	});
 
 	return (
@@ -135,6 +137,9 @@ export function CustomerSidebar({
 						hasPrev={pagination.hasPrev}
 						hasNext={pagination.hasNext}
 						showControls={pagination.totalPages > 1}
+						pageSize={pageSize}
+						pageSizeOptions={PAGE_SIZE_OPTIONS}
+						onPageSizeChange={setPageSize}
 					/>
 				</>
 			)}
