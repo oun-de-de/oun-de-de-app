@@ -26,10 +26,10 @@ const createItemSchema = z.object({
 	unitPrice: z.coerce.number().min(0, "Unit price must be 0 or greater"),
 	alertThreshold: z.number().min(0).optional(),
 	refCodeMode: z.enum(["auto", "manual"]),
-	refCode: z.string().optional(),
+	refCode: z.string(),
 	quantityOnHand: z.coerce.number().min(0),
 }).superRefine((values, ctx) => {
-	if (values.quantityOnHand > 0 && !values.refCode?.trim()) {
+	if (values.quantityOnHand > 0 && !values.refCode.trim()) {
 		ctx.addIssue({
 			code: z.ZodIssueCode.custom,
 			path: ["refCode"],
@@ -86,21 +86,23 @@ export function useCreateItemForm({ onSubmit }: UseCreateItemFormOptions) {
 		},
 	});
 
-	const refCodeMode = form.watch("refCodeMode");
-	const refCode = form.watch("refCode") ?? "";
-	const quantityOnHand = form.watch("quantityOnHand");
+	const { watch, setValue, getValues, reset } = form;
+
+	const refCodeMode = watch("refCodeMode");
+	const refCode = watch("refCode", "");
+	const quantityOnHand = watch("quantityOnHand");
 
 	useEffect(() => {
 		if (quantityOnHand > 0 && refCodeMode === "auto" && !refCode.trim()) {
-			form.setValue("refCode", generateInitialStockRefCode(), { shouldDirty: true, shouldValidate: true });
+			setValue("refCode", generateInitialStockRefCode(), { shouldDirty: true, shouldValidate: true });
 		}
-	}, [form, quantityOnHand, refCode, refCodeMode]);
+	}, [setValue, quantityOnHand, refCode, refCodeMode]);
 
 	useEffect(() => {
 		if (quantityOnHand <= 0 && refCode) {
-			form.setValue("refCode", "", { shouldDirty: true, shouldValidate: true });
+			setValue("refCode", "", { shouldDirty: true, shouldValidate: true });
 		}
-	}, [form, quantityOnHand, refCode]);
+	}, [setValue, quantityOnHand, refCode]);
 
 	const submit = async (values: CreateItemFormValues) => {
 		await onSubmit(mapCreateItemFormValuesToPayload(values));
@@ -110,11 +112,11 @@ export function useCreateItemForm({ onSubmit }: UseCreateItemFormOptions) {
 		form,
 		submit,
 		regenerateRefCode: () => {
-			if (form.getValues("quantityOnHand") <= 0) return;
-			form.setValue("refCode", generateInitialStockRefCode(), { shouldDirty: true, shouldValidate: true });
+			if (getValues("quantityOnHand") <= 0) return;
+			setValue("refCode", generateInitialStockRefCode(), { shouldDirty: true, shouldValidate: true });
 		},
 		reset: () =>
-			form.reset({
+			reset({
 				name: "",
 				type: "consumable",
 				unitId: "",
