@@ -147,6 +147,7 @@ export const ACCOUNTING_DRAFT_FORM_TEXT = {
 		cardTitle: "Create Cash Revenue",
 		notice: "Complete the revenue details before saving. Revenue transactions use Debit.",
 		saveAndClose: "Save & Close",
+		saveAndNew: "Save & New",
 		successMessage: "Revenue saved",
 	},
 	transaction: {

@@ -247,6 +247,7 @@ describe("CyclePaymentDialog", () => {
 		await user.type(screen.getByLabelText(/Monthly Amount/i), "55");
 		await user.clear(screen.getByLabelText(/Due Date Warning Days/i));
 		await user.type(screen.getByLabelText(/Due Date Warning Days/i), "7");
+		await user.type(screen.getByLabelText(/Memo/i), "Cycle converted to loan");
 		await user.click(screen.getByRole("button", { name: "Convert To Loan" }));
 
 		await waitFor(() => {
@@ -258,6 +259,7 @@ describe("CyclePaymentDialog", () => {
 			code: "LOAN-001",
 			loanInstallmentAmount: 55,
 			dueWarningDays: 7,
+			memo: "Cycle converted to loan",
 		});
 		expect(payload.startDate).toMatch(/T00:00:00/);
 
@@ -292,5 +294,6 @@ describe("CyclePaymentDialog", () => {
 			loanInstallmentAmount: 80,
 		});
 		expect(payload).not.toHaveProperty("dueWarningDays");
+		expect(payload).not.toHaveProperty("memo");
 	});
 });

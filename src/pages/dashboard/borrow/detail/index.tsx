@@ -144,6 +144,7 @@ export default function BorrowDetailPage() {
 				<div className="grid grid-cols-3 items-start gap-8 border-b border-slate-300 pb-4 text-[13px] font-semibold">
 					<div className="text-left">
 						<div>Borrower: {loan?.borrowerName ?? "-"}</div>
+						<div className="mt-1">Memo: {loan?.memo?.trim() || "-"}</div>
 					</div>
 					<div className="text-center">
 						<div>Start Date: {loan ? formatDisplayDate(loan.startDate) : "-"}</div>
@@ -368,6 +369,15 @@ export default function BorrowDetailPage() {
 							</Text>
 							<Text variant="body2" className="font-medium">
 								{formatDisplayDate(loan.startDate)}
+							</Text>
+						</div>
+						<Separator />
+						<div className="flex items-start justify-between gap-4">
+							<Text variant="body2" className="text-slate-500">
+								Memo
+							</Text>
+							<Text variant="body2" className="max-w-[16rem] text-right font-medium whitespace-pre-wrap break-words">
+								{loan.memo?.trim() || "-"}
 							</Text>
 						</div>
 						<Separator />

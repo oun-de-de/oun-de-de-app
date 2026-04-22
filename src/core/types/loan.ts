@@ -16,6 +16,7 @@ export type Loan = {
 	status: LoanStatus;
 	startDate: string;
 	createdAt: string;
+	memo?: string;
 	termMonths?: number;
 	monthlyPayment?: number;
 };

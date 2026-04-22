@@ -89,8 +89,16 @@ export const ROUTE_TITLE_MAPPINGS = [
 		title: "Create Cash Expense",
 	},
 	{
+		path: "/dashboard/accounting/expense-preview",
+		title: "Expense Preview",
+	},
+	{
 		path: "/dashboard/accounting/create-revenue",
 		title: "Create Cash Revenue",
+	},
+	{
+		path: "/dashboard/accounting/revenue-preview",
+		title: "Revenue Preview",
 	},
 	{
 		path: "/dashboard/accounting/create-chart-account",

@@ -41,7 +41,9 @@ export function getFrontendDashboardRoutes(): RouteObject[] {
 		},
 
 		{ path: "dashboard/accounting/create-expense", element: Component("/pages/dashboard/accounting/create-expense") },
+		{ path: "dashboard/accounting/expense-preview", element: Component("/pages/dashboard/invoice/receipt-preview") },
 		{ path: "dashboard/accounting/create-revenue", element: Component("/pages/dashboard/accounting/create-revenue") },
+		{ path: "dashboard/accounting/revenue-preview", element: Component("/pages/dashboard/invoice/receipt-preview") },
 		{
 			path: "dashboard/accounting/create-chart-account",
 			element: Component("/pages/dashboard/accounting/create-chart-account"),

@@ -24,6 +24,7 @@ type LoanFormValues = {
 	loanStartDate: string;
 	monthlyAmount: string;
 	dueWarningDays: string;
+	memo: string;
 };
 
 const cycleFixture: Cycle = {
@@ -48,6 +49,7 @@ const loanDefaults = () => ({
 	loanStartDate: "2025-01-01",
 	monthlyAmount: "",
 	dueWarningDays: "5",
+	memo: "",
 });
 
 function createWrapper() {
@@ -92,6 +94,7 @@ function renderCycleDialogState(options?: { open?: boolean; historyOnly?: boolea
 					loanStartDate: "2025-01-01",
 					monthlyAmount: "",
 					dueWarningDays: "5",
+					memo: "",
 				},
 			});
 

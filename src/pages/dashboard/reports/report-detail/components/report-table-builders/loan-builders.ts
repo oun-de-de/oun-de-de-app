@@ -49,18 +49,23 @@ function getCustomerLoanPurpose(loan: Loan, customer?: Customer) {
 	return "Customer loan / installment";
 }
 
+function formatLoanTerm(termMonths: number) {
+	return termMonths > 0 ? `${termMonths} months` : "-";
+}
+
 function getCustomerPaymentTerm(loan: Loan, installments: Installment[] = []) {
 	const { hasDetailedSchedule, paidCount, overdueCount, nextDue } = getInstallmentSummary(loan, installments);
 	const termMonths = loan.termMonths ?? installments.length ?? 0;
-	const parts = [`${termMonths} months`, `Next due ${nextDue}`];
+	if (!hasDetailedSchedule) {
+		return formatLoanTerm(termMonths);
+	}
+
+	const parts = [formatLoanTerm(termMonths), `Next due ${nextDue}`];
 	if (hasDetailedSchedule && paidCount != null) {
 		parts.splice(1, 0, `Paid ${paidCount}/${Math.max(termMonths, installments.length || 0)}`);
 	}
 	if (overdueCount && overdueCount > 0) {
 		parts.push(`Overdue ${overdueCount}`);
-	}
-	if (!hasDetailedSchedule && loan.status === "due") {
-		parts.push("Overdue");
 	}
 	return parts.join(" | ");
 }
@@ -69,8 +74,8 @@ function getCustomerOtherText(loan: Loan, installments: Installment[] = []) {
 	const { hasDetailedSchedule, overdueCount } = getInstallmentSummary(loan, installments);
 	const monthlyPayment = loan.monthlyPayment ?? 0;
 	const monthlyText = monthlyPayment > 0 ? `${formatNumber(monthlyPayment)}/month` : "-";
+	if (!hasDetailedSchedule) return monthlyText;
 	if (overdueCount && overdueCount > 0) return `${monthlyText} | ${overdueCount} overdue`;
-	if (!hasDetailedSchedule && loan.status === "due") return `${monthlyText} | overdue`;
 	return monthlyText;
 }
 
@@ -78,7 +83,7 @@ function getEmployeeLoanMemo(loan: Loan, installments: Installment[] = []) {
 	const { hasDetailedSchedule, paidCount, nextDue } = getInstallmentSummary(loan, installments);
 	return hasDetailedSchedule && paidCount != null
 		? `${loan.borrowerName} loan account | Paid ${paidCount} installments | Next due ${nextDue}`
-		: `${loan.borrowerName} loan account | Next due ${nextDue}`;
+		: `${loan.borrowerName} loan account`;
 }
 
 export function buildCustomerLoanRows(

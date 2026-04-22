@@ -1,4 +1,3 @@
-import invoiceService from "@/core/api/services/invoice-service";
 import { BackButton } from "@/core/components/common";
 import { cn } from "@/core/utils";
 import {
@@ -10,7 +9,6 @@ import {
 	type SortMode,
 	type TemplateMode,
 } from "@/pages/dashboard/invoice/export-preview/constants";
-import { buildInvoiceExportBlob } from "@/pages/dashboard/invoice/export-preview/utils/invoice-export-template";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router";
 import { toast } from "sonner";
@@ -58,8 +56,9 @@ export function ReportDetailView({ reportSlug }: ReportDetailViewProps) {
 	const activeTab = activeTabFromQuery ?? activeTabFromState;
 	const [showSections, setShowSections] = useState(DEFAULT_REPORT_SECTIONS);
 	const [showColumns, setShowColumns] = useState(DEFAULT_REPORT_COLUMNS);
-	const [exportInvoiceIds, setExportInvoiceIds] = useState<string[]>([]);
-	const [isExporting, setIsExporting] = useState(false);
+	// Temporarily disabled until report export is restored with a consistent per-report flow.
+	// const [exportInvoiceIds, setExportInvoiceIds] = useState<string[]>([]);
+	// const [isExporting, setIsExporting] = useState(false);
 	const initialTemplateMode =
 		searchParams.get("template") === "standard" ||
 		searchParams.get("template") === "compact" ||
@@ -114,8 +113,6 @@ export function ReportDetailView({ reportSlug }: ReportDetailViewProps) {
 
 		navigate("/dashboard/reports");
 	}, [activeTab, navigate]);
-	const isExcelExportReport =
-		reportSlug === "open-invoice-detail-by-customer" || reportSlug === "receipt-detail-by-customer";
 	const tableWrapperClassName = useMemo(
 		() => getPaperSizeWrapperClassName(paperSizeMode, orientationMode),
 		[paperSizeMode, orientationMode],
@@ -221,36 +218,37 @@ export function ReportDetailView({ reportSlug }: ReportDetailViewProps) {
 		setDraftFilters(appliedFilters);
 	}, [appliedFilters]);
 
-	const handleExportExcel = useCallback(async () => {
-		if (!isExcelExportReport) {
-			toast.error("Export Excel is only available for invoice reports");
-			return;
-		}
-
-		if (exportInvoiceIds.length === 0) {
-			toast.error("No invoices available to export");
-			return;
-		}
-
-		try {
-			setIsExporting(true);
-			const exportLines = await invoiceService.listInvoiceDetails(exportInvoiceIds);
-			const blob = buildInvoiceExportBlob(exportLines);
-			const url = window.URL.createObjectURL(blob);
-			const link = document.createElement("a");
-			link.href = url;
-			link.download = `invoice-report-export-${Date.now()}.xlsx`;
-			document.body.appendChild(link);
-			link.click();
-			link.remove();
-			window.URL.revokeObjectURL(url);
-			toast.success("Invoice report exported successfully");
-		} catch {
-			toast.error("Failed to export invoice report");
-		} finally {
-			setIsExporting(false);
-		}
-	}, [isExcelExportReport, exportInvoiceIds]);
+	// Temporarily disabled until report export is restored with a consistent per-report flow.
+	// const handleExportExcel = useCallback(async () => {
+	// 	if (!isExcelExportReport) {
+	// 		toast.error("Export Excel is only available for invoice reports");
+	// 		return;
+	// 	}
+	//
+	// 	if (exportInvoiceIds.length === 0) {
+	// 		toast.error("No invoices available to export");
+	// 		return;
+	// 	}
+	//
+	// 	try {
+	// 		setIsExporting(true);
+	// 		const exportLines = await invoiceService.listInvoiceDetails(exportInvoiceIds);
+	// 		const blob = buildInvoiceExportBlob(exportLines);
+	// 		const url = window.URL.createObjectURL(blob);
+	// 		const link = document.createElement("a");
+	// 		link.href = url;
+	// 		link.download = `invoice-report-export-${Date.now()}.xlsx`;
+	// 		document.body.appendChild(link);
+	// 		link.click();
+	// 		link.remove();
+	// 		window.URL.revokeObjectURL(url);
+	// 		toast.success("Invoice report exported successfully");
+	// 	} catch {
+	// 		toast.error("Failed to export invoice report");
+	// 	} finally {
+	// 		setIsExporting(false);
+	// 	}
+	// }, [isExcelExportReport, exportInvoiceIds]);
 
 	return (
 		<ReportLayout className="report-print-page">
@@ -289,8 +287,8 @@ export function ReportDetailView({ reportSlug }: ReportDetailViewProps) {
 					onSortModeChange={setSortMode}
 					onPrint={handlePrint}
 					onCopy={handleCopy}
-					onExportExcel={handleExportExcel}
-					isExportExcelDisabled={!isExcelExportReport || exportInvoiceIds.length === 0 || isExporting}
+					// onExportExcel={handleExportExcel}
+					// isExportExcelDisabled={!isExcelExportReport || exportInvoiceIds.length === 0 || isExporting}
 					className="rounded-b-none border-b-0 print:hidden"
 				/>
 
@@ -303,7 +301,7 @@ export function ReportDetailView({ reportSlug }: ReportDetailViewProps) {
 						reportSlug={reportSlug}
 						filters={appliedFilters}
 						sortMode={sortMode}
-						onInvoiceIdsChange={setExportInvoiceIds}
+						// onInvoiceIdsChange={setExportInvoiceIds}
 						onTableDataChange={setTableData}
 					/>
 				</div>
