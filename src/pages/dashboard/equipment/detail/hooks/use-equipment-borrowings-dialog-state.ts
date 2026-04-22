@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import type { SellEquipmentRequest } from "@/core/types/inventory";
 import { useReturnBorrowing, useSellBorrowing } from "../../hooks/use-inventory-mutations";
@@ -8,13 +8,30 @@ export type PendingBorrowingAction =
 	| { type: "return"; borrowingId: string; customerName: string }
 	| null;
 
+export type SellRefCodeMode = "auto" | "manual";
+
+const SELL_REF_CODE_PREFIX = "SAL";
+
+function createNextSellRefCode(date = new Date()): string {
+	const datePart = [
+		date.getFullYear(),
+		String(date.getMonth() + 1).padStart(2, "0"),
+		String(date.getDate()).padStart(2, "0"),
+	].join("");
+	const timePart = [String(date.getHours()).padStart(2, "0"), String(date.getMinutes()).padStart(2, "0"), String(date.getSeconds()).padStart(2, "0")].join("");
+
+	return `${SELL_REF_CODE_PREFIX}-${datePart}-${timePart}`;
+}
+
 export function useEquipmentBorrowingsDialogState(itemId: string) {
 	const [isHistoryDialogOpen, setIsHistoryDialogOpen] = useState(false);
 	const [historyPage, setHistoryDialogPage] = useState(1);
 	const [historyPageSize, setHistoryPageSize] = useState(20);
 	const [pendingAction, setPendingAction] = useState<PendingBorrowingAction>(null);
+	const [sellRefCodeMode, setSellRefCodeMode] = useState<SellRefCodeMode>("auto");
 	const [sellRefCode, setSellRefCode] = useState("");
 	const [sellExpense, setSellExpense] = useState("");
+	const hasGeneratedSellRefCodeRef = useRef(false);
 
 	const returnBorrowing = useReturnBorrowing(itemId);
 	const sellBorrowing = useSellBorrowing(itemId);
@@ -22,9 +39,22 @@ export function useEquipmentBorrowingsDialogState(itemId: string) {
 	const isPending = sellBorrowing.isPending || returnBorrowing.isPending;
 
 	const resetSellForm = useCallback(() => {
+		hasGeneratedSellRefCodeRef.current = false;
+		setSellRefCodeMode("auto");
 		setSellRefCode("");
 		setSellExpense("");
 	}, []);
+
+	const applyGeneratedSellRefCode = useCallback(
+		(force = false) => {
+			if (!pendingAction || pendingAction.type !== "sell") return;
+			if (!force && hasGeneratedSellRefCodeRef.current) return;
+
+			hasGeneratedSellRefCodeRef.current = true;
+			setSellRefCode(createNextSellRefCode());
+		},
+		[pendingAction],
+	);
 
 	const resetAllDialogs = useCallback(() => {
 		resetSellForm();
@@ -66,6 +96,12 @@ export function useEquipmentBorrowingsDialogState(itemId: string) {
 		resetSellForm();
 		setPendingAction(null);
 	}, [resetSellForm]);
+
+	useEffect(() => {
+		if (pendingAction?.type === "sell" && sellRefCodeMode === "auto") {
+			applyGeneratedSellRefCode(false);
+		}
+	}, [applyGeneratedSellRefCode, pendingAction, sellRefCodeMode]);
 
 	const confirmPendingAction = useCallback(() => {
 		if (!pendingAction) return;
@@ -115,6 +151,8 @@ export function useEquipmentBorrowingsDialogState(itemId: string) {
 		historyPageSize,
 		setHistoryPageSize,
 		pendingAction,
+		sellRefCodeMode,
+		setSellRefCodeMode,
 		sellRefCode,
 		setSellRefCode,
 		sellExpense,
@@ -127,5 +165,6 @@ export function useEquipmentBorrowingsDialogState(itemId: string) {
 		openReturnAction,
 		closePendingAction,
 		confirmPendingAction,
+		regenerateSellRefCode: () => applyGeneratedSellRefCode(true),
 	};
 }

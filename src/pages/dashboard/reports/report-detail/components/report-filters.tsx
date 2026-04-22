@@ -2,7 +2,6 @@ import customerService from "@/core/api/services/customer-service";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { Button } from "@/core/ui/button";
 import { Calendar } from "@/core/ui/calendar";
-import { Input } from "@/core/ui/input";
 import { Label } from "@/core/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/core/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/core/ui/select";
@@ -18,6 +17,21 @@ export type ReportFiltersValue = {
 	toDate: string;
 	useDateRange: boolean;
 };
+
+const MONTH_OPTIONS = [
+	{ value: "01", label: "January" },
+	{ value: "02", label: "February" },
+	{ value: "03", label: "March" },
+	{ value: "04", label: "April" },
+	{ value: "05", label: "May" },
+	{ value: "06", label: "June" },
+	{ value: "07", label: "July" },
+	{ value: "08", label: "August" },
+	{ value: "09", label: "September" },
+	{ value: "10", label: "October" },
+	{ value: "11", label: "November" },
+	{ value: "12", label: "December" },
+] as const;
 
 type ReportFiltersProps = {
 	value: ReportFiltersValue;
@@ -40,6 +54,12 @@ function parseReportFilterDate(value?: string) {
 		return undefined;
 	}
 	return date;
+}
+
+function parseMonthFilterValue(value?: string) {
+	const match = value?.match(/^(\d{4})-(\d{2})$/);
+	if (!match) return { year: "", month: "" };
+	return { year: match[1], month: match[2] };
 }
 
 type ReportDateFieldProps = {
@@ -82,6 +102,59 @@ function ReportDateField({ id, label, value, required, onChange }: ReportDateFie
 					/>
 				</PopoverContent>
 			</Popover>
+		</div>
+	);
+}
+
+type ReportMonthFieldProps = {
+	value: string;
+	onChange: (value: string) => void;
+};
+
+function ReportMonthField({ value, onChange }: ReportMonthFieldProps) {
+	const { year, month } = parseMonthFilterValue(value);
+	const currentYear = new Date().getFullYear();
+	const yearOptions = Array.from({ length: 8 }, (_, index) => String(currentYear - index));
+
+	const updateValue = (nextYear: string, nextMonth: string) => {
+		if (!nextYear || !nextMonth) {
+			onChange("");
+			return;
+		}
+
+		onChange(`${nextYear}-${nextMonth}`);
+	};
+
+	return (
+		<div className="flex flex-col gap-1.5">
+			<Label className="text-slate-600">* Month</Label>
+			<div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+				<Select value={month} onValueChange={(nextMonth) => updateValue(year, nextMonth)}>
+					<SelectTrigger className="h-10 text-slate-500">
+						<SelectValue placeholder="Select month" />
+					</SelectTrigger>
+					<SelectContent>
+						{MONTH_OPTIONS.map((option) => (
+							<SelectItem key={option.value} value={option.value}>
+								{option.label}
+							</SelectItem>
+						))}
+					</SelectContent>
+				</Select>
+
+				<Select value={year} onValueChange={(nextYear) => updateValue(nextYear, month)}>
+					<SelectTrigger className="h-10 text-slate-500">
+						<SelectValue placeholder="Select year" />
+					</SelectTrigger>
+					<SelectContent>
+						{yearOptions.map((option) => (
+							<SelectItem key={option} value={option}>
+								{option}
+							</SelectItem>
+						))}
+					</SelectContent>
+				</Select>
+			</div>
 		</div>
 	);
 }
@@ -176,25 +249,17 @@ export const ReportFilters = React.memo(function ReportFilters({
 			)}
 
 			{filterConfig.monthOnly && (
-				<div className="flex flex-col gap-1.5 text-red-500">
-					<Label htmlFor="report-month" className="text-slate-600">
-						* Month
-					</Label>
-					<Input
-						id="report-month"
-						type="month"
-						value={fromDate}
-						onChange={(e) =>
-							onChange({
-								customerId,
-								fromDate: e.target.value,
-								toDate: e.target.value,
-								useDateRange: true,
-							})
-						}
-						className="h-10 text-slate-500"
-					/>
-				</div>
+				<ReportMonthField
+					value={fromDate}
+					onChange={(nextMonth) =>
+						onChange({
+							customerId,
+							fromDate: nextMonth,
+							toDate: nextMonth,
+							useDateRange: true,
+						})
+					}
+				/>
 			)}
 
 			<div className={`${helperSpanClass} flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between`}>

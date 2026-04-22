@@ -26,6 +26,7 @@ vi.mock("../../hooks/use-inventory-mutations", () => ({
 
 describe("useEquipmentBorrowingsDialogState", () => {
 	beforeEach(() => {
+		vi.useRealTimers();
 		sellMutate.mockReset();
 		returnMutate.mockReset();
 		vi.mocked(toast.error).mockReset();
@@ -58,6 +59,8 @@ describe("useEquipmentBorrowingsDialogState", () => {
 
 		act(() => {
 			result.current.openSellAction("borrowing-1", "Alice");
+			result.current.setSellRefCodeMode("manual");
+			result.current.setSellRefCode("");
 		});
 
 		act(() => {
@@ -66,6 +69,40 @@ describe("useEquipmentBorrowingsDialogState", () => {
 
 		expect(toast.error).toHaveBeenCalledWith("Reference code is required");
 		expect(sellMutate).not.toHaveBeenCalled();
+	});
+
+	it("auto-generates the next SAL ref code when sell action opens", async () => {
+		vi.useFakeTimers();
+		vi.setSystemTime(new Date("2026-04-23T10:15:30"));
+
+		const { result } = renderHook(() => useEquipmentBorrowingsDialogState("item-1"));
+
+		await act(async () => {
+			result.current.openSellAction("borrowing-1", "Alice");
+		});
+
+		expect(result.current.sellRefCode).toBe("SAL-20260423-101530");
+	});
+
+	it("regenerates the sell ref code when requested", async () => {
+		vi.useFakeTimers();
+		vi.setSystemTime(new Date("2026-04-23T10:15:30"));
+
+		const { result } = renderHook(() => useEquipmentBorrowingsDialogState("item-1"));
+
+		await act(async () => {
+			result.current.openSellAction("borrowing-1", "Alice");
+		});
+
+		expect(result.current.sellRefCode).toBe("SAL-20260423-101530");
+
+		vi.setSystemTime(new Date("2026-04-23T10:15:31"));
+
+		await act(async () => {
+			result.current.regenerateSellRefCode();
+		});
+
+		expect(result.current.sellRefCode).toBe("SAL-20260423-101531");
 	});
 
 	it("submits sell action and clears pending state on success", () => {
@@ -77,6 +114,7 @@ describe("useEquipmentBorrowingsDialogState", () => {
 
 		act(() => {
 			result.current.openSellAction("borrowing-1", "Alice");
+			result.current.setSellRefCodeMode("manual");
 			result.current.setSellRefCode(" SELL-001 ");
 			result.current.setSellExpense("12");
 		});

@@ -4,13 +4,8 @@ import { reportSections } from "@/_mock/data/dashboard";
 import { ReportSection } from "./components/report-section";
 import { ReportTabs } from "./components/report-tabs";
 import { ReportsProvider } from "./reports-provider";
-import { useReportsActions, useReportsState } from "./stores/reports-store";
 
 const DEFAULT_REPORT_TAB = "Customer";
-
-function isFavoriteReport(favorites: string[], slug: string, label: string) {
-	return favorites.includes(slug) || favorites.includes(label);
-}
 
 export default function ReportsPage() {
 	return (
@@ -21,8 +16,6 @@ export default function ReportsPage() {
 }
 
 function ReportsView() {
-	const { favorites } = useReportsState();
-	const { toggleFavorite } = useReportsActions();
 	const [searchParams, setSearchParams] = useSearchParams();
 	const requestedTab = searchParams.get("tab");
 	const activeTab = reportSections.some((section) => section.tab === requestedTab) ? requestedTab! : DEFAULT_REPORT_TAB;
@@ -34,15 +27,8 @@ function ReportsView() {
 	};
 
 	const displaySections = useMemo(() => {
-		const sections = reportSections.filter((section) => section.tab === activeTab);
-		const favoriteItems = sections
-			.flatMap((section) => section.items)
-			.filter((item) => isFavoriteReport(favorites, item.slug, item.label));
-
-		return favoriteItems.length > 0
-			? [{ tab: activeTab, title: "Favorite", icon: "mdi:star", items: favoriteItems }, ...sections]
-			: sections;
-	}, [activeTab, favorites]);
+		return reportSections.filter((section) => section.tab === activeTab);
+	}, [activeTab]);
 
 	return (
 		<div className="flex w-full flex-col gap-4">
@@ -52,8 +38,6 @@ function ReportsView() {
 				<ReportSection
 					key={section.title}
 					section={section}
-					favorites={favorites}
-					onToggleFavorite={toggleFavorite}
 					activeTab={activeTab}
 				/>
 			))}

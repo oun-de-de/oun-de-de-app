@@ -9,6 +9,7 @@ import {
 	// buildTrialBalanceColumns,
 } from "../report-columns/accounting-report-columns";
 import { REPORT_FILTERS, type BuildReportRowsParams, type ReportDefinitionMap } from "../report-types";
+import { REPORT_TITLES } from "../../report-titles";
 
 function buildGeneralLedgerApiRows({ monthlyReportDetails }: BuildReportRowsParams) {
 	return buildMonthlyReportDetailRows(monthlyReportDetails);
@@ -25,7 +26,7 @@ function buildIncomeExpenseApiReportRows({ monthlyReportDetails }: BuildReportRo
 export const ACCOUNTING_REPORT_SPECS: ReportDefinitionMap = {
 	"general-ledger": {
 		slug: "general-ledger",
-		title: "General Ledger",
+		title: REPORT_TITLES["general-ledger"],
 		templateId: "income-expense-ledger",
 		subtitle: REPORT_DEFAULT_DATE,
 		buildColumns: buildLedgerColumns,
@@ -45,7 +46,7 @@ export const ACCOUNTING_REPORT_SPECS: ReportDefinitionMap = {
 	// },
 	"balance-sheet": {
 		slug: "balance-sheet",
-		title: "Income & Expense Ledger",
+		title: REPORT_TITLES["balance-sheet"],
 		templateId: "income-expense-ledger",
 		subtitle: REPORT_DEFAULT_DATE,
 		buildColumns: buildIncomeExpenseLedgerColumns,

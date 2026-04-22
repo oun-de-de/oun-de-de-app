@@ -166,12 +166,12 @@ export function UpdateStockDialog({
 													const matched = REASON_OPTIONS.find((item) => item.value === option.name);
 													return matched?.label ?? option.name;
 												}}
-												inactiveClassName="rounded-md border border-slate-300 bg-white !p-2 !text-xs font-medium text-slate-700 hover:bg-slate-100"
+												inactiveClassName="inline-flex h-9 w-28 items-center justify-center rounded-lg border border-slate-300 bg-white !px-3 !py-0 !text-xs font-medium text-slate-700 hover:bg-slate-100"
 												getChipClassName={(option, isActive) => {
 													if (!isActive) return undefined;
 													const variant = getReasonVariant(option.name);
 													return cn(
-														"rounded-md border-none !p-2 !text-xs text-white",
+														"inline-flex h-9 w-28 items-center justify-center rounded-lg border-none !px-3 !py-0 !text-xs text-white",
 														variant === "info" && "bg-gradient-to-r from-info to-info/80",
 														variant === "warning" && "bg-gradient-to-r from-warning to-warning/80",
 														variant === "destructive" && "bg-gradient-to-r from-destructive to-destructive/80",
@@ -190,7 +190,7 @@ export function UpdateStockDialog({
 							)}
 						/>
 
-						<div className="grid grid-cols-2 gap-4">
+						<div className={cn("grid gap-4", currentReason === "consume" ? "grid-cols-1" : "grid-cols-2")}>
 							<FormField
 								control={form.control}
 								name="quantity"
@@ -210,30 +210,32 @@ export function UpdateStockDialog({
 								)}
 							/>
 
-							<FormField
-								control={form.control}
-								name="expense"
-								render={({ field }) => (
-									<FormItem className="space-y-1.5">
-										<FormLabel>Expense (៛)</FormLabel>
-										<FormControl>
-											<div className="relative">
-												<span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 font-bold text-slate-400">
-													៛
-												</span>
-												<Input
-													type="number"
-													min={0}
-													placeholder="0"
-													className="h-11 pl-7 border-slate-200 rounded-lg bg-slate-50/50"
-													{...field}
-												/>
-											</div>
-										</FormControl>
-										<FormMessage />
-									</FormItem>
-								)}
-							/>
+							{currentReason !== "consume" && (
+								<FormField
+									control={form.control}
+									name="expense"
+									render={({ field }) => (
+										<FormItem className="space-y-1.5">
+											<FormLabel>Expense (៛)</FormLabel>
+											<FormControl>
+												<div className="relative">
+													<span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 font-bold text-slate-400">
+														៛
+													</span>
+													<Input
+														type="number"
+														min={0}
+														placeholder="0"
+														className="h-11 pl-7 border-slate-200 rounded-lg bg-slate-50/50"
+														{...field}
+													/>
+												</div>
+											</FormControl>
+											<FormMessage />
+										</FormItem>
+									)}
+								/>
+							)}
 						</div>
 
 						<FormField

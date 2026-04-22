@@ -1,3 +1,4 @@
+import { RefreshCw } from "lucide-react";
 import type { CreateInventoryItem, CreateInventoryItemType } from "@/core/types/inventory";
 import { Button } from "@/core/ui/button";
 import {
@@ -12,6 +13,8 @@ import {
 import { Input } from "@/core/ui/input";
 import { Label } from "@/core/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/core/ui/select";
+import { Switch } from "@/core/ui/switch";
+import { cn } from "@/core/utils";
 import { useGetSupplierList, useGetUnitList } from "../../settings/hooks/use-settings";
 import { SELECT_NONE_VALUE } from "@/core/constants/form";
 import { useDialogOpenState } from "@/core/hooks/use-dialog-open-state";
@@ -26,7 +29,7 @@ type CreateItemDialogProps = {
 export function CreateItemDialog({ onSubmit, isPending }: CreateItemDialogProps) {
 	const { data: units } = useGetUnitList();
 	const { data: suppliers } = useGetSupplierList();
-	const { form, submit, reset: resetForm } = useCreateItemForm({ onSubmit });
+	const { form, submit, regenerateRefCode, reset: resetForm } = useCreateItemForm({ onSubmit });
 
 	const {
 		register,
@@ -39,8 +42,8 @@ export function CreateItemDialog({ onSubmit, isPending }: CreateItemDialogProps)
 	const type = watch("type");
 	const unitId = watch("unitId");
 	const supplierId = watch("supplierId");
-	const refCode = watch("refCode");
-
+	const quantityOnHand = watch("quantityOnHand");
+	const refCodeMode = watch("refCodeMode");
 	const dialog = useDialogOpenState({
 		isDismissDisabled: isPending,
 		onClose: resetForm,
@@ -173,16 +176,7 @@ export function CreateItemDialog({ onSubmit, isPending }: CreateItemDialogProps)
 					<div className="space-y-4">
 						<div className="border-b pb-2 flex flex-col">
 							<h4 className="text-sm font-semibold text-slate-800">Initial Stock (Optional)</h4>
-							<p className="text-xs text-slate-500">Provide an initial stock reference</p>
-						</div>
-						<div className="space-y-2">
-							<Label htmlFor="item-ref-code">Ref Code</Label>
-							<Input
-								id="item-ref-code"
-								autoComplete="off"
-								{...register("refCode")}
-								placeholder="e.g. initial-stock-001"
-							/>
+							<p className="text-xs text-slate-500">Enter quantity first to create initial stock with a reference code</p>
 						</div>
 						<div className="grid grid-cols-1 gap-4">
 							<div className="space-y-2">
@@ -193,10 +187,56 @@ export function CreateItemDialog({ onSubmit, isPending }: CreateItemDialogProps)
 									type="number"
 									min={0}
 									{...register("quantityOnHand")}
-									disabled={!refCode?.trim()}
 								/>
 							</div>
 						</div>
+						{quantityOnHand <= 0 ? (
+							<p className="text-xs text-slate-500">
+								Ref code appears after you enter an initial quantity.
+							</p>
+						) : null}
+						{quantityOnHand > 0 ? (
+							<div className="space-y-2">
+								<div className="flex items-center justify-between gap-4">
+									<Label htmlFor="item-ref-code">Ref Code</Label>
+									<div className="flex items-center gap-2">
+										<span className={cn("text-xs", refCodeMode === "auto" ? "text-slate-400" : "font-medium text-slate-600")}>
+											Manual
+										</span>
+										<Switch
+											checked={refCodeMode === "auto"}
+											onCheckedChange={(checked) => {
+												setValue("refCodeMode", checked ? "auto" : "manual", { shouldValidate: true, shouldDirty: true });
+												if (checked) regenerateRefCode();
+											}}
+										/>
+										<span className={cn("text-xs", refCodeMode === "auto" ? "font-medium text-blue-600" : "text-slate-400")}>
+											Auto
+										</span>
+									</div>
+								</div>
+								<div className="relative">
+									<Input
+										id="item-ref-code"
+										autoComplete="off"
+										{...register("refCode")}
+										placeholder={refCodeMode === "auto" ? "Auto-generated" : "e.g. initial-stock-001"}
+										className={cn(refCodeMode === "auto" && "pr-10")}
+									/>
+									{refCodeMode === "auto" && (
+										<button
+											type="button"
+											onClick={regenerateRefCode}
+											className="absolute right-2 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-md text-slate-400 transition-colors hover:bg-blue-50 hover:text-blue-500"
+											title="Regenerate code"
+										>
+											<RefreshCw className="h-3.5 w-3.5" />
+										</button>
+									)}
+								</div>
+								{errors.refCode ? <p className="text-xs text-red-500">{errors.refCode.message}</p> : null}
+							</div>
+						) : null}
 					</div>
 				</div>
 

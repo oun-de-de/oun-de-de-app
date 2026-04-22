@@ -5,25 +5,25 @@ import { Text } from "@/core/ui/typography";
 import { cn } from "@/core/utils";
 import { ReportItem } from "./report-item";
 
+export interface ReportItemData {
+	slug: string;
+	label: string;
+	favorite?: boolean;
+}
+
 export interface ReportSectionData {
 	title: string;
 	icon: string;
-	items: { slug: string; label: string }[];
-}
-
-function isFavoriteReport(favorites: string[], slug: string, label: string) {
-	return favorites.includes(slug) || favorites.includes(label);
+	items: ReportItemData[];
 }
 
 interface ReportSectionProps {
 	section: ReportSectionData;
-	favorites: string[];
-	onToggleFavorite: (slug: string) => void;
 	activeTab: string;
 	className?: string;
 }
 
-export function ReportSection({ section, favorites, onToggleFavorite, activeTab, className }: ReportSectionProps) {
+export function ReportSection({ section, activeTab, className }: ReportSectionProps) {
 	return (
 		<Card className={cn("w-full", className)}>
 			<CardContent className="flex flex-col gap-4 p-4">
@@ -45,8 +45,6 @@ export function ReportSection({ section, favorites, onToggleFavorite, activeTab,
 							slug={item.slug}
 							label={item.label}
 							activeTab={activeTab}
-							isFavorite={isFavoriteReport(favorites, item.slug, item.label)}
-							onToggleFavorite={onToggleFavorite}
 						/>
 					))}
 				</div>

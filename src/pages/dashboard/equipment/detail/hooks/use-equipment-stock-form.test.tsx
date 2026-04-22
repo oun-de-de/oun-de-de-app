@@ -54,7 +54,7 @@ describe("useEquipmentStockForm", () => {
 
 		await waitFor(() => {
 			const refCode = result.current.form.getValues("refCode");
-			expect(refCode).toMatch(/^PUR-\d{8}-\d{6}-ABC123$/);
+			expect(refCode).toMatch(/^PUR-\d{8}-\d{6}$/);
 		});
 	});
 
@@ -100,5 +100,28 @@ describe("useEquipmentStockForm", () => {
 				refCodeMode: "manual",
 			}),
 		).rejects.toThrow("request failed");
+	});
+
+	it("does not include expense in payload for consume reason", async () => {
+		mutateAsync.mockResolvedValue(undefined);
+		const { result } = renderHook(() => useEquipmentStockForm(itemFixture));
+
+		await act(async () => {
+			await result.current.submit({
+				quantity: "2",
+				reason: "consume",
+				memo: "Consumed in maintenance",
+				expense: "25",
+				refCode: "CON-001",
+				refCodeMode: "manual",
+			});
+		});
+
+		expect(mutateAsync).toHaveBeenCalledWith({
+			refCode: "CON-001",
+			quantity: 2,
+			reason: "consume",
+			memo: "Consumed in maintenance",
+		});
 	});
 });

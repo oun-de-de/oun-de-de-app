@@ -2,6 +2,7 @@ import { buildCustomerListRows, buildCycleReportRows } from "../components/repor
 import { REPORT_DEFAULT_DATE } from "../constants";
 import { buildCustomerListColumns, buildCycleColumns } from "../report-columns/core-report-columns";
 import { REPORT_FILTERS, type BuildReportRowsParams, type ReportDefinitionMap } from "../report-types";
+import { REPORT_TITLES } from "../../report-titles";
 
 function buildCycleSummaryRows({ cycles }: BuildReportRowsParams) {
 	return buildCycleReportRows(cycles);
@@ -14,7 +15,7 @@ function buildCustomerListReportRows({ filteredCustomers }: BuildReportRowsParam
 export const CORE_REPORT_SPECS: ReportDefinitionMap = {
 	"open-invoice-on-period-by-group": {
 		slug: "open-invoice-on-period-by-group",
-		title: "Open Invoice By Period Group",
+		title: REPORT_TITLES["open-invoice-on-period-by-group"],
 		templateId: "cycle-summary",
 		subtitle: REPORT_DEFAULT_DATE,
 		buildColumns: buildCycleColumns,
@@ -24,7 +25,7 @@ export const CORE_REPORT_SPECS: ReportDefinitionMap = {
 	},
 	"customer-list": {
 		slug: "customer-list",
-		title: "Customer List",
+		title: REPORT_TITLES["customer-list"],
 		templateId: "customer-list",
 		buildColumns: buildCustomerListColumns,
 		buildRows: buildCustomerListReportRows,
