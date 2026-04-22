@@ -19,9 +19,9 @@ describe("CreateItemDialog", () => {
 		await user.type(screen.getByLabelText(/Name/i), "Brake Pad");
 		await user.clear(screen.getByLabelText(/Unit Price/i));
 		await user.type(screen.getByLabelText(/Unit Price/i), "10");
-		await user.type(screen.getByLabelText(/Ref Code/i), "stock-001");
 		await user.clear(screen.getByLabelText(/Qty On Hand/i));
 		await user.type(screen.getByLabelText(/Qty On Hand/i), "3");
+		await user.type(screen.getByLabelText(/Ref Code/i), "stock-001");
 
 		await user.click(screen.getByRole("button", { name: "Create Item" }));
 
@@ -33,8 +33,8 @@ describe("CreateItemDialog", () => {
 		await user.click(screen.getByRole("button", { name: "New Item" }));
 
 		expect(screen.getByLabelText(/Name/i)).toHaveValue("");
-		expect(screen.getByLabelText(/Ref Code/i)).toHaveValue("");
 		expect(screen.getByLabelText(/Qty On Hand/i)).toHaveValue(0);
+		expect(screen.queryByLabelText(/Ref Code/i)).not.toBeInTheDocument();
 	});
 
 	it("keeps the dialog open and preserves values when submit fails", async () => {
