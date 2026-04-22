@@ -3,6 +3,7 @@ import type { UseFormReturn } from "react-hook-form";
 import { Button } from "@/core/ui/button";
 import { Input } from "@/core/ui/input";
 import { Label } from "@/core/ui/label";
+import { Textarea } from "@/core/ui/textarea";
 import { FormDatePicker } from "../../../accounting/components/form-date-picker";
 import type { BorrowPaymentFormValues } from "../hooks/use-borrow-payment-form";
 
@@ -112,6 +113,17 @@ export function BorrowPaymentRightPanel({
 							<Label className="font-medium text-gray-500">Start Date</Label>
 							<FormDatePicker control={form.control} name="dueDate" error={errors.dueDate?.message} />
 						</div>
+					</div>
+
+					<div className="space-y-2">
+						<Label className="font-medium text-gray-500">Memo</Label>
+						<Textarea
+							{...register("memo")}
+							rows={4}
+							className="min-h-24 border-slate-200 rounded-lg bg-slate-50/50"
+							placeholder="Add note for this loan"
+						/>
+						{errors.memo && <p className="text-[12px] text-rose-500 font-medium">{errors.memo.message}</p>}
 					</div>
 				</div>
 			</div>

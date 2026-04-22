@@ -105,7 +105,6 @@ export function useEquipmentStockForm(item: InventoryItem | null) {
 
 		const parsedQty = Number(values.quantity);
 		const parsedExpense = values.expense ? Number(values.expense) : undefined;
-
 		try {
 			await updateStockMutation.mutateAsync({
 				refCode: values.refCode.trim(),

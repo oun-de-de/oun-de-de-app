@@ -6,8 +6,10 @@ import { Link, useNavigate } from "react-router";
 import { toast } from "sonner";
 
 import type { CreateCashTransactionRequest } from "@/core/types/cash-transaction";
+import type { InvoiceExportPreviewLocationState } from "@/core/types/invoice";
 import { Button } from "@/core/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/core/ui/card";
+import { SplitButton } from "@/core/components/common";
 import { useCreateCashTransaction } from "@/pages/dashboard/accounting-center/hooks/use-create-cash-transaction";
 import { useGetCurrencyList } from "@/pages/dashboard/settings/hooks/use-settings";
 import {
@@ -27,6 +29,49 @@ import {
 	cashTransactionFormSchema,
 } from "../utils/accounting-form-utils";
 import { formatDateTimeLocalApiValueFromInput } from "../utils/format-local-date-time";
+
+function buildRevenuePreviewState({
+	refNo,
+	date,
+	formValues,
+	employeeOptions,
+	chartAccountLabels,
+}: {
+	refNo: string;
+	date: string;
+	formValues: CashTransactionFormValues;
+	employeeOptions: { value: string; label: string }[];
+	chartAccountLabels: Map<string, string>;
+}): InvoiceExportPreviewLocationState {
+	const employeeName = employeeOptions.find((option) => option.value === formValues.employeeId)?.label ?? "Administrator";
+	const previewRows = formValues.details.map((line, index) => ({
+		refNo: index === 0 ? refNo : `${refNo}-${index + 1}`,
+		customerName: employeeName,
+		date,
+		productName: chartAccountLabels.get(line.accountCode) ?? "Revenue Item",
+		unit: null,
+		pricePerProduct: line.amount,
+		quantityPerProduct: 1,
+		quantity: 1,
+		amount: line.amount,
+		total: line.amount,
+		memo: line.memo.trim() || formValues.memo.trim() || "Revenue voucher",
+		paid: line.amount,
+		balance: 0,
+	}));
+
+	return {
+		selectedInvoiceIds: [],
+		previewRows,
+		returnPath: "/dashboard/accounting",
+		receiptPaymentAmount: previewRows.reduce((sum, row) => sum + (row.amount ?? 0), 0),
+		receiptPaymentCode: refNo,
+		receiptPaymentDate: date,
+		autoPrint: true,
+		initialPaperSizeMode: "a5",
+		initialOrientationMode: "landscape",
+	};
+}
 
 export default function CreateRevenuePage() {
 	const navigate = useNavigate();
@@ -78,7 +123,7 @@ export default function CreateRevenuePage() {
 		}
 	}, [defaultCurrencyId, form]);
 
-	const onFormSubmit = async (values: CashTransactionFormValues, mode: "close" | "new") => {
+	const onFormSubmit = async (values: CashTransactionFormValues, mode: "close" | "new" | "print") => {
 		const serializedDate = formatDateTimeLocalApiValueFromInput(values.date);
 		if (!serializedDate) {
 			toast.error("Date is invalid");
@@ -119,6 +164,19 @@ export default function CreateRevenuePage() {
 		try {
 			await createCashTransaction(payload);
 			toast.success(ACCOUNTING_DRAFT_FORM_TEXT.revenue.successMessage);
+			if (mode === "print") {
+				const previewState = buildRevenuePreviewState({
+					refNo: payload.refNo,
+					date: serializedDate,
+					formValues: values,
+					employeeOptions,
+					chartAccountLabels: new Map(chartAccounts.map((account) => [account.id, account.name])),
+				});
+				navigate("/dashboard/accounting/revenue-preview?paper=a5&orientation=landscape", {
+					state: previewState,
+				});
+				return;
+			}
 			if (mode === "close") {
 				navigate("/dashboard/accounting");
 				return;
@@ -179,16 +237,29 @@ export default function CreateRevenuePage() {
 					/>
 
 					<div className="flex items-center justify-end gap-3">
-						<Button asChild variant="outline">
+						<Button asChild variant="outline" type="button">
 							<Link to="/dashboard/accounting">Cancel</Link>
 						</Button>
-						<Button
+						<SplitButton
 							variant="info"
-							onClick={handleSubmit((values) => onFormSubmit(values, "close"))}
-							disabled={isSubmitting}
-						>
-							{ACCOUNTING_DRAFT_FORM_TEXT.revenue.saveAndClose}
-						</Button>
+							mainAction={{
+								label: ACCOUNTING_DRAFT_FORM_TEXT.revenue.saveAndClose,
+								onClick: () => void handleSubmit((values) => onFormSubmit(values, "close"))(),
+								disabled: isSubmitting,
+							}}
+							options={[
+								{
+									label: ACCOUNTING_DRAFT_FORM_TEXT.revenue.saveAndNew,
+									onClick: () => void handleSubmit((values) => onFormSubmit(values, "new"))(),
+									disabled: isSubmitting,
+								},
+								{
+									label: "Save & Print",
+									onClick: () => void handleSubmit((values) => onFormSubmit(values, "print"))(),
+									disabled: isSubmitting,
+								},
+							]}
+						/>
 					</div>
 				</CardContent>
 			</Card>

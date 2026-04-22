@@ -73,4 +73,5 @@ export interface ConvertToLoanRequest {
 	loanInstallmentAmount: number;
 	startDate: string;
 	dueWarningDays?: number;
+	memo?: string;
 }

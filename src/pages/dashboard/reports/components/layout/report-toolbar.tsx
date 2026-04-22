@@ -70,9 +70,9 @@ function ReportToolbarComponent({
 	columnOptions = [],
 	enableColumnCustomization = true,
 	onPrint,
-	onExportExcel,
+	onExportExcel: _onExportExcel,
 	onCopy,
-	isExportExcelDisabled = false,
+	isExportExcelDisabled: _isExportExcelDisabled = false,
 	templateMode,
 	onTemplateModeChange,
 	paperSizeMode,
@@ -295,12 +295,13 @@ function ReportToolbarComponent({
 								onClick={() => setIsCustomizeOpen((prev) => !prev)}
 								className={isCustomizeOpen ? "bg-blue-50" : undefined}
 							/>
-							<ToolbarButton
+							{/* Temporarily hidden until non-invoice export flows are implemented consistently. */}
+							{/* <ToolbarButton
 								icon="mdi:file-excel-outline"
 								label="Export Excel"
 								onClick={onExportExcel}
 								disabled={isExportExcelDisabled}
-							/>
+							/> */}
 							<ToolbarButton icon="mdi:printer-outline" label="Print" onClick={onPrint} />
 							{onCopy && <ToolbarButton icon="mdi:content-copy" label="Copy" onClick={onCopy} />}
 						</>

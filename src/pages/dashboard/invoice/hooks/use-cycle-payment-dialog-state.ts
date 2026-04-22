@@ -17,6 +17,7 @@ type LoanFormValues = {
 	loanStartDate: string;
 	monthlyAmount: string;
 	dueWarningDays: string;
+	memo: string;
 };
 
 type UseCyclePaymentDialogStateParams = {

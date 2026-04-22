@@ -58,6 +58,20 @@ export const borrowColumns: ColumnDef<Loan>[] = [
 		meta: { bodyClassName: "text-right" },
 	},
 	{
+		accessorKey: "memo",
+		header: "Memo",
+		cell: ({ row }) => {
+			const memo = row.original.memo?.trim();
+			return memo ? (
+				<span className="block max-w-64 truncate" title={memo}>
+					{memo}
+				</span>
+			) : (
+				"-"
+			);
+		},
+	},
+	{
 		accessorKey: "termMonths",
 		header: "Term (Months)",
 		meta: { bodyClassName: "text-right" },

@@ -1,6 +1,7 @@
 import { BackButton, SmartDataTable, SummaryStatCard } from "@/core/components/common";
 import { Text } from "@/core/ui/typography";
-import { useCallback } from "react";
+import { buildPagination } from "@/core/utils/dashboard-utils";
+import { useCallback, useMemo } from "react";
 import { useEquipmentContent } from "../hooks/use-equipment-content";
 import { CreateItemDialog } from "./create-item-dialog";
 
@@ -14,6 +15,21 @@ export function EquipmentContent({ activeItemId, onClearSelection }: Props) {
 	const handleBack = useCallback(() => {
 		onClearSelection();
 	}, [onClearSelection]);
+	const paginationConfig = useMemo(
+		() => ({
+			page: table.currentPage,
+			pageSize: table.pageSize,
+			totalItems: table.totalItems,
+			totalPages: table.totalPages,
+			paginationItems: buildPagination(table.currentPage, table.totalPages),
+			onPageChange: table.setPage,
+			onPageSizeChange: (nextSize: number) => {
+				table.setPageSize(nextSize);
+				table.setPage(1);
+			},
+		}),
+		[table],
+	);
 
 	return (
 		<>
@@ -44,6 +60,7 @@ export function EquipmentContent({ activeItemId, onClearSelection }: Props) {
 				columns={table.columns}
 				onRowClick={handleRowClick}
 				filterConfig={filterConfig}
+				paginationConfig={paginationConfig}
 			/>
 		</>
 	);

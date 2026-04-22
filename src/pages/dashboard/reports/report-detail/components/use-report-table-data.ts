@@ -193,6 +193,9 @@ export function useReportTableData({ reportSlug, filters, sortMode }: UseReportT
 
 	const installmentsByLoanId = useMemo(
 		() =>
+			// Temporarily keep report loan schedules empty until backend exposes the real installment schedule.
+			// Synthetic installments were removed because they could diverge from actual payment behavior
+			// when users pay early, pay partial amounts, extend loans, or change terms mid-loan.
 			(loanQuery.data?.content ?? []).reduce<Record<string, []>>((acc, loan) => {
 				acc[loan.id] = [];
 				return acc;

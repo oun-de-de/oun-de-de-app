@@ -16,6 +16,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/core/ui/input";
 import { Label } from "@/core/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/core/ui/tabs";
+import { Textarea } from "@/core/ui/textarea";
 import { formatFlexibleDisplayDate } from "@/core/utils/date-display";
 import { cn } from "@/core/utils";
 import {
@@ -56,6 +57,7 @@ const loanSchema = z.object({
 		.trim()
 		.refine((val) => val === "" || Number.isInteger(Number(val)), "Must be a whole number")
 		.refine((val) => val === "" || Number(val) >= 0, "Must be 0 or greater"),
+	memo: z.string(),
 });
 
 type LoanFormValues = z.infer<typeof loanSchema>;
@@ -83,6 +85,7 @@ export function createLoanFormDefaults(): LoanFormValues {
 		loanStartDate: getLocalToday(),
 		monthlyAmount: "",
 		dueWarningDays: "5",
+		memo: "",
 	};
 }
 
@@ -210,6 +213,7 @@ export function CyclePaymentDialog({
 					code: values.loanCode.trim(),
 					loanInstallmentAmount: Number(values.monthlyAmount),
 					startDate,
+					...(values.memo.trim() ? { memo: values.memo.trim() } : {}),
 					...(normalizedDueWarningDays === ""
 						? {}
 						: { dueWarningDays: Number(normalizedDueWarningDays) }),
@@ -463,10 +467,29 @@ export function CyclePaymentDialog({
 																onChange={(e) => field.onChange(digitsOnly(e.target.value))}
 															/>
 														</FormControl>
-														<FormMessage />
-													</FormItem>
-												)}
-											/>
+													<FormMessage />
+												</FormItem>
+											)}
+										/>
+										<FormField
+											control={loanForm.control}
+											name="memo"
+											render={({ field }) => (
+												<FormItem className="sm:col-span-2 xl:col-span-3">
+													<FormLabel>Memo</FormLabel>
+													<FormControl>
+														<Textarea
+															{...field}
+															rows={4}
+															placeholder="Add note for this loan"
+															disabled={isConvertingToLoan}
+															className="min-h-24"
+														/>
+													</FormControl>
+													<FormMessage />
+												</FormItem>
+											)}
+										/>
 										</div>
 									</form>
 								</Form>

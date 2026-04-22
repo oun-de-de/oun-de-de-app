@@ -6,6 +6,7 @@ import { Link, useNavigate } from "react-router";
 import { toast } from "sonner";
 
 import type { CreateCashTransactionRequest } from "@/core/types/cash-transaction";
+import type { InvoiceExportPreviewLocationState } from "@/core/types/invoice";
 import { Button } from "@/core/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/core/ui/card";
 import { useCreateCashTransaction } from "@/pages/dashboard/accounting-center/hooks/use-create-cash-transaction";
@@ -28,6 +29,49 @@ import {
 } from "../utils/accounting-form-utils";
 import { SplitButton } from "@/core/components/common";
 import { formatDateTimeLocalApiValueFromInput } from "../utils/format-local-date-time";
+
+function buildExpensePreviewState({
+	refNo,
+	date,
+	formValues,
+	employeeOptions,
+	chartAccountLabels,
+}: {
+	refNo: string;
+	date: string;
+	formValues: CashTransactionFormValues;
+	employeeOptions: { value: string; label: string }[];
+	chartAccountLabels: Map<string, string>;
+}): InvoiceExportPreviewLocationState {
+	const employeeName = employeeOptions.find((option) => option.value === formValues.employeeId)?.label ?? "Administrator";
+	const previewRows = formValues.details.map((line, index) => ({
+		refNo: index === 0 ? refNo : `${refNo}-${index + 1}`,
+		customerName: employeeName,
+		date,
+		productName: chartAccountLabels.get(line.accountCode) ?? "Expense Item",
+		unit: null,
+		pricePerProduct: line.amount,
+		quantityPerProduct: 1,
+		quantity: 1,
+		amount: line.amount,
+		total: line.amount,
+		memo: line.memo.trim() || formValues.memo.trim() || "Expense voucher",
+		paid: line.amount,
+		balance: 0,
+	}));
+
+	return {
+		selectedInvoiceIds: [],
+		previewRows,
+		returnPath: "/dashboard/accounting",
+		receiptPaymentAmount: previewRows.reduce((sum, row) => sum + (row.amount ?? 0), 0),
+		receiptPaymentCode: refNo,
+		receiptPaymentDate: date,
+		autoPrint: true,
+		initialPaperSizeMode: "a5",
+		initialOrientationMode: "landscape",
+	};
+}
 
 export default function CreateExpensePage() {
 	const navigate = useNavigate();
@@ -79,7 +123,7 @@ export default function CreateExpensePage() {
 		}
 	}, [defaultCurrencyId, form]);
 
-	const onFormSubmit = async (values: CashTransactionFormValues, mode: "close" | "new") => {
+	const onFormSubmit = async (values: CashTransactionFormValues, mode: "close" | "new" | "print") => {
 		const serializedDate = formatDateTimeLocalApiValueFromInput(values.date);
 		if (!serializedDate) {
 			toast.error("Date is invalid");
@@ -120,6 +164,19 @@ export default function CreateExpensePage() {
 		try {
 			await createCashTransaction(payload);
 			toast.success(ACCOUNTING_DRAFT_FORM_TEXT.expense.successMessage);
+			if (mode === "print") {
+				const previewState = buildExpensePreviewState({
+					refNo: payload.refNo,
+					date: serializedDate,
+					formValues: values,
+					employeeOptions,
+					chartAccountLabels: new Map(chartAccounts.map((account) => [account.id, account.name])),
+				});
+				navigate("/dashboard/accounting/expense-preview?paper=a5&orientation=landscape", {
+					state: previewState,
+				});
+				return;
+			}
 			if (mode === "close") {
 				navigate("/dashboard/accounting");
 				return;
@@ -194,6 +251,11 @@ export default function CreateExpensePage() {
 								{
 									label: ACCOUNTING_DRAFT_FORM_TEXT.expense.saveAndNew,
 									onClick: () => void handleSubmit((values) => onFormSubmit(values, "new"))(),
+									disabled: isSubmitting,
+								},
+								{
+									label: "Save & Print",
+									onClick: () => void handleSubmit((values) => onFormSubmit(values, "print"))(),
 									disabled: isSubmitting,
 								},
 							]}
