@@ -72,7 +72,7 @@ export function useEquipmentStockForm(item: InventoryItem | null) {
 
 	const { watch, getValues, setValue, reset } = form;
 	const reason = watch("reason");
-	const refCode = watch("refCode") ?? "";
+	const refCode = watch("refCode", "");
 	const refCodeMode = watch("refCodeMode");
 
 	const regenerateRefCode = useCallback(

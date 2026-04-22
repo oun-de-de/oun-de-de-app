@@ -16,8 +16,6 @@ export function ReportItem({ slug, label, activeTab, className }: ReportItemProp
 			<Link to={href} className="flex-1 text-slate-500 hover:text-sky-600 hover:underline">
 				{label}
 			</Link>
-
-			{/* Temporarily hidden as requested */}
 		</div>
 	);
 }
