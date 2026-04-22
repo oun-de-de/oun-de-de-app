@@ -1,9 +1,22 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { SELECT_NONE_VALUE } from "@/core/constants/form";
 import type { CreateInventoryItem, CreateInventoryItemType } from "@/core/types/inventory";
+
+function generateInitialStockRefCode() {
+	const now = new Date();
+	const timestamp = [
+		now.getFullYear(),
+		String(now.getMonth() + 1).padStart(2, "0"),
+		String(now.getDate()).padStart(2, "0"),
+	].join("");
+	const time = [String(now.getHours()).padStart(2, "0"), String(now.getMinutes()).padStart(2, "0"), String(now.getSeconds()).padStart(2, "0")].join("");
+
+	return `INI-${timestamp}-${time}`;
+}
 
 const createItemSchema = z.object({
 	name: z.string().trim().min(1, "Name is required"),
@@ -12,8 +25,17 @@ const createItemSchema = z.object({
 	supplierId: z.string().optional(),
 	unitPrice: z.coerce.number().min(0, "Unit price must be 0 or greater"),
 	alertThreshold: z.number().min(0).optional(),
+	refCodeMode: z.enum(["auto", "manual"]),
 	refCode: z.string().optional(),
 	quantityOnHand: z.coerce.number().min(0),
+}).superRefine((values, ctx) => {
+	if (values.quantityOnHand > 0 && !values.refCode?.trim()) {
+		ctx.addIssue({
+			code: z.ZodIssueCode.custom,
+			path: ["refCode"],
+			message: "Ref code is required when initial quantity is greater than 0",
+		});
+	}
 });
 
 export type CreateItemFormValues = z.infer<typeof createItemSchema>;
@@ -28,6 +50,7 @@ function normalizeOptionalId(value?: string) {
 
 function mapCreateItemFormValuesToPayload(values: CreateItemFormValues): CreateInventoryItem {
 	const normalizedRefCode = values.refCode?.trim();
+	const shouldIncludeInitStock = Boolean(normalizedRefCode) && values.quantityOnHand > 0;
 
 	return {
 		name: values.name.trim(),
@@ -35,10 +58,10 @@ function mapCreateItemFormValuesToPayload(values: CreateItemFormValues): CreateI
 		unitPrice: values.unitPrice,
 		...(normalizeOptionalId(values.unitId) ? { unitId: values.unitId } : {}),
 		...(normalizeOptionalId(values.supplierId) ? { supplierId: values.supplierId } : {}),
-		...(normalizedRefCode
+		...(shouldIncludeInitStock
 			? {
 					initStock: {
-						refCode: normalizedRefCode,
+						refCode: normalizedRefCode!,
 						quantityOnHand: values.quantityOnHand,
 					},
 				}
@@ -57,10 +80,27 @@ export function useCreateItemForm({ onSubmit }: UseCreateItemFormOptions) {
 			supplierId: "",
 			unitPrice: 0,
 			alertThreshold: undefined,
+			refCodeMode: "auto",
 			refCode: "",
 			quantityOnHand: 0,
 		},
 	});
+
+	const refCodeMode = form.watch("refCodeMode");
+	const refCode = form.watch("refCode");
+	const quantityOnHand = form.watch("quantityOnHand");
+
+	useEffect(() => {
+		if (quantityOnHand > 0 && refCodeMode === "auto" && !refCode.trim()) {
+			form.setValue("refCode", generateInitialStockRefCode(), { shouldDirty: true, shouldValidate: true });
+		}
+	}, [form, quantityOnHand, refCode, refCodeMode]);
+
+	useEffect(() => {
+		if (quantityOnHand <= 0 && refCode) {
+			form.setValue("refCode", "", { shouldDirty: true, shouldValidate: true });
+		}
+	}, [form, quantityOnHand, refCode]);
 
 	const submit = async (values: CreateItemFormValues) => {
 		await onSubmit(mapCreateItemFormValuesToPayload(values));
@@ -69,6 +109,21 @@ export function useCreateItemForm({ onSubmit }: UseCreateItemFormOptions) {
 	return {
 		form,
 		submit,
-		reset: () => form.reset(),
+		regenerateRefCode: () => {
+			if (form.getValues("quantityOnHand") <= 0) return;
+			form.setValue("refCode", generateInitialStockRefCode(), { shouldDirty: true, shouldValidate: true });
+		},
+		reset: () =>
+			form.reset({
+				name: "",
+				type: "consumable",
+				unitId: "",
+				supplierId: "",
+				unitPrice: 0,
+				alertThreshold: undefined,
+				refCodeMode: "auto",
+				refCode: "",
+				quantityOnHand: 0,
+			}),
 	};
 }

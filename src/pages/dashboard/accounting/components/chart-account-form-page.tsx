@@ -95,7 +95,7 @@ export function ChartAccountFormPage({ mode }: ChartAccountFormPageProps) {
 			</div>
 
 			<Card className="gap-0 py-0">
-				<CardHeader className="justify-start border-b px-4 py-3">
+				<CardHeader className="inline-flex items-center justify-start border-b px-4 pt-6">
 					<CardTitle className="text-left text-base font-semibold text-slate-700">
 						{ACCOUNTING_UI_TEXT.cardTitle}
 					</CardTitle>
@@ -107,9 +107,9 @@ export function ChartAccountFormPage({ mode }: ChartAccountFormPageProps) {
 						</div>
 					) : null}
 
-					<div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.15fr_1fr] lg:gap-6">
-						<div className="space-y-3">
-							<div className="grid gap-3 sm:grid-cols-[220px_minmax(0,1fr)] sm:items-center">
+					<div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)] xl:items-start xl:gap-8">
+						<div className="space-y-4">
+							<div className="grid gap-2 sm:grid-cols-[160px_minmax(0,1fr)] sm:items-center">
 								<Label className="text-slate-600">
 									<span className="text-rose-500">*</span> Account type
 								</Label>
@@ -135,7 +135,7 @@ export function ChartAccountFormPage({ mode }: ChartAccountFormPageProps) {
 									{errors.accountType ? <p className="text-xs text-red-500">{errors.accountType}</p> : null}
 								</div>
 							</div>
-							<div className="grid gap-3 sm:grid-cols-[220px_minmax(0,1fr)] sm:items-center">
+							<div className="grid gap-2 sm:grid-cols-[160px_minmax(0,1fr)] sm:items-center">
 								<Label className="text-slate-600">
 									<span className="text-rose-500">*</span> Account code
 								</Label>
@@ -154,7 +154,7 @@ export function ChartAccountFormPage({ mode }: ChartAccountFormPageProps) {
 									{errors.code ? <p className="text-xs text-red-500">{errors.code}</p> : null}
 								</div>
 							</div>
-							<div className="grid gap-3 sm:grid-cols-[220px_minmax(0,1fr)] sm:items-center">
+							<div className="grid gap-2 sm:grid-cols-[160px_minmax(0,1fr)] sm:items-center">
 								<Label className="text-slate-600">
 									<span className="text-rose-500">*</span> Account name
 								</Label>
@@ -175,23 +175,24 @@ export function ChartAccountFormPage({ mode }: ChartAccountFormPageProps) {
 							</div>
 						</div>
 
-						<div className="space-y-3">
-							<div className="grid gap-3 sm:grid-cols-[220px_minmax(0,1fr)] sm:items-start">
-								<Label className="text-slate-600">Memo</Label>
+						<div className="space-y-2">
+							<Label className="text-slate-600">Memo</Label>
+							<div className="rounded-lg border border-slate-200 bg-white p-3">
 								<Textarea
 									name="memo"
 									autoComplete="off"
 									value={memo}
 									onChange={(event) => setMemo(event.target.value)}
-									className="min-h-24"
+									placeholder="Write a short note or description..."
+									className="min-h-[188px] resize-none border-0 bg-transparent p-0 shadow-none focus-visible:ring-0"
 									disabled={isCreating || isReadOnly}
 								/>
 							</div>
 						</div>
 					</div>
 
-					<div className="flex items-center justify-end gap-3">
-						<Button variant="outline" onClick={() => navigate("/dashboard/accounting")} disabled={isCreating}>
+					<div className="flex items-center justify-end gap-3 border-t border-slate-200 pt-4">
+						<Button variant="outline" onClick={() => navigate("/dashboard/accounting")} disabled={isCreating} className="min-w-32">
 							{isReadOnly ? ACCOUNTING_UI_TEXT.close : ACCOUNTING_UI_TEXT.cancel}
 						</Button>
 						{isReadOnly ? null : (

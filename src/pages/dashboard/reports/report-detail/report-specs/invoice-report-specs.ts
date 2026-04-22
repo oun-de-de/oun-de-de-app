@@ -12,6 +12,7 @@ import {
 } from "../report-columns/invoice-report-columns";
 import { buildMonthlySummaryColumns } from "../report-columns/accounting-report-columns";
 import { REPORT_FILTERS, type BuildReportRowsParams, type ReportDefinitionMap } from "../report-types";
+import { REPORT_TITLES } from "../../report-titles";
 
 function buildReceiptDetailRows({ exportLines }: BuildReportRowsParams) {
 	return buildInvoiceReportRows(exportLines);
@@ -32,7 +33,7 @@ function buildMonthlyRevenueExpenseApiReportRows({ monthlyReport }: BuildReportR
 export const INVOICE_REPORT_SPECS: ReportDefinitionMap = {
 	"open-invoice-detail-by-customer": {
 		slug: "open-invoice-detail-by-customer",
-		title: "Open Invoice Detail Report",
+		title: REPORT_TITLES["open-invoice-detail-by-customer"],
 		templateId: "open-invoice-detail-by-customer",
 		subtitle: REPORT_DEFAULT_DATE,
 		buildColumns: buildOpenInvoiceDetailColumns,
@@ -43,7 +44,7 @@ export const INVOICE_REPORT_SPECS: ReportDefinitionMap = {
 	},
 	"sale-detail-by-customer": {
 		slug: "sale-detail-by-customer",
-		title: "Sale Detail By Customer",
+		title: REPORT_TITLES["sale-detail-by-customer"],
 		templateId: "sale-detail-by-customer",
 		subtitle: REPORT_DEFAULT_DATE,
 		buildColumns: buildSaleDetailColumns,
@@ -54,7 +55,7 @@ export const INVOICE_REPORT_SPECS: ReportDefinitionMap = {
 	},
 	"receipt-detail-by-customer": {
 		slug: "receipt-detail-by-customer",
-		title: "Receipt Detail By Customer",
+		title: REPORT_TITLES["receipt-detail-by-customer"],
 		templateId: "receipt-detail-by-customer",
 		subtitle: REPORT_DEFAULT_DATE,
 		buildColumns: buildReceiptDetailColumns,
@@ -65,7 +66,7 @@ export const INVOICE_REPORT_SPECS: ReportDefinitionMap = {
 	},
 	"profit-and-loss": {
 		slug: "profit-and-loss",
-		title: "Monthly Revenue & Expense",
+		title: REPORT_TITLES["profit-and-loss"],
 		templateId: "monthly-revenue-expense-summary",
 		subtitle: REPORT_DEFAULT_DATE,
 		buildColumns: buildMonthlySummaryColumns,

@@ -11,6 +11,7 @@ import {
 	buildProductListColumns,
 } from "../report-columns/inventory-report-columns";
 import { REPORT_FILTERS, type BuildReportRowsParams, type ReportDefinitionMap } from "../report-types";
+import { REPORT_TITLES } from "../../report-titles";
 
 function buildInventoryStockRows({ inventoryStockReport, inventoryDateFrom, inventoryDateTo }: BuildReportRowsParams) {
 	return filterInventoryStockReportRowsByDate(
@@ -31,7 +32,7 @@ function buildCompanyAssetRegisterRows({ inventoryItems }: BuildReportRowsParams
 export const INVENTORY_REPORT_SPECS: ReportDefinitionMap = {
 	"inventory-valuation-summary": {
 		slug: "inventory-valuation-summary",
-		title: "Inventory Stock Report",
+		title: REPORT_TITLES["inventory-valuation-summary"],
 		templateId: "ice-bag-inventory-stock-report",
 		subtitle: REPORT_DEFAULT_DATE,
 		buildColumns: buildInventoryStockColumns,
@@ -41,7 +42,7 @@ export const INVENTORY_REPORT_SPECS: ReportDefinitionMap = {
 	},
 	"product-list": {
 		slug: "product-list",
-		title: "Product List",
+		title: REPORT_TITLES["product-list"],
 		templateId: "unsupported",
 		buildColumns: buildProductListColumns,
 		buildRows: buildProductListReportRows,
@@ -50,7 +51,7 @@ export const INVENTORY_REPORT_SPECS: ReportDefinitionMap = {
 	},
 	"company-asset": {
 		slug: "company-asset",
-		title: "Company Asset Register",
+		title: REPORT_TITLES["company-asset"],
 		templateId: "company-asset-register",
 		buildColumns: buildCompanyAssetColumns,
 		buildRows: buildCompanyAssetRegisterRows,

@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
+import PremiumIceLogo from "@/assets/icons/ic-premium-ice.png";
 import type { Customer } from "@/core/types/customer";
-import Logo from "@/core/components/logo";
 import type { InvoiceExportPreviewRow } from "@/core/types/invoice";
 import { formatNumber } from "@/core/utils/formatters";
 import type { ReportFilterConfig, ReportTemplateId } from "../report-types";
@@ -12,6 +12,8 @@ import type {
 import type { ReportFiltersValue } from "./report-filters";
 import { buildOpenInvoiceSummaryRows } from "./report-table-builders";
 import { formatFilterDateForDisplay, formatFilterRange, parseNumericCell } from "./report-table-utils";
+import { REPORT_TITLES } from "../../report-titles";
+import { REPORT_KHMER_TITLE } from "../constants";
 
 export interface ReportPresentation {
 	headerContent: ReactNode;
@@ -41,11 +43,33 @@ type SummaryDefinition = {
 
 function buildDefaultHeader(title: string, dateText?: string) {
 	return (
-		<div className="flex flex-col items-center gap-1 text-center text-black">
-			<div className="text-[11px] font-normal">{title}</div>
-			<div className="pb-0 text-[22px] font-bold">ហាងចក្រទឹកកក លឹម ច័ន្ទ II</div>
-			<div className="pb-3 text-[13px] font-semibold underline">TEL: 070669898</div>
-			{dateText && <div className="text-base font-semibold text-slate-600">{dateText}</div>}
+		<div className="flex flex-col gap-0 text-black">
+			<div className="flex items-center justify-between px-4 py-3">
+				<div className="flex w-20 justify-start">
+					<div className="flex size-20 shrink-0 items-center justify-center overflow-hidden rounded-full border-[3px] border-sky-500 bg-white">
+						<img
+							src={PremiumIceLogo}
+							alt="Premium Ice Logo"
+							width={80}
+							height={80}
+							className="size-full object-cover"
+						/>
+					</div>
+				</div>
+				<div className="flex-1 text-center">
+					<div className="text-[11px] font-normal text-slate-600">{title}</div>
+					<div className="mt-1 text-[22px] font-bold">{REPORT_KHMER_TITLE}</div>
+					<div className="mt-2 text-[13px] font-semibold text-slate-600">
+						ទីតាំង : ភូមិត្រពាំងក្រសាំង សង្កាត់កន្ទោក ខណ្ឌកំបូល រាជធានីភ្នំពេញ (TEL: 070 66 9898)
+					</div>
+				</div>
+				<div className="w-20" />
+			</div>
+			{dateText && (
+				<div className="flex justify-center">
+					<div className="text-base font-semibold text-slate-600">{dateText}</div>
+				</div>
+			)}
 		</div>
 	);
 }
@@ -64,7 +88,7 @@ function buildWorkbookFilterMetaColumns(
 	const dateRange = fromDate === toDate ? fromDate : `${fromDate} To ${toDate}`;
 	const customerDisplay = selectedCustomer
 		? `${selectedCustomer.code} : ${selectedCustomer.name}`
-		: customerLabel?.trim() || "All";
+		: customerLabel?.trim() || "All Customers";
 	const geographyDisplay = selectedCustomer?.geography?.trim() || "All";
 	const paymentTermDisplay = selectedCustomer?.paymentTerm?.duration
 		? `${selectedCustomer.paymentTerm.duration} days`
@@ -81,7 +105,7 @@ function buildWorkbookFilterMetaColumns(
 
 function buildCustomerLoanMetaColumns(): ReportTemplateMetaColumn[] {
 	return [
-		{ key: "title", rows: ["Customer Borrow Money"], className: "md:col-span-1" },
+		{ key: "title", rows: [REPORT_TITLES["customer-transaction"]], className: "md:col-span-1" },
 		{ key: "term", rows: ["Payment term: Monthly Installments"], align: "center", className: "md:col-span-1" },
 		{ key: "scope", rows: ["Borrower type: Customer"], align: "right", className: "md:col-span-1" },
 	];
@@ -89,15 +113,19 @@ function buildCustomerLoanMetaColumns(): ReportTemplateMetaColumn[] {
 
 function buildEmployeeLoanMetaColumns(): ReportTemplateMetaColumn[] {
 	return [
-		{ key: "title", rows: ["Employee Borrow Money"], className: "md:col-span-1" },
+		{ key: "title", rows: [REPORT_TITLES["customer-transaction-detail-by-type"]], className: "md:col-span-1" },
 		{ key: "term", rows: ["Payment term: Monthly Installments"], align: "center", className: "md:col-span-1" },
-		{ key: "scope", rows: ["Employee Loan Ledger"], align: "right", className: "md:col-span-1" },
+		{ key: "scope", rows: [REPORT_TITLES["customer-transaction-detail-by-type"]], align: "right", className: "md:col-span-1" },
 	];
 }
 
 function buildCompanyAssetMetaColumns(): ReportTemplateMetaColumn[] {
 	return [
-		{ key: "scope", rows: ["Company Asset Register", "Source: product catalog records"], className: "md:col-span-1" },
+		{
+			key: "scope",
+			rows: [REPORT_TITLES["company-asset"], "Source: product catalog records"],
+			className: "md:col-span-1",
+		},
 		{
 			key: "supplier",
 			rows: ["Supplier fields are derived from product reference only", "No supplier data in current source data"],
@@ -173,21 +201,7 @@ function buildMonthlyPresentation({ filters }: ReportPresentationBuilderParams):
 	const periodText = formatFilterRange(filters);
 
 	return {
-		headerContent: (
-			<div className="flex flex-col gap-0 text-black">
-				<div className="flex items-center justify-between px-4 py-3">
-					<div className="flex w-16 justify-start">
-						<Logo size={52} />
-					</div>
-					<div className="flex-1 text-center">
-						<div className="text-[22px] font-bold">ហាងចក្រទឹកកក លឹម ច័ន្ទ</div>
-						<div className="text-base font-semibold">Lim chan ice cube</div>
-					</div>
-					<div className="w-16" />
-				</div>
-				<div className="mt-3 w-full text-left text-sm font-semibold">Report date: {periodText}</div>
-			</div>
-		),
+		headerContent: buildDefaultHeader(REPORT_TITLES["profit-and-loss"], periodText),
 		showTableHeader: false,
 		emptyText: "No monthly data available.",
 	};
@@ -212,7 +226,7 @@ function buildDailyPresentation({ title, filters, rows }: ReportPresentationBuil
 }
 
 function buildCompanyAssetPresentation({ rows }: ReportPresentationBuilderParams): ReportPresentation {
-	return buildSimplePresentation("Company Asset Report", undefined, {
+	return buildSimplePresentation(REPORT_TITLES["company-asset"], undefined, {
 		metaColumns: buildCompanyAssetMetaColumns(),
 		summaryRows: buildSingleAmountSummary("asset-total", "Total asset value", sumCell(rows, "balance")),
 		emptyText: "No asset rows available.",
@@ -233,13 +247,13 @@ function buildLedgerPresentation({
 }
 
 function buildInventoryPresentation({ filters, rows }: ReportPresentationBuilderParams): ReportPresentation {
-	return buildSimplePresentation("Inventory Stock Report", formatFilterRange(filters), {
+	return buildSimplePresentation(REPORT_TITLES["inventory-valuation-summary"], formatFilterRange(filters), {
 		summaryRows: buildSingleAmountSummary("inventory-balance", "Total balance qty", sumLatestBalanceByItem(rows)),
 	});
 }
 
 function buildCustomerLoanPresentation({ filters, rows }: ReportPresentationBuilderParams): ReportPresentation {
-	return buildSimplePresentation("Customer Borrow Money", formatFilterRange(filters), {
+	return buildSimplePresentation(REPORT_TITLES["customer-transaction"], formatFilterRange(filters), {
 		metaColumns: buildCustomerLoanMetaColumns(),
 		summaryRows: toSummaryRows([
 			{ key: "loan-debit", label: "Total principal", value: formatNumber(sumCell(rows, "debit")) },
@@ -258,8 +272,15 @@ function buildEmployeeLoanPresentation({ title, filters, rows }: ReportPresentat
 	});
 }
 
-function buildSaleDetailPresentation({ title, filters, rows }: ReportPresentationBuilderParams): ReportPresentation {
+function buildSaleDetailPresentation({
+	title,
+	filters,
+	rows,
+	selectedCustomerLabel,
+	selectedCustomer,
+}: ReportPresentationBuilderParams): ReportPresentation {
 	return buildSimplePresentation(title, formatFilterRange(filters), {
+		metaColumns: buildWorkbookFilterMetaColumns(filters, selectedCustomerLabel, selectedCustomer),
 		summaryRows: buildSingleAmountSummary("sales-total", "Total amount", sumCell(rows, "amount")),
 	});
 }

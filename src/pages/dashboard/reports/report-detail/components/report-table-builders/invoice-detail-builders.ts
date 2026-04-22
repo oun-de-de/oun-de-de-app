@@ -72,6 +72,7 @@ export function buildSaleDetailRows(invoices: Invoice[], exportLines: InvoiceExp
 		const displayType = typeByRefNo.get(line.refNo ?? "") ?? "cash_sale";
 
 		return createIndexedReportRow(`${line.refNo ?? "sale"}-${line.productName ?? index}`, index, {
+			customer: line.customerName ?? "-",
 			date: formatFlexibleDisplayDate(line.date),
 			refNo: line.refNo ?? "-",
 			type: displayType,

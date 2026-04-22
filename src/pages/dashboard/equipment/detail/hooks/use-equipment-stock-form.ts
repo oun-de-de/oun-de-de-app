@@ -24,11 +24,7 @@ function generateRefCode(reason: string): string {
 	const now = new Date();
 	const datePart = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}${String(now.getDate()).padStart(2, "0")}`;
 	const timePart = `${String(now.getHours()).padStart(2, "0")}${String(now.getMinutes()).padStart(2, "0")}${String(now.getSeconds()).padStart(2, "0")}`;
-	const uniquePart =
-		typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
-			? crypto.randomUUID().replace(/-/g, "").slice(0, 6).toUpperCase()
-			: Math.random().toString(36).slice(2, 8).toUpperCase();
-	return `${prefix}-${datePart}-${timePart}-${uniquePart}`;
+	return `${prefix}-${datePart}-${timePart}`;
 }
 
 function getQuantityDelta(reason: string, quantity: number) {
@@ -74,7 +70,7 @@ export function useEquipmentStockForm(item: InventoryItem | null) {
 		},
 	});
 
-	const { watch, setValue, reset } = form;
+	const { watch, getValues, setValue, reset } = form;
 	const reason = watch("reason");
 	const refCode = watch("refCode");
 	const refCodeMode = watch("refCodeMode");
@@ -100,11 +96,17 @@ export function useEquipmentStockForm(item: InventoryItem | null) {
 		}
 	}, [reason, refCodeMode, refCode, regenerateRefCode]);
 
+	useEffect(() => {
+		if (reason === "consume" && getValues("expense")) {
+			setValue("expense", "", { shouldDirty: true, shouldValidate: true });
+		}
+	}, [reason, getValues, setValue]);
+
 	const handleSubmit = async (values: UpdateStockFormValues) => {
 		if (!item) return;
 
 		const parsedQty = Number(values.quantity);
-		const parsedExpense = values.expense ? Number(values.expense) : undefined;
+		const parsedExpense = values.reason === "consume" ? undefined : values.expense ? Number(values.expense) : undefined;
 		try {
 			await updateStockMutation.mutateAsync({
 				refCode: values.refCode.trim(),

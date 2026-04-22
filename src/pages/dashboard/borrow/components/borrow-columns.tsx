@@ -72,8 +72,9 @@ export const borrowColumns: ColumnDef<Loan>[] = [
 		},
 	},
 	{
-		accessorKey: "termMonths",
-		header: "Term (Months)",
+		id: "remainingBalance",
+		header: "Remaining Balance",
+		cell: ({ row }) => formatKHR(Math.max(row.original.principalAmount - row.original.paidAmount, 0)),
 		meta: { bodyClassName: "text-right" },
 	},
 	// {

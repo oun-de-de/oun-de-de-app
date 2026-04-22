@@ -102,6 +102,17 @@ describe("UpdateStockDialog", () => {
 		});
 	});
 
+	it("hides expense field when reason is consume", async () => {
+		const user = userEvent.setup();
+		renderDialog();
+
+		expect(screen.getByText("Expense (៛)")).toBeInTheDocument();
+
+		await user.click(screen.getByRole("button", { name: "consume" }));
+
+		expect(screen.queryByText("Expense (៛)")).not.toBeInTheDocument();
+	});
+
 	it("does not allow closing through dialog close button while pending", async () => {
 		const user = userEvent.setup();
 		const onOpenChange = vi.fn();

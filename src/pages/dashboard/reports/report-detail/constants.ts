@@ -1,5 +1,6 @@
 import { formatDateToYYYYMMDD } from "@/pages/dashboard/accounting/utils/format-local-date-time";
 import type { ReportColumnVisibility, ReportSectionVisibility } from "../components/layout/report-toolbar";
+import { REPORT_TITLES } from "../report-titles";
 
 const today = new Date();
 
@@ -25,7 +26,7 @@ export function formatReportTimestamp(employeeName: string, date: Date): string 
 }
 
 export const REPORT_KHMER_TITLE = "ហាងម្រុននីការកក លឹម មុន II";
-export const REPORT_ENGLISH_TITLE = "OPEN INVOICE DETAIL BY CUSTOMER";
+export const REPORT_ENGLISH_TITLE = REPORT_TITLES["open-invoice-on-period-by-group"].toUpperCase();
 export const REPORT_DEFAULT_DATE = formatDateToDDMMYYYY(today);
 export const REPORT_DEFAULT_DATE_INPUT = formatDateToYYYYMMDD(today);
 export const REPORT_FOOTER_TEXT = "";

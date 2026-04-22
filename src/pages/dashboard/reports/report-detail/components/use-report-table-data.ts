@@ -283,16 +283,17 @@ export function useReportTableData({ reportSlug, filters, sortMode }: UseReportT
 		if (!customerId) {
 			return {
 				selectedCustomer: undefined,
-				selectedCustomerLabel: "All",
+				selectedCustomerLabel: "All Customers",
 			};
 		}
 
 		const selectedCustomer = customerQuery.data?.list.find((customer) => customer.id === customerId);
+		const fallbackCustomer = filteredCustomers.find((customer) => customer.id === customerId);
 		return {
-			selectedCustomer,
-			selectedCustomerLabel: selectedCustomer?.name ?? "Filtered",
+			selectedCustomer: selectedCustomer ?? fallbackCustomer,
+			selectedCustomerLabel: selectedCustomer?.name ?? fallbackCustomer?.name ?? customerId,
 		};
-	}, [customerId, customerQuery.data?.list]);
+	}, [customerId, customerQuery.data?.list, filteredCustomers]);
 
 	return {
 		definition,

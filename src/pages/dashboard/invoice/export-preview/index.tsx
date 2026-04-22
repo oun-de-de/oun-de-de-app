@@ -20,6 +20,7 @@ import {
 	REPORT_FOOTER_TEXT,
 	REPORT_KHMER_TITLE,
 } from "../../reports/report-detail/constants";
+import { PAYMENT_RECEIPT_TITLE, REPORT_TITLES } from "../../reports/report-titles";
 import { formatNumber } from "../utils/formatters";
 import { EXPORT_PREVIEW_COLUMNS } from "./components/export-preview-columns";
 import { ExportPreviewToolbar } from "./components/export-preview-toolbar";
@@ -597,12 +598,12 @@ export default function InvoiceExportPreviewPage() {
 						<ReportTemplateTable
 							className={cn("invoice-export-print-target invoice-print-sheet", tableClassName)}
 							showSections={showSections}
-							title={isReceiptExport ? "Payment Receipt" : "Open Invoice On Period By Group"}
+							title={isReceiptExport ? PAYMENT_RECEIPT_TITLE : REPORT_TITLES["open-invoice-on-period-by-group"]}
 							subtitle={isReceiptExport ? receiptPaymentDate : reportDate}
 							headerContent={
 								<div className="invoice-print-header flex flex-col items-center gap-1 text-center">
 									<div className="text-[10px] text-slate-500">
-										{isReceiptExport ? "Payment Receipt" : "Open Invoice On Period By Group"}
+										{isReceiptExport ? PAYMENT_RECEIPT_TITLE : REPORT_TITLES["open-invoice-on-period-by-group"]}
 									</div>
 									<div className="text-xl font-bold leading-none text-slate-700">{REPORT_KHMER_TITLE}</div>
 									<div className="text-sm font-semibold text-slate-600 underline underline-offset-2">

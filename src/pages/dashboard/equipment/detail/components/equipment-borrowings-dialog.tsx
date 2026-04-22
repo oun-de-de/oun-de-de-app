@@ -1,21 +1,23 @@
 import { CalendarIcon } from "lucide-react";
+import { useRef } from "react";
 import type { Customer } from "@/core/types/customer";
 import { Button } from "@/core/ui/button";
-import { Calendar } from "@/core/ui/calendar";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/core/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/core/ui/form";
 import { Input } from "@/core/ui/input";
 import { Label } from "@/core/ui/label";
-import { Popover, PopoverContent, PopoverTrigger } from "@/core/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/core/ui/select";
 import { Textarea } from "@/core/ui/textarea";
-import { formatDisplayDate } from "@/core/utils/formatters";
 import { useInventoryBorrowings } from "../../hooks/use-inventory-items";
 import { BorrowingActionDialog } from "./borrowing-action-dialog";
 import { BorrowingsHistoryDialog } from "./borrowings-history-dialog";
 import { BorrowingsTable } from "./borrowings-table";
 import { useEquipmentBorrowingsDialogState } from "../hooks/use-equipment-borrowings-dialog-state";
-import { formatDateForValue, useEquipmentBorrowingForm } from "../hooks/use-equipment-borrowing-form";
+import {
+	formatIsoDateForDisplay,
+	toIsoDateValue,
+	useEquipmentBorrowingForm,
+} from "../hooks/use-equipment-borrowing-form";
 import { useDialogOpenState } from "@/core/hooks/use-dialog-open-state";
 import { useDialogSubmitHandler } from "@/core/hooks/use-dialog-submit-handler";
 
@@ -25,6 +27,48 @@ type EquipmentBorrowingsDialogProps = {
 	open?: boolean;
 	onOpenChange?: (open: boolean) => void;
 };
+
+type ExpectedReturnDateInputProps = {
+	value: string;
+	onChange: (value: string) => void;
+};
+
+function ExpectedReturnDateInput({ value, onChange }: ExpectedReturnDateInputProps) {
+	const inputRef = useRef<HTMLInputElement>(null);
+
+	const handleOpenPicker = () => {
+		if (typeof inputRef.current?.showPicker === "function") {
+			inputRef.current.showPicker();
+			return;
+		}
+
+		inputRef.current?.focus();
+		inputRef.current?.click();
+	};
+
+	return (
+		<div className="relative">
+			<Button
+				type="button"
+				variant="outline"
+				className="h-10 w-full justify-between px-3 text-left font-normal text-slate-700 hover:bg-white"
+				onClick={handleOpenPicker}
+			>
+				<span>{value || "dd/mm/yyyy"}</span>
+				<CalendarIcon className="h-4 w-4 text-slate-400" />
+			</Button>
+			<Input
+				ref={inputRef}
+				type="date"
+				tabIndex={-1}
+				value={toIsoDateValue(value)}
+				onChange={(event) => onChange(formatIsoDateForDisplay(event.target.value))}
+				className="pointer-events-none absolute bottom-0 left-0 h-0 w-0 overflow-hidden border-0 p-0 opacity-0"
+				aria-hidden="true"
+			/>
+		</div>
+	);
+}
 
 export function EquipmentBorrowingsDialog({
 	itemId,
@@ -42,6 +86,8 @@ export function EquipmentBorrowingsDialog({
 		historyPageSize,
 		setHistoryPageSize,
 		pendingAction,
+		sellRefCodeMode,
+		setSellRefCodeMode,
 		sellRefCode,
 		setSellRefCode,
 		sellExpense,
@@ -54,6 +100,7 @@ export function EquipmentBorrowingsDialog({
 		openReturnAction,
 		closePendingAction,
 		confirmPendingAction,
+		regenerateSellRefCode,
 	} = useEquipmentBorrowingsDialogState(itemId);
 	const { data: borrowings = [], isLoading } = useInventoryBorrowings(itemId);
 	const previewBorrowings = borrowings.slice(0, 5);
@@ -133,30 +180,9 @@ export function EquipmentBorrowingsDialog({
 									render={({ field }) => (
 										<FormItem className="space-y-2">
 											<FormLabel>Expected Return Date</FormLabel>
-											<Popover>
-												<PopoverTrigger asChild>
-													<FormControl>
-														<Button
-															type="button"
-															variant="outline"
-															className="h-10 w-full justify-between px-3 text-slate-500 hover:bg-white"
-														>
-															<span>
-																{field.value ? formatDisplayDate(field.value) : "Select date"}
-															</span>
-															<CalendarIcon className="h-4 w-4 text-slate-400" />
-														</Button>
-													</FormControl>
-												</PopoverTrigger>
-												<PopoverContent className="w-auto p-0" align="start">
-													<Calendar
-														mode="single"
-														selected={borrowingForm.selectedExpectedReturnDate}
-														onSelect={(date) => field.onChange(date ? formatDateForValue(date) : "")}
-														initialFocus
-													/>
-												</PopoverContent>
-											</Popover>
+											<FormControl>
+												<ExpectedReturnDateInput value={field.value} onChange={field.onChange} />
+											</FormControl>
 											<FormMessage />
 										</FormItem>
 									)}
@@ -243,8 +269,16 @@ export function EquipmentBorrowingsDialog({
 
 			<BorrowingActionDialog
 				pendingAction={pendingAction}
+				sellRefCodeMode={sellRefCodeMode}
+				onSellRefCodeModeChange={(value) => {
+					setSellRefCodeMode(value);
+					if (value === "auto") {
+						regenerateSellRefCode();
+					}
+				}}
 				sellRefCode={sellRefCode}
 				onSellRefCodeChange={setSellRefCode}
+				onRegenerateSellRefCode={regenerateSellRefCode}
 				sellExpense={sellExpense}
 				onSellExpenseChange={setSellExpense}
 				onConfirm={confirmPendingAction}
