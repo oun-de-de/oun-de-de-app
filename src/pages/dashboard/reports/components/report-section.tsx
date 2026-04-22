@@ -5,10 +5,16 @@ import { Text } from "@/core/ui/typography";
 import { cn } from "@/core/utils";
 import { ReportItem } from "./report-item";
 
+export interface ReportItemData {
+	slug: string;
+	label: string;
+	favorite?: boolean;
+}
+
 export interface ReportSectionData {
 	title: string;
 	icon: string;
-	items: { slug: string; label: string }[];
+	items: ReportItemData[];
 }
 
 function isFavoriteReport(favorites: string[], slug: string, label: string) {

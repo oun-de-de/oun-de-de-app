@@ -10,6 +10,11 @@ import type {
 	VendorTransactionRow,
 } from "@/core/types/common";
 import { REPORT_TITLES } from "@/pages/dashboard/reports/report-titles";
+import type { ReportSectionData } from "@/pages/dashboard/reports/components/report-section";
+
+export interface MockReportSection extends ReportSectionData {
+	tab: string;
+}
 
 export const customerSummaryCards: SummaryStatCardData[] = [
 	{ label: "Deposit Balance", value: 0, color: "bg-sky-500", icon: "mdi:cash-plus" },
@@ -526,7 +531,7 @@ export const accountingRows: AccountingRow[] = [
 
 export const reportTabs = ["Customer", "Inventory", "Accounting"];
 
-export const reportSections = [
+export const reportSections: MockReportSection[] = [
 	// ── Customer tab ──────────────────────────────────
 	{
 		tab: "Customer",

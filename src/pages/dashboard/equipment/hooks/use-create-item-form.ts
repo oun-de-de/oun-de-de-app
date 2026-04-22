@@ -87,7 +87,7 @@ export function useCreateItemForm({ onSubmit }: UseCreateItemFormOptions) {
 	});
 
 	const refCodeMode = form.watch("refCodeMode");
-	const refCode = form.watch("refCode");
+	const refCode = form.watch("refCode") ?? "";
 	const quantityOnHand = form.watch("quantityOnHand");
 
 	useEffect(() => {
