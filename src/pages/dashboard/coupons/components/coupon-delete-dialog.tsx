@@ -9,22 +9,13 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/core/ui/input";
 import { Label } from "@/core/ui/label";
 import { formatDateStartLocalApiValueFromInput } from "@/pages/dashboard/accounting/utils/format-local-date-time";
+import { toCouponDateInputValue } from "../utils/coupon-form-values";
 
 type CouponDeleteDialogProps = {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
 	coupon: Coupon | null;
 };
-
-function toDateInputValue(value: string | null | undefined): string {
-	if (!value) return "";
-	const directDateMatch = value.match(/^(\d{4}-\d{2}-\d{2})(?:$|T)/);
-	if (directDateMatch) return directDateMatch[1];
-	const date = new Date(value);
-	if (Number.isNaN(date.getTime())) return "";
-	const pad = (n: number) => n.toString().padStart(2, "0");
-	return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
-}
 
 export function CouponDeleteDialog({ open, onOpenChange, coupon }: CouponDeleteDialogProps) {
 	const queryClient = useQueryClient();
@@ -36,7 +27,7 @@ export function CouponDeleteDialog({ open, onOpenChange, coupon }: CouponDeleteD
 
 	useEffect(() => {
 		setDelAccNo(coupon?.delAccNo ?? "");
-		setDelDate(toDateInputValue(coupon?.delDate));
+		setDelDate(toCouponDateInputValue(coupon?.delDate));
 	}, [coupon]);
 
 	const { mutateAsync: deleteCoupon, isPending } = useMutation({
