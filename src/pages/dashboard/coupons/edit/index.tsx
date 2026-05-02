@@ -1,91 +1,33 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
-import { BackButton } from "@/core/components/common";
 import couponService from "@/core/api/services/coupon-service";
 import employeeService from "@/core/api/services/employee-service";
 import productService from "@/core/api/services/product-service";
 import vehicleService from "@/core/api/services/vehicle-service";
+import { BackButton } from "@/core/components/common";
 import type { Coupon, UpdateCouponRequest } from "@/core/types/coupon";
 import { Button } from "@/core/ui/button";
 import { Text } from "@/core/ui/typography";
 import { formatDateStartLocalApiValueFromInput } from "@/pages/dashboard/accounting/utils/format-local-date-time";
 import { getEmployeeDisplayName } from "@/pages/dashboard/employees/utils/employee-utils";
 import { CouponForm } from "../create/components/coupon-form";
+import { WeightRecordsBuilder } from "../create/components/weight-records-builder";
+import { toCouponDateInputValue, toNumberOrUndefined } from "../utils/coupon-form-values";
 import {
-	createInitialRawWeightRecord,
+	createEmptyDraftWeightRecord,
 	type DraftWeightRecord,
-	WeightRecordsBuilder,
-} from "../create/components/weight-records-builder";
+	normalizeDraftWeightRecords,
+	serializeDraftWeightRecords,
+	validateCumulativeWeightRecords,
+} from "../utils/weight-record-drafts";
 
 type CouponEditLocationState = {
 	coupon?: Coupon;
 };
 
 const getCouponDraftStorageKey = (couponId: string) => `coupon-edit:draft:${couponId}`;
-
-function toDateInputValue(value: string | null | undefined): string {
-	if (!value) return "";
-	const directDateMatch = value.match(/^(\d{4}-\d{2}-\d{2})(?:$|T)/);
-	if (directDateMatch) return directDateMatch[1];
-	const date = new Date(value);
-	if (Number.isNaN(date.getTime())) return "";
-	const pad = (n: number) => n.toString().padStart(2, "0");
-	return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
-}
-
-function toNumberOrUndefined(value: unknown): number | undefined {
-	if (value === "" || value === null || value === undefined) return undefined;
-	const parsed = Number(value);
-	return Number.isNaN(parsed) ? undefined : parsed;
-}
-
-function validateCumulativeWeightRecords(records: DraftWeightRecord[]): string | null {
-	if (records.length === 0) return "At least one weight record is required.";
-	if (records[0].productName !== null) return "The first record must be raw vehicle weighing (productName = null).";
-
-	let previousWeight: number | null = null;
-	for (let i = 0; i < records.length; i++) {
-		const record = records[i];
-		if (record.weight !== null && previousWeight !== null && record.weight < previousWeight) {
-			return `Record #${i + 1} has accumulated weight smaller than previous record.`;
-		}
-		if (record.weight !== null) previousWeight = record.weight;
-	}
-	return null;
-}
-
-function normalizeDraftWeightRecords(
-	couponWeightRecords: Coupon["weightRecords"],
-	products: Awaited<ReturnType<typeof productService.getProductList>>,
-): DraftWeightRecord[] {
-	if (couponWeightRecords.length === 0) {
-		return [createInitialRawWeightRecord()];
-	}
-
-	const rawRecordIndex = couponWeightRecords.findIndex((record) => record.productName === null);
-	const orderedRecords =
-		rawRecordIndex >= 0
-			? [couponWeightRecords[rawRecordIndex], ...couponWeightRecords.filter((_, index) => index !== rawRecordIndex)]
-			: [createInitialRawWeightRecord(), ...couponWeightRecords];
-
-	return orderedRecords.map((record, index) => ({
-		productId:
-			index === 0 || record.productName === null
-				? undefined
-				: products.find((product) => product.name === record.productName)?.id,
-		productName: index === 0 ? null : record.productName || null,
-		unit: record.unit,
-		pricePerProduct: record.pricePerProduct,
-		quantityPerProduct: record.quantityPerProduct,
-		quantity: record.quantity,
-		weight: record.weight,
-		outTime: record.outTime,
-		memo: record.memo,
-		manual: record.manual,
-	}));
-}
 
 export default function EditCouponPage() {
 	const navigate = useNavigate();
@@ -104,7 +46,9 @@ export default function EditCouponPage() {
 			return null;
 		}
 	}, [id]);
-	const [weightRecords, setWeightRecords] = useState<DraftWeightRecord[]>([createInitialRawWeightRecord()]);
+	const [weightRecords, setWeightRecords] = useState<DraftWeightRecord[]>([createEmptyDraftWeightRecord()]);
+	const activeCouponIdRef = useRef<string | null>(null);
+	const hasEditedWeightRecordsRef = useRef(false);
 
 	const { data: employees = [] } = useQuery({
 		queryKey: ["employees", "all"],
@@ -134,6 +78,12 @@ export default function EditCouponPage() {
 	});
 
 	const coupon = couponQuery.data ?? null;
+	const couponId = coupon?.id;
+	const { data: couponWeightRecords } = useQuery({
+		queryKey: ["coupon-edit-weight-records", couponId],
+		queryFn: () => (couponId ? couponService.getCouponWeightRecords(couponId) : Promise.resolve([])),
+		enabled: Boolean(couponId),
+	});
 
 	const employeeOptions = useMemo(
 		() =>
@@ -156,7 +106,7 @@ export default function EditCouponPage() {
 		() =>
 			coupon
 				? {
-						date: toDateInputValue(coupon.date),
+						date: toCouponDateInputValue(coupon.date),
 						vehicleId: coupon.vehicle?.id ?? "",
 						driverName: coupon.driverName ?? "",
 						employeeId: coupon.employee?.id ?? "",
@@ -171,13 +121,29 @@ export default function EditCouponPage() {
 
 	useEffect(() => {
 		if (!coupon) {
-			setWeightRecords([createInitialRawWeightRecord()]);
+			activeCouponIdRef.current = null;
+			hasEditedWeightRecordsRef.current = false;
+			setWeightRecords([createEmptyDraftWeightRecord()]);
 			return;
 		}
 
-		window.sessionStorage.setItem(getCouponDraftStorageKey(coupon.id), JSON.stringify(coupon));
-		setWeightRecords(normalizeDraftWeightRecords(coupon.weightRecords, products));
-	}, [coupon, products]);
+		if (activeCouponIdRef.current !== coupon.id) {
+			activeCouponIdRef.current = coupon.id;
+			hasEditedWeightRecordsRef.current = false;
+		}
+
+		const sourceWeightRecords = couponWeightRecords ?? coupon.weightRecords;
+		window.sessionStorage.setItem(
+			getCouponDraftStorageKey(coupon.id),
+			JSON.stringify({ ...coupon, weightRecords: sourceWeightRecords }),
+		);
+
+		if (hasEditedWeightRecordsRef.current) {
+			return;
+		}
+
+		setWeightRecords(normalizeDraftWeightRecords(sourceWeightRecords, products));
+	}, [coupon, couponWeightRecords, products]);
 
 	const { mutateAsync: updateCoupon, isPending } = useMutation({
 		mutationFn: async (data: UpdateCouponRequest) => {
@@ -195,7 +161,16 @@ export default function EditCouponPage() {
 	});
 
 	const weightRecordsComponent = useMemo<ReactNode>(
-		() => <WeightRecordsBuilder products={products} records={weightRecords} onChange={setWeightRecords} />,
+		() => (
+			<WeightRecordsBuilder
+				products={products}
+				records={weightRecords}
+				onChange={(nextRecords) => {
+					hasEditedWeightRecordsRef.current = true;
+					setWeightRecords(nextRecords);
+				}}
+			/>
+		),
 		[products, weightRecords],
 	);
 
@@ -219,17 +194,7 @@ export default function EditCouponPage() {
 			remark: (data.remark as string) || undefined,
 			couponId: toNumberOrUndefined(data.couponId),
 			accNo: (data.accNo as string) || undefined,
-			weightRecords: weightRecords.map((record) => ({
-				productName: record.productName,
-				unit: record.unit,
-				pricePerProduct: record.pricePerProduct,
-				quantityPerProduct: record.quantityPerProduct,
-				quantity: record.quantity,
-				weight: record.weight,
-				outTime: record.outTime,
-				memo: record.memo,
-				manual: record.manual,
-			})),
+			weightRecords: serializeDraftWeightRecords(weightRecords),
 		});
 	};
 

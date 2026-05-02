@@ -5,19 +5,16 @@ import { Button } from "@/core/ui/button";
 import { Input } from "@/core/ui/input";
 import { Label } from "@/core/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/core/ui/select";
-
-export type DraftWeightRecord = {
-	productId?: string;
-	productName: string | null;
-	unit: string | null;
-	pricePerProduct: number | null;
-	quantityPerProduct: number | null;
-	quantity: number | null;
-	weight: number | null;
-	outTime: string;
-	memo: string | null;
-	manual: boolean;
-};
+import {
+	formatDateTimeLocalApiValue,
+	formatDateTimeLocalApiValueFromInput,
+	formatDateTimeLocalInputValue,
+} from "@/pages/dashboard/accounting/utils/format-local-date-time";
+import {
+	createEmptyDraftWeightRecord,
+	type DraftWeightRecord,
+	isLegacyProductValue,
+} from "../../utils/weight-record-drafts";
 
 type WeightRecordsBuilderProps = {
 	products: Product[];
@@ -28,56 +25,16 @@ type WeightRecordsBuilderProps = {
 function toDateTimeLocalValue(value: string): string {
 	const date = new Date(value);
 	if (Number.isNaN(date.getTime())) return "";
-	const pad = (n: number) => n.toString().padStart(2, "0");
-	return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
-}
-
-function toLocalDateTimeString(date: Date): string {
-	const pad = (n: number) => n.toString().padStart(2, "0");
-	return [
-		`${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`,
-		`${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`,
-	].join("T");
+	return formatDateTimeLocalInputValue(date);
 }
 
 function toLocalDateTimeOrNow(value: string): string {
-	if (!value.trim()) return toLocalDateTimeString(new Date());
-
-	const normalized = value.includes("T") ? value : value.replace(" ", "T");
-	return normalized.length === 16 ? `${normalized}:00` : normalized;
-}
-
-export function createInitialRawWeightRecord(): DraftWeightRecord {
-	return {
-		productName: null,
-		unit: null,
-		pricePerProduct: null,
-		quantityPerProduct: null,
-		quantity: null,
-		weight: null,
-		outTime: toLocalDateTimeString(new Date()),
-		memo: null,
-		manual: true,
-	};
+	return formatDateTimeLocalApiValueFromInput(value) ?? formatDateTimeLocalApiValue();
 }
 
 export function WeightRecordsBuilder({ products, records, onChange }: WeightRecordsBuilderProps) {
 	const addProductRecord = () => {
-		onChange([
-			...records,
-			{
-				productId: undefined,
-				productName: null,
-				unit: null,
-				pricePerProduct: null,
-				quantityPerProduct: null,
-				quantity: null,
-				weight: null,
-				outTime: toLocalDateTimeString(new Date()),
-				memo: null,
-				manual: true,
-			},
-		]);
+		onChange([...records, createEmptyDraftWeightRecord()]);
 	};
 
 	const removeRecord = (index: number) => {
@@ -90,6 +47,8 @@ export function WeightRecordsBuilder({ products, records, onChange }: WeightReco
 	};
 
 	const handleSelectProduct = (index: number, productId: string) => {
+		if (isLegacyProductValue(productId)) return;
+
 		const product = products.find((p) => p.id === productId);
 		if (!product) return;
 		updateRecord(index, {
@@ -118,7 +77,7 @@ export function WeightRecordsBuilder({ products, records, onChange }: WeightReco
 
 			<div className="space-y-3">
 				{records.map((record, index) => (
-					<div key={`weight-record-${index}`} className="rounded border bg-slate-50 p-3 space-y-3">
+					<div key={record.draftId} className="rounded border bg-slate-50 p-3 space-y-3">
 						<div className="flex items-center justify-between">
 							<div className="flex items-center gap-2">
 								<Badge variant={index === 0 ? "secondary" : "info"}>Record #{index + 1}</Badge>
@@ -139,6 +98,9 @@ export function WeightRecordsBuilder({ products, records, onChange }: WeightReco
 										<SelectValue placeholder="Select product" />
 									</SelectTrigger>
 									<SelectContent>
+										{record.productId && isLegacyProductValue(record.productId) && record.productName ? (
+											<SelectItem value={record.productId}>{record.productName}</SelectItem>
+										) : null}
 										{products.map((product) => (
 											<SelectItem key={product.id} value={product.id}>
 												{product.name}

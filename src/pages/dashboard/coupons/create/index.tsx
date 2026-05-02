@@ -13,56 +13,24 @@ import { Button } from "@/core/ui/button";
 import { Text } from "@/core/ui/typography";
 import { formatDateStartLocalApiValueFromInput } from "@/pages/dashboard/accounting/utils/format-local-date-time";
 import { getEmployeeDisplayName } from "@/pages/dashboard/employees/utils/employee-utils";
-
-import { CouponForm } from "./components/coupon-form";
+import { toCouponDateInputValue, toNumberOrUndefined } from "../utils/coupon-form-values";
 import {
-	createInitialRawWeightRecord,
+	createDraftWeightRecord,
+	createEmptyDraftWeightRecord,
 	type DraftWeightRecord,
-	WeightRecordsBuilder,
-} from "./components/weight-records-builder";
-
-function toNumberOrUndefined(value: unknown): number | undefined {
-	if (value === "" || value === null || value === undefined) return undefined;
-	const parsed = Number(value);
-	return Number.isNaN(parsed) ? undefined : parsed;
-}
+	serializeDraftWeightRecords,
+	validateCumulativeWeightRecords,
+} from "../utils/weight-record-drafts";
+import { CouponForm } from "./components/coupon-form";
+import { WeightRecordsBuilder } from "./components/weight-records-builder";
 
 function toIsoDateOrUndefined(value: unknown): string | undefined {
 	return typeof value === "string" ? formatDateStartLocalApiValueFromInput(value) : undefined;
 }
 
-function toDateInputValue(value: string): string {
-	const directDateMatch = value.match(/^(\d{4}-\d{2}-\d{2})(?:$|T)/);
-	if (directDateMatch) return directDateMatch[1];
-
-	const date = new Date(value);
-	if (Number.isNaN(date.getTime())) return "";
-	const pad = (n: number) => n.toString().padStart(2, "0");
-	return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
-}
-
-function validateCumulativeWeightRecords(records: DraftWeightRecord[]): string | null {
-	if (records.length === 0) return "At least one weight record is required.";
-	if (records[0].productName !== null) {
-		return "The first record must be raw vehicle weighing (productName = null).";
-	}
-
-	let previousWeight: number | null = null;
-	for (let i = 0; i < records.length; i++) {
-		const record = records[i];
-		if (record.weight !== null && previousWeight !== null && record.weight < previousWeight) {
-			return `Record #${i + 1} has accumulated weight smaller than previous record.`;
-		}
-		if (record.weight !== null) {
-			previousWeight = record.weight;
-		}
-	}
-	return null;
-}
-
 export default function CreateCouponPage() {
 	const navigate = useNavigate();
-	const [weightRecords, setWeightRecords] = useState<DraftWeightRecord[]>([createInitialRawWeightRecord()]);
+	const [weightRecords, setWeightRecords] = useState<DraftWeightRecord[]>([createEmptyDraftWeightRecord()]);
 	const [defaultValues, setDefaultValues] = useState<DefaultFormData | undefined>(undefined);
 	const [formResetKey, setFormResetKey] = useState(0);
 
@@ -104,22 +72,15 @@ export default function CreateCouponPage() {
 			couponNo: 19,
 			couponId: 19,
 			accNo: "string",
-			date: toDateInputValue("2026-02-10T07:42:55.196Z"),
+			date: toCouponDateInputValue("2026-02-10T07:42:55.196Z"),
 		});
 
 		setWeightRecords([
-			{
+			createDraftWeightRecord({
 				productName: null,
-				unit: null,
-				pricePerProduct: null,
-				quantityPerProduct: null,
-				quantity: null,
-				weight: null,
 				outTime: "2026-02-10T08:16:58.011Z",
-				memo: null,
-				manual: true,
-			},
-			{
+			}),
+			createDraftWeightRecord({
 				productName: "solid ice",
 				unit: "kg",
 				pricePerProduct: 10,
@@ -127,10 +88,8 @@ export default function CreateCouponPage() {
 				quantity: 100,
 				weight: 1008,
 				outTime: "2026-02-10T08:16:58.011Z",
-				memo: null,
-				manual: true,
-			},
-			{
+			}),
+			createDraftWeightRecord({
 				productName: "ice cubes",
 				unit: "can",
 				pricePerProduct: 200,
@@ -139,8 +98,7 @@ export default function CreateCouponPage() {
 				weight: 1218,
 				outTime: "2026-02-10T08:16:58.011Z",
 				memo: "daniel test memmo",
-				manual: true,
-			},
+			}),
 		]);
 
 		setFormResetKey((prev) => prev + 1);
@@ -169,17 +127,7 @@ export default function CreateCouponPage() {
 				couponNo: toNumberOrUndefined(data.couponNo),
 				couponId: toNumberOrUndefined(data.couponId),
 				accNo: (data.accNo as string) || undefined,
-				weightRecords: weightRecords.map((record) => ({
-					productName: record.productName,
-					unit: record.unit,
-					pricePerProduct: record.pricePerProduct,
-					quantityPerProduct: record.quantityPerProduct,
-					quantity: record.quantity,
-					weight: record.weight,
-					outTime: record.outTime,
-					memo: record.memo,
-					manual: record.manual,
-				})),
+				weightRecords: serializeDraftWeightRecords(weightRecords),
 			};
 
 			await couponService.createCoupon(couponData);
