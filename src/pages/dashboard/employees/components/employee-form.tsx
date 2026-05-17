@@ -12,6 +12,7 @@ export type EmployeeFormData = DefaultFormData & {
 type EmployeeFormProps = {
 	onSubmit?: (data: EmployeeFormData) => Promise<void> | void;
 	onCancel?: () => void;
+	onBack?: () => void;
 	defaultValues?: Partial<EmployeeFormData>;
 	mode?: "create" | "edit";
 	showTitle?: boolean;
@@ -20,6 +21,7 @@ type EmployeeFormProps = {
 export function EmployeeForm({
 	onSubmit,
 	onCancel,
+	onBack,
 	defaultValues,
 	mode = "create",
 	showTitle = true,
@@ -33,6 +35,7 @@ export function EmployeeForm({
 			fields={fields}
 			onSubmit={onSubmit}
 			onCancel={onCancel}
+			onBack={onBack}
 			defaultValues={defaultValues as any}
 			submitLabel={mode === "create" ? "Create" : "Save"}
 			variant="default"

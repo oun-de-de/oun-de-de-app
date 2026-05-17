@@ -12,7 +12,7 @@ import { useCreateCustomerVehicles } from "../hooks/use-create-customer-vehicles
 import { useFormOptions } from "../hooks/use-form-options";
 import { useGetCustomer } from "../hooks/use-get-customer";
 import { useGetCustomerVehicles } from "../hooks/use-get-vehicles";
-import { useUpdateCustomerInfo } from "../hooks/use-update-customer-info";
+import { useUpdateCustomer } from "../hooks/use-update-customer";
 import { useUpdateCustomerVehicles } from "../hooks/use-update-customer-vehicles";
 import { mapCustomerFormToUpdatePayload } from "../utils/map-customer-form-to-update-payload";
 import { isPaymentTermChanged, resolvePaymentTermFromInput } from "../utils/payment-term";
@@ -116,7 +116,10 @@ export default function CustomerEditPage() {
 	const { data: customer, isLoading } = useGetCustomer(id);
 	const { data: vehicles } = useGetCustomerVehicles(id);
 	const { employeeOptions, customerOptions } = useFormOptions();
-	const { mutateAsync: updateCustomerInfo } = useUpdateCustomerInfo(id, { showSuccessToast: false });
+	const { mutateAsync: updateCustomerInfo } = useUpdateCustomer(id, {
+		showSuccessToast: false,
+		errorMessage: "Failed to update customer info",
+	});
 	const { mutateAsync: createCustomerVehicles } = useCreateCustomerVehicles(id);
 	const { mutateAsync: updateCustomerVehicles } = useUpdateCustomerVehicles(id);
 
@@ -166,7 +169,15 @@ export default function CustomerEditPage() {
 			toast.success("Customer updated successfully");
 			navigate(returnTo);
 		},
-		[customer?.paymentTerm, updateCustomerInfo, createCustomerVehicles, updateCustomerVehicles, navigate, returnTo, vehicles],
+		[
+			customer?.paymentTerm,
+			updateCustomerInfo,
+			createCustomerVehicles,
+			updateCustomerVehicles,
+			navigate,
+			returnTo,
+			vehicles,
+		],
 	);
 
 	if (isLoading) return <div className="p-6">Loading...</div>;

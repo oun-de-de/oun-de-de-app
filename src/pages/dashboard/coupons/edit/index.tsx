@@ -3,17 +3,15 @@ import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
 import couponService from "@/core/api/services/coupon-service";
-import employeeService from "@/core/api/services/employee-service";
-import productService from "@/core/api/services/product-service";
-import vehicleService from "@/core/api/services/vehicle-service";
 import { BackButton } from "@/core/components/common";
+import { COUPON_QUERY_KEYS } from "@/core/query-keys/coupon-query-keys";
 import type { Coupon, UpdateCouponRequest } from "@/core/types/coupon";
 import { Button } from "@/core/ui/button";
 import { Text } from "@/core/ui/typography";
 import { formatDateStartLocalApiValueFromInput } from "@/pages/dashboard/accounting/utils/format-local-date-time";
-import { getEmployeeDisplayName } from "@/pages/dashboard/employees/utils/employee-utils";
 import { CouponForm } from "../create/components/coupon-form";
 import { WeightRecordsBuilder } from "../create/components/weight-records-builder";
+import { useCouponReferenceData } from "../hooks/use-coupon-reference-data";
 import { toCouponDateInputValue, toNumberOrUndefined } from "../utils/coupon-form-values";
 import {
 	createEmptyDraftWeightRecord,
@@ -50,28 +48,14 @@ export default function EditCouponPage() {
 	const activeCouponIdRef = useRef<string | null>(null);
 	const hasEditedWeightRecordsRef = useRef(false);
 
-	const { data: employees = [] } = useQuery({
-		queryKey: ["employees", "all"],
-		queryFn: () => employeeService.getEmployeeList(),
-	});
-	const { data: vehicles = [] } = useQuery({
-		queryKey: ["vehicles", "all"],
-		queryFn: () => vehicleService.getVehicleList(),
-	});
-	const { data: products = [] } = useQuery({
-		queryKey: ["products", "all"],
-		queryFn: () => productService.getProductList(),
-	});
+	const { products, employeeOptions, vehicleOptions } = useCouponReferenceData();
 
 	const couponQuery = useQuery({
-		queryKey: ["coupon-edit", id],
+		queryKey: COUPON_QUERY_KEYS.detail(id),
 		queryFn: async () => {
 			if (locationState?.coupon) return locationState.coupon;
 			if (cachedCoupon) return cachedCoupon;
-			// Temporary fallback: the current coupon API does not expose a get-by-id endpoint,
-			// so direct URL access has to scan the list response to recover the selected coupon.
-			const response = await couponService.getCouponList({ page: 1, limit: 10000 });
-			return response.list.find((coupon) => coupon.id === id) ?? null;
+			return couponService.getCoupon(id!);
 		},
 		enabled: !!id,
 		initialData: locationState?.coupon ?? cachedCoupon ?? undefined,
@@ -80,27 +64,10 @@ export default function EditCouponPage() {
 	const coupon = couponQuery.data ?? null;
 	const couponId = coupon?.id;
 	const { data: couponWeightRecords } = useQuery({
-		queryKey: ["coupon-edit-weight-records", couponId],
+		queryKey: COUPON_QUERY_KEYS.weightRecords(couponId),
 		queryFn: () => (couponId ? couponService.getCouponWeightRecords(couponId) : Promise.resolve([])),
 		enabled: Boolean(couponId),
 	});
-
-	const employeeOptions = useMemo(
-		() =>
-			employees.map((employee) => ({
-				label: getEmployeeDisplayName(employee),
-				value: employee.id,
-			})),
-		[employees],
-	);
-	const vehicleOptions = useMemo(
-		() =>
-			vehicles.map((vehicle) => ({
-				label: `${vehicle.vehicleType} - ${vehicle.licensePlate}`,
-				value: vehicle.id,
-			})),
-		[vehicles],
-	);
 
 	const defaultValues = useMemo(
 		() =>
@@ -151,7 +118,7 @@ export default function EditCouponPage() {
 			return couponService.updateCouponByCouponNo(coupon.couponNo, data);
 		},
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ["coupons"] });
+			queryClient.invalidateQueries({ queryKey: COUPON_QUERY_KEYS.all });
 			toast.success("Coupon updated successfully");
 			navigate("/dashboard/coupons");
 		},

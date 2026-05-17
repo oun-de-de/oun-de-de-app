@@ -1,8 +1,9 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
 import productService from "@/core/api/services/product-service";
 import { BackButton } from "@/core/components/common";
+import { PRODUCT_QUERY_KEYS } from "@/core/query-keys/product-query-keys";
 import type { CreateProductRequest } from "@/core/types/product";
 import { Text } from "@/core/ui/typography";
 import { useGetUnitList } from "@/pages/dashboard/settings/hooks/use-settings";
@@ -10,6 +11,7 @@ import { ProductForm, type ProductFormData } from "./components/product-form";
 
 export default function CreateProductPage() {
 	const navigate = useNavigate();
+	const queryClient = useQueryClient();
 	const { data: units = [] } = useGetUnitList();
 
 	const { mutateAsync: createProduct } = useMutation({
@@ -18,6 +20,7 @@ export default function CreateProductPage() {
 		},
 		onSuccess: () => {
 			toast.success("Product has been created successfully");
+			queryClient.invalidateQueries({ queryKey: PRODUCT_QUERY_KEYS.all });
 			navigate("/dashboard/products");
 		},
 		onError: (error) => {

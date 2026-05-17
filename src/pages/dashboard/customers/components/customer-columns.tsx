@@ -19,73 +19,81 @@ const formatPaymentTermDays = (customer: Customer) => {
 };
 
 export const columns: ColumnDef<Customer>[] = [
-	{
-		header: "Register Date",
-		size: 100,
-		accessorKey: "registerDate",
-		cell: ({ row }) => formatDisplayDate(row.original.registerDate),
-		meta: { bodyClassName: "text-center" },
-	},
-	{
-		header: "Code",
-		accessorKey: "code",
-		size: 140,
-		cell: ({ row }) => <span className="font-mono">{row.original.code}</span>,
-	},
-	{
-		header: "Name",
-		accessorKey: "name",
-	},
-	{
-		header: "Phone",
-		size: 100,
-		accessorKey: "telephone",
-	},
-	{
-		header: "Payment Type",
-		size: 120,
-		id: "paymentType",
-		meta: { bodyClassName: "text-center" },
-		cell: ({ row }) => {
-			const paymentType = getCustomerPaymentType(row.original);
-			return (
-				<Badge variant={paymentType === "credit" ? "success" : "info"} className="w-3/4 h-6.5">
-					{formatPaymentTypeLabel(paymentType)}
-				</Badge>
-			);
-		},
-	},
-	{
-		header: "Payment Term (Day)",
-		id: "paymentTermDays",
-		size: 130,
-		meta: { bodyClassName: "text-center" },
-		cell: ({ row }) => formatPaymentTermDays(row.original),
-	},
-	{
-		header: "Customer Type",
-		accessorKey: "referredBy",
-	},
-	{
-		header: "Status",
-		accessorKey: "status",
-		size: 80,
-		meta: { bodyClassName: "text-center" },
-		cell: ({ row }) => {
-			const status = row.original.status ? "Active" : "Inactive";
-			const variant = getStatusVariant(status);
-			return (
-				<Badge variant={variant} className="w-full h-6.5">
-					{status}
-				</Badge>
-			);
-		},
-	},
-	{
-		header: "",
-		id: "actions",
-		size: 40,
-		cell: ({ row }) => <CustomerActions customerId={row.original.id} customerName={row.original.name} />,
-		meta: { bodyClassName: "text-center" },
-	},
+  {
+    header: '',
+    id: 'actions',
+    size: 50,
+    cell: ({ row }) => (
+      <CustomerActions
+        customerId={row.original.id}
+        customerName={row.original.name}
+      />
+    ),
+    meta: { bodyClassName: 'text-center' },
+  },
+  {
+    header: 'Register Date',
+    size: 100,
+    accessorKey: 'registerDate',
+    cell: ({ row }) => formatDisplayDate(row.original.registerDate),
+    meta: { bodyClassName: 'text-center' },
+  },
+  {
+    header: 'Code',
+    accessorKey: 'code',
+    size: 140,
+    cell: ({ row }) => <span className="font-mono">{row.original.code}</span>,
+  },
+  {
+    header: 'Name',
+    accessorKey: 'name',
+  },
+  {
+    header: 'Phone',
+    size: 100,
+    accessorKey: 'telephone',
+  },
+  {
+    header: 'Payment Type',
+    size: 120,
+    id: 'paymentType',
+    meta: { bodyClassName: 'text-center' },
+    cell: ({ row }) => {
+      const paymentType = getCustomerPaymentType(row.original);
+      return (
+        <Badge
+          variant={paymentType === 'credit' ? 'success' : 'info'}
+          className="w-3/4 h-6.5"
+        >
+          {formatPaymentTypeLabel(paymentType)}
+        </Badge>
+      );
+    },
+  },
+  {
+    header: 'Payment Term (Day)',
+    id: 'paymentTermDays',
+    size: 130,
+    meta: { bodyClassName: 'text-center' },
+    cell: ({ row }) => formatPaymentTermDays(row.original),
+  },
+  {
+    header: 'Customer Type',
+    accessorKey: 'referredBy',
+  },
+  {
+    header: 'Status',
+    accessorKey: 'status',
+    size: 80,
+    meta: { bodyClassName: 'text-center' },
+    cell: ({ row }) => {
+      const status = row.original.status ? 'Active' : 'Inactive';
+      const variant = getStatusVariant(status);
+      return (
+        <Badge variant={variant} className="w-full h-6.5">
+          {status}
+        </Badge>
+      );
+    },
+  },
 ];

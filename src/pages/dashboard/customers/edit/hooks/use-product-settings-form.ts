@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import productService from "@/core/api/services/product-service";
+import { PRODUCT_QUERY_KEYS } from "@/core/query-keys/product-query-keys";
 import type { CreateProductSettings } from "@/core/types/customer";
 import type { Product } from "@/core/types/product";
 import { useCreateProductSetting, useGetProductSettings } from "../../hooks/use-product-settings";
@@ -51,7 +52,7 @@ const toPayload = (settings: ProductSettingItem[]) =>
 
 export const useProductSettingsForm = (customerId?: string) => {
 	const { data: products } = useQuery({
-		queryKey: ["products-list"],
+		queryKey: PRODUCT_QUERY_KEYS.list(),
 		queryFn: productService.getProductList,
 	});
 

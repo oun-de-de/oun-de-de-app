@@ -32,8 +32,9 @@ function toApiCreateBorrowerType(value?: BorrowerType): string | undefined {
 	return value.toLowerCase();
 }
 
-function normalizeBorrowerType(value: string): BorrowerType {
-	const normalizedValue = value.toLowerCase();
+function normalizeBorrowerType(value?: string | null): BorrowerType {
+	if (!value) return "customer";
+	const normalizedValue = value.trim().toLowerCase();
 	if (normalizedValue === "employee" || normalizedValue === "customer") {
 		return normalizedValue;
 	}
@@ -41,19 +42,36 @@ function normalizeBorrowerType(value: string): BorrowerType {
 	return "customer";
 }
 
-function normalizeLoanStatus(value: string): LoanStatus {
-	const normalizedValue = value.toLowerCase();
+function normalizeLoanStatus(value?: string | null): LoanStatus {
+	if (!value) return "normal";
+	const normalizedValue = value.trim().toLowerCase();
 	if (normalizedValue === "due") return "due";
 	if (normalizedValue === "complete") return "complete";
 	return "normal";
 }
 
 export function normalizeLoan(data: LoanApiResponse): Loan {
+	if (!data) {
+		return {
+			id: "",
+			borrowerType: "customer",
+			borrowerId: "",
+			borrowerName: "",
+			principalAmount: 0,
+			paidAmount: 0,
+			installmentAmount: 0,
+			dueWarningDays: 0,
+			dueDate: "",
+			status: "normal",
+			startDate: "",
+			createdAt: "",
+		};
+	}
 	return {
 		...data,
 		borrowerType: normalizeBorrowerType(data.borrowerType),
 		status: normalizeLoanStatus(data.status),
-		monthlyPayment: data.installmentAmount,
+		monthlyPayment: data.installmentAmount ?? 0,
 		termMonths: data.termMonths ?? 0,
 		createdAt: data.createdAt ?? data.createAt ?? "",
 	};

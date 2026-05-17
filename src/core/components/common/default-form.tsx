@@ -1,10 +1,25 @@
 import { cva, type VariantProps } from "class-variance-authority";
 import { type ComponentProps, type ReactNode, useEffect, useMemo, useRef } from "react";
-import { type DefaultValues, type FieldPath, type RegisterOptions, useForm, type ValidationRule } from "react-hook-form";
-import { FormDatePicker } from "@/pages/dashboard/accounting/components/form-date-picker";
-import { FormActions, FormField, FormProvider, FormSelect, FormSwitch, FormTextarea, FormTextField } from "@/core/components/form";
+import {
+	type DefaultValues,
+	type FieldPath,
+	type RegisterOptions,
+	useForm,
+	type ValidationRule,
+} from "react-hook-form";
+import {
+	FormActions,
+	FormField,
+	FormProvider,
+	FormSelect,
+	FormSwitch,
+	FormTextarea,
+	FormTextField,
+} from "@/core/components/form";
 import { Text } from "@/core/ui/typography";
 import { cn } from "@/core/utils";
+import { FormDatePicker } from "@/pages/dashboard/accounting/components/form-date-picker";
+import { BackButton } from "./back-button";
 
 const defaultFormVariants = cva("flex flex-col bg-white rounded-lg", {
 	variants: {
@@ -71,6 +86,7 @@ export type DefaultFormProps<TFormData extends DefaultFormData = DefaultFormData
 	fields: FormFieldConfig[];
 	onSubmit?: (data: TFormData) => Promise<void> | void;
 	onCancel?: () => void;
+	onBack?: () => void;
 	defaultValues?: TFormData;
 	submitLabel?: string;
 	cancelLabel?: string;
@@ -89,6 +105,7 @@ export function DefaultForm<TFormData extends DefaultFormData = DefaultFormData>
 	fields,
 	onSubmit,
 	onCancel,
+	onBack,
 	defaultValues = {} as TFormData,
 	submitLabel = "Save",
 	cancelLabel = "Cancel",
@@ -103,16 +120,14 @@ export function DefaultForm<TFormData extends DefaultFormData = DefaultFormData>
 	actionsVariant,
 	resetKey,
 }: DefaultFormProps<TFormData>) {
-	const buildDefaultValues = (): DefaultValues<TFormData> => {
+	const resolvedDefaultValues = useMemo((): DefaultValues<TFormData> => {
 		const values: Record<string, any> = {};
 		for (const field of fields) {
 			const fallback = field.type === "custom" ? undefined : "";
 			values[field.name] = defaultValues[field.name] ?? field.defaultValue ?? fallback;
 		}
 		return values as DefaultValues<TFormData>;
-	};
-
-	const resolvedDefaultValues = useMemo(buildDefaultValues, [defaultValues, fields]);
+	}, [defaultValues, fields]);
 
 	const methods = useForm<TFormData>({
 		defaultValues: resolvedDefaultValues,
@@ -212,9 +227,12 @@ export function DefaultForm<TFormData extends DefaultFormData = DefaultFormData>
 	return (
 		<div className={cn(defaultFormVariants({ variant, size }), className)}>
 			{showTitle && (
-				<Text variant="subTitle1" className="font-semibold text-sky-600 border-b pb-2">
-					{title}
-				</Text>
+				<div className="flex items-center gap-2 border-b pb-2">
+					{onBack && <BackButton appearance="icon" onClick={onBack} className="h-7 w-7 border-slate-200" />}
+					<Text variant="subTitle1" className="font-semibold text-sky-600">
+						{title}
+					</Text>
+				</div>
 			)}
 
 			<FormProvider methods={methods} onSubmit={handleFormSubmit} className="space-y-4">

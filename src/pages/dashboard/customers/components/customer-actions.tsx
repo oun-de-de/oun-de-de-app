@@ -61,7 +61,7 @@ export function CustomerActions({ customerId, customerName }: CustomerActionsPro
 					onMouseEnter={handlePrefetch}
 					onFocus={handlePrefetch}
 				>
-					<Icon icon="mdi:menu" className="text-gray-500" />
+					<Icon icon="mdi:menu" />
 				</DropdownMenuTrigger>
 				<DropdownMenuContent align="end" className="w-44">
 					<DropdownMenuItem onClick={handleEdit} className="cursor-pointer">
