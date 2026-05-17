@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { EntityListItem, SidebarList } from "@/core/components/common";
 import { useSidebarPagination } from "@/core/hooks/use-sidebar-pagination";
+import { normalizeText } from "@/core/utils/normalize";
 import { formatKHR } from "@/core/utils/formatters";
 import { useLoans } from "../hooks/use-loans";
 import type { BorrowState } from "../stores/borrow-state";
@@ -20,8 +21,6 @@ type BorrowSidebarItem = {
 	name: string;
 	code: string;
 };
-
-const normalizeText = (value: string) => value.trim().toLowerCase();
 
 const matchType = (item: BorrowSidebarItem, typeFilter: BorrowState["typeFilter"], typeMap: Map<string, string>) =>
 	typeFilter === "all" || typeMap.get(item.id) === typeFilter;

@@ -1,20 +1,20 @@
 import type { QueryClient } from "@tanstack/react-query";
+import { CUSTOMER_QUERY_KEYS } from "@/core/query-keys/customer-query-keys";
 
 export const invalidateCustomerDetailQueries = (queryClient: QueryClient, customerId?: string) => {
 	if (!customerId) return;
 
-	queryClient.invalidateQueries({ queryKey: ["customer", customerId] });
+	queryClient.invalidateQueries({ queryKey: CUSTOMER_QUERY_KEYS.detail(customerId) });
 };
 
 export const invalidateCustomerListQueries = (queryClient: QueryClient) => {
-	queryClient.invalidateQueries({ queryKey: ["customers"] });
-	queryClient.invalidateQueries({ queryKey: ["customers-list"] });
+	queryClient.invalidateQueries({ queryKey: CUSTOMER_QUERY_KEYS.all });
 };
 
 export const invalidateCustomerVehiclesQueries = (queryClient: QueryClient, customerId?: string) => {
 	if (!customerId) return;
 
-	queryClient.invalidateQueries({ queryKey: ["customer-vehicles", customerId] });
+	queryClient.invalidateQueries({ queryKey: CUSTOMER_QUERY_KEYS.vehicles(customerId) });
 	invalidateCustomerDetailQueries(queryClient, customerId);
 };
 

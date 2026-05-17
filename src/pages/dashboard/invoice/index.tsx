@@ -5,8 +5,10 @@ import { useSearchParams } from "react-router";
 import customerService from "@/core/api/services/customer-service";
 import { DashboardSplitView } from "@/core/components/common/dashboard-split-view";
 import { useSidebarCollapse } from "@/core/hooks/use-sidebar-collapse";
+import { CUSTOMER_QUERY_KEYS } from "@/core/query-keys/customer-query-keys";
 import type { Customer } from "@/core/types/customer";
 import type { Cycle } from "@/core/types/cycle";
+import { normalizePositiveInt } from "@/core/utils/normalize";
 import { CustomerSidebar } from "@/pages/dashboard/customers/components/customer-sidebar";
 import { CycleContent } from "./components/cycle-content";
 import { InvoiceContent } from "./components/invoice-content";
@@ -18,12 +20,6 @@ const DEFAULT_INVOICE_PAGE = 1;
 const DEFAULT_INVOICE_PAGE_SIZE = 20;
 const DEFAULT_INVOICE_FIELD = "refNo";
 const DEFAULT_INVOICE_SORTING: SortingState = [{ id: "date", desc: true }];
-
-const normalizePositiveInt = (value: string | null, fallback: number) => {
-	if (!value) return fallback;
-	const parsed = Number.parseInt(value, 10);
-	return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
-};
 
 function parseSorting(value: string | null): SortingState {
 	if (!value) return DEFAULT_INVOICE_SORTING;
@@ -121,7 +117,7 @@ export default function InvoicePage() {
 	const { updateState: updateInvoiceState } = useInvoiceActions();
 	const { data: activeCycleDetail } = useCycleDetail(activeCycleId);
 	const { data: activeCustomerDetail } = useQuery({
-		queryKey: ["invoice-active-customer", activeCustomerId],
+		queryKey: CUSTOMER_QUERY_KEYS.detail(activeCustomerId ?? undefined),
 		queryFn: () => customerService.getCustomer(activeCustomerId ?? ""),
 		enabled: !!activeCustomerId,
 	});
@@ -135,7 +131,9 @@ export default function InvoicePage() {
 
 	useEffect(() => {
 		const currentInvoiceState = invoiceStateRef.current;
-		setActiveCustomerId((prev) => (prev === parsedInvoiceSearchParams.customerId ? prev : parsedInvoiceSearchParams.customerId));
+		setActiveCustomerId((prev) =>
+			prev === parsedInvoiceSearchParams.customerId ? prev : parsedInvoiceSearchParams.customerId,
+		);
 		setActiveCustomerName((prev) =>
 			prev === parsedInvoiceSearchParams.customerName ? prev : parsedInvoiceSearchParams.customerName,
 		);
@@ -173,7 +171,14 @@ export default function InvoicePage() {
 			},
 			{ replace: true },
 		);
-	}, [invoiceState.fieldFilter, invoiceState.page, invoiceState.pageSize, invoiceState.searchValue, invoiceState.sorting, setSearchParams]);
+	}, [
+		invoiceState.fieldFilter,
+		invoiceState.page,
+		invoiceState.pageSize,
+		invoiceState.searchValue,
+		invoiceState.sorting,
+		setSearchParams,
+	]);
 
 	const updateInvoiceSearchParams = useCallback(
 		(next: { customerId?: string | null; customerName?: string | null; cycleId?: string | null }) => {

@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import productService from "@/core/api/services/product-service";
 import { DashboardSplitView } from "@/core/components/common/dashboard-split-view";
 import { useSidebarCollapse } from "@/core/hooks/use-sidebar-collapse";
+import { PRODUCT_QUERY_KEYS } from "@/core/query-keys/product-query-keys";
 import type { Product } from "@/core/types/product";
 import { buildPagination } from "@/core/utils/dashboard-utils";
 import { ProductContent } from "./components/product-content";
@@ -24,15 +25,7 @@ export default function ProductsPage() {
 	}, [listState.searchValue, activeProduct]);
 
 	const { data } = useQuery({
-		queryKey: [
-			"products",
-			listState.page,
-			listState.pageSize,
-			listState.searchValue,
-			listState.typeFilter,
-			listState.fieldFilter,
-			activeProduct?.name,
-		],
+		queryKey: PRODUCT_QUERY_KEYS.list(),
 		queryFn: () => productService.getProductList(),
 	});
 

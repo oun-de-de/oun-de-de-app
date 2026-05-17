@@ -3,6 +3,7 @@ import { useState } from "react";
 import couponService from "@/core/api/services/coupon-service";
 import { EntityListItem, SidebarList } from "@/core/components/common";
 import { useSidebarPagination } from "@/core/hooks/use-sidebar-pagination";
+import { COUPON_QUERY_KEYS } from "@/core/query-keys/coupon-query-keys";
 import type { SelectOption } from "@/core/types/common";
 import { isCouponDeleted, type Coupon } from "@/core/types/coupon";
 
@@ -22,13 +23,10 @@ const STATUS_OPTIONS: SelectOption[] = [
 export function CouponSidebar({ activeCouponId, onSelect, onToggle, isCollapsed }: CouponSidebarProps) {
 	const [searchTerm, setSearchTerm] = useState("");
 	const [status, setStatus] = useState("all");
+	const couponListParams = { page: 1, limit: 1000 };
 	const { data } = useQuery({
-		queryKey: ["coupons", "sidebar", { search: searchTerm, status }],
-		queryFn: () =>
-			couponService.getCouponList({
-				page: 1,
-				limit: 1000,
-			}),
+		queryKey: COUPON_QUERY_KEYS.list(couponListParams),
+		queryFn: () => couponService.getCouponList(couponListParams),
 	});
 
 	const coupons = (data?.list ?? []).filter((coupon) => {

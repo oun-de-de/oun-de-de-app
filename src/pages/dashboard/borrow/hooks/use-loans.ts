@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import employeeService from "@/core/api/services/employee-service";
 import loanService from "@/core/api/services/loan-service";
+import { EMPLOYEE_QUERY_KEYS } from "@/core/query-keys/employee-query-keys";
 import type {
 	BorrowerType,
 	CreateLoanPaymentRequest,
@@ -21,7 +22,8 @@ export const LOAN_QUERY_KEYS = {
 function normalizeLoanBorrowerName(
 	loan: Loan,
 	employeesById: Map<string, { username: string; firstName?: string | null; lastName?: string | null }>,
-) {
+): Loan {
+	if (!loan) return loan;
 	if (loan.borrowerType !== "employee") return loan;
 
 	const employee = employeesById.get(loan.borrowerId);
@@ -47,7 +49,7 @@ export function useLoans(params?: {
 		queryFn: () => loanService.getLoans(params),
 	});
 	const employeesQuery = useQuery({
-		queryKey: ["employees", "all"],
+		queryKey: EMPLOYEE_QUERY_KEYS.list(),
 		queryFn: () => employeeService.getEmployeeList(),
 	});
 	const data = useMemo(() => {
@@ -75,7 +77,7 @@ export function useLoanDetails(loanId?: string) {
 		enabled: !!loanId,
 	});
 	const employeesQuery = useQuery({
-		queryKey: ["employees", "all"],
+		queryKey: EMPLOYEE_QUERY_KEYS.list(),
 		queryFn: () => employeeService.getEmployeeList(),
 	});
 	const data = useMemo(() => {

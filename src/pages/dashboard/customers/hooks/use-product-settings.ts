@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import customerService from "@/core/api/services/customer-service";
+import { CUSTOMER_QUERY_KEYS } from "@/core/query-keys/customer-query-keys";
 import type { CreateProductSettings } from "@/core/types/customer";
 
 export const useCreateProductSetting = (customerId?: string) => {
@@ -13,7 +14,7 @@ export const useCreateProductSetting = (customerId?: string) => {
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({
-				queryKey: ["customer-product-settings", customerId],
+				queryKey: CUSTOMER_QUERY_KEYS.productSettings(customerId),
 			});
 		},
 		onError: () => {
@@ -24,7 +25,7 @@ export const useCreateProductSetting = (customerId?: string) => {
 
 export const useGetProductSettings = (customerId?: string) => {
 	return useQuery({
-		queryKey: ["customer-product-settings", customerId],
+		queryKey: CUSTOMER_QUERY_KEYS.productSettings(customerId),
 		queryFn: () => {
 			if (!customerId) throw new Error("Customer ID is required");
 			return customerService.getProductSettings(customerId);

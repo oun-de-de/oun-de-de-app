@@ -3,6 +3,8 @@ import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "react-router";
 import customerService from "@/core/api/services/customer-service";
 import { BackButton, SmartDataTable } from "@/core/components/common";
+import { useDialogSubmitHandler } from "@/core/hooks/use-dialog-submit-handler";
+import { CUSTOMER_QUERY_KEYS } from "@/core/query-keys/customer-query-keys";
 import { Button } from "@/core/ui/button";
 import { Text } from "@/core/ui/typography";
 import { buildPagination } from "@/core/utils/dashboard-utils";
@@ -11,7 +13,6 @@ import { EquipmentBorrowingsDialog } from "./components/equipment-borrowings-dia
 import { EquipmentInfoCard } from "./components/equipment-info-card";
 import { UpdateStockDialog } from "./components/update-stock-dialog";
 import { useEquipmentDetail } from "./hooks/use-equipment-detail";
-import { useDialogSubmitHandler } from "@/core/hooks/use-dialog-submit-handler";
 
 const TYPE_OPTIONS = [
 	{ value: "all", label: "All Type" },
@@ -31,9 +32,10 @@ export default function EquipmentDetailPage() {
 	const [isBorrowingsOpen, setIsBorrowingsOpen] = useState(false);
 	const [searchParams, setSearchParams] = useSearchParams();
 	const action = searchParams.get("action");
+	const customerListParams = { limit: 1000 };
 	const { data: customerPage } = useQuery({
-		queryKey: ["equipment-borrow-customers"],
-		queryFn: () => customerService.getCustomerList({ limit: 1000 }),
+		queryKey: CUSTOMER_QUERY_KEYS.list(customerListParams),
+		queryFn: () => customerService.getCustomerList(customerListParams),
 	});
 	const customers = customerPage?.list ?? [];
 	const isEquipment = activeItem?.type === "EQUIPMENT";

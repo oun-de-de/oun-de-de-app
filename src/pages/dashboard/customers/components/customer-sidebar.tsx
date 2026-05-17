@@ -3,6 +3,7 @@ import { useState } from "react";
 import customerService from "@/core/api/services/customer-service";
 import { EntityListItem, SidebarList } from "@/core/components/common";
 import { useSidebarPagination } from "@/core/hooks/use-sidebar-pagination";
+import { CUSTOMER_QUERY_KEYS } from "@/core/query-keys/customer-query-keys";
 import type { SelectOption } from "@/core/types/common";
 import type { Customer } from "@/core/types/customer";
 import { cn } from "@/core/utils";
@@ -40,15 +41,16 @@ export function CustomerSidebar({
 		setPaymentTerm(/^\d+$/.test(nextValue) ? nextValue : "");
 	};
 
+	const customerListParams = {
+		page: 1,
+		limit: 1000,
+		name: searchTerm || undefined,
+		paymentTerm: paymentTerm ? Number(paymentTerm) : undefined,
+	};
+
 	const { data } = useQuery({
-		queryKey: ["customers", "sidebar", { name: searchTerm, paymentTerm }],
-		queryFn: () =>
-			customerService.getCustomerList({
-				page: 1,
-				limit: 1000,
-				name: searchTerm || undefined,
-				paymentTerm: paymentTerm ? Number(paymentTerm) : undefined,
-			}),
+		queryKey: CUSTOMER_QUERY_KEYS.list(customerListParams),
+		queryFn: () => customerService.getCustomerList(customerListParams),
 	});
 
 	const customers = data?.list ?? [];

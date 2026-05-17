@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import customerService from "@/core/api/services/customer-service";
+import { SETTINGS_QUERY_KEYS } from "@/core/query-keys/settings-query-keys";
 import type { UpdateCustomer } from "@/core/types/customer";
 import { invalidateCustomerInfoQueries } from "./customer-query-utils";
 
@@ -31,7 +32,7 @@ export const useUpdateCustomer = (customerId?: string, options?: UseUpdateCustom
 			}
 			invalidateCustomerInfoQueries(queryClient, customerId);
 			if (invalidateWarehouseList) {
-				queryClient.invalidateQueries({ queryKey: ["warehouse-list"] });
+				queryClient.invalidateQueries({ queryKey: SETTINGS_QUERY_KEYS.warehouses.all() });
 			}
 		},
 		onError: () => {

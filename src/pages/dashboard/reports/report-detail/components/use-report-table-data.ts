@@ -7,6 +7,8 @@ import invoiceService from "@/core/api/services/invoice-service";
 import loanService from "@/core/api/services/loan-service";
 import productService from "@/core/api/services/product-service";
 import reportService from "@/core/api/services/report-service";
+import { CUSTOMER_QUERY_KEYS } from "@/core/query-keys/customer-query-keys";
+import { PRODUCT_QUERY_KEYS } from "@/core/query-keys/product-query-keys";
 import { formatDateToYYYYMMDD } from "@/pages/dashboard/accounting/utils/format-local-date-time";
 import type { InvoiceExportPreviewRow } from "@/core/types/invoice";
 import type { SortMode } from "../../../invoice/export-preview/constants";
@@ -89,6 +91,7 @@ export function useReportTableData({ reportSlug, filters, sortMode }: UseReportT
 		: (filters?.toDate || filters?.fromDate || defaultReportDate).slice(0, 7);
 	const inventoryDateFrom = filters?.fromDate || reportDate;
 	const inventoryDateTo = filters?.toDate || inventoryDateFrom;
+	const customerListParams = { limit: 10000 };
 
 	const cycleQuery = useQuery({
 		queryKey: ["report", "cycle-list", customerId ?? "all", reportDateFrom ?? "", reportDateTo ?? ""],
@@ -119,8 +122,8 @@ export function useReportTableData({ reportSlug, filters, sortMode }: UseReportT
 	});
 
 	const customerQuery = useQuery({
-		queryKey: ["report", "customer-list", "all"],
-		queryFn: () => customerService.getCustomerList({ limit: 10000 }),
+		queryKey: CUSTOMER_QUERY_KEYS.list(customerListParams),
+		queryFn: () => customerService.getCustomerList(customerListParams),
 		enabled:
 			isCustomerList ||
 			(isLoanList && definition.loanBorrowerType === "customer") ||
@@ -128,7 +131,7 @@ export function useReportTableData({ reportSlug, filters, sortMode }: UseReportT
 	});
 
 	const productQuery = useQuery({
-		queryKey: ["report", "product-list"],
+		queryKey: PRODUCT_QUERY_KEYS.list(),
 		queryFn: () => productService.getProductList(),
 		enabled: isProductList,
 	});

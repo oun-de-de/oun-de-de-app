@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import settingService from "@/core/api/services/setting-service";
+import { SETTINGS_QUERY_KEYS } from "@/core/query-keys/settings-query-keys";
 import type { CreateCurrency, CreateSupplier, CreateUnit, CreateWarehouse } from "@/core/types/setting";
 
 type SettingsQueryOptions = {
@@ -11,7 +12,7 @@ const SETTINGS_STALE_TIME = 5 * 60 * 1000;
 
 export const useGetWarehouseList = (options?: SettingsQueryOptions) => {
 	return useQuery({
-		queryKey: ["warehouse-list"],
+		queryKey: SETTINGS_QUERY_KEYS.warehouses.list(),
 		queryFn: settingService.getWarehouseList,
 		enabled: options?.enabled ?? true,
 		staleTime: SETTINGS_STALE_TIME,
@@ -25,7 +26,7 @@ export const useCreateWarehouse = () => {
 		mutationFn: (data: CreateWarehouse) => settingService.createWarehouse(data),
 		onSuccess: () => {
 			toast.success("Warehouse created successfully");
-			queryClient.invalidateQueries({ queryKey: ["warehouse-list"] });
+			queryClient.invalidateQueries({ queryKey: SETTINGS_QUERY_KEYS.warehouses.all() });
 		},
 		onError: () => {
 			toast.error("Failed to create warehouse");
@@ -40,7 +41,7 @@ export const useUpdateWarehouse = () => {
 		mutationFn: ({ id, data }: { id: string; data: CreateWarehouse }) => settingService.updateWarehouse(id, data),
 		onSuccess: () => {
 			toast.success("Warehouse updated successfully");
-			queryClient.invalidateQueries({ queryKey: ["warehouse-list"] });
+			queryClient.invalidateQueries({ queryKey: SETTINGS_QUERY_KEYS.warehouses.all() });
 		},
 		onError: () => {
 			toast.error("Failed to update warehouse");
@@ -50,7 +51,7 @@ export const useUpdateWarehouse = () => {
 
 export const useGetUnitList = (options?: SettingsQueryOptions) => {
 	return useQuery({
-		queryKey: ["unit-list"],
+		queryKey: SETTINGS_QUERY_KEYS.units.list(),
 		queryFn: settingService.getUnitList,
 		enabled: options?.enabled ?? true,
 		staleTime: SETTINGS_STALE_TIME,
@@ -64,7 +65,7 @@ export const useCreateUnit = () => {
 		mutationFn: (data: CreateUnit) => settingService.createUnit(data),
 		onSuccess: () => {
 			toast.success("Unit created successfully");
-			queryClient.invalidateQueries({ queryKey: ["unit-list"] });
+			queryClient.invalidateQueries({ queryKey: SETTINGS_QUERY_KEYS.units.all() });
 		},
 		onError: () => {
 			toast.error("Failed to create unit");
@@ -79,7 +80,7 @@ export const useUpdateUnit = () => {
 		mutationFn: ({ id, data }: { id: string; data: CreateUnit }) => settingService.updateUnit(id, data),
 		onSuccess: () => {
 			toast.success("Unit updated successfully");
-			queryClient.invalidateQueries({ queryKey: ["unit-list"] });
+			queryClient.invalidateQueries({ queryKey: SETTINGS_QUERY_KEYS.units.all() });
 		},
 		onError: () => {
 			toast.error("Failed to update unit");
@@ -89,7 +90,7 @@ export const useUpdateUnit = () => {
 
 export const useGetCurrencyList = (options?: SettingsQueryOptions) => {
 	return useQuery({
-		queryKey: ["currency-list"],
+		queryKey: SETTINGS_QUERY_KEYS.currencies.list(),
 		queryFn: settingService.getCurrencyList,
 		enabled: options?.enabled ?? true,
 		staleTime: SETTINGS_STALE_TIME,
@@ -103,7 +104,7 @@ export const useCreateCurrency = () => {
 		mutationFn: (data: CreateCurrency) => settingService.createCurrency(data),
 		onSuccess: () => {
 			toast.success("Currency created successfully");
-			queryClient.invalidateQueries({ queryKey: ["currency-list"] });
+			queryClient.invalidateQueries({ queryKey: SETTINGS_QUERY_KEYS.currencies.all() });
 		},
 		onError: () => {
 			toast.error("Failed to create currency");
@@ -113,7 +114,7 @@ export const useCreateCurrency = () => {
 
 export const useGetSupplierList = (options?: SettingsQueryOptions) => {
 	return useQuery({
-		queryKey: ["supplier-list"],
+		queryKey: SETTINGS_QUERY_KEYS.suppliers.list(),
 		queryFn: settingService.getSupplierList,
 		enabled: options?.enabled ?? true,
 		staleTime: SETTINGS_STALE_TIME,
@@ -127,7 +128,7 @@ export const useCreateSupplier = () => {
 		mutationFn: (data: CreateSupplier) => settingService.createSupplier(data),
 		onSuccess: () => {
 			toast.success("Supplier created successfully");
-			queryClient.invalidateQueries({ queryKey: ["supplier-list"] });
+			queryClient.invalidateQueries({ queryKey: SETTINGS_QUERY_KEYS.suppliers.all() });
 		},
 		onError: () => {
 			toast.error("Failed to create supplier");
@@ -142,7 +143,7 @@ export const useUpdateSupplier = () => {
 		mutationFn: ({ id, data }: { id: string; data: CreateSupplier }) => settingService.updateSupplier(id, data),
 		onSuccess: () => {
 			toast.success("Supplier updated successfully");
-			queryClient.invalidateQueries({ queryKey: ["supplier-list"] });
+			queryClient.invalidateQueries({ queryKey: SETTINGS_QUERY_KEYS.suppliers.all() });
 		},
 		onError: () => {
 			toast.error("Failed to update supplier");

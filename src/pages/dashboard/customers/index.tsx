@@ -4,21 +4,17 @@ import { useSearchParams } from "react-router";
 import customerService from "@/core/api/services/customer-service";
 import { DashboardSplitView } from "@/core/components/common/dashboard-split-view";
 import { useSidebarCollapse } from "@/core/hooks/use-sidebar-collapse";
+import { CUSTOMER_QUERY_KEYS } from "@/core/query-keys/customer-query-keys";
 import type { Customer } from "@/core/types/customer";
 import { emptyPagination } from "@/core/types/pagination";
 import { buildPagination } from "@/core/utils/dashboard-utils";
+import { normalizePositiveInt } from "@/core/utils/normalize";
 import { CustomerContent } from "./components/customer-content";
 import { CustomerSidebar } from "./components/customer-sidebar";
 import { useCustomerListActions, useCustomerListState } from "./stores/customer-list-store";
 
 const DEFAULT_FIELD_FILTER = "name";
 const DEFAULT_PAGE = 1;
-
-const normalizePositiveInt = (value: string | null, fallback: number) => {
-	if (!value) return fallback;
-	const parsed = Number.parseInt(value, 10);
-	return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
-};
 
 const parseCustomerListSearchParams = (searchParams: URLSearchParams) => ({
 	fieldFilter: searchParams.get("field") || DEFAULT_FIELD_FILTER,
@@ -29,9 +25,7 @@ const parseCustomerListSearchParams = (searchParams: URLSearchParams) => ({
 type CustomerListSearchState = ReturnType<typeof parseCustomerListSearchParams>;
 
 const isCustomerListSearchStateEqual = (left: CustomerListSearchState, right: CustomerListSearchState) =>
-	left.fieldFilter === right.fieldFilter &&
-	left.searchValue === right.searchValue &&
-	left.page === right.page;
+	left.fieldFilter === right.fieldFilter && left.searchValue === right.searchValue && left.page === right.page;
 
 const buildCustomerListSearchParams = (searchParams: URLSearchParams, listState: CustomerListSearchState) => {
 	const next = new URLSearchParams(searchParams);
@@ -90,28 +84,27 @@ export default function CustomersPage() {
 		}
 	}, [listState.searchValue, activeCustomer]);
 
+	const normalizedSearchValue = listState.searchValue.trim();
+	const isPaymentTermField = listState.fieldFilter === "payment_term";
+	const selectedCustomerName = activeCustomer?.name;
+	const searchValue = normalizedSearchValue || undefined;
+	const hasInvalidPaymentTermSearch =
+		!activeCustomer && isPaymentTermField && normalizedSearchValue !== "" && !/^\d+$/.test(normalizedSearchValue);
+	const paymentTermValue =
+		!activeCustomer && isPaymentTermField && /^\d+$/.test(normalizedSearchValue)
+			? Number(normalizedSearchValue)
+			: undefined;
+	const customerListParams = {
+		page: listState.page,
+		limit: listState.pageSize,
+		name: selectedCustomerName ?? (!isPaymentTermField ? searchValue : undefined),
+		paymentTerm: paymentTermValue,
+	};
+
 	// function to query customers list
 	const { data, isLoading } = useQuery({
-		queryKey: [
-			"customers",
-			listState.page,
-			listState.pageSize,
-			listState.searchValue,
-			listState.fieldFilter,
-			activeCustomer?.name,
-		],
+		queryKey: CUSTOMER_QUERY_KEYS.list(customerListParams),
 		queryFn: () => {
-			const normalizedSearchValue = listState.searchValue.trim();
-			const isPaymentTermField = listState.fieldFilter === "payment_term";
-			const selectedCustomerName = activeCustomer?.name;
-			const searchValue = normalizedSearchValue || undefined;
-			const hasInvalidPaymentTermSearch =
-				!activeCustomer && isPaymentTermField && normalizedSearchValue !== "" && !/^\d+$/.test(normalizedSearchValue);
-			const paymentTermValue =
-				!activeCustomer && isPaymentTermField && /^\d+$/.test(normalizedSearchValue)
-					? Number(normalizedSearchValue)
-					: undefined;
-
 			if (hasInvalidPaymentTermSearch) {
 				return {
 					...emptyPagination<Customer>(),
@@ -121,12 +114,7 @@ export default function CustomersPage() {
 				};
 			}
 
-			return customerService.getCustomerList({
-				page: listState.page,
-				limit: listState.pageSize,
-				name: selectedCustomerName ?? (!isPaymentTermField ? searchValue : undefined),
-				paymentTerm: paymentTermValue,
-			});
+			return customerService.getCustomerList(customerListParams);
 		},
 	});
 

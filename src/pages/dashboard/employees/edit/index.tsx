@@ -1,9 +1,12 @@
+import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { useNavigate, useParams } from "react-router";
+import employeeService from "@/core/api/services/employee-service";
 import { BackButton } from "@/core/components/common";
+import { EMPLOYEE_QUERY_KEYS } from "@/core/query-keys/employee-query-keys";
 import { Text } from "@/core/ui/typography";
 import { EmployeeForm, type EmployeeFormData } from "../components/employee-form";
-import { useEmployeeOperations, useGetEmployees } from "../hooks/use-employee";
+import { useEmployeeOperations } from "../hooks/use-employee";
 
 const EMPLOYEES_PATH = "/dashboard/employees";
 
@@ -11,7 +14,10 @@ export default function EmployeeEditPage() {
 	const navigate = useNavigate();
 	const { id } = useParams<{ id: string }>();
 
-	const { data: employees, isLoading } = useGetEmployees();
+	const { data: employees, isLoading } = useQuery({
+		queryKey: EMPLOYEE_QUERY_KEYS.list(),
+		queryFn: () => employeeService.getEmployeeList(),
+	});
 	const { updateEmployee } = useEmployeeOperations();
 
 	const employee = useMemo(() => employees?.find((e: any) => e.id === id), [employees, id]);

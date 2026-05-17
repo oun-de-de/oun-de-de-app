@@ -3,6 +3,7 @@ import { EntityListItem, SidebarList } from "@/core/components/common";
 import { useSidebarPagination } from "@/core/hooks/use-sidebar-pagination";
 import type { InventoryItem } from "@/core/types/inventory";
 import { cn } from "@/core/utils";
+import { normalizeText } from "@/core/utils/normalize";
 import { useInventoryItems } from "../hooks/use-inventory-items";
 
 type Props = {
@@ -11,8 +12,6 @@ type Props = {
 	onToggle?: () => void;
 	isCollapsed?: boolean;
 };
-
-const normalizeText = (value: string) => value.trim().toLowerCase();
 
 const matchSearch = (item: InventoryItem, normalizedQuery: string) =>
 	normalizedQuery === "" ||
