@@ -46,8 +46,8 @@ interface ReportToolbarProps {
 	columnOptions?: ReportColumnOption[];
 	enableColumnCustomization?: boolean;
 	onPrint?: () => void;
-	onExportExcel?: () => void;
 	onCopy?: () => void;
+	onExportExcel?: () => void;
 	isExportExcelDisabled?: boolean;
 	templateMode?: TemplateMode;
 	onTemplateModeChange?: (mode: TemplateMode) => void;
@@ -70,8 +70,8 @@ function ReportToolbarComponent({
 	columnOptions = [],
 	enableColumnCustomization = true,
 	onPrint,
-	onExportExcel: _onExportExcel,
 	onCopy,
+	onExportExcel: _onExportExcel,
 	isExportExcelDisabled: _isExportExcelDisabled = false,
 	templateMode,
 	onTemplateModeChange,

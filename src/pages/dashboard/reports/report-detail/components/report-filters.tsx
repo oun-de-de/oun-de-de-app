@@ -1,5 +1,5 @@
 import customerService from "@/core/api/services/customer-service";
-import { Calendar as CalendarIcon } from "lucide-react";
+import { CUSTOMER_QUERY_KEYS } from "@/core/query-keys/customer-query-keys";
 import { Button } from "@/core/ui/button";
 import { Calendar } from "@/core/ui/calendar";
 import { Label } from "@/core/ui/label";
@@ -7,6 +7,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/core/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/core/ui/select";
 import { formatDateToYYYYMMDD } from "@/pages/dashboard/accounting/utils/format-local-date-time";
 import { useQuery } from "@tanstack/react-query";
+import { Calendar as CalendarIcon } from "lucide-react";
 import React from "react";
 import type { ReportFilterConfig } from "../report-types";
 import { formatFilterDateForDisplay } from "./report-table-utils";
@@ -46,20 +47,19 @@ function parseReportFilterDate(value?: string) {
 	if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return undefined;
 	const [year, month, day] = value.split("-").map(Number);
 	const date = new Date(year, month - 1, day);
-	if (
-		date.getFullYear() !== year ||
-		date.getMonth() !== month - 1 ||
-		date.getDate() !== day
-	) {
+	if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) {
 		return undefined;
 	}
 	return date;
 }
 
 function parseMonthFilterValue(value?: string) {
-	const match = value?.match(/^(\d{4})-(\d{2})$/);
-	if (!match) return { year: "", month: "" };
-	return { year: match[1], month: match[2] };
+	if (!value) return { year: "", month: "" };
+	const [year, month] = value.split("-");
+	return {
+		year: /^\d{4}$/.test(year ?? "") ? year : "",
+		month: /^(0[1-9]|1[0-2])$/.test(month ?? "") ? month : "",
+	};
 }
 
 type ReportDateFieldProps = {
@@ -117,12 +117,7 @@ function ReportMonthField({ value, onChange }: ReportMonthFieldProps) {
 	const yearOptions = Array.from({ length: 8 }, (_, index) => String(currentYear - index));
 
 	const updateValue = (nextYear: string, nextMonth: string) => {
-		if (!nextYear || !nextMonth) {
-			onChange("");
-			return;
-		}
-
-		onChange(`${nextYear}-${nextMonth}`);
+		onChange(`${nextYear || ""}-${nextMonth || ""}`);
 	};
 
 	return (
@@ -168,9 +163,10 @@ export const ReportFilters = React.memo(function ReportFilters({
 	filterConfig,
 }: ReportFiltersProps) {
 	const { customerId, fromDate, toDate, useDateRange } = value;
+	const customerListParams = { limit: 10000 };
 	const { data: customersResponse } = useQuery({
-		queryKey: ["report", "customer-list", "all"],
-		queryFn: () => customerService.getCustomerList({ limit: 10000 }),
+		queryKey: CUSTOMER_QUERY_KEYS.list(customerListParams),
+		queryFn: () => customerService.getCustomerList(customerListParams),
 		enabled: filterConfig.customer,
 	});
 	const customers = customersResponse?.list ?? [];

@@ -36,6 +36,14 @@ export function formatFilterDateForDisplay(value?: string): string {
 	return `${day}/${month}/${year}`;
 }
 
+export function isReportMonthFilterValue(value?: string): boolean {
+	if (!value) return false;
+	const match = value.match(/^(\d{4})-(\d{2})$/);
+	if (!match) return false;
+	const month = Number(match[2]);
+	return month >= 1 && month <= 12;
+}
+
 export function parseReportDateInput(value?: string, endOfDay = false): number {
 	if (!value) {
 		return endOfDay ? Number.POSITIVE_INFINITY : Number.NEGATIVE_INFINITY;
