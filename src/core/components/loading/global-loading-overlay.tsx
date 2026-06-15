@@ -5,7 +5,11 @@ import { loadingOverlay } from "./controllers/loading-overlay-controller";
 import { LineLoading } from "./line-loading";
 
 export function GlobalLoadingOverlay() {
-	const [state, setState] = useState({
+	const [state, setState] = useState<{
+		visible: boolean;
+		lockOnly: boolean;
+		message?: string;
+	}>({
 		visible: false,
 		lockOnly: false,
 	});
@@ -24,11 +28,12 @@ export function GlobalLoadingOverlay() {
 			{!state.lockOnly && (
 				<>
 					{/* Opacity */}
-					<div className="absolute inset-0 bg-black opacity-50" />
+					<div className="absolute inset-0 bg-black/50" />
 
 					{/* Loader */}
-					<div className="absolute inset-0 flex items-center justify-center">
+					<div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
 						<LineLoading />
+						{state.message && <p className="text-white text-sm font-medium animate-pulse">{state.message}</p>}
 					</div>
 				</>
 			)}

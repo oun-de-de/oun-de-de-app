@@ -1,5 +1,5 @@
-import React, { useEffect, useCallback, useReducer } from "react";
-import { emptyPagination, isLastPage, Pagination } from "../types/pagination";
+import React, { useCallback, useEffect, useReducer } from "react";
+import { emptyPagination, isLastPage, type Pagination } from "../types/pagination";
 
 export enum PaginationStatus {
 	INITIAL = "initial",
@@ -145,12 +145,6 @@ export function usePagination<T>({
 
 	const { pagination, status, hasRequestedNextPage } = state;
 
-	useEffect(() => {
-		if (status === PaginationStatus.INITIAL) {
-			handleInitial();
-		}
-	}, []);
-
 	function updatePagination(newPagination: Pagination<T>) {
 		dispatch({ type: "SET_PAGINATION", payload: newPagination });
 		updateStatus(getStatus(newPagination), true);
@@ -173,22 +167,52 @@ export function usePagination<T>({
 		[status, hasRequestedNextPage, dispatch],
 	);
 
+	// All three handlers are wrapped in try-catch so a single API failure
+	// does NOT crash the UI. Errors are surfaced via `pagination.error` field
+	// instead of an unhandled promise rejection, letting renderers display
+	// error states (e.g., "tap to retry") rather than a white screen.
 	const handleInitial = useCallback(async () => {
-		dispatch({ type: "INIT_REQUEST" });
-		const result = await onInitial();
-		dispatch({ type: "INIT_SUCCESS", payload: result });
+		try {
+			dispatch({ type: "INIT_REQUEST" });
+			const result = await onInitial();
+			dispatch({ type: "INIT_SUCCESS", payload: result });
+		} catch (error: unknown) {
+			const message = error instanceof Error ? error.message : "Failed to load initial page";
+			console.warn("[usePagination] handleInitial failed:", message);
+			dispatch({ type: "INIT_SUCCESS", payload: { ...emptyPagination<T>(), error: message } });
+		}
 	}, [onInitial]);
 
 	const handleRefresh = useCallback(async () => {
-		const result = await onRefresh();
-		dispatch({ type: "REFRESH_SUCCESS", payload: result });
+		try {
+			const result = await onRefresh();
+			dispatch({ type: "REFRESH_SUCCESS", payload: result });
+		} catch (error: unknown) {
+			const message = error instanceof Error ? error.message : "Failed to refresh";
+			console.warn("[usePagination] handleRefresh failed:", message);
+			dispatch({ type: "SET_PAGINATION", payload: { ...emptyPagination<T>(), error: message } });
+		}
 	}, [onRefresh]);
 
 	const handleLoadMore = useCallback(async () => {
-		dispatch({ type: "LOAD_MORE_REQUEST" });
-		const result = await onLoadMore(pagination.page + 1);
-		dispatch({ type: "LOAD_MORE_SUCCESS", payload: result });
+		try {
+			dispatch({ type: "LOAD_MORE_REQUEST" });
+			const result = await onLoadMore(pagination.page + 1);
+			dispatch({ type: "LOAD_MORE_SUCCESS", payload: result });
+		} catch (error: unknown) {
+			const message = error instanceof Error ? error.message : "Failed to load more items";
+			console.warn("[usePagination] handleLoadMore failed:", message);
+			dispatch({ type: "LOAD_MORE_SUCCESS", payload: { ...pagination, error: message } });
+		}
 	}, [onLoadMore, pagination.page]);
+
+	// Moved below all handler definitions so the dep array is complete and
+	// ESLint's exhaustive-deps rule passes without a suppression comment.
+	useEffect(() => {
+		if (status === PaginationStatus.INITIAL) {
+			handleInitial();
+		}
+	}, [status, handleInitial]);
 
 	// Trigger load more when scroll near end
 	const checkLoadMore = useCallback(
@@ -201,8 +225,7 @@ export function usePagination<T>({
 				}
 			}
 		},
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-		[pagination, status, hasRequestedNextPage, invisibleItemsThreshold],
+		[pagination, status, hasRequestedNextPage, invisibleItemsThreshold, handleLoadMore],
 	);
 
 	// -------------------

@@ -1,9 +1,7 @@
 import PlaceholderImg from "@/assets/images/background/placeholder.svg";
-import LocalePicker from "@/core/components/locale-picker";
 import Logo from "@/core/components/logo";
-import { GLOBAL_CONFIG } from "@/global-config";
-import SettingButton from "@/layouts/components/setting-button";
 import { useIsAuthenticated } from "@/core/services/auth/hooks/use-auth";
+import { GLOBAL_CONFIG } from "@/global-config";
 import { Navigate } from "react-router";
 import LoginForm from "./login-form";
 import MobileForm from "./mobile-form";
@@ -49,10 +47,10 @@ function LoginPage() {
 				/>
 			</div>
 
-			<div className="absolute right-2 top-0 flex flex-row">
+			{/* <div className="absolute right-2 top-0 flex flex-row">
 				<LocalePicker />
 				<SettingButton />
-			</div>
+			</div> */}
 		</div>
 	);
 }

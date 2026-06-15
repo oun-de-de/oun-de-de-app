@@ -1,18 +1,16 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
 
 import couponService from "@/core/api/services/coupon-service";
-import employeeService from "@/core/api/services/employee-service";
-import productService from "@/core/api/services/product-service";
-import vehicleService from "@/core/api/services/vehicle-service";
 import { BackButton, type DefaultFormData } from "@/core/components/common";
+import { COUPON_QUERY_KEYS } from "@/core/query-keys/coupon-query-keys";
 import type { CreateCouponRequest } from "@/core/types/coupon";
 import { Button } from "@/core/ui/button";
 import { Text } from "@/core/ui/typography";
 import { formatDateStartLocalApiValueFromInput } from "@/pages/dashboard/accounting/utils/format-local-date-time";
-import { getEmployeeDisplayName } from "@/pages/dashboard/employees/utils/employee-utils";
+import { useCouponReferenceData } from "../hooks/use-coupon-reference-data";
 import { toCouponDateInputValue, toNumberOrUndefined } from "../utils/coupon-form-values";
 import {
 	createDraftWeightRecord,
@@ -30,40 +28,65 @@ function toIsoDateOrUndefined(value: unknown): string | undefined {
 
 export default function CreateCouponPage() {
 	const navigate = useNavigate();
+	const queryClient = useQueryClient();
 	const [weightRecords, setWeightRecords] = useState<DraftWeightRecord[]>([createEmptyDraftWeightRecord()]);
 	const [defaultValues, setDefaultValues] = useState<DefaultFormData | undefined>(undefined);
 	const [formResetKey, setFormResetKey] = useState(0);
 
-	// Fetch employees for dropdown
-	const { data: employees = [] } = useQuery({
-		queryKey: ["employees", "all"],
-		queryFn: () => employeeService.getEmployeeList(),
+	const { products, employeeOptions, vehicleOptions } = useCouponReferenceData();
+	const { mutateAsync: createCoupon } = useMutation({
+		mutationFn: (couponData: CreateCouponRequest) => couponService.createCoupon(couponData),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: COUPON_QUERY_KEYS.all });
+			toast.success("Coupon has been created successfully");
+			navigate("/dashboard/invoice");
+		},
+		onError: (error) => {
+			const message = error instanceof Error ? error.message : "Failed to create coupon";
+			toast.error(message);
+		},
 	});
-
-	const employeeOptions = employees.map((emp) => ({
-		label: getEmployeeDisplayName(emp),
-		value: emp.id,
-	}));
-
-	const { data: vehicles } = useQuery({
-		queryKey: ["vehicles", "all"],
-		queryFn: () => vehicleService.getVehicleList(),
-	});
-
-	const { data: products = [] } = useQuery({
-		queryKey: ["products", "all"],
-		queryFn: () => productService.getProductList(),
-	});
-
-	const vehicleOptions = (vehicles ?? []).map((v) => ({
-		label: `${v.vehicleType} - ${v.licensePlate}`,
-		value: v.id,
-	}));
 
 	const weightRecordsComponent = useMemo(
 		() => <WeightRecordsBuilder products={products} records={weightRecords} onChange={setWeightRecords} />,
 		[products, weightRecords],
 	);
+
+	const handleSubmit = async (data: DefaultFormData) => {
+		try {
+			const validationError = validateCumulativeWeightRecords(weightRecords);
+			if (validationError) {
+				toast.error(validationError);
+				return;
+			}
+
+			const serializedDate = toIsoDateOrUndefined(data.date);
+			if (!serializedDate) {
+				toast.error("Date is invalid");
+				return;
+			}
+
+			const couponData: CreateCouponRequest = {
+				date: serializedDate,
+				vehicleId: data.vehicleId as string,
+				driverName: (data.driverName as string) || undefined,
+				employeeId: data.employeeId as string,
+				remark: (data.remark as string) || undefined,
+				couponNo: toNumberOrUndefined(data.couponNo),
+				couponId: toNumberOrUndefined(data.couponId),
+				accNo: (data.accNo as string) || undefined,
+				weightRecords: serializeDraftWeightRecords(weightRecords),
+			};
+
+			await createCoupon(couponData);
+		} catch {
+			// Error toast is handled by the mutation.
+		}
+	};
+
+	const handleCancel = () => {
+		navigate("/dashboard/coupons");
+	};
 
 	const handleFillSampleData = () => {
 		setDefaultValues({
@@ -102,45 +125,6 @@ export default function CreateCouponPage() {
 		]);
 
 		setFormResetKey((prev) => prev + 1);
-	};
-
-	const handleSubmit = async (data: DefaultFormData) => {
-		try {
-			const validationError = validateCumulativeWeightRecords(weightRecords);
-			if (validationError) {
-				toast.error(validationError);
-				return;
-			}
-
-			const serializedDate = toIsoDateOrUndefined(data.date);
-			if (!serializedDate) {
-				toast.error("Date is invalid");
-				return;
-			}
-
-			const couponData: CreateCouponRequest = {
-				date: serializedDate,
-				vehicleId: data.vehicleId as string,
-				driverName: (data.driverName as string) || undefined,
-				employeeId: data.employeeId as string,
-				remark: (data.remark as string) || undefined,
-				couponNo: toNumberOrUndefined(data.couponNo),
-				couponId: toNumberOrUndefined(data.couponId),
-				accNo: (data.accNo as string) || undefined,
-				weightRecords: serializeDraftWeightRecords(weightRecords),
-			};
-
-			await couponService.createCoupon(couponData);
-
-			toast.success("Coupon has been created successfully");
-			navigate("/dashboard/invoice");
-		} catch {
-			toast.error("Failed to create coupon");
-		}
-	};
-
-	const handleCancel = () => {
-		navigate("/dashboard/coupons");
 	};
 
 	return (

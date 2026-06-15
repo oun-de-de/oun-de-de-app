@@ -11,6 +11,11 @@ const getProductList = (): Promise<Product[]> =>
 		url: ProductApi.List,
 	});
 
+const getProduct = async (productId: string): Promise<Product | undefined> => {
+	const products = await getProductList();
+	return products.find((product) => product.id === productId);
+};
+
 const createProduct = (data: CreateProductRequest): Promise<Product> =>
 	apiClient.post<Product>({
 		url: ProductApi.Create,
@@ -25,6 +30,7 @@ const updateProduct = (productId: string, data: Partial<UpdateProduct>): Promise
 
 export default {
 	getProductList,
+	getProduct,
 	createProduct,
 	updateProduct,
 };

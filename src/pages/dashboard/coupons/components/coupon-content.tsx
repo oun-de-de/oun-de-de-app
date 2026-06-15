@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { couponSummaryCards } from "@/_mock/data/dashboard";
 import { SmartDataTable, SummaryStatCard } from "@/core/components/common";
 import couponService from "@/core/api/services/coupon-service";
+import { COUPON_QUERY_KEYS } from "@/core/query-keys/coupon-query-keys";
 import type { Customer } from "@/core/types/customer";
 import type { Coupon } from "@/core/types/coupon";
 import { Button } from "@/core/ui/button";
@@ -62,7 +63,7 @@ export function CouponContent({
 		[navigate, activeCustomer, location.search],
 	);
 	const { data: weightRecords = [], isLoading: isWeightRecordsLoading } = useQuery({
-		queryKey: ["coupon-weight-records", selectedCoupon?.id],
+		queryKey: COUPON_QUERY_KEYS.weightRecords(selectedCoupon?.id),
 		queryFn: () => couponService.getCouponWeightRecords(selectedCoupon!.id),
 		enabled: Boolean(selectedCoupon?.id),
 	});

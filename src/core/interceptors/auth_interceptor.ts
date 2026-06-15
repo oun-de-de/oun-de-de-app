@@ -1,7 +1,7 @@
-import type { AxiosInstance, AxiosError, InternalAxiosRequestConfig, AxiosResponse } from "axios";
-import { AppAuthService } from "../services/auth";
+import type { AxiosError, AxiosInstance, AxiosResponse, InternalAxiosRequestConfig } from "axios";
 import { toast } from "sonner";
 import { t } from "@/core/locales/i18n";
+import { AppAuthService } from "../services/auth";
 
 export interface AuthInterceptorConfig {
 	retryDioBuilder: () => AxiosInstance;
@@ -108,10 +108,8 @@ export class AuthInterceptor {
 			this.isRefreshing = true;
 
 			try {
-				// Attempt to refresh token by re-authenticating
-				// You may need to implement refresh token logic in AuthService
-				// For now, just get the current access token
-				const newAccessToken = authService.getAccessToken();
+				const refreshedAccount = await authService.refreshAccessToken();
+				const newAccessToken = refreshedAccount?.access_token?.value ?? null;
 
 				if (!newAccessToken) {
 					await authService.logout();

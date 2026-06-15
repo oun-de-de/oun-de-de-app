@@ -1,15 +1,17 @@
-import customerService from "@/core/api/services/customer-service";
-import employeeService from "@/core/api/services/employee-service";
-import loanService from "@/core/api/services/loan-service";
-import { formatDateStartLocalApiValue } from "@/pages/dashboard/accounting/utils/format-local-date-time";
-import { useBorrowCartActions } from "@/pages/dashboard/borrow/stores/borrow-cart-store";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
 import { z } from "zod";
+import customerService from "@/core/api/services/customer-service";
+import employeeService from "@/core/api/services/employee-service";
+import loanService from "@/core/api/services/loan-service";
+import { CUSTOMER_QUERY_KEYS } from "@/core/query-keys/customer-query-keys";
+import { EMPLOYEE_QUERY_KEYS } from "@/core/query-keys/employee-query-keys";
+import { formatDateStartLocalApiValue } from "@/pages/dashboard/accounting/utils/format-local-date-time";
+import { useBorrowCartActions } from "@/pages/dashboard/borrow/stores/borrow-cart-store";
 
 const borrowPaymentSchema = z
 	.object({
@@ -71,6 +73,8 @@ export type BorrowPaymentFormValues = z.infer<typeof borrowPaymentSchema>;
 // 	return `${trimmedUserMemo} | ${trimmedCartMemo}`;
 // }
 
+const SESSION_STORAGE_KEY = "borrow-payment-form-state";
+
 export function useBorrowPaymentForm() {
 	const navigate = useNavigate();
 	// Temporarily disabled: keep the cart selector logic in place for future reuse.
@@ -78,9 +82,20 @@ export function useBorrowPaymentForm() {
 	const { clearCart } = useBorrowCartActions();
 	// const cartMemo = buildBorrowCartMemo(cart);
 
-	const form = useForm<BorrowPaymentFormValues>({
-		resolver: zodResolver(borrowPaymentSchema),
-		defaultValues: {
+	const defaultValues = useMemo(() => {
+		try {
+			const saved = sessionStorage.getItem(SESSION_STORAGE_KEY);
+			if (saved) {
+				const parsed = JSON.parse(saved);
+				if (parsed.dueDate) {
+					parsed.dueDate = new Date(parsed.dueDate);
+				}
+				return parsed;
+			}
+		} catch (e) {
+			console.error("Failed to parse form state from sessionStorage", e);
+		}
+		return {
 			borrowerType: "customer",
 			borrowerId: "",
 			employeeId: "",
@@ -90,10 +105,30 @@ export function useBorrowPaymentForm() {
 			dueWarningDays: 5,
 			dueDate: new Date(),
 			memo: "",
-		},
+		};
+	}, []);
+
+	const form = useForm<BorrowPaymentFormValues>({
+		resolver: zodResolver(borrowPaymentSchema),
+		defaultValues,
 	});
 
+	useEffect(() => {
+		const subscription = form.watch((value) => {
+			sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(value));
+		});
+		return () => subscription.unsubscribe();
+	}, [form]);
+
 	const { setValue, reset } = form;
+
+	// Temporarily disabled: do not prefill the memo field from the borrow cart.
+	// useEffect(() => {
+	// 	if (!cartMemo) return;
+	// 	if (form.getValues("memo").trim()) return;
+	//
+	// 	setValue("memo", cartMemo, { shouldValidate: true });
+	// }, [cartMemo, form, setValue]);
 
 	// Use useQuery for loan code generation (controlled mode)
 	const { isFetching: isGeneratingCode, refetch: refetchLoanCode } = useQuery({
@@ -136,23 +171,15 @@ export function useBorrowPaymentForm() {
 		void applyGeneratedLoanCode(false);
 	}, []);
 
-	// Temporarily disabled: do not prefill the memo field from the borrow cart.
-	// useEffect(() => {
-	// 	if (!cartMemo) return;
-	// 	if (form.getValues("memo").trim()) return;
-	//
-	// 	setValue("memo", cartMemo, { shouldValidate: true });
-	// }, [cartMemo, form, setValue]);
-
 	// Fetch Customers
 	const { data: customers = [] } = useQuery({
-		queryKey: ["customers-list"],
+		queryKey: CUSTOMER_QUERY_KEYS.list({ limit: 1000 }),
 		queryFn: () => customerService.getCustomerList({ limit: 1000 }).then((res) => res.list),
 	});
 
 	// Fetch Employees
 	const { data: employees = [] } = useQuery({
-		queryKey: ["employees-list"],
+		queryKey: EMPLOYEE_QUERY_KEYS.list(),
 		queryFn: () => employeeService.getEmployeeList(),
 	});
 
@@ -161,8 +188,9 @@ export function useBorrowPaymentForm() {
 		onSuccess: () => {
 			toast.success("Loan created successfully!");
 			clearCart();
-			navigate("/dashboard/loan", { replace: true });
 			reset();
+			sessionStorage.removeItem(SESSION_STORAGE_KEY);
+			navigate("/dashboard/loan", { replace: true });
 		},
 		onError: () => {
 			toast.error("Failed to create loan");

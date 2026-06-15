@@ -1,4 +1,4 @@
-import type { PagePaginatedResponse, PaginatedResponse, CodeResponse } from "@/core/types/common";
+import type { CodeResponse, PagePaginatedResponse, PaginatedResponse } from "@/core/types/common";
 import type {
 	BorrowerType,
 	CreateLoanPaymentRequest,
@@ -9,6 +9,7 @@ import type {
 	LoanStatus,
 	UpdateLoanRequest,
 } from "@/core/types/loan";
+import { debugLogger } from "@/core/utils/logger";
 import { apiClient } from "../apiClient";
 
 export enum LoanApi {
@@ -32,31 +33,42 @@ function toApiCreateBorrowerType(value?: BorrowerType): string | undefined {
 	return value.toLowerCase();
 }
 
-function normalizeBorrowerType(value: string): BorrowerType {
-	const normalizedValue = value.toLowerCase();
+function normalizeBorrowerType(value?: string | null): BorrowerType {
+	if (!value) return "customer";
+	const normalizedValue = value.trim().toLowerCase();
 	if (normalizedValue === "employee" || normalizedValue === "customer") {
 		return normalizedValue;
 	}
-	console.warn(`Unknown borrowerType received from API: ${value}. Fallback to customer.`);
+	debugLogger.warn(`Unknown borrowerType received from API: ${value}. Fallback to customer.`);
 	return "customer";
 }
 
-function normalizeLoanStatus(value: string): LoanStatus {
-	const normalizedValue = value.toLowerCase();
+function normalizeLoanStatus(value?: string | null): LoanStatus {
+	if (!value) return "normal";
+	const normalizedValue = value.trim().toLowerCase();
 	if (normalizedValue === "due") return "due";
 	if (normalizedValue === "complete") return "complete";
 	return "normal";
 }
 
-export function normalizeLoan(data: LoanApiResponse): Loan {
+export function normalizeLoan(data: LoanApiResponse | null | undefined): Loan {
+	if (!data) {
+		throw new Error("Cannot normalize loan: received null or undefined data from API");
+	}
 	return {
 		...data,
 		borrowerType: normalizeBorrowerType(data.borrowerType),
 		status: normalizeLoanStatus(data.status),
-		monthlyPayment: data.installmentAmount,
+		monthlyPayment: data.installmentAmount ?? 0,
 		termMonths: data.termMonths ?? 0,
 		createdAt: data.createdAt ?? data.createAt ?? "",
 	};
+}
+
+function isLoanApiResponse(data: LoanApiResponse | null | undefined): data is LoanApiResponse {
+	if (data) return true;
+	debugLogger.warn("Skipping invalid loan row received from API: null or undefined.");
+	return false;
 }
 
 const getLoans = (params?: {
@@ -69,7 +81,7 @@ const getLoans = (params?: {
 	sort?: string;
 }): Promise<PaginatedResponse<Loan>> =>
 	apiClient
-		.get<PagePaginatedResponse<LoanApiResponse>>({
+		.get<PagePaginatedResponse<LoanApiResponse | null>>({
 			url: LoanApi.Loans,
 			params: {
 				...params,
@@ -77,34 +89,37 @@ const getLoans = (params?: {
 				sort: params?.sort ?? "createAt,desc",
 			},
 		})
-		.then((response) => ({
-			content: response.content.map(normalizeLoan),
-			pageable: {
-				pageNumber: response.page.number,
-				pageSize: response.page.size,
+		.then((response) => {
+			const content = response.content.filter(isLoanApiResponse).map(normalizeLoan);
+			return {
+				content,
+				pageable: {
+					pageNumber: response.page.number,
+					pageSize: response.page.size,
+					sort: {
+						empty: false,
+						sorted: true,
+						unsorted: false,
+					},
+					offset: response.page.number * response.page.size,
+					paged: true,
+					unpaged: false,
+				},
+				totalElements: response.page.totalElements,
+				totalPages: response.page.totalPages,
+				last: response.page.number + 1 >= response.page.totalPages,
+				size: response.page.size,
+				number: response.page.number,
 				sort: {
 					empty: false,
 					sorted: true,
 					unsorted: false,
 				},
-				offset: response.page.number * response.page.size,
-				paged: true,
-				unpaged: false,
-			},
-			totalElements: response.page.totalElements,
-			totalPages: response.page.totalPages,
-			last: response.page.number + 1 >= response.page.totalPages,
-			size: response.page.size,
-			number: response.page.number,
-			sort: {
-				empty: false,
-				sorted: true,
-				unsorted: false,
-			},
-			numberOfElements: response.content.length,
-			first: response.page.number === 0,
-			empty: response.content.length === 0,
-		}));
+				numberOfElements: content.length,
+				first: response.page.number === 0,
+				empty: content.length === 0,
+			};
+		});
 
 const createLoan = (data: CreateLoanRequest): Promise<Loan> =>
 	apiClient

@@ -3,8 +3,8 @@ import type { ConvertToLoanRequest, CreatePaymentRequest, Cycle, CyclePayment, C
 import type { Loan } from "@/core/types/loan";
 import type { Pagination } from "@/core/types/pagination";
 import { mapPagePaginatedResponseToPagination } from "@/core/utils/pagination";
-import { normalizeLoan, type LoanApiResponse } from "./loan-service";
 import { apiClient } from "../apiClient";
+import { type LoanApiResponse, normalizeLoan } from "./loan-service";
 
 export enum CycleApi {
 	List = "/cycles",
@@ -22,6 +22,7 @@ export function normalizeLoanStartDate(value: string): string {
 
 	const parsed = new Date(normalized);
 	if (Number.isNaN(parsed.getTime())) {
+		console.warn(`[normalizeLoanStartDate] Unrecognized date format, passing through raw: "${normalized}"`);
 		return normalized;
 	}
 
@@ -77,15 +78,17 @@ const getAllCycles = async (params: {
 		return firstPage.list;
 	}
 
-	const restPages = await Promise.all(
-		Array.from({ length: firstPage.pageCount - 1 }, (_, index) =>
-			getCycles({
-				...params,
-				page: index + 2,
-				size: pageSize,
+	const remainingCount = firstPage.pageCount - 1;
+	const restPages = (
+		await Promise.allSettled(
+			Array.from({ length: remainingCount }, (_, index) => {
+				const page = index + 2;
+				return getCycles({ ...params, page, size: pageSize });
 			}),
-		),
-	);
+		)
+	)
+		.filter((s): s is PromiseFulfilledResult<Awaited<ReturnType<typeof getCycles>>> => s.status === "fulfilled")
+		.map((s) => s.value);
 
 	return [firstPage, ...restPages].flatMap((page) => page.list);
 };
@@ -109,11 +112,11 @@ const createPayment = (cycleId: string, data: CreatePaymentRequest): Promise<Cyc
 const convertToLoan = (cycleId: string, data: ConvertToLoanRequest): Promise<Loan> =>
 	apiClient
 		.post<LoanApiResponse>({
-		url: `${CycleApi.List}/${cycleId}/convert-to-loan`,
-		data: {
-			...data,
-			startDate: normalizeLoanStartDate(data.startDate),
-		},
+			url: `${CycleApi.List}/${cycleId}/convert-to-loan`,
+			data: {
+				...data,
+				startDate: normalizeLoanStartDate(data.startDate),
+			},
 		})
 		.then(normalizeLoan);
 

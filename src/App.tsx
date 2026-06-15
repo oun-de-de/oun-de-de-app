@@ -5,12 +5,14 @@ import { Helmet, HelmetProvider } from "react-helmet-async";
 import Logo from "@/assets/icons/ic-logo-badge.svg";
 import { MotionLazy } from "./core/components/animate/motion-lazy";
 import { RouteLoadingProgress } from "./core/components/loading";
+import { GlobalLoadingOverlay } from "./core/components/loading/global-loading-overlay";
 import Toast from "./core/components/toast";
 import { AntdAdapter } from "./core/theme/adapter/antd.adapter";
 import { ThemeProvider } from "./core/theme/theme-provider";
 import { GLOBAL_CONFIG } from "./global-config";
 import Repository from "./service-locator";
-import { GlobalLoadingOverlay } from "./core/components/loading/global-loading-overlay";
+
+const queryClient = new QueryClient();
 
 if (import.meta.env.DEV) {
 	import("react-scan").then(({ scan }) => {
@@ -29,7 +31,7 @@ function App({ children }: { children: React.ReactNode }) {
 	}, []);
 	return (
 		<HelmetProvider>
-			<QueryClientProvider client={new QueryClient()}>
+			<QueryClientProvider client={queryClient}>
 				<ThemeProvider adapters={[AntdAdapter]}>
 					<VercelAnalytics debug={import.meta.env.PROD} />
 					<Helmet>

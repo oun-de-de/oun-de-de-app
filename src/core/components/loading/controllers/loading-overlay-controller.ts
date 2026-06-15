@@ -4,6 +4,7 @@ type Listener = (state: LoadingState) => void;
 type LoadingState = {
 	visible: boolean;
 	lockOnly: boolean;
+	message?: string;
 };
 
 class LoadingOverlayController {
@@ -14,15 +15,15 @@ class LoadingOverlayController {
 
 	private listeners = new Set<Listener>();
 
-	show(lockOnly = false) {
-		if (this.state.visible) return;
-		this.state = { visible: true, lockOnly };
+	show(message?: string, lockOnly = false) {
+		if (this.state.visible && this.state.message === message) return;
+		this.state = { visible: true, lockOnly, message };
 		this.emit();
 	}
 
 	hide() {
 		if (!this.state.visible) return;
-		this.state = { visible: false, lockOnly: false };
+		this.state = { visible: false, lockOnly: false, message: undefined };
 		this.emit();
 	}
 

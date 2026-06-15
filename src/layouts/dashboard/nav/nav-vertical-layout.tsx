@@ -1,8 +1,7 @@
 import styled from "styled-components";
 import type { NavProps } from "@/core/components/nav/types";
-import { useSettings } from "@/core/store/settingStore";
-import { ThemeLayout } from "@/core/types/enum";
 import { cn } from "@/core/utils";
+import { useNavLayout } from "./nav-layout-context";
 import { NavVerticalContent } from "./nav-vertical-content";
 import { NavVerticalFooter } from "./nav-vertical-footer";
 import { NavVerticalHeader } from "./nav-vertical-header";
@@ -13,8 +12,8 @@ type Props = {
 };
 
 export function NavVerticalLayout({ data, className }: Props) {
-	const { themeLayout } = useSettings();
-	const navWidth = themeLayout === ThemeLayout.Vertical ? "var(--layout-nav-width)" : "var(--layout-nav-width-mini)";
+	const isMini = useNavLayout().isMini;
+	const navWidth = isMini ? "var(--layout-nav-width-mini)" : "var(--layout-nav-width)";
 
 	return (
 		<StyledNav $width={navWidth} className={cn("print:hidden", className)} data-slot="slash-layout-nav">

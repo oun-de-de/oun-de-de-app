@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import employeeService from "@/core/api/services/employee-service";
 import { DashboardSplitView } from "@/core/components/common/dashboard-split-view";
 import { useSidebarCollapse } from "@/core/hooks/use-sidebar-collapse";
+import { EMPLOYEE_QUERY_KEYS } from "@/core/query-keys/employee-query-keys";
 import type { Employee } from "@/core/types/employee";
 import { buildPagination } from "@/core/utils/dashboard-utils";
 import { EmployeeContent } from "./components/employee-content";
@@ -23,14 +24,7 @@ export default function EmployeesPage() {
 	}, [listState.searchValue, activeEmployee]);
 
 	const { data: employees = [], isLoading } = useQuery({
-		queryKey: [
-			"employees",
-			listState.page,
-			listState.pageSize,
-			listState.searchValue,
-			listState.fieldFilter,
-			activeEmployee?.id,
-		],
+		queryKey: EMPLOYEE_QUERY_KEYS.list(),
 		queryFn: () => employeeService.getEmployeeList(),
 	});
 

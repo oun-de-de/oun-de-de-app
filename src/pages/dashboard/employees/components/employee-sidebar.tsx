@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import employeeService from "@/core/api/services/employee-service";
 import { EntityListItem, SidebarList } from "@/core/components/common";
+import { EMPLOYEE_QUERY_KEYS } from "@/core/query-keys/employee-query-keys";
 import type { Employee } from "@/core/types/employee";
 import { cn } from "@/core/utils";
 import { getEmployeeDisplayName } from "../utils/employee-utils";
@@ -19,7 +20,7 @@ export function EmployeeSidebar({ activeEmployeeId, onSelect, onToggle, isCollap
 	const [searchTerm, setSearchTerm] = useState("");
 
 	const { data: employees = [] } = useQuery({
-		queryKey: ["employees", "sidebar", { searchTerm }],
+		queryKey: EMPLOYEE_QUERY_KEYS.list(),
 		queryFn: () => employeeService.getEmployeeList(),
 	});
 

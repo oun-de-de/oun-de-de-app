@@ -1,34 +1,33 @@
-import { BackButton } from "@/core/components/common";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router";
 import { toast } from "sonner";
-
+import { BackButton, SplitButton } from "@/core/components/common";
+import { loadingOverlay } from "@/core/components/loading/controllers/loading-overlay-controller";
 import type { CreateCashTransactionRequest } from "@/core/types/cash-transaction";
 import type { InvoiceExportPreviewLocationState } from "@/core/types/invoice";
 import { Button } from "@/core/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/core/ui/card";
-import { SplitButton } from "@/core/components/common";
 import { useCreateCashTransaction } from "@/pages/dashboard/accounting-center/hooks/use-create-cash-transaction";
 import { useGetCurrencyList } from "@/pages/dashboard/settings/hooks/use-settings";
+import { CashTransactionDetailsTable } from "../components/cash-transaction-details-table";
+import { CashTransactionFormHeader } from "../components/cash-transaction-form-header";
 import {
 	ACCOUNTING_DRAFT_FORM_TEXT,
 	ACCOUNTING_FORM_TRANSACTION_TYPES,
 	ACCOUNTING_TRANSACTION_TYPE_TO_API,
 } from "../constants";
 import { useAccountingReferenceData } from "../hooks/use-accounting-reference-data";
-import { getChartAccountAccountTypeId } from "../utils/map-chart-account-result";
-import { CashTransactionDetailsTable } from "../components/cash-transaction-details-table";
-import { CashTransactionFormHeader } from "../components/cash-transaction-form-header";
 import type { CashTransactionFormValues } from "../utils/accounting-form-utils";
 import {
+	cashTransactionFormSchema,
+	generateCashTransactionDateTime,
 	generateId,
 	generateRefNo,
-	generateCashTransactionDateTime,
-	cashTransactionFormSchema,
 } from "../utils/accounting-form-utils";
 import { formatDateTimeLocalApiValueFromInput } from "../utils/format-local-date-time";
+import { getChartAccountAccountTypeId } from "../utils/map-chart-account-result";
 
 function buildRevenuePreviewState({
 	refNo,
@@ -43,7 +42,8 @@ function buildRevenuePreviewState({
 	employeeOptions: { value: string; label: string }[];
 	chartAccountLabels: Map<string, string>;
 }): InvoiceExportPreviewLocationState {
-	const employeeName = employeeOptions.find((option) => option.value === formValues.employeeId)?.label ?? "Administrator";
+	const employeeName =
+		employeeOptions.find((option) => option.value === formValues.employeeId)?.label ?? "Administrator";
 	const previewRows = formValues.details.map((line, index) => ({
 		refNo: index === 0 ? refNo : `${refNo}-${index + 1}`,
 		customerName: employeeName,
@@ -162,6 +162,7 @@ export default function CreateRevenuePage() {
 		};
 
 		try {
+			loadingOverlay.show("Processing revenue... Please wait.");
 			await createCashTransaction(payload);
 			toast.success(ACCOUNTING_DRAFT_FORM_TEXT.revenue.successMessage);
 			if (mode === "print") {
@@ -198,8 +199,11 @@ export default function CreateRevenuePage() {
 					},
 				],
 			});
-		} catch {
-			// Error handled
+		} catch (error: unknown) {
+			const message = error instanceof Error ? error.message : "Failed to reset form";
+			toast.error(message);
+		} finally {
+			loadingOverlay.hide();
 		}
 	};
 

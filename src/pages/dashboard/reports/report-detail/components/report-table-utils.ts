@@ -4,6 +4,8 @@ import type { ReportFiltersValue } from "./report-filters";
 
 export function normalizeReportFilters(filters?: ReportFiltersValue) {
 	const customerId = filters?.customerId && filters.customerId !== "all" ? filters.customerId : undefined;
+	const customerTypeId =
+		filters?.customerTypeId && filters.customerTypeId !== "all" ? filters.customerTypeId : undefined;
 	const reportDateFrom =
 		filters?.useDateRange && filters.fromDate && /^\d{4}-\d{2}-\d{2}$/.test(filters.fromDate)
 			? `${filters.fromDate}T00:00:00`
@@ -13,7 +15,7 @@ export function normalizeReportFilters(filters?: ReportFiltersValue) {
 			? `${filters.toDate}T23:59:59`
 			: undefined;
 
-	return { customerId, reportDateFrom, reportDateTo };
+	return { customerId, customerTypeId, reportDateFrom, reportDateTo };
 }
 
 export function formatFilterRange(filters?: ReportFiltersValue): string {
@@ -34,6 +36,14 @@ export function formatFilterDateForDisplay(value?: string): string {
 	if (!match) return value;
 	const [, year, month, day] = match;
 	return `${day}/${month}/${year}`;
+}
+
+export function isReportMonthFilterValue(value?: string): boolean {
+	if (!value) return false;
+	const match = value.match(/^(\d{4})-(\d{2})$/);
+	if (!match) return false;
+	const month = Number(match[2]);
+	return month >= 1 && month <= 12;
 }
 
 export function parseReportDateInput(value?: string, endOfDay = false): number {
@@ -65,7 +75,27 @@ export function parseDisplayDate(value: unknown): number {
 export function parseNumericCell(value: unknown): number {
 	if (typeof value === "number") return value;
 	if (typeof value !== "string") return 0;
-	const normalized = value.replace(/[^\d.-]/g, "");
+	const trimmed = value.trim();
+	// Accounting negative format: "(1,234.56)" → -1234.56
+	const accountingMatch = trimmed.match(/^\(([^)]+)\)$/);
+	const body = accountingMatch ? `-${accountingMatch[1]}` : trimmed;
+	// European locale: "1.234,56" → "1234.56"
+	const hasDotThousands = /^\d{1,3}(\.\d{3})+(,\d+)?$/.test(body);
+	const hasCommaDecimal = /,\d{2}$/.test(body) && !/\.\d{2}$/.test(body);
+	let normalized: string;
+	if (hasDotThousands) {
+		// Dot as thousands separator, optional comma decimal
+		normalized = body.replace(/\./g, "").replace(",", ".");
+	} else if (hasCommaDecimal) {
+		// Comma as decimal separator
+		const lastCommaIdx = body.lastIndexOf(",");
+		normalized = body.substring(0, lastCommaIdx).replace(/,/g, "") + "." + body.substring(lastCommaIdx + 1);
+	} else {
+		// Comma as thousands separator only
+		normalized = body.replace(/,/g, "");
+	}
+	// Strip remaining non-numeric chars except minus and dot
+	normalized = normalized.replace(/[^\d.-]/g, "");
 	const parsed = Number(normalized);
 	return Number.isFinite(parsed) ? parsed : 0;
 }
@@ -87,8 +117,12 @@ export function sortReportRows(rows: ReportTemplateRow[], sortMode: SortMode): R
 		const dateCache = new Map<string, number>();
 		const getCachedDate = (val: unknown) => {
 			if (typeof val !== "string") return 0;
-			if (!dateCache.has(val)) dateCache.set(val, parseDisplayDate(val));
-			return dateCache.get(val)!;
+			// Assumes date is in "DD/MM/YYYY" format as per parseDisplayDate, adjust if different format is used
+			const cached = dateCache.get(val);
+			if (cached !== undefined) return cached;
+			const parsed = parseDisplayDate(val);
+			dateCache.set(val, parsed);
+			return parsed;
 		};
 		return nextRows.sort((left, right) => {
 			const l = getCachedDate(left.cells.date);
@@ -103,7 +137,7 @@ export function sortReportRows(rows: ReportTemplateRow[], sortMode: SortMode): R
 			if (!textCache.has(row.key)) {
 				textCache.set(row.key, getTextCell(row, "customer", "name", "category"));
 			}
-			return textCache.get(row.key)!;
+			return textCache.get(row.key) ?? "";
 		};
 		return nextRows.sort((left, right) => getCachedText(left).localeCompare(getCachedText(right)));
 	}
@@ -112,8 +146,11 @@ export function sortReportRows(rows: ReportTemplateRow[], sortMode: SortMode): R
 		const numCache = new Map<string, number>();
 		const getCachedNum = (value: unknown) => {
 			const key = String(value);
-			if (!numCache.has(key)) numCache.set(key, parseNumericCell(value));
-			return numCache.get(key)!;
+			const cached = numCache.get(key);
+			if (cached !== undefined) return cached;
+			const parsed = parseNumericCell(value);
+			numCache.set(key, parsed);
+			return parsed;
 		};
 		return nextRows.sort((left, right) => {
 			const l = getCachedNum(left.cells.balance ?? left.cells.amount ?? left.cells.value ?? left.cells.debit);

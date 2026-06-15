@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from "react";
 import type { Warehouse } from "@/core/types/setting";
 import { useGetWarehouseList } from "@/pages/dashboard/settings/hooks/use-settings";
-import { useUpdateCustomerWarehouse } from "../../hooks/use-update-customer-warehouse";
+import { useUpdateCustomer } from "../../hooks/use-update-customer";
 
 export type CustomerWarehouse = {
 	warehouseId: string;
@@ -10,7 +10,11 @@ export type CustomerWarehouse = {
 
 export const useWarehouseSettingsForm = (customerId?: string, currentWarehouseId?: string) => {
 	const { data: warehouses, isLoading } = useGetWarehouseList();
-	const { mutateAsync: updateCustomerWarehouse, isPending: isSaving } = useUpdateCustomerWarehouse(customerId);
+	const { mutateAsync: updateCustomerWarehouse, isPending: isSaving } = useUpdateCustomer(customerId, {
+		successMessage: "Warehouse updated successfully",
+		errorMessage: "Failed to update warehouse",
+		invalidateWarehouseList: true,
+	});
 	const scopeKey = `${customerId ?? ""}:${currentWarehouseId ?? ""}`;
 	const [draftSelection, setDraftSelection] = useState<{
 		scopeKey: string;

@@ -1,19 +1,18 @@
-import { Icon } from "@/core/components/icon";
-import { useSettings } from "@/core/store/settingStore";
-import { useUserInfo, useUserRoles, useSignOut } from "@/core/services/auth/hooks/use-auth";
-import { ThemeLayout } from "@/core/types/enum";
-import { rgbAlpha } from "@/core/utils/theme";
-import { createTaggedLogger } from "@/core/utils/logger";
-import { Button } from "@/core/ui/button";
-import { useRouter } from "@/routes/hooks";
 import styled from "styled-components";
+import PremiumIceLogo from "@/assets/icons/ic-premium-ice.png";
+import { Icon } from "@/core/components/icon";
+import { useSignOut, useUserInfo, useUserRoles } from "@/core/services/auth/hooks/use-auth";
+import { Button } from "@/core/ui/button";
+import { createTaggedLogger } from "@/core/utils/logger";
+import { rgbAlpha } from "@/core/utils/theme";
+import { useRouter } from "@/routes/hooks";
 import AccountDropdown from "../../components/account-dropdown";
-import userIcon from "@/assets/icons/ic-user.svg";
+import { useNavLayout } from "./nav-layout-context";
 
 const logger = createTaggedLogger("NavVerticalFooter");
 
 export function NavVerticalFooter() {
-	const { themeLayout } = useSettings();
+	const isMini = useNavLayout().isMini;
 	const userInfo = useUserInfo();
 	const roles = useUserRoles();
 	const signOut = useSignOut();
@@ -32,7 +31,6 @@ export function NavVerticalFooter() {
 
 	const username = userInfo?.username?.trim() || userInfo?.user_id || "Unknown user";
 	const userRole = roles?.[0];
-	const isMini = themeLayout === ThemeLayout.Mini;
 
 	return (
 		<StyledFooter $isMini={isMini}>
@@ -42,7 +40,7 @@ export function NavVerticalFooter() {
 				</StyledMiniFooter>
 			) : (
 				<StyledVerticalFooter>
-					<StyledAvatar src={userIcon} alt={username} />
+					<StyledAvatar src={PremiumIceLogo} alt={username} />
 					<StyledUserInfo>
 						<StyledUsername>{username}</StyledUsername>
 						{userRole ? <StyledUserRole>{userRole}</StyledUserRole> : null}

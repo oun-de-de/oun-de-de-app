@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import couponService from "@/core/api/services/coupon-service";
 import { useDialogSubmitHandler } from "@/core/hooks/use-dialog-submit-handler";
+import { COUPON_QUERY_KEYS } from "@/core/query-keys/coupon-query-keys";
 import type { Coupon } from "@/core/types/coupon";
 import { Button } from "@/core/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/core/ui/dialog";
@@ -43,7 +44,7 @@ export function CouponDeleteDialog({ open, onOpenChange, coupon }: CouponDeleteD
 			});
 		},
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ["coupons"] });
+			queryClient.invalidateQueries({ queryKey: COUPON_QUERY_KEYS.all });
 			toast.success("Coupon deleted successfully");
 		},
 		onError: (error) => {

@@ -1,8 +1,9 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
 import productService from "@/core/api/services/product-service";
 import { BackButton } from "@/core/components/common";
+import { PRODUCT_QUERY_KEYS } from "@/core/query-keys/product-query-keys";
 import type { UpdateProduct } from "@/core/types/product";
 import { Text } from "@/core/ui/typography";
 import { useGetUnitList } from "@/pages/dashboard/settings/hooks/use-settings";
@@ -11,13 +12,14 @@ import { ProductForm, type ProductFormData } from "../create/components/product-
 export default function EditProductPage() {
 	const { id } = useParams<{ id: string }>();
 	const navigate = useNavigate();
+	const queryClient = useQueryClient();
 	const { data: units = [] } = useGetUnitList();
 
 	const { data: product, isLoading } = useQuery({
-		queryKey: ["product", id],
+		queryKey: PRODUCT_QUERY_KEYS.detail(id),
 		queryFn: () => {
 			if (!id) throw new Error("Product ID is required");
-			return productService.getProductList().then((list) => list.find((p) => p.id === id));
+			return productService.getProduct(id);
 		},
 		enabled: !!id,
 	});
@@ -28,6 +30,7 @@ export default function EditProductPage() {
 			return productService.updateProduct(id, data);
 		},
 		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: PRODUCT_QUERY_KEYS.all });
 			toast.success("Product has been updated successfully");
 			navigate("/dashboard/products");
 		},

@@ -3,6 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import accountingService from "@/core/api/services/accounting-service";
 import customerService from "@/core/api/services/customer-service";
 import employeeService from "@/core/api/services/employee-service";
+import { CUSTOMER_QUERY_KEYS } from "@/core/query-keys/customer-query-keys";
+import { EMPLOYEE_QUERY_KEYS } from "@/core/query-keys/employee-query-keys";
 import type { SelectOption } from "@/core/types/common";
 import type {
 	AccountTypeResult,
@@ -69,6 +71,12 @@ function mapCustomerOptions(customers: Customer[]): SelectOption[] {
 }
 
 export function useAccountingReferenceData(options?: AccountingReferenceDataOptions) {
+	const customerListParams = {
+		page: 1,
+		limit: ACCOUNTING_REFERENCE_PAGE_SIZE,
+		sort: "code,asc",
+	};
+
 	const { data: accountTypes = [], isLoading: isLoadingAccountTypes } = useQuery({
 		queryKey: ACCOUNTING_QUERY_KEYS.referenceAccountTypes,
 		queryFn: () => accountingService.listAccountTypes(),
@@ -97,7 +105,7 @@ export function useAccountingReferenceData(options?: AccountingReferenceDataOpti
 	});
 
 	const { data: employees = [], isLoading: isLoadingEmployees } = useQuery({
-		queryKey: ACCOUNTING_QUERY_KEYS.referenceEmployees,
+		queryKey: EMPLOYEE_QUERY_KEYS.list(),
 		queryFn: () => employeeService.getEmployeeList(),
 		enabled: options?.employeesEnabled ?? true,
 		staleTime: 5 * 60 * 1000,
@@ -106,13 +114,8 @@ export function useAccountingReferenceData(options?: AccountingReferenceDataOpti
 	});
 
 	const { data: customersPagination, isLoading: isLoadingCustomers } = useQuery({
-		queryKey: ACCOUNTING_QUERY_KEYS.referenceCustomers,
-		queryFn: () =>
-			customerService.getCustomerList({
-				page: 1,
-				limit: ACCOUNTING_REFERENCE_PAGE_SIZE,
-				sort: "code,asc",
-			}),
+		queryKey: CUSTOMER_QUERY_KEYS.list(customerListParams),
+		queryFn: () => customerService.getCustomerList(customerListParams),
 		enabled: options?.customersEnabled ?? true,
 		staleTime: 5 * 60 * 1000,
 		refetchOnWindowFocus: false,

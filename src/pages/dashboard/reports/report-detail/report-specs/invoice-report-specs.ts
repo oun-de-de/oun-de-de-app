@@ -1,18 +1,18 @@
+import { REPORT_TITLES } from "../../report-titles";
 import {
-	buildMonthlyRevenueExpenseApiRows,
 	buildInvoiceReportRows,
+	buildMonthlyRevenueExpenseApiRows,
 	buildOpenInvoiceRows,
 	buildSaleDetailRows,
 } from "../components/report-table-builders";
 import { REPORT_DEFAULT_DATE } from "../constants";
+import { buildMonthlySummaryColumns } from "../report-columns/accounting-report-columns";
 import {
 	buildOpenInvoiceDetailColumns,
 	buildReceiptDetailColumns,
 	buildSaleDetailColumns,
 } from "../report-columns/invoice-report-columns";
-import { buildMonthlySummaryColumns } from "../report-columns/accounting-report-columns";
-import { REPORT_FILTERS, type BuildReportRowsParams, type ReportDefinitionMap } from "../report-types";
-import { REPORT_TITLES } from "../../report-titles";
+import { type BuildReportRowsParams, REPORT_FILTERS, type ReportDefinitionMap } from "../report-types";
 
 function buildReceiptDetailRows({ exportLines }: BuildReportRowsParams) {
 	return buildInvoiceReportRows(exportLines);
@@ -51,7 +51,7 @@ export const INVOICE_REPORT_SPECS: ReportDefinitionMap = {
 		buildRows: buildSaleDetailReportRows,
 		dataSource: "invoice-export",
 		invoiceType: "invoice",
-		filterConfig: REPORT_FILTERS.customerAndDateRange,
+		filterConfig: { ...REPORT_FILTERS.customerAndDateRange, customerType: true },
 	},
 	"receipt-detail-by-customer": {
 		slug: "receipt-detail-by-customer",

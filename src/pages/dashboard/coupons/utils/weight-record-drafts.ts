@@ -110,7 +110,6 @@ export function normalizeDraftWeightRecords(
 	});
 }
 
-
 // mapping back to weight record format, removing draftId and productId, and keeping productName for legacy unmatched products
 export function serializeDraftWeightRecords(records: DraftWeightRecord[]): WeightRecord[] {
 	return records.map((record) => ({
@@ -136,7 +135,7 @@ export function validateCumulativeWeightRecords(records: DraftWeightRecord[]): s
 	for (let i = 0; i < records.length; i++) {
 		const record = records[i];
 		if (record.weight !== null && previousWeight !== null && record.weight < previousWeight) {
-			return `Record #${i + 1} has accumulated weight smaller than previous record.`;
+			return `Record #${i + 1} Weight (Accumulated) must be greater than or equal to Record #${i}. Current value: ${record.weight}; previous value: ${previousWeight}.`;
 		}
 		if (record.weight !== null) previousWeight = record.weight;
 	}

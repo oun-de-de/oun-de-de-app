@@ -1,3 +1,4 @@
+import { toast } from "sonner";
 import type { PagePaginatedResponse } from "@/core/types/common";
 import type { Invoice, InvoiceExportLineApi } from "@/core/types/invoice";
 import type { Pagination } from "@/core/types/pagination";
@@ -55,20 +56,37 @@ export const getAllInvoices = async (params?: {
 		return firstPage.list;
 	}
 
-	const restPages = await Promise.all(
-		Array.from({ length: firstPage.pageCount - 1 }, (_, index) =>
-			getInvoices({
-				page: index + 2,
+	const settled = await Promise.allSettled(
+		Array.from({ length: firstPage.pageCount - 1 }, (_, index) => {
+			const page = index + 2;
+			return getInvoices({
+				page,
 				size: pageSize,
 				sort: params?.sort,
 				customerId: params?.customerId,
 				cycleId: params?.cycleId,
 				from: params?.from,
 				to: params?.to,
-			}),
-		),
+			});
+		}),
 	);
 
+	const rejected = settled.filter((result) => result.status === "rejected");
+	if (rejected.length > 0) {
+		toast.error(`Failed to fetch ${rejected.length} invoice page(s)`, {
+			description: "Returning partial invoice data.",
+		});
+	}
+
+	const restPages = settled
+		.filter(
+			(result): result is PromiseFulfilledResult<Awaited<ReturnType<typeof getInvoices>>> =>
+				result.status === "fulfilled",
+		)
+		.map((result) => result.value);
+
+	// Flatten first page + remaining pages into Invoice[].
+	// Page-based API → transparent flat list for callers.
 	return [firstPage, ...restPages].flatMap((page) => page.list);
 };
 

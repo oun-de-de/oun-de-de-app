@@ -46,8 +46,8 @@ interface ReportToolbarProps {
 	columnOptions?: ReportColumnOption[];
 	enableColumnCustomization?: boolean;
 	onPrint?: () => void;
-	onExportExcel?: () => void;
 	onCopy?: () => void;
+	onExportExcel?: () => void;
 	isExportExcelDisabled?: boolean;
 	templateMode?: TemplateMode;
 	onTemplateModeChange?: (mode: TemplateMode) => void;
@@ -70,9 +70,9 @@ function ReportToolbarComponent({
 	columnOptions = [],
 	enableColumnCustomization = true,
 	onPrint,
-	onExportExcel: _onExportExcel,
 	onCopy,
-	isExportExcelDisabled: _isExportExcelDisabled = false,
+	onExportExcel,
+	isExportExcelDisabled = false,
 	templateMode,
 	onTemplateModeChange,
 	paperSizeMode,
@@ -109,7 +109,7 @@ function ReportToolbarComponent({
 									<Button
 										variant="ghost"
 										size="sm"
-										className="h-8 gap-1.5 px-2 text-sky-600 hover:text-sky-700 hover:bg-sky-50"
+										className="h-8 gap-1.5 px-2 text-sky-600 hover:bg-sky-50 hover:text-sky-700"
 									>
 										<Icon icon="mdi:eye-outline" size="1.2em" />
 										<span className="text-xs font-medium">Show</span>
@@ -159,42 +159,16 @@ function ReportToolbarComponent({
 								</DropdownMenuContent>
 							</DropdownMenu>
 
-							{enableColumnCustomization && (
-								<DropdownMenu>
-									<DropdownMenuTrigger asChild className="border-none">
-										<Button
-											variant="ghost"
-											size="sm"
-											className="h-8 gap-1.5 px-2 text-sky-600 hover:text-sky-700 hover:bg-sky-50"
-										>
-											<Icon icon="mdi:view-column-outline" size="1.2em" />
-											<span className="text-xs font-medium">Columns</span>
-										</Button>
-									</DropdownMenuTrigger>
-									<DropdownMenuContent align="start" className="w-48">
-										{columnOptions.map((option) => (
-											<DropdownMenuCheckboxItem
-												key={option.key}
-												checked={showColumns?.[option.key] ?? true}
-												onCheckedChange={(checked) => toggleColumn(option.key, !!checked)}
-											>
-												{option.label}
-											</DropdownMenuCheckboxItem>
-										))}
-									</DropdownMenuContent>
-								</DropdownMenu>
-							)}
-
 							{templateMode && onTemplateModeChange && (
 								<DropdownMenu>
 									<DropdownMenuTrigger asChild className="border-none">
 										<Button
 											variant="ghost"
 											size="sm"
-											className="h-8 gap-1.5 px-2 text-sky-600 hover:text-sky-700 hover:bg-sky-50"
+											className="h-8 gap-1.5 px-2 text-sky-600 hover:bg-sky-50 hover:text-sky-700"
 										>
 											<Icon icon="mdi:file-document-outline" size="1.2em" />
-											<span className="text-xs font-medium">Template: {TEMPLATE_LABELS[templateMode]}</span>
+											<span className="text-xs font-medium">Template</span>
 										</Button>
 									</DropdownMenuTrigger>
 									<DropdownMenuContent align="start" className="w-44">
@@ -214,10 +188,10 @@ function ReportToolbarComponent({
 										<Button
 											variant="ghost"
 											size="sm"
-											className="h-8 gap-1.5 px-2 text-sky-600 hover:text-sky-700 hover:bg-sky-50"
+											className="h-8 gap-1.5 px-2 text-sky-600 hover:bg-sky-50 hover:text-sky-700"
 										>
 											<Icon icon="mdi:file-outline" size="1.2em" />
-											<span className="text-xs font-medium">Paper: {PAPER_SIZE_LABELS[paperSizeMode]}</span>
+											<span className="text-xs font-medium">Paper Size</span>
 										</Button>
 									</DropdownMenuTrigger>
 									<DropdownMenuContent align="start" className="w-40">
@@ -231,30 +205,27 @@ function ReportToolbarComponent({
 								</DropdownMenu>
 							)}
 
-							{orientationMode && onOrientationModeChange && (
+							{enableColumnCustomization && (
 								<DropdownMenu>
 									<DropdownMenuTrigger asChild className="border-none">
 										<Button
 											variant="ghost"
 											size="sm"
-											className="h-8 gap-1.5 px-2 text-sky-600 hover:text-sky-700 hover:bg-sky-50"
+											className="h-8 gap-1.5 px-2 text-sky-600 hover:bg-sky-50 hover:text-sky-700"
 										>
-											<Icon
-												icon={orientationMode === "landscape" ? "mdi:page-layout-sidebar-right" : "mdi:crop-portrait"}
-												size="1.2em"
-											/>
-											<span className="text-xs font-medium">Orientation: {ORIENTATION_LABELS[orientationMode]}</span>
+											<Icon icon="mdi:view-column-outline" size="1.2em" />
+											<span className="text-xs font-medium">Columns</span>
 										</Button>
 									</DropdownMenuTrigger>
-									<DropdownMenuContent align="start" className="w-44">
-										{(Object.keys(ORIENTATION_LABELS) as OrientationMode[]).map((mode) => (
-											<DropdownMenuItem key={mode} onClick={() => onOrientationModeChange(mode)}>
-												<Icon
-													icon={orientationMode === mode ? "mdi:radiobox-marked" : "mdi:radiobox-blank"}
-													size="1em"
-												/>
-												{ORIENTATION_LABELS[mode]}
-											</DropdownMenuItem>
+									<DropdownMenuContent align="start" className="w-48">
+										{columnOptions.map((option) => (
+											<DropdownMenuCheckboxItem
+												key={option.key}
+												checked={showColumns?.[option.key] ?? true}
+												onCheckedChange={(checked) => toggleColumn(option.key, !!checked)}
+											>
+												{option.label}
+											</DropdownMenuCheckboxItem>
 										))}
 									</DropdownMenuContent>
 								</DropdownMenu>
@@ -266,10 +237,10 @@ function ReportToolbarComponent({
 										<Button
 											variant="ghost"
 											size="sm"
-											className="h-8 gap-1.5 px-2 text-sky-600 hover:text-sky-700 hover:bg-sky-50"
+											className="h-8 gap-1.5 px-2 text-sky-600 hover:bg-sky-50 hover:text-sky-700"
 										>
 											<Icon icon="mdi:sort-variant" size="1.2em" />
-											<span className="text-xs font-medium">Sort: {SORT_LABELS[sortMode]}</span>
+											<span className="text-xs font-medium">Sort</span>
 										</Button>
 									</DropdownMenuTrigger>
 									<DropdownMenuContent align="start" className="w-52">
@@ -282,6 +253,16 @@ function ReportToolbarComponent({
 									</DropdownMenuContent>
 								</DropdownMenu>
 							)}
+
+							<Button
+								type="button"
+								variant="ghost"
+								size="sm"
+								className="h-8 gap-1.5 px-2 text-sky-600 hover:bg-sky-50 hover:text-sky-700"
+							>
+								<Icon icon="mdi:format-size" size="1.2em" />
+								<span className="text-xs font-medium">Text Size</span>
+							</Button>
 						</>
 					)}
 				</div>
@@ -295,13 +276,12 @@ function ReportToolbarComponent({
 								onClick={() => setIsCustomizeOpen((prev) => !prev)}
 								className={isCustomizeOpen ? "bg-blue-50" : undefined}
 							/>
-							{/* Temporarily hidden until non-invoice export flows are implemented consistently. */}
-							{/* <ToolbarButton
+							<ToolbarButton
 								icon="mdi:file-excel-outline"
 								label="Export Excel"
 								onClick={onExportExcel}
-								disabled={isExportExcelDisabled}
-							/> */}
+								disabled={!onExportExcel || isExportExcelDisabled}
+							/>
 							<ToolbarButton icon="mdi:printer-outline" label="Print" onClick={onPrint} />
 							{onCopy && <ToolbarButton icon="mdi:content-copy" label="Copy" onClick={onCopy} />}
 						</>
@@ -309,7 +289,7 @@ function ReportToolbarComponent({
 				</div>
 			</div>
 
-			{!leftActions && !rightActions && isCustomizeOpen && (
+			{isCustomizeOpen && !leftActions && !rightActions && (
 				<div className="rounded-b-md border border-t-0 bg-white px-4 py-3 print:hidden">
 					<div className="grid gap-4 md:grid-cols-2">
 						<div className="space-y-2">

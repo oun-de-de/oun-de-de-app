@@ -1,8 +1,8 @@
 import type { PagePaginatedResponse } from "@/core/types/common";
 import type {
 	Coupon,
-	CreateCouponRequest,
 	CouponWeightRecordResult,
+	CreateCouponRequest,
 	DeleteCouponRequest,
 	UpdateCouponRequest,
 } from "@/core/types/coupon";
@@ -35,6 +35,11 @@ const getCouponList = (params?: {
 		})
 		.then(mapPagePaginatedResponseToPagination);
 
+const getCoupon = async (couponId: string): Promise<Coupon | null> => {
+	const response = await getCouponList({ page: 1, limit: 10000 });
+	return response.list.find((coupon) => coupon.id === couponId) ?? null;
+};
+
 const createCoupon = (coupon: CreateCouponRequest) => apiClient.post<Coupon>({ url: CouponApi.Create, data: coupon });
 
 const updateCouponByCouponNo = (couponNo: number, data: UpdateCouponRequest): Promise<Coupon> =>
@@ -56,6 +61,7 @@ const getCouponWeightRecords = (couponId: string) =>
 
 export default {
 	getCouponList,
+	getCoupon,
 	createCoupon,
 	updateCouponByCouponNo,
 	deleteCouponByCouponNo,

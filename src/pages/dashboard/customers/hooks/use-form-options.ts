@@ -1,12 +1,22 @@
 import { useMemo } from "react";
-import { useGetWarehouseList } from "@/pages/dashboard/settings/hooks/use-settings";
+import { useQuery } from "@tanstack/react-query";
+import customerService from "@/core/api/services/customer-service";
+import employeeService from "@/core/api/services/employee-service";
+import { CUSTOMER_QUERY_KEYS } from "@/core/query-keys/customer-query-keys";
+import { EMPLOYEE_QUERY_KEYS } from "@/core/query-keys/employee-query-keys";
 import { getEmployeeDisplayName } from "@/pages/dashboard/employees/utils/employee-utils";
-import { useGetCustomers } from "./use-get-customers";
-import { useGetEmployees } from "./use-get-employees";
+import { useGetWarehouseList } from "@/pages/dashboard/settings/hooks/use-settings";
 
 export const useFormOptions = () => {
-	const { data: employees } = useGetEmployees();
-	const { data: customersList } = useGetCustomers({ page: 1, limit: 1000 });
+	const customerListParams = { page: 1, limit: 1000 };
+	const { data: employees } = useQuery({
+		queryKey: EMPLOYEE_QUERY_KEYS.list(),
+		queryFn: () => employeeService.getEmployeeList(),
+	});
+	const { data: customersList } = useQuery({
+		queryKey: CUSTOMER_QUERY_KEYS.list(customerListParams),
+		queryFn: () => customerService.getCustomerList(customerListParams),
+	});
 	const { data: warehouses } = useGetWarehouseList();
 
 	const employeeOptions = useMemo(

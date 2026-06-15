@@ -1,3 +1,6 @@
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useLocation, useNavigate } from "react-router";
+import { toast } from "sonner";
 import { BackButton } from "@/core/components/common";
 import { cn } from "@/core/utils";
 import {
@@ -9,9 +12,6 @@ import {
 	type SortMode,
 	type TemplateMode,
 } from "@/pages/dashboard/invoice/export-preview/constants";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { useLocation, useNavigate } from "react-router";
-import { toast } from "sonner";
 import { ReportFilterBar } from "../../components/layout/report-filter-bar";
 import { ReportLayout } from "../../components/layout/report-layout";
 import type { ReportTemplateColumn, ReportTemplateRow } from "../../components/layout/report-template-table";
@@ -21,6 +21,7 @@ import { getReportDefinition } from "../report-specs";
 import { createVisibleColumnMap, getReportColumnOptions, hasVisibleReportFilters } from "../report-types";
 import { ReportFilters, type ReportFiltersValue } from "./report-filters";
 import { ReportTable } from "./report-table";
+import { isReportMonthFilterValue } from "./report-table-utils";
 
 interface ReportDetailViewProps {
 	reportSlug: string;
@@ -29,6 +30,7 @@ interface ReportDetailViewProps {
 function areReportFiltersEqual(left: ReportFiltersValue, right: ReportFiltersValue) {
 	return (
 		left.customerId === right.customerId &&
+		left.customerTypeId === right.customerTypeId &&
 		left.fromDate === right.fromDate &&
 		left.toDate === right.toDate &&
 		left.useDateRange === right.useDateRange
@@ -38,11 +40,14 @@ function areReportFiltersEqual(left: ReportFiltersValue, right: ReportFiltersVal
 function getDefaultReportFilters(): ReportFiltersValue {
 	return {
 		customerId: "all",
+		customerTypeId: "all",
 		fromDate: "",
 		toDate: "",
 		useDateRange: false,
 	};
 }
+
+const DEFAULT_REPORT_FILTER_CONFIG = { customer: false, dateRange: false } as const;
 
 export function ReportDetailView({ reportSlug }: ReportDetailViewProps) {
 	const location = useLocation();
@@ -95,9 +100,9 @@ export function ReportDetailView({ reportSlug }: ReportDetailViewProps) {
 		hiddenColumnKeys: [],
 	});
 	const reportDefinition = useMemo(() => getReportDefinition(reportSlug), [reportSlug]);
-	const defaultFilters = useMemo(() => getDefaultReportFilters(), []);
-	const [draftFilters, setDraftFilters] = useState<ReportFiltersValue>(defaultFilters);
-	const [appliedFilters, setAppliedFilters] = useState<ReportFiltersValue>(defaultFilters);
+	const defaultFilterState = useMemo(() => ({ reportSlug, value: getDefaultReportFilters() }), [reportSlug]);
+	const [draftFilters, setDraftFilters] = useState<ReportFiltersValue>(defaultFilterState.value);
+	const [appliedFilters, setAppliedFilters] = useState<ReportFiltersValue>(defaultFilterState.value);
 	const hasPendingFilterChanges = !areReportFiltersEqual(draftFilters, appliedFilters);
 	const handlePrint = () => window.print();
 	const handleBack = useCallback(() => {
@@ -126,12 +131,12 @@ export function ReportDetailView({ reportSlug }: ReportDetailViewProps) {
 
 	useEffect(() => {
 		setShowColumns(createVisibleColumnMap(columnOptions));
-	}, [reportSlug, columnOptions]);
+	}, [columnOptions]);
 
 	useEffect(() => {
-		setDraftFilters(defaultFilters);
-		setAppliedFilters(defaultFilters);
-	}, [defaultFilters, reportSlug]);
+		setDraftFilters(defaultFilterState.value);
+		setAppliedFilters(defaultFilterState.value);
+	}, [defaultFilterState]);
 
 	useEffect(() => {
 		const styleId = "report-page-size-style";
@@ -183,6 +188,10 @@ export function ReportDetailView({ reportSlug }: ReportDetailViewProps) {
 		);
 
 		try {
+			if (!navigator.clipboard?.writeText) {
+				toast.error("Clipboard is not available in this browser");
+				return;
+			}
 			await navigator.clipboard.writeText([headerRow, ...bodyRows].map((cells) => cells.join("\t")).join("\n"));
 			toast.success("Copied current table to clipboard");
 		} catch {
@@ -193,6 +202,11 @@ export function ReportDetailView({ reportSlug }: ReportDetailViewProps) {
 	const handleSubmitFilters = useCallback(() => {
 		if (reportDefinition.filterConfig?.monthOnly && !draftFilters.fromDate) {
 			toast.error("Month is required");
+			return;
+		}
+
+		if (reportDefinition.filterConfig?.monthOnly && !isReportMonthFilterValue(draftFilters.fromDate)) {
+			toast.error("Month must use YYYY-MM format");
 			return;
 		}
 
@@ -212,43 +226,33 @@ export function ReportDetailView({ reportSlug }: ReportDetailViewProps) {
 		}
 
 		setAppliedFilters(draftFilters);
+		toast.success("Filters applied successfully");
 	}, [draftFilters, reportDefinition.filterConfig]);
 
 	const handleResetFilters = useCallback(() => {
 		setDraftFilters(appliedFilters);
 	}, [appliedFilters]);
 
-	// Temporarily disabled until report export is restored with a consistent per-report flow.
 	// const handleExportExcel = useCallback(async () => {
-	// 	if (!isExcelExportReport) {
-	// 		toast.error("Export Excel is only available for invoice reports");
-	// 		return;
-	// 	}
-	//
-	// 	if (exportInvoiceIds.length === 0) {
-	// 		toast.error("No invoices available to export");
-	// 		return;
-	// 	}
-	//
+	// 	if (!isExcelExportReport || exportInvoiceIds.length === 0) return;
+	// 	setIsExporting(true);
 	// 	try {
-	// 		setIsExporting(true);
-	// 		const exportLines = await invoiceService.listInvoiceDetails(exportInvoiceIds);
-	// 		const blob = buildInvoiceExportBlob(exportLines);
-	// 		const url = window.URL.createObjectURL(blob);
+	// 		const exportRows = await Promise.all(exportInvoiceIds.map((invoiceId) => invoiceService.getInvoice(invoiceId)));
+	// 		const blob = buildInvoiceExportBlob(exportRows);
+	// 		const url = URL.createObjectURL(blob);
 	// 		const link = document.createElement("a");
 	// 		link.href = url;
-	// 		link.download = `invoice-report-export-${Date.now()}.xlsx`;
+	// 		link.download = `${reportSlug}-${new Date().toISOString().slice(0, 10)}.xlsx`;
 	// 		document.body.appendChild(link);
 	// 		link.click();
 	// 		link.remove();
-	// 		window.URL.revokeObjectURL(url);
-	// 		toast.success("Invoice report exported successfully");
+	// 		URL.revokeObjectURL(url);
 	// 	} catch {
-	// 		toast.error("Failed to export invoice report");
+	// 		toast.error("Failed to export Excel");
 	// 	} finally {
 	// 		setIsExporting(false);
 	// 	}
-	// }, [isExcelExportReport, exportInvoiceIds]);
+	// }, [exportInvoiceIds, isExcelExportReport, reportSlug]);
 
 	return (
 		<ReportLayout className="report-print-page">
@@ -264,11 +268,13 @@ export function ReportDetailView({ reportSlug }: ReportDetailViewProps) {
 						onSubmit={handleSubmitFilters}
 						onReset={handleResetFilters}
 						hasPendingChanges={hasPendingFilterChanges}
-						filterConfig={reportDefinition.filterConfig ?? { customer: false, dateRange: false }}
+						filterConfig={reportDefinition.filterConfig ?? DEFAULT_REPORT_FILTER_CONFIG}
+						reportSlug={reportSlug}
 					/>
 				</ReportFilterBar>
 			)}
 
+			{/* Report Toolbar */}
 			<div className="flex flex-col print:block print:w-full">
 				<ReportToolbar
 					showSections={showSections}
@@ -292,6 +298,7 @@ export function ReportDetailView({ reportSlug }: ReportDetailViewProps) {
 					className="rounded-b-none border-b-0 print:hidden"
 				/>
 
+				{/* Report Table */}
 				<div className={cn("w-full", tableWrapperClassName)}>
 					<ReportTable
 						columns={reportColumns}
@@ -301,8 +308,8 @@ export function ReportDetailView({ reportSlug }: ReportDetailViewProps) {
 						reportSlug={reportSlug}
 						filters={appliedFilters}
 						sortMode={sortMode}
-						// onInvoiceIdsChange={setExportInvoiceIds}
 						onTableDataChange={setTableData}
+						// onInvoiceIdsChange={setExportInvoiceIds}
 					/>
 				</div>
 			</div>

@@ -5,6 +5,7 @@ import { useLocation, useNavigate, useSearchParams } from "react-router";
 import couponService from "@/core/api/services/coupon-service";
 import { DashboardSplitView } from "@/core/components/common/dashboard-split-view";
 import { useSidebarCollapse } from "@/core/hooks/use-sidebar-collapse";
+import { COUPON_QUERY_KEYS } from "@/core/query-keys/coupon-query-keys";
 import type { Customer } from "@/core/types/customer";
 import { buildPagination } from "@/core/utils/dashboard-utils";
 import { CustomerSidebar } from "@/pages/dashboard/customers/components/customer-sidebar";
@@ -104,15 +105,16 @@ export default function CouponsPage() {
 		[updateCouponsSearchParams, updateState],
 	);
 
+	const couponListParams = {
+		page: listState.page,
+		limit: listState.pageSize,
+		customerId: activeCustomer?.id || undefined,
+		sort: "couponNo,desc",
+	};
+
 	const { data, isLoading } = useQuery({
-		queryKey: ["coupons", listState.page, listState.pageSize, activeCustomer?.id],
-		queryFn: () =>
-			couponService.getCouponList({
-				page: listState.page,
-				limit: listState.pageSize,
-				customerId: activeCustomer?.id || undefined,
-				sort: "couponNo,desc",
-			}),
+		queryKey: COUPON_QUERY_KEYS.list(couponListParams),
+		queryFn: () => couponService.getCouponList(couponListParams),
 	});
 
 	const coupons = data?.list ?? [];

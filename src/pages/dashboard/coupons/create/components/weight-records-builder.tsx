@@ -1,4 +1,5 @@
 import { Plus, Trash2 } from "lucide-react";
+import { useMemo } from "react";
 import type { Product } from "@/core/types/product";
 import { Badge } from "@/core/ui/badge";
 import { Button } from "@/core/ui/button";
@@ -10,6 +11,7 @@ import {
 	formatDateTimeLocalApiValueFromInput,
 	formatDateTimeLocalInputValue,
 } from "@/pages/dashboard/accounting/utils/format-local-date-time";
+import { useGetUnitList } from "@/pages/dashboard/settings/hooks/use-settings";
 import {
 	createEmptyDraftWeightRecord,
 	type DraftWeightRecord,
@@ -22,6 +24,8 @@ type WeightRecordsBuilderProps = {
 	onChange: (records: DraftWeightRecord[]) => void;
 };
 
+const NO_UNIT_VALUE = "__none__";
+
 function toDateTimeLocalValue(value: string): string {
 	const date = new Date(value);
 	if (Number.isNaN(date.getTime())) return "";
@@ -33,6 +37,15 @@ function toLocalDateTimeOrNow(value: string): string {
 }
 
 export function WeightRecordsBuilder({ products, records, onChange }: WeightRecordsBuilderProps) {
+	const { data: units = [] } = useGetUnitList();
+	const unitNames = useMemo(() => {
+		const names = new Set(units.map((unit) => unit.name).filter(Boolean));
+		for (const record of records) {
+			if (record.unit) names.add(record.unit);
+		}
+		return Array.from(names).toSorted((a, b) => a.localeCompare(b));
+	}, [records, units]);
+
 	const addProductRecord = () => {
 		onChange([...records, createEmptyDraftWeightRecord()]);
 	};
@@ -130,10 +143,22 @@ export function WeightRecordsBuilder({ products, records, onChange }: WeightReco
 							</div>
 							<div className="space-y-1">
 								<Label>Unit</Label>
-								<Input
-									value={record.unit ?? ""}
-									onChange={(e) => updateRecord(index, { unit: e.target.value || null })}
-								/>
+								<Select
+									value={record.unit ?? NO_UNIT_VALUE}
+									onValueChange={(value) => updateRecord(index, { unit: value === NO_UNIT_VALUE ? null : value })}
+								>
+									<SelectTrigger aria-label="Unit">
+										<SelectValue placeholder="Select unit" />
+									</SelectTrigger>
+									<SelectContent>
+										<SelectItem value={NO_UNIT_VALUE}>No unit</SelectItem>
+										{unitNames.map((unitName) => (
+											<SelectItem key={unitName} value={unitName}>
+												{unitName}
+											</SelectItem>
+										))}
+									</SelectContent>
+								</Select>
 							</div>
 							<div className="space-y-1">
 								<Label>Price Per Product</Label>

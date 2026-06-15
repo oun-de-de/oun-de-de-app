@@ -8,12 +8,30 @@ import axios, {
 	type RawAxiosRequestHeaders,
 	type ResponseType,
 } from "axios";
-import { t } from "i18next";
 import { toast } from "sonner";
+import { t } from "@/core/locales/i18n";
 import { GLOBAL_CONFIG } from "@/global-config";
 import { AuthInterceptor } from "../interceptors/auth_interceptor";
 import { ResultStatus } from "../types/enum";
 import type { NetworkResponse } from "../types/network-response";
+
+/** Structured shape of API error responses — replaces `as any` casts on error data. */
+interface ErrorResponse {
+	status?: string | number;
+	message?: string;
+	detail?: string;
+	title?: string;
+	fieldErrors?: Array<{ field: string; message: string }>;
+}
+
+/**
+ * Type-narrowing guard: only checks `typeof === "object"`.
+ * Full field validation is done at each call site (fieldErrors, detail, etc.)
+ * because error payloads vary across endpoints.
+ */
+function isErrorResponse(data: unknown): data is ErrorResponse {
+	return typeof data === "object" && data !== null;
+}
 
 // Request Options Interface
 export interface NetworkRequestOptions {
@@ -155,17 +173,17 @@ abstract class AxiosNetworkService implements NetworkService {
 // Auth Network Service with Authentication
 export class AuthNetworkService extends AxiosNetworkService {
 	private static _instance: AuthNetworkService | null = null;
-	private baseDio: AxiosInstance | null = null;
+	private baseAxiosInstance: AxiosInstance | null = null;
 
 	private constructor(axios: AxiosInstance) {
 		super(axios);
-		this.baseDio = axios;
+		this.baseAxiosInstance = axios;
 		this.setupInterceptors();
 	}
 
 	private static createAxiosInstance(): AxiosInstance {
-		const axios = AuthNetworkService._instance?.baseDio
-			? AuthNetworkService._instance.baseDio
+		const axios = AuthNetworkService._instance?.baseAxiosInstance
+			? AuthNetworkService._instance.baseAxiosInstance
 			: AuthNetworkService.createBaseAxios();
 
 		return axios;
@@ -174,7 +192,7 @@ export class AuthNetworkService extends AxiosNetworkService {
 	private static createBaseAxios(): AxiosInstance {
 		return axios.create({
 			baseURL: GLOBAL_CONFIG.apiBaseUrl + `/${GLOBAL_CONFIG.apiVersion}`,
-			timeout: 50000,
+			timeout: 300000, // 5 min — was 50000 (50s), too short for large report exports
 			headers: { "Content-Type": "application/json;charset=utf-8" },
 		});
 	}
@@ -190,10 +208,9 @@ export class AuthNetworkService extends AxiosNetworkService {
 			(res: AxiosResponse) => {
 				const { status, data } = res;
 				if (status >= 200 && status < 300) {
-					const resultData = data as any;
-					if (resultData && typeof resultData === "object" && "status" in resultData) {
-						if (resultData.status === ResultStatus.ERROR || resultData.status === ResultStatus.TIMEOUT) {
-							throw new Error(resultData.message || t("sys.api.apiRequestFailed"));
+					if (isErrorResponse(data) && "status" in data) {
+						if (data.status === ResultStatus.ERROR || data.status === ResultStatus.TIMEOUT) {
+							throw new Error(data.message || t("sys.api.apiRequestFailed"));
 						}
 					}
 					return { ...res, data };
@@ -204,22 +221,22 @@ export class AuthNetworkService extends AxiosNetworkService {
 				// Don't show error toast for 401 (handled by auth interceptor)
 				if (error.response?.status !== 401) {
 					if (error.response?.data) {
-						const errorData = error.response.data as any;
+						const errorData = error.response.data;
+						const errorInfo = isErrorResponse(errorData) ? errorData : null;
 
 						// Handle validation errors with fieldErrors
-						if (errorData.fieldErrors && Array.isArray(errorData.fieldErrors)) {
-							const fieldMessages = errorData.fieldErrors.map((fe: any) => `${fe.field}: ${fe.message}`).join("\n");
+						if (errorInfo?.fieldErrors && Array.isArray(errorInfo.fieldErrors)) {
+							const fieldMessages = errorInfo.fieldErrors.map((fe) => `${fe.field}: ${fe.message}`).join("\n");
 							toast.error(fieldMessages, { position: "top-center" });
 							return Promise.reject(error);
 						}
 
 						// Handle general error with detail or title
-						const errMsg = errorData.detail || errorData.title || errorData.message || t("sys.api.errorMessage");
+						const errMsg = errorInfo?.detail || errorInfo?.title || errorInfo?.message || t("sys.api.errorMessage");
 						toast.error(errMsg, { position: "top-center" });
+						// TODO(Phase4): Extract toast out of network layer — emit structured events instead
 					} else {
-						const { message } = error || {};
-						const errMsg = message || t("sys.api.errorMessage");
-						toast.error(errMsg, { position: "top-center" });
+						toast.error(t("sys.api.errorMessage"), { position: "top-center" });
 					}
 				}
 				return Promise.reject(error);
@@ -261,22 +278,22 @@ export class NoAuthNetworkService extends AxiosNetworkService {
 			},
 			(error: AxiosError) => {
 				if (error.response?.data) {
-					const errorData = error.response.data as any;
+					const errorData = error.response.data;
+					const errorInfo = isErrorResponse(errorData) ? errorData : null;
 
 					// Handle validation errors with fieldErrors
-					if (errorData.fieldErrors && Array.isArray(errorData.fieldErrors)) {
-						const fieldMessages = errorData.fieldErrors.map((fe: any) => `${fe.field}: ${fe.message}`).join("\n");
+					if (errorInfo?.fieldErrors && Array.isArray(errorInfo.fieldErrors)) {
+						const fieldMessages = errorInfo.fieldErrors.map((fe) => `${fe.field}: ${fe.message}`).join("\n");
 						toast.error(fieldMessages, { position: "top-center" });
 						return Promise.reject(error);
 					}
 
 					// Handle general error with detail or title
-					const errMsg = errorData.detail || errorData.title || errorData.message || t("sys.api.errorMessage");
+					const errMsg = errorInfo?.detail || errorInfo?.title || errorInfo?.message || t("sys.api.errorMessage");
 					toast.error(errMsg, { position: "top-center" });
 				} else {
 					// Fallback for network errors
-					const errMsg = error.message || t("sys.api.errorMessage");
-					toast.error(errMsg, { position: "top-center" });
+					toast.error(t("sys.api.errorMessage"), { position: "top-center" });
 				}
 
 				return Promise.reject(error);
@@ -288,7 +305,7 @@ export class NoAuthNetworkService extends AxiosNetworkService {
 		if (!NoAuthNetworkService._instance) {
 			const axiosInstance = axios.create({
 				baseURL: GLOBAL_CONFIG.apiBaseUrl + `/${GLOBAL_CONFIG.apiVersion}`,
-				timeout: 50000,
+				timeout: 300000, // 5 min
 				headers: { "Content-Type": "application/json;charset=utf-8" },
 			});
 			NoAuthNetworkService._instance = new NoAuthNetworkService(axiosInstance);
