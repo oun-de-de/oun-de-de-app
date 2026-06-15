@@ -1,8 +1,8 @@
 import type { Customer } from "@/core/types/customer";
 import type { Cycle } from "@/core/types/cycle";
+import type { InventoryItem } from "@/core/types/inventory";
 import type { Invoice, InvoiceExportLineApi, InvoiceExportPreviewRow } from "@/core/types/invoice";
 import type { BorrowerType, Installment, Loan } from "@/core/types/loan";
-import type { InventoryItem } from "@/core/types/inventory";
 import type { Product } from "@/core/types/product";
 import type {
 	DailyReportResponse,
@@ -51,6 +51,7 @@ export type ReportInvoiceType = "invoice" | "receipt";
 
 export interface ReportFilterConfig {
 	customer: boolean;
+	customerType?: boolean;
 	dateRange: boolean;
 	singleDate?: boolean;
 	monthOnly?: boolean;
@@ -156,6 +157,10 @@ export function isLoanListDataSource(dataSource: ReportDataSource): boolean {
 export function hasVisibleReportFilters(filterConfig?: ReportFilterConfig): boolean {
 	return (
 		!!filterConfig &&
-		(filterConfig.customer || filterConfig.dateRange || !!filterConfig.singleDate || !!filterConfig.monthOnly)
+		(filterConfig.customer ||
+			!!filterConfig.customerType ||
+			filterConfig.dateRange ||
+			!!filterConfig.singleDate ||
+			!!filterConfig.monthOnly)
 	);
 }

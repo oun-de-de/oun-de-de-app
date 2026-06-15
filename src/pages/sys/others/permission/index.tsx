@@ -2,7 +2,7 @@ import { Link } from "react-router";
 import { DB_USER } from "@/_mock/assets_backup";
 import { AuthGuard } from "@/core/components/auth/auth-guard";
 import { useAuthCheck } from "@/core/components/auth/use-auth";
-import { CodeBlock } from "@/core/components/code/code-bock";
+import { CodeBlock } from "@/core/components/code/code-block";
 import { useSignIn, useUserInfo, useUserPermissions, useUserRoles } from "@/core/services/auth/hooks/use-auth";
 import { Button } from "@/core/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/core/ui/card";

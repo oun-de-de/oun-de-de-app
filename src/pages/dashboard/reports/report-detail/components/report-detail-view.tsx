@@ -30,6 +30,7 @@ interface ReportDetailViewProps {
 function areReportFiltersEqual(left: ReportFiltersValue, right: ReportFiltersValue) {
 	return (
 		left.customerId === right.customerId &&
+		left.customerTypeId === right.customerTypeId &&
 		left.fromDate === right.fromDate &&
 		left.toDate === right.toDate &&
 		left.useDateRange === right.useDateRange
@@ -39,11 +40,14 @@ function areReportFiltersEqual(left: ReportFiltersValue, right: ReportFiltersVal
 function getDefaultReportFilters(): ReportFiltersValue {
 	return {
 		customerId: "all",
+		customerTypeId: "all",
 		fromDate: "",
 		toDate: "",
 		useDateRange: false,
 	};
 }
+
+const DEFAULT_REPORT_FILTER_CONFIG = { customer: false, dateRange: false } as const;
 
 export function ReportDetailView({ reportSlug }: ReportDetailViewProps) {
 	const location = useLocation();
@@ -184,6 +188,10 @@ export function ReportDetailView({ reportSlug }: ReportDetailViewProps) {
 		);
 
 		try {
+			if (!navigator.clipboard?.writeText) {
+				toast.error("Clipboard is not available in this browser");
+				return;
+			}
 			await navigator.clipboard.writeText([headerRow, ...bodyRows].map((cells) => cells.join("\t")).join("\n"));
 			toast.success("Copied current table to clipboard");
 		} catch {
@@ -260,11 +268,13 @@ export function ReportDetailView({ reportSlug }: ReportDetailViewProps) {
 						onSubmit={handleSubmitFilters}
 						onReset={handleResetFilters}
 						hasPendingChanges={hasPendingFilterChanges}
-						filterConfig={reportDefinition.filterConfig ?? { customer: false, dateRange: false }}
+						filterConfig={reportDefinition.filterConfig ?? DEFAULT_REPORT_FILTER_CONFIG}
+						reportSlug={reportSlug}
 					/>
 				</ReportFilterBar>
 			)}
 
+			{/* Report Toolbar */}
 			<div className="flex flex-col print:block print:w-full">
 				<ReportToolbar
 					showSections={showSections}
@@ -288,6 +298,7 @@ export function ReportDetailView({ reportSlug }: ReportDetailViewProps) {
 					className="rounded-b-none border-b-0 print:hidden"
 				/>
 
+				{/* Report Table */}
 				<div className={cn("w-full", tableWrapperClassName)}>
 					<ReportTable
 						columns={reportColumns}

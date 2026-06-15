@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { SortingState } from "@tanstack/react-table";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router";
 import customerService from "@/core/api/services/customer-service";
 import { DashboardSplitView } from "@/core/components/common/dashboard-split-view";
@@ -115,6 +115,7 @@ export default function InvoicePage() {
 	const invoiceState = useInvoiceState();
 	const invoiceStateRef = useRef(invoiceState);
 	const { updateState: updateInvoiceState } = useInvoiceActions();
+	const { fieldFilter, page, pageSize, searchValue, sorting } = invoiceState;
 	const { data: activeCycleDetail } = useCycleDetail(activeCycleId);
 	const { data: activeCustomerDetail } = useQuery({
 		queryKey: CUSTOMER_QUERY_KEYS.detail(activeCustomerId ?? undefined),
@@ -166,19 +167,12 @@ export default function InvoicePage() {
 	useEffect(() => {
 		setSearchParams(
 			(prev) => {
-				const next = buildInvoiceSearchParams(prev, invoiceState);
+				const next = buildInvoiceSearchParams(prev, { fieldFilter, page, pageSize, searchValue, sorting });
 				return next.toString() === prev.toString() ? prev : next;
 			},
 			{ replace: true },
 		);
-	}, [
-		invoiceState.fieldFilter,
-		invoiceState.page,
-		invoiceState.pageSize,
-		invoiceState.searchValue,
-		invoiceState.sorting,
-		setSearchParams,
-	]);
+	}, [fieldFilter, page, pageSize, searchValue, sorting, setSearchParams]);
 
 	const updateInvoiceSearchParams = useCallback(
 		(next: { customerId?: string | null; customerName?: string | null; cycleId?: string | null }) => {
@@ -240,7 +234,6 @@ export default function InvoicePage() {
 
 	// Invoice table — only used when a cycle is selected
 	const invoiceTable = useInvoiceTable({
-		customerName: activeCycle ? (activeCustomerName ?? activeCycle.customerName) : null,
 		customerId: activeCycle ? (activeCustomerId ?? activeCycle.customerId) : null,
 		cycleId: activeCycleId ?? activeCycle?.id ?? null,
 	});

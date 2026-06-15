@@ -8,37 +8,33 @@ import { buildPagination } from "@/core/utils/dashboard-utils";
 import { getInvoiceState, useInvoiceActions, useInvoiceState } from "../stores/invoice-store";
 
 type UseInvoiceTableParams = {
-	customerName?: string | null;
 	customerId?: string | null;
 	cycleId?: string | null;
 };
 
 const getCurrentListState = () => getInvoiceState();
 
-export function useInvoiceTable({ customerName, customerId, cycleId }: UseInvoiceTableParams = {}) {
+export function useInvoiceTable({ customerId, cycleId }: UseInvoiceTableParams = {}) {
 	const { page, pageSize, fieldFilter, searchValue, sorting } = useInvoiceState();
 	const { updateState } = useInvoiceActions();
 
 	const debouncedSearchValue = useDebounce(searchValue, 300);
 	const isSearching = debouncedSearchValue.trim() !== "";
+	const sortParam = useMemo(() => sorting.map((s) => `${s.id},${s.desc ? "desc" : "asc"}`).join(","), [sorting]);
 
 	const query = useQuery({
 		queryKey: [
 			"invoices",
 			{
-				page,
-				size: pageSize,
-				search: debouncedSearchValue,
-				field: fieldFilter,
-				customerName,
+				mode: isSearching ? "search" : "page",
+				page: isSearching ? "all" : page,
+				size: isSearching ? "all" : pageSize,
 				customerId,
 				cycleId,
-				sorting,
+				sort: sortParam,
 			},
 		],
 		queryFn: () => {
-			const sortParam = sorting.map((s) => `${s.id},${s.desc ? "desc" : "asc"}`).join(",");
-
 			if (isSearching) {
 				return invoiceService
 					.getAllInvoices({

@@ -1,8 +1,9 @@
-import { toast } from "sonner";
 import { CalendarDays, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router";
+import { toast } from "sonner";
 import { BackButton, SplitButton } from "@/core/components/common";
+import { loadingOverlay } from "@/core/components/loading/controllers/loading-overlay-controller";
 import type { CashTransactionType, CreateCashTransactionRequest } from "@/core/types/cash-transaction";
 import { Button } from "@/core/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/core/ui/card";
@@ -10,10 +11,10 @@ import { Input } from "@/core/ui/input";
 import { Label } from "@/core/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/core/ui/select";
 import { Textarea } from "@/core/ui/textarea";
-import { formatNumber } from "@/core/utils/formatters";
 import { cn } from "@/core/utils";
-import { ACCOUNTING_DRAFT_FORM_TEXT } from "@/pages/dashboard/accounting/constants";
+import { formatNumber } from "@/core/utils/formatters";
 import { AccountingCreateMenuButton } from "@/pages/dashboard/accounting/components/accounting-create-menu-button";
+import { ACCOUNTING_DRAFT_FORM_TEXT } from "@/pages/dashboard/accounting/constants";
 import { useAccountingReferenceData } from "@/pages/dashboard/accounting/hooks/use-accounting-reference-data";
 import {
 	createEmptyTransactionLine,
@@ -210,6 +211,7 @@ export default function CreateAccountingEntryPage() {
 		if (!payload) return;
 
 		try {
+			loadingOverlay.show("Processing transaction... Please wait.");
 			await createCashTransaction(payload);
 			toast.success(ACCOUNTING_DRAFT_FORM_TEXT.transaction.successMessage);
 			if (mode === "close") {
@@ -217,8 +219,11 @@ export default function CreateAccountingEntryPage() {
 				return;
 			}
 			resetForm();
-		} catch {
-			// Error toast
+		} catch (error: unknown) {
+			const message = error instanceof Error ? error.message : "Failed to create transaction";
+			toast.error(message);
+		} finally {
+			loadingOverlay.hide();
 		}
 	};
 

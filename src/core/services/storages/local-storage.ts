@@ -1,5 +1,6 @@
 /* eslint-disable no-unused-vars */
-import { StorageOptions } from "@/core/types/storage-options";
+import type { StorageOptions } from "@/core/types/storage-options";
+import { debugLogger } from "@/core/utils/logger";
 
 export class LocalStorageService {
 	private static _options: Required<StorageOptions> = {
@@ -10,58 +11,58 @@ export class LocalStorageService {
 	};
 
 	static configure(options?: StorageOptions): void {
-		this._options = { ...this._options, ...options };
+		LocalStorageService._options = { ...LocalStorageService._options, ...options };
 	}
 
 	// ---------------- Public API ----------------
 
 	static save(key: string, data: unknown): boolean {
 		try {
-			const storage = this._storage();
-			storage.setItem(this._key(key), this._options.serialize(data));
+			const storage = LocalStorageService._storage();
+			storage.setItem(LocalStorageService._key(key), LocalStorageService._options.serialize(data));
 			return true;
 		} catch (e) {
-			console.warn(`[LocalStorageService] save failed: ${key}`, e);
+			debugLogger.warn(`[LocalStorageService] save failed: ${key}`, e);
 			return false;
 		}
 	}
 
 	static load<T>(key: string, defaultValue: T): T {
 		try {
-			const storage = this._storage();
-			const raw = storage.getItem(this._key(key));
+			const storage = LocalStorageService._storage();
+			const raw = storage.getItem(LocalStorageService._key(key));
 			if (!raw) return defaultValue;
-			return this._options.deserialize(raw) as T;
+			return LocalStorageService._options.deserialize(raw) as T;
 		} catch (e) {
-			console.warn(`[LocalStorageService] load failed: ${key}`, e);
+			debugLogger.warn(`[LocalStorageService] load failed: ${key}`, e);
 			return defaultValue;
 		}
 	}
 
 	static loadOrNull<T>(key: string): T | null {
 		try {
-			const storage = this._storage();
-			const raw = storage.getItem(this._key(key));
+			const storage = LocalStorageService._storage();
+			const raw = storage.getItem(LocalStorageService._key(key));
 			if (!raw) return null;
-			return this._options.deserialize(raw) as T;
+			return LocalStorageService._options.deserialize(raw) as T;
 		} catch (e) {
-			console.warn(`[LocalStorageService] loadOrNull failed: ${key}`, e);
+			debugLogger.warn(`[LocalStorageService] loadOrNull failed: ${key}`, e);
 			return null;
 		}
 	}
 
 	static remove(key: string): void {
 		try {
-			this._storage().removeItem(this._key(key));
+			LocalStorageService._storage().removeItem(LocalStorageService._key(key));
 		} catch (e) {
-			console.warn(`[LocalStorageService] remove failed: ${key}`, e);
+			debugLogger.warn(`[LocalStorageService] remove failed: ${key}`, e);
 		}
 	}
 
 	static clear(): void {
 		try {
-			const storage = this._storage();
-			const prefix = this._options.keyPrefix;
+			const storage = LocalStorageService._storage();
+			const prefix = LocalStorageService._options.keyPrefix;
 
 			for (let i = storage.length - 1; i >= 0; i--) {
 				const k = storage.key(i);
@@ -70,25 +71,26 @@ export class LocalStorageService {
 				}
 			}
 		} catch (e) {
-			console.warn("[LocalStorageService] clear failed", e);
+			debugLogger.warn("[LocalStorageService] clear failed", e);
 		}
 	}
 
 	static isAvailable(): boolean {
 		try {
-			const s = this._storage();
+			const s = LocalStorageService._storage();
 			const t = "__ls_test__";
 			s.setItem(t, t);
 			s.removeItem(t);
 			return true;
-		} catch {
+		} catch (e) {
+			debugLogger.warn("[LocalStorageService] isAvailable failed", e);
 			return false;
 		}
 	}
 
 	static getSize(): number {
 		try {
-			const storage = this._storage();
+			const storage = LocalStorageService._storage();
 			let size = 0;
 
 			for (let i = 0; i < storage.length; i++) {
@@ -99,15 +101,16 @@ export class LocalStorageService {
 			}
 
 			return size;
-		} catch {
+		} catch (e) {
+			debugLogger.warn("[LocalStorageService] getSize failed", e);
 			return 0;
 		}
 	}
 
 	static getKeys(): string[] {
 		try {
-			const storage = this._storage();
-			const prefix = this._options.keyPrefix;
+			const storage = LocalStorageService._storage();
+			const prefix = LocalStorageService._options.keyPrefix;
 			const keys: string[] = [];
 
 			for (let i = 0; i < storage.length; i++) {
@@ -118,7 +121,8 @@ export class LocalStorageService {
 			}
 
 			return keys;
-		} catch {
+		} catch (e) {
+			debugLogger.warn("[LocalStorageService] getKeys failed", e);
 			return [];
 		}
 	}
@@ -130,11 +134,11 @@ export class LocalStorageService {
 			throw new TypeError("Storage is only available in browser");
 		}
 
-		return this._options.storage === "sessionStorage" ? window.sessionStorage : window.localStorage;
+		return LocalStorageService._options.storage === "sessionStorage" ? window.sessionStorage : window.localStorage;
 	}
 
 	private static _key(key: string): string {
-		return `${this._options.keyPrefix}${key}`;
+		return `${LocalStorageService._options.keyPrefix}${key}`;
 	}
 
 	private static _getCircularReplacer() {

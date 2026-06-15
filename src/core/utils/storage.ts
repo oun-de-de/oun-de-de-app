@@ -1,5 +1,16 @@
 import type { StorageEnum } from "@/core/types/enum";
 
+/**
+ * Wrapper around localStorage with silent try-catch on every operation.
+ *
+ * WHY: Safari private browsing throws SecurityError on ANY localStorage access.
+ * Storage quota exhaustion throws QuotaExceededError. Without try-catch, the
+ * entire app crashes — even for non-critical reads during render.
+ *
+ * Trade-off: errors are logged but swallowed. localStorage is non-critical here
+ * (theme/settings preferences) — acceptable loss vs a white screen.
+ */
+
 export const getItem = <T>(key: StorageEnum): T | null => {
 	let value = null;
 	try {
@@ -7,22 +18,41 @@ export const getItem = <T>(key: StorageEnum): T | null => {
 		if (result) {
 			value = JSON.parse(result);
 		}
-	} catch (error) {
-		console.error(error);
+	} catch (_error) {
+		console.warn("[storage] getItem failed:", _error);
 	}
 	return value;
 };
 
 export const getStringItem = (key: StorageEnum): string | null => {
-	return localStorage.getItem(key);
+	try {
+		return window.localStorage.getItem(key);
+	} catch (_error) {
+		console.warn("[storage] getStringItem failed:", _error);
+		return null;
+	}
 };
 
 export const setItem = <T>(key: StorageEnum, value: T): void => {
-	localStorage.setItem(key, JSON.stringify(value));
+	try {
+		window.localStorage.setItem(key, JSON.stringify(value));
+	} catch (_error) {
+		console.warn("[storage] setItem failed:", _error);
+	}
 };
+
 export const removeItem = (key: StorageEnum): void => {
-	localStorage.removeItem(key);
+	try {
+		window.localStorage.removeItem(key);
+	} catch (_error) {
+		console.warn("[storage] removeItem failed:", _error);
+	}
 };
+
 export const clearItems = () => {
-	localStorage.clear();
+	try {
+		window.localStorage.clear();
+	} catch (_error) {
+		console.warn("[storage] clearItems failed:", _error);
+	}
 };

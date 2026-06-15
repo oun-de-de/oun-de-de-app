@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
 import { BackButton, SplitButton } from "@/core/components/common";
+import { loadingOverlay } from "@/core/components/loading/controllers/loading-overlay-controller";
 import { Button } from "@/core/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/core/ui/card";
 import { Input } from "@/core/ui/input";
@@ -9,8 +10,8 @@ import { Label } from "@/core/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/core/ui/select";
 import { Textarea } from "@/core/ui/textarea";
 import { ACCOUNTING_UI_TEXT } from "../constants";
-import { useCreateChartAccount } from "../hooks/use-create-chart-account";
 import { useAccountingReferenceData } from "../hooks/use-accounting-reference-data";
+import { useCreateChartAccount } from "../hooks/use-create-chart-account";
 import { getChartAccountAccountTypeId } from "../utils/map-chart-account-result";
 
 type ChartAccountFormPageProps = {
@@ -72,6 +73,7 @@ export function ChartAccountFormPage({ mode }: ChartAccountFormPageProps) {
 		setErrors({});
 
 		try {
+			loadingOverlay.show("Creating chart account... Please wait.");
 			await createChartAccount({
 				accountTypeId: normalizedAccountTypeId,
 				code: accountCode.trim(),
@@ -80,8 +82,11 @@ export function ChartAccountFormPage({ mode }: ChartAccountFormPageProps) {
 			});
 			toast.success(ACCOUNTING_UI_TEXT.createSuccess);
 			navigate("/dashboard/accounting");
-		} catch {
+		} catch (error: unknown) {
+			console.warn("[ChartAccountFormPage] Create failed:", error instanceof Error ? error.message : error);
 			toast.error(ACCOUNTING_UI_TEXT.createError);
+		} finally {
+			loadingOverlay.hide();
 		}
 	};
 
@@ -192,7 +197,12 @@ export function ChartAccountFormPage({ mode }: ChartAccountFormPageProps) {
 					</div>
 
 					<div className="flex items-center justify-end gap-3 border-t border-slate-200 pt-4">
-						<Button variant="outline" onClick={() => navigate("/dashboard/accounting")} disabled={isCreating} className="min-w-32">
+						<Button
+							variant="outline"
+							onClick={() => navigate("/dashboard/accounting")}
+							disabled={isCreating}
+							className="min-w-32"
+						>
 							{isReadOnly ? ACCOUNTING_UI_TEXT.close : ACCOUNTING_UI_TEXT.cancel}
 						</Button>
 						{isReadOnly ? null : (

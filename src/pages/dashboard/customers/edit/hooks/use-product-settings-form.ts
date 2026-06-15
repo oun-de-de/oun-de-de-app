@@ -68,8 +68,9 @@ export const useProductSettingsForm = (customerId?: string) => {
 		() => mapExistingSettings(currentSettings, productById),
 		[currentSettings, productById],
 	);
+	const selectedProductIds = useMemo(() => new Set(settings.map((setting) => setting.productId)), [settings]);
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
+	// biome-ignore lint/correctness/useExhaustiveDependencies: Reset only when switching customers; product data reload is handled separately.
 	useEffect(() => {
 		setIsInitialized(false);
 		setSettings([]);
@@ -82,8 +83,8 @@ export const useProductSettingsForm = (customerId?: string) => {
 	}, [products, initialSettings, isInitialized, isLoadingSettings]);
 
 	const availableProducts = useMemo(
-		() => products?.filter((p) => !settings.some((s) => s.productId === p.id)) ?? [],
-		[products, settings],
+		() => products?.filter((product) => !selectedProductIds.has(product.id)) ?? [],
+		[products, selectedProductIds],
 	);
 
 	const handleAdd = useCallback((product: Product) => {

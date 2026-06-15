@@ -53,9 +53,8 @@ export default function EditCouponPage() {
 	const couponQuery = useQuery({
 		queryKey: COUPON_QUERY_KEYS.detail(id),
 		queryFn: async () => {
-			if (locationState?.coupon) return locationState.coupon;
-			if (cachedCoupon) return cachedCoupon;
-			return couponService.getCoupon(id!);
+			if (!id) return null;
+			return couponService.getCoupon(id);
 		},
 		enabled: !!id,
 		initialData: locationState?.coupon ?? cachedCoupon ?? undefined,
@@ -118,12 +117,16 @@ export default function EditCouponPage() {
 			return couponService.updateCouponByCouponNo(coupon.couponNo, data);
 		},
 		onSuccess: () => {
+			if (coupon?.id) {
+				window.sessionStorage.removeItem(getCouponDraftStorageKey(coupon.id));
+			}
 			queryClient.invalidateQueries({ queryKey: COUPON_QUERY_KEYS.all });
 			toast.success("Coupon updated successfully");
 			navigate("/dashboard/coupons");
 		},
-		onError: () => {
-			toast.error("Failed to update coupon");
+		onError: (error) => {
+			const message = error instanceof Error ? error.message : "Failed to update coupon";
+			toast.error(message);
 		},
 	});
 

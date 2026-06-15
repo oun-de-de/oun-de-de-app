@@ -41,8 +41,9 @@ export default function CreateCouponPage() {
 			toast.success("Coupon has been created successfully");
 			navigate("/dashboard/invoice");
 		},
-		onError: () => {
-			toast.error("Failed to create coupon");
+		onError: (error) => {
+			const message = error instanceof Error ? error.message : "Failed to create coupon";
+			toast.error(message);
 		},
 	});
 

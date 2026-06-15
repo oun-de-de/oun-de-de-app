@@ -3,6 +3,7 @@ import type { SortMode } from "../../../invoice/export-preview/constants";
 import {
 	type ReportTemplateColumn,
 	type ReportTemplateRow,
+	type ReportTemplateSummaryRow,
 	ReportTemplateTable,
 } from "../../components/layout/report-template-table";
 import type { ReportColumnVisibility, ReportSectionVisibility } from "../../components/layout/report-toolbar";
@@ -11,7 +12,7 @@ import type { ReportFiltersValue } from "./report-filters";
 import { buildReportPresentation } from "./report-table-presentation-builders";
 import { useReportTableData } from "./use-report-table-data";
 
-const EMPTY_ARRAY: any[] = [];
+const EMPTY_SUMMARY_ROWS: ReportTemplateSummaryRow[] = [];
 
 interface ReportTableProps {
 	columns: ReportTemplateColumn[];
@@ -40,12 +41,21 @@ export const ReportTable = React.memo(function ReportTable({
 	onInvoiceIdsChange,
 	onTableDataChange,
 }: ReportTableProps) {
-	const { definition, invoiceIds, previewRows, selectedCustomerLabel, selectedCustomer, sourceRows, sortedRows } =
-		useReportTableData({
-			reportSlug,
-			filters,
-			sortMode,
-		});
+	const {
+		definition,
+		invoiceIds,
+		previewRows,
+		selectedCustomerLabel,
+		selectedCustomer,
+		selectedCustomerTypeLabel,
+		customerTypeCustomerCount,
+		sourceRows,
+		sortedRows,
+	} = useReportTableData({
+		reportSlug,
+		filters,
+		sortMode,
+	});
 	const hiddenColumnKeys = useMemo(
 		() =>
 			Object.entries(showColumns ?? {})
@@ -63,6 +73,8 @@ export const ReportTable = React.memo(function ReportTable({
 				filters,
 				selectedCustomerLabel,
 				selectedCustomer,
+				selectedCustomerTypeLabel,
+				customerTypeCustomerCount,
 				rows: sourceRows,
 				previewRows,
 			}),
@@ -75,6 +87,8 @@ export const ReportTable = React.memo(function ReportTable({
 			reportSlug,
 			selectedCustomer,
 			selectedCustomerLabel,
+			selectedCustomerTypeLabel,
+			customerTypeCustomerCount,
 			sourceRows,
 		],
 	);
@@ -99,7 +113,7 @@ export const ReportTable = React.memo(function ReportTable({
 			columns={columns}
 			rows={sortedRows}
 			hiddenColumnKeys={hiddenColumnKeys}
-			summaryRows={presentation.summaryRows ?? definition.summaryRows ?? EMPTY_ARRAY}
+			summaryRows={presentation.summaryRows ?? definition.summaryRows ?? EMPTY_SUMMARY_ROWS}
 			emptyText={presentation.emptyText ?? definition.emptyText}
 			timestampText={formatReportTimestamp("administrator", new Date())}
 		/>

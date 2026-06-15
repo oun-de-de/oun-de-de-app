@@ -3,17 +3,17 @@ import PremiumIceLogo from "@/assets/icons/ic-premium-ice.png";
 import type { Customer } from "@/core/types/customer";
 import type { InvoiceExportPreviewRow } from "@/core/types/invoice";
 import { formatNumber } from "@/core/utils/formatters";
-import type { ReportFilterConfig, ReportTemplateId } from "../report-types";
 import type {
 	ReportTemplateMetaColumn,
 	ReportTemplateRow,
 	ReportTemplateSummaryRow,
 } from "../../components/layout/report-template-table";
+import { REPORT_TITLES } from "../../report-titles";
+import { REPORT_KHMER_TITLE } from "../constants";
+import type { ReportFilterConfig, ReportTemplateId } from "../report-types";
 import type { ReportFiltersValue } from "./report-filters";
 import { buildOpenInvoiceSummaryRows } from "./report-table-builders";
 import { formatFilterDateForDisplay, formatFilterRange, parseNumericCell } from "./report-table-utils";
-import { REPORT_TITLES } from "../../report-titles";
-import { REPORT_KHMER_TITLE } from "../constants";
 
 export interface ReportPresentation {
 	headerContent: ReactNode;
@@ -31,6 +31,8 @@ type ReportPresentationBuilderParams = {
 	filters: ReportFiltersValue | undefined;
 	selectedCustomerLabel: string | undefined;
 	selectedCustomer: Customer | undefined;
+	selectedCustomerTypeLabel?: string;
+	customerTypeCustomerCount?: number;
 	rows: ReportTemplateRow[];
 	previewRows: InvoiceExportPreviewRow[];
 };
@@ -82,6 +84,8 @@ function buildWorkbookFilterMetaColumns(
 	filters: ReportFiltersValue | undefined,
 	customerLabel?: string,
 	selectedCustomer?: Customer,
+	selectedCustomerTypeLabel?: string,
+	customerTypeCustomerCount?: number,
 ): ReportTemplateMetaColumn[] {
 	const fromDate = formatFilterDateForDisplay(filters?.fromDate);
 	const toDate = formatFilterDateForDisplay(filters?.toDate);
@@ -93,6 +97,9 @@ function buildWorkbookFilterMetaColumns(
 	const paymentTermDisplay = selectedCustomer?.paymentTerm?.duration
 		? `${selectedCustomer.paymentTerm.duration} days`
 		: "All";
+	const customerTypeDisplay = selectedCustomerTypeLabel?.trim() || "All";
+	const customerTypeCountDisplay =
+		typeof customerTypeCustomerCount === "number" ? String(customerTypeCustomerCount) : "All";
 
 	return [
 		{ key: "date", rows: [dateRange], align: "left", className: "md:col-span-3" },
@@ -100,7 +107,86 @@ function buildWorkbookFilterMetaColumns(
 		{ key: "term", rows: ["Term:", `[${paymentTermDisplay}]`], align: "left", className: "md:col-span-1" },
 		{ key: "geography", rows: ["Geography:", `[${geographyDisplay}]`], align: "left", className: "md:col-span-1" },
 		{ key: "customer", rows: ["Customer:", `[${customerDisplay}]`], align: "left", className: "md:col-span-3" },
+		{
+			key: "customer-type",
+			rows: ["Customer Type:", `[${customerTypeDisplay}]`],
+			align: "left",
+			className: "md:col-span-2",
+		},
+		{
+			key: "customer-type-count",
+			rows: ["Customer in group:", `[${customerTypeCountDisplay}]`],
+			align: "left",
+			className: "md:col-span-1",
+		},
 	];
+}
+
+function buildSaleDetailMetaColumns(
+	selectedCustomer?: Customer,
+	selectedCustomerLabel?: string,
+): ReportTemplateMetaColumn[] {
+	const customerDisplay = selectedCustomer
+		? `${selectedCustomer.code} : ${selectedCustomer.name}`
+		: selectedCustomerLabel?.trim() || "All";
+	const geographyDisplay = selectedCustomer?.geography?.trim() || "All";
+	const phoneDisplay = selectedCustomer?.telephone ? `[${selectedCustomer.telephone}]` : "[All]";
+
+	return [
+		{
+			key: "branch",
+			rows: ["Branch: [All]", "Warehouse: [All]", "Employee: [All]"],
+			align: "left",
+			className: "md:col-span-1",
+		},
+		{
+			key: "category",
+			rows: ["Category: [All]", "Type: [All]", "Promotion: [All]"],
+			align: "left",
+			className: "md:col-span-1",
+		},
+		{
+			key: "customer",
+			rows: [`Customer: [${customerDisplay}]`, `Geography: [${geographyDisplay}]`, `Phone: ${phoneDisplay}`],
+			align: "left",
+			className: "md:col-span-1",
+		},
+		{
+			key: "brand",
+			rows: ["Brand: [All]", "Rank: [All]"],
+			align: "left",
+			className: "md:col-span-1",
+		},
+	];
+}
+
+function buildSaleDetailSummary(rows: ReportTemplateRow[]): ReportTemplateSummaryRow[] {
+	const totals = rows.reduce(
+		(acc, row) => {
+			const isDetailRow = row.cells.qty !== "" && row.cells.no === "";
+			const isHeaderRow = row.cells.no !== "";
+
+			if (isDetailRow) {
+				acc.totalQty += parseNumericCell(row.cells.qty);
+				acc.totalAmount += parseNumericCell(row.cells.amount);
+				acc.cashInvoiceCount += 1;
+			}
+
+			if (isHeaderRow) {
+				acc.totalCustomers += 1;
+			}
+
+			return acc;
+		},
+		{ totalQty: 0, totalAmount: 0, cashInvoiceCount: 0, totalCustomers: 0 },
+	);
+
+	return toSummaryRows([
+		{ key: "sale-detail-total-qty", label: "Total Qty", value: formatNumber(totals.totalQty) },
+		{ key: "sale-detail-total-amount", label: "Total Amount", value: formatNumber(totals.totalAmount) },
+		{ key: "sale-detail-cash-invoice", label: "Cash + Invoice", value: formatNumber(totals.cashInvoiceCount) },
+		{ key: "sale-detail-total-customer", label: "Total Customer", value: formatNumber(totals.totalCustomers) },
+	]);
 }
 
 function buildCustomerLoanMetaColumns(): ReportTemplateMetaColumn[] {
@@ -115,7 +201,12 @@ function buildEmployeeLoanMetaColumns(): ReportTemplateMetaColumn[] {
 	return [
 		{ key: "title", rows: [REPORT_TITLES["customer-transaction-detail-by-type"]], className: "md:col-span-1" },
 		{ key: "term", rows: ["Payment term: Monthly Installments"], align: "center", className: "md:col-span-1" },
-		{ key: "scope", rows: [REPORT_TITLES["customer-transaction-detail-by-type"]], align: "right", className: "md:col-span-1" },
+		{
+			key: "scope",
+			rows: [REPORT_TITLES["customer-transaction-detail-by-type"]],
+			align: "right",
+			className: "md:col-span-1",
+		},
 	];
 }
 
@@ -149,8 +240,14 @@ function sumLatestBalanceByItem(rows: ReportTemplateRow[]): number {
 	const latestBalanceByItem = new Map<string, number>();
 
 	for (const row of rows) {
-		const itemKey =
-			String(row.cells.itemCode ?? "").trim() || String(row.cells.balanceName ?? "").trim() || String(row.key);
+		const itemCode = String(row.cells.itemCode ?? "").trim();
+		const balanceName = String(row.cells.balanceName ?? "").trim();
+		const itemKey = itemCode || balanceName;
+
+		if (!itemKey) {
+			console.warn("[sumLatestBalanceByItem] Skipping row without itemCode or balanceName:", row.key);
+			continue;
+		}
 
 		latestBalanceByItem.set(itemKey, parseNumericCell(row.cells.balanceQty));
 	}
@@ -275,13 +372,13 @@ function buildEmployeeLoanPresentation({ title, filters, rows }: ReportPresentat
 function buildSaleDetailPresentation({
 	title,
 	filters,
-	rows,
-	selectedCustomerLabel,
 	selectedCustomer,
+	selectedCustomerLabel,
+	rows,
 }: ReportPresentationBuilderParams): ReportPresentation {
 	return buildSimplePresentation(title, formatFilterRange(filters), {
-		metaColumns: buildWorkbookFilterMetaColumns(filters, selectedCustomerLabel, selectedCustomer),
-		summaryRows: buildSingleAmountSummary("sales-total", "Total amount", sumCell(rows, "amount")),
+		metaColumns: buildSaleDetailMetaColumns(selectedCustomer, selectedCustomerLabel),
+		summaryRows: buildSaleDetailSummary(rows),
 	});
 }
 

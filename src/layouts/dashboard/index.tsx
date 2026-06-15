@@ -7,7 +7,7 @@ import { ThemeLayout } from "@/core/types/enum";
 import { Button } from "@/core/ui/button";
 import Header from "./header";
 import Main from "./main";
-import { NavHorizontalLayout, NavMobileLayout, NavVerticalLayout, useFilteredNavData } from "./nav";
+import { NavHorizontalLayout, NavLayoutProvider, NavMobileLayout, NavVerticalLayout, useFilteredNavData } from "./nav";
 
 export default function DashboardLayout() {
 	const isMobile = useMediaQuery(down("md"));
@@ -70,7 +70,9 @@ function PcVerticalLayout() {
 	return (
 		<>
 			{/* Fixed Header */}
-			<NavVerticalLayout data={navData} />
+			<NavLayoutProvider themeLayout={themeLayout} onToggle={handleToggle}>
+				<NavVerticalLayout data={navData} />
+			</NavLayoutProvider>
 
 			<div
 				className="relative flex h-screen w-full flex-col overflow-hidden transition-[padding] duration-300 ease-in-out print:h-auto print:overflow-visible"

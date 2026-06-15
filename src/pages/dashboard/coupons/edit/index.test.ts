@@ -1,7 +1,12 @@
 import { describe, expect, it } from "vitest";
 import type { WeightRecord } from "@/core/types/coupon";
 import type { Product } from "@/core/types/product";
-import { createLegacyProductValue, normalizeDraftWeightRecords } from "../utils/weight-record-drafts";
+import {
+	createDraftWeightRecord,
+	createLegacyProductValue,
+	normalizeDraftWeightRecords,
+	validateCumulativeWeightRecords,
+} from "../utils/weight-record-drafts";
 
 const products: Product[] = [
 	{
@@ -63,5 +68,26 @@ describe("normalizeDraftWeightRecords", () => {
 			productName: "legacy bag",
 			productId: createLegacyProductValue("legacy bag"),
 		});
+	});
+});
+
+describe("validateCumulativeWeightRecords", () => {
+	it("explains that each accumulated weight must be at least the previous record weight", () => {
+		const result = validateCumulativeWeightRecords([
+			createDraftWeightRecord({
+				productName: null,
+				weight: 1500,
+				outTime: "2026-02-10T08:16:00",
+			}),
+			createDraftWeightRecord({
+				productName: "test packaged prod",
+				weight: 1000,
+				outTime: "2026-02-10T08:18:00",
+			}),
+		]);
+
+		expect(result).toBe(
+			"Record #2 Weight (Accumulated) must be greater than or equal to Record #1. Current value: 1000; previous value: 1500.",
+		);
 	});
 });

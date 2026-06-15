@@ -5,6 +5,7 @@ import {
 	DashboardApiImpl,
 	DashboardApiMockupImpl,
 } from "./core/api/services/dashboardService";
+import { SaleApiMockupImpl } from "./core/api/services/saleService";
 import { type AuthRepository, AuthRepositoryImpl } from "./core/domain/auth/repositories";
 import {
 	type CustomerInfoRepository,
@@ -26,19 +27,18 @@ import {
 	type PerformanceRepository,
 	PerformanceRepositoryImpl,
 } from "./core/domain/dashboard/repositories/performance-repository";
-import { AppAuthService } from "./core/services/auth";
+import { type SaleCartRepository, SaleCartRepositoryImpl } from "./core/domain/sales/repositories/sale-cart-repository";
 import {
-	SaleFilterRepository,
+	type SaleFilterRepository,
 	SaleFilterRepositoryImpl,
 } from "./core/domain/sales/repositories/sale-filter-repository";
 import {
-	SaleProductRepository,
+	type SaleProductRepository,
 	SaleProductRepositoryImpl,
 } from "./core/domain/sales/repositories/sale-product-repository";
-import { SaleApiMockupImpl } from "./core/api/services/saleService";
-import { InitAble, isInitAble } from "./core/interfaces/init-able";
-import { DisposeAble, isDisposeAble } from "./core/interfaces/dispose-able";
-import { SaleCartRepository, SaleCartRepositoryImpl } from "./core/domain/sales/repositories/sale-cart-repository";
+import { type DisposeAble, isDisposeAble } from "./core/interfaces/dispose-able";
+import { type InitAble, isInitAble } from "./core/interfaces/init-able";
+import { AppAuthService } from "./core/services/auth";
 
 class Repository {
 	private constructor() {}
@@ -59,7 +59,11 @@ class Repository {
 			() => {
 				if (isInitAble(repository)) {
 					const res = (repository as InitAble).initialize();
-					if (res instanceof Promise) res.catch(() => {});
+					if (res instanceof Promise)
+						res.catch((error: unknown) => {
+							const message = error instanceof Error ? error.message : "Initialization failed";
+							console.warn("[service-locator] Repository initialization failed:", message);
+						});
 				}
 				return repository;
 			},
