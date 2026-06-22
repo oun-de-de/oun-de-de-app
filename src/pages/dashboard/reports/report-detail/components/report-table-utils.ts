@@ -6,6 +6,7 @@ export function normalizeReportFilters(filters?: ReportFiltersValue) {
 	const customerId = filters?.customerId && filters.customerId !== "all" ? filters.customerId : undefined;
 	const customerTypeId =
 		filters?.customerTypeId && filters.customerTypeId !== "all" ? filters.customerTypeId : undefined;
+	const productName = filters?.productName && filters.productName !== "all" ? filters.productName : undefined;
 	const reportDateFrom =
 		filters?.useDateRange && filters.fromDate && /^\d{4}-\d{2}-\d{2}$/.test(filters.fromDate)
 			? `${filters.fromDate}T00:00:00`
@@ -15,7 +16,7 @@ export function normalizeReportFilters(filters?: ReportFiltersValue) {
 			? `${filters.toDate}T23:59:59`
 			: undefined;
 
-	return { customerId, customerTypeId, reportDateFrom, reportDateTo };
+	return { customerId, customerTypeId, productName, reportDateFrom, reportDateTo };
 }
 
 export function formatFilterRange(filters?: ReportFiltersValue): string {

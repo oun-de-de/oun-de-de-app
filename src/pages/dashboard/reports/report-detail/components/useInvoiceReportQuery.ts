@@ -27,7 +27,7 @@ export function useInvoiceReportQuery({
 	customerTypeId,
 	customerTypeCustomerNames,
 }: UseInvoiceReportQueryParams) {
-	const { reportDateFrom, reportDateTo } = normalizeReportFilters(filters);
+	const { productName, reportDateFrom, reportDateTo } = normalizeReportFilters(filters);
 	const hasCustomerTypeFilter = Boolean(customerTypeId);
 	const shouldBuildPreviewRows = definition.needsPreviewRows === true;
 
@@ -92,8 +92,8 @@ export function useInvoiceReportQuery({
 	]);
 
 	const exportQuery = useQuery({
-		queryKey: ["report", "invoice-export", invoiceIds],
-		queryFn: () => invoiceService.listInvoiceDetails(invoiceIds),
+		queryKey: ["report", "invoice-export", invoiceIds, productName ?? "all-products", customerTypeId ?? "all-types"],
+		queryFn: () => invoiceService.listInvoiceDetails(invoiceIds, { productName, referredBy: customerTypeId }),
 		enabled: isInvoiceExport && invoiceIds.length > 0,
 	});
 

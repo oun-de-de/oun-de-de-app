@@ -2,8 +2,11 @@ import { useQuery } from '@tanstack/react-query';
 import { Calendar as CalendarIcon, Search } from 'lucide-react';
 import React from 'react';
 import customerService from '@/core/api/services/customer-service';
+import productService from '@/core/api/services/product-service';
 import { CUSTOMER_QUERY_KEYS } from '@/core/query-keys/customer-query-keys';
+import { PRODUCT_QUERY_KEYS } from '@/core/query-keys/product-query-keys';
 import type { Customer } from '@/core/types/customer';
+import type { Product } from '@/core/types/product';
 import { Avatar, AvatarFallback, AvatarImage } from '@/core/ui/avatar';
 import { Badge } from '@/core/ui/badge';
 import { Button } from '@/core/ui/button';
@@ -25,6 +28,7 @@ import { formatFilterDateForDisplay } from './report-table-utils';
 export type ReportFiltersValue = {
   customerId: string;
   customerTypeId: string;
+  productName: string;
   fromDate: string;
   toDate: string;
   useDateRange: boolean;
@@ -88,13 +92,17 @@ function parseReportFilterDate(value?: string) {
   return date;
 }
 
-export function getSafeAvatarImageUrl(value?: string | null): string | undefined {
+export function getSafeAvatarImageUrl(
+  value?: string | null,
+): string | undefined {
   const trimmedValue = value?.trim();
   if (!trimmedValue) return undefined;
 
   try {
     const baseUrl =
-      typeof window !== 'undefined' ? window.location.origin : 'http://localhost';
+      typeof window !== 'undefined'
+        ? window.location.origin
+        : 'http://localhost';
     const url = new URL(trimmedValue, baseUrl);
     if (url.protocol !== 'http:' && url.protocol !== 'https:') {
       return undefined;
@@ -286,6 +294,37 @@ function CustomerSelect({
   );
 }
 
+type ProductSelectProps = {
+  id: string;
+  value: string;
+  products: Product[];
+  onChange: (productName: string) => void;
+};
+
+function ProductSelect({ id, value, products, onChange }: ProductSelectProps) {
+  return (
+    <FilterRow label="Product">
+      <Select value={value} onValueChange={onChange}>
+        <SelectTrigger
+          id={id}
+          className="h-8 text-slate-500"
+          aria-label="Product"
+        >
+          <SelectValue placeholder="Select product" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">All</SelectItem>
+          {products.map((product) => (
+            <SelectItem key={product.id} value={product.name}>
+              {product.name}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </FilterRow>
+  );
+}
+
 type RabbitReportPeriodFieldProps = {
   fromDate: string;
   toDate: string;
@@ -447,12 +486,16 @@ export const ReportFilters = React.memo(function ReportFilters({
   filterConfig,
   reportSlug,
 }: ReportFiltersProps) {
-  const { customerId, fromDate, toDate } = value;
+  const { customerId, productName, fromDate, toDate } = value;
   const customerListParams = { limit: 10000 };
   const { data: customersResponse } = useQuery({
     queryKey: CUSTOMER_QUERY_KEYS.list(customerListParams),
     queryFn: () => customerService.getCustomerList(customerListParams),
     enabled: filterConfig.customer || !!filterConfig.customerType,
+  });
+  const { data: products = [] } = useQuery({
+    queryKey: PRODUCT_QUERY_KEYS.list(),
+    queryFn: productService.getProductList,
   });
   const customers = customersResponse?.list ?? [];
   const isSaleDetail = reportSlug === 'sale-detail-by-customer';
@@ -518,7 +561,14 @@ export const ReportFilters = React.memo(function ReportFilters({
             />
             <StaticReportSelect id="report-group" label="Group" />
             <StaticReportSelect id="report-rank" label="Rank" />
-            <StaticReportSelect id="report-item" label="Item" />
+            <ProductSelect
+              id="report-product-sale"
+              value={productName}
+              products={products}
+              onChange={(nextProductName) =>
+                onChange({ ...value, productName: nextProductName })
+              }
+            />
 
             <FilterRow label="Promotion">
               <div className="flex flex-wrap gap-4">
@@ -620,7 +670,14 @@ export const ReportFilters = React.memo(function ReportFilters({
           <StaticReportSelect id="report-item-category" label="Item Category" />
           <StaticReportSelect id="report-group" label="Group" />
           <StaticReportSelect id="report-rank" label="Rank" />
-          <StaticReportSelect id="report-item" label="Item" />
+          <ProductSelect
+            id="report-product"
+            value={productName}
+            products={products}
+            onChange={(nextProductName) =>
+              onChange({ ...value, productName: nextProductName })
+            }
+          />
 
           <FilterRow label="Promotion">
             <div className="flex flex-wrap gap-4">

@@ -31,6 +31,7 @@ function areReportFiltersEqual(left: ReportFiltersValue, right: ReportFiltersVal
 	return (
 		left.customerId === right.customerId &&
 		left.customerTypeId === right.customerTypeId &&
+		left.productName === right.productName &&
 		left.fromDate === right.fromDate &&
 		left.toDate === right.toDate &&
 		left.useDateRange === right.useDateRange
@@ -41,6 +42,7 @@ function getDefaultReportFilters(): ReportFiltersValue {
 	return {
 		customerId: "all",
 		customerTypeId: "all",
+		productName: "all",
 		fromDate: "",
 		toDate: "",
 		useDateRange: false,
