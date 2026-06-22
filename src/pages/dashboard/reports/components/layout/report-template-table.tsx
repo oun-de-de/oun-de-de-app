@@ -2,6 +2,7 @@ import { type ColumnDef, flexRender, getCoreRowModel, useReactTable } from "@tan
 import React from "react";
 import styled from "styled-components";
 import { cn } from "@/core/utils";
+import { REPORT_KHMER_TITLE, REPORT_STORE_PHONE } from "../../report-detail/constants";
 import type { ReportSectionVisibility } from "./report-toolbar";
 
 type CellAlign = "left" | "center" | "right";
@@ -11,7 +12,6 @@ const alignClass: Record<CellAlign, string> = {
 	center: "text-center",
 	right: "text-right",
 };
-
 type ReportTableInstance = ReturnType<typeof useReactTable<ReportTemplateRow>>;
 
 function getAlignClass(align?: CellAlign) {
@@ -177,8 +177,8 @@ export const ReportTemplateTable = React.memo(function ReportTemplateTable({
 				(headerContent || (
 					<ReportHeader>
 						<HeaderTopText>{title}</HeaderTopText>
-						<HeaderStoreText>ហាងចក្រទឹកកក លឹម ច័ន្ទ II</HeaderStoreText>
-						<HeaderPhoneText>TEL: 070669898</HeaderPhoneText>
+						<HeaderStoreText>{REPORT_KHMER_TITLE}</HeaderStoreText>
+						<HeaderPhoneText>TEL: {REPORT_STORE_PHONE}</HeaderPhoneText>
 						{subtitle && <HeaderSubtitle>{subtitle}</HeaderSubtitle>}
 					</ReportHeader>
 				))}
@@ -218,7 +218,7 @@ const ReportHeader = styled.div.attrs({
 })``;
 
 const MetaContainer = styled.div.attrs({
-	className: "mb-2 grid grid-cols-1 gap-4 text-[13px] font-bold text-black md:grid-cols-3",
+	className: "px-1 mb-2 grid grid-cols-1 gap-4 text-xs font-semibold text-black sm:grid-cols-2 md:grid-cols-4",
 })``;
 
 const MetaColumn = styled.div.attrs({

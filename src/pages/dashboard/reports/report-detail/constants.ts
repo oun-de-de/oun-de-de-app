@@ -25,7 +25,8 @@ export function formatReportTimestamp(employeeName: string, date: Date): string 
 	return `By ${employeeName}, ${weekday} ${formatDateToDDMMYYYY(date)} ${time}`;
 }
 
-export const REPORT_KHMER_TITLE = "ហាងម្រុននីការកក លឹម មុន II";
+export const REPORT_KHMER_TITLE = "រោងចក្រទឹកកក លឹម ច័ន្ទ II";
+export const REPORT_STORE_PHONE = "070669898";
 export const REPORT_ENGLISH_TITLE = REPORT_TITLES["open-invoice-on-period-by-group"].toUpperCase();
 export const REPORT_DEFAULT_DATE = formatDateToDDMMYYYY(today);
 export const REPORT_DEFAULT_DATE_INPUT = formatDateToYYYYMMDD(today);

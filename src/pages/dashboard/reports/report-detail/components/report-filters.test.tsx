@@ -3,12 +3,20 @@ import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
 import customerService from "@/core/api/services/customer-service";
+import productService from "@/core/api/services/product-service";
 import type { Customer } from "@/core/types/customer";
+import type { Product } from "@/core/types/product";
 import { getSafeAvatarImageUrl, ReportFilters, type ReportFiltersValue } from "./report-filters";
 
 vi.mock("@/core/api/services/customer-service", () => ({
 	default: {
 		getCustomerList: vi.fn(),
+	},
+}));
+
+vi.mock("@/core/api/services/product-service", () => ({
+	default: {
+		getProductList: vi.fn(),
 	},
 }));
 
@@ -68,9 +76,21 @@ const customerWithUnsafeProfileUrl: Customer = {
 	profileUrl: "javascript:alert(document.domain)",
 };
 
+const products: Product[] = [
+	{
+		id: "product-1",
+		name: "Tube Ice",
+		date: "2026-06-01",
+		refNo: "P001",
+		unit: { id: "unit-1", name: "Bag", descr: "", type: "" },
+		defaultProductSetting: { id: "setting-1", price: 1, quantity: 1 },
+	},
+];
+
 const defaultValue: ReportFiltersValue = {
 	customerId: "all",
 	customerTypeId: "all",
+	productName: "all",
 	fromDate: "2026-06-01",
 	toDate: "2026-06-10",
 	useDateRange: true,
@@ -126,6 +146,7 @@ describe("ReportFilters", () => {
 			total: customers.length,
 			pageCount: 1,
 		});
+		vi.mocked(productService.getProductList).mockResolvedValue(products);
 	});
 
 	it("matches the Rabbit sale-detail filter order with Customer Type before Customer", async () => {
@@ -158,6 +179,23 @@ describe("ReportFilters", () => {
 			expect(onChange).toHaveBeenCalledWith({
 				...defaultValue,
 				customerTypeId: "customer-referrer",
+			});
+		});
+	});
+
+	it("updates the selected Product by product name", async () => {
+		const user = userEvent.setup();
+		const onChange = vi.fn();
+		renderSaleDetailFilters({ onChange });
+
+		const productSelect = await screen.findByRole("combobox", { name: "Product" });
+		await user.click(productSelect);
+		await user.click(within(screen.getByRole("listbox")).getByRole("option", { name: "Tube Ice" }));
+
+		await waitFor(() => {
+			expect(onChange).toHaveBeenCalledWith({
+				...defaultValue,
+				productName: "Tube Ice",
 			});
 		});
 	});

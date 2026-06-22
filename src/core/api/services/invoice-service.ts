@@ -90,11 +90,19 @@ export const getAllInvoices = async (params?: {
 	return [firstPage, ...restPages].flatMap((page) => page.list);
 };
 
-export const listInvoiceDetails = (invoiceIds: string[]) =>
+export const listInvoiceDetails = (
+	invoiceIds: string[],
+	params?: {
+		productName?: string;
+		referredBy?: string;
+	},
+) =>
 	apiClient.post<InvoiceExportLineApi[]>({
 		url: `${INVOICE_API.LIST}/export`,
 		data: {
 			invoiceIds,
+			...(params?.productName ? { productName: params.productName } : {}),
+			...(params?.referredBy ? { referredBy: params.referredBy } : {}),
 		},
 	});
 
