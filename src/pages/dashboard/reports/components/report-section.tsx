@@ -40,12 +40,7 @@ export function ReportSection({ section, activeTab, className }: ReportSectionPr
 				</div>
 				<div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
 					{section.items.map((item) => (
-						<ReportItem
-							key={item.slug}
-							slug={item.slug}
-							label={item.label}
-							activeTab={activeTab}
-						/>
+						<ReportItem key={item.slug} slug={item.slug} label={item.label} activeTab={activeTab} />
 					))}
 				</div>
 			</CardContent>

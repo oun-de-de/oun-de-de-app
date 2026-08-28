@@ -1,7 +1,7 @@
+import { useEffect, useState } from "react";
+import styled from "styled-components";
 import { Icon } from "@/core/components/icon";
 import { Button } from "@/core/ui/button";
-import { useState, useEffect } from "react";
-import styled from "styled-components";
 
 export default function ScreenControl() {
 	const [isFullscreen, setIsFullscreen] = useState(false);

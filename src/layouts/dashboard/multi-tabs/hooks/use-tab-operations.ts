@@ -1,6 +1,6 @@
+import { type Dispatch, type SetStateAction, useCallback } from "react";
 import { GLOBAL_CONFIG } from "@/global-config";
 import { useRouter } from "@/routes/hooks";
-import { type Dispatch, type SetStateAction, useCallback } from "react";
 import type { KeepAliveTab } from "../types";
 
 export function useTabOperations(
@@ -73,7 +73,7 @@ export function useTabOperations(
 				if (index >= 0) {
 					newTabs[index] = {
 						...newTabs[index],
-						timeStamp: new Date().getTime().toString(),
+						timeStamp: Date.now().toString(),
 					};
 				}
 				return newTabs;

@@ -1,6 +1,6 @@
-import { Icon } from "@/core/components/icon";
 import { Dropdown, type MenuProps } from "antd";
 import { useTranslation } from "react-i18next";
+import { Icon } from "@/core/components/icon";
 import { MultiTabOperation } from "@/core/types/enum";
 import { useTabLabelRender } from "../hooks/use-tab-label-render";
 import { useMultiTabsContext } from "../providers/multi-tabs-provider";

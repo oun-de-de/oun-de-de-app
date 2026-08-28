@@ -1,7 +1,7 @@
-import { BehaviorSubject, Observable } from "rxjs";
-import { SaleProduct } from "../entities/sale-product";
-import { DisposeAble } from "@/core/interfaces/dispose-able";
-import { ClearAble } from "@/core/interfaces";
+import { BehaviorSubject, type Observable } from "rxjs";
+import type { ClearAble } from "@/core/interfaces";
+import type { DisposeAble } from "@/core/interfaces/dispose-able";
+import type { SaleProduct } from "../entities/sale-product";
 
 export interface SaleCartRepository extends DisposeAble, ClearAble {
 	readonly itemsStream$: Observable<SaleProduct[]>;
@@ -25,7 +25,9 @@ export class SaleCartRepositoryImpl implements SaleCartRepository {
 	}
 
 	addItem(item: SaleProduct): void {
-		this._items.set(item.id, item);
+		const existing = this._items.get(item.id);
+		const qty = (existing?.qty ?? 0) + (item.qty ?? 1);
+		this._items.set(item.id, { ...item, qty, amount: item.price * qty });
 		this._emit();
 	}
 

@@ -42,7 +42,7 @@ export const frontendNavData: NavProps["data"] = [
 			},
 			{
 				title: "Accounting",
-				path: "/dashboard/accounting",
+				path: "/dashboard/accounting-center",
 				icon: <Icon icon="lucide:wallet" size="24" />,
 				roles: ["SUPER_ADMIN"],
 			},
@@ -70,6 +70,12 @@ export const frontendNavData: NavProps["data"] = [
 				icon: <Icon icon="lucide:settings" size="24" />,
 				roles: ["SUPER_ADMIN"],
 			},
+			// {
+			// 	title: "Audit Log",
+			// 	path: "/dashboard/audit-log",
+			// 	icon: <Icon icon="lucide:history" size="24" />,
+			// 	roles: ["SUPER_ADMIN"],
+			// },
 		],
 	},
 ];
@@ -77,17 +83,36 @@ export const frontendNavData: NavProps["data"] = [
 export const newActions = [
 	{
 		title: "Customers",
-		items: [{ title: "Create Invoice", href: "/dashboard/invoice" }],
+		items: [
+			// { title: "Create Cash Sale", href: "/sale/new/cash-sale" },
+			{ title: "Create Invoice", href: "/dashboard/invoice" },
+			{ title: "Create Receipt", href: "/dashboard/customers/create-receipt" },
+		],
+	},
+	{
+		title: "Vendors",
+		items: [
+			{ title: "Create Cash Purchase", href: "/dashboard/vendors" },
+			{ title: "Create Bill", href: "/dashboard/vendors" },
+			{ title: "Create Payment", href: "/dashboard/vendors" },
+		],
 	},
 	{
 		title: "Accounting",
 		items: [
-			{ title: "Create Chart Account", href: "/dashboard/accounting/create-chart-account" },
-			// Temporarily hidden until the backend exposes accounting entry endpoints.
-			// { title: "Create Journal", href: "/dashboard/accounting/create-journal" },
-			// { title: "Create Cash Transaction", href: "/dashboard/accounting/create-cash-transaction" },
-			{ title: "Create Cash Revenue", href: "/dashboard/accounting/create-revenue" },
-			{ title: "Create Cash Expense", href: "/dashboard/accounting/create-expense" },
+			{ title: "Create Journal", href: "/dashboard/accounting/create-journal" },
+			{
+				title: "Create Cash Transaction",
+				href: "/dashboard/accounting/create-cash-transaction",
+			},
+			{
+				title: "Create Cash Revenue",
+				href: "/dashboard/accounting/create-revenue",
+			},
+			{
+				title: "Create Cash Expense",
+				href: "/dashboard/accounting/create-expense",
+			},
 		],
 	},
 ] as const;

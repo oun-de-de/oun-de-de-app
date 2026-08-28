@@ -10,7 +10,7 @@ export function ReportLayout({ children, className }: ReportLayoutProps) {
 	return (
 		<div
 			className={cn(
-				"flex w-full flex-col gap-4 overflow-auto p-4 print:block print:overflow-visible print:gap-0 print:p-0",
+				"flex w-full flex-col gap-3 overflow-auto p-3 print:block print:overflow-visible print:gap-0 print:p-0",
 				className,
 			)}
 		>

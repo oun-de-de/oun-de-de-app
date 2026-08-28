@@ -214,9 +214,7 @@ export function CyclePaymentDialog({
 					loanInstallmentAmount: Number(values.monthlyAmount),
 					startDate,
 					...(values.memo.trim() ? { memo: values.memo.trim() } : {}),
-					...(normalizedDueWarningDays === ""
-						? {}
-						: { dueWarningDays: Number(normalizedDueWarningDays) }),
+					...(normalizedDueWarningDays === "" ? {} : { dueWarningDays: Number(normalizedDueWarningDays) }),
 				});
 				navigate(`/dashboard/loan/${loan.id}`);
 			} catch (e) {
@@ -467,29 +465,29 @@ export function CyclePaymentDialog({
 																onChange={(e) => field.onChange(digitsOnly(e.target.value))}
 															/>
 														</FormControl>
-													<FormMessage />
-												</FormItem>
-											)}
-										/>
-										<FormField
-											control={loanForm.control}
-											name="memo"
-											render={({ field }) => (
-												<FormItem className="sm:col-span-2 xl:col-span-3">
-													<FormLabel>Memo</FormLabel>
-													<FormControl>
-														<Textarea
-															{...field}
-															rows={4}
-															placeholder="Add note for this loan"
-															disabled={isConvertingToLoan}
-															className="min-h-24"
-														/>
-													</FormControl>
-													<FormMessage />
-												</FormItem>
-											)}
-										/>
+														<FormMessage />
+													</FormItem>
+												)}
+											/>
+											<FormField
+												control={loanForm.control}
+												name="memo"
+												render={({ field }) => (
+													<FormItem className="sm:col-span-2 xl:col-span-3">
+														<FormLabel>Memo</FormLabel>
+														<FormControl>
+															<Textarea
+																{...field}
+																rows={4}
+																placeholder="Add note for this loan"
+																disabled={isConvertingToLoan}
+																className="min-h-24"
+															/>
+														</FormControl>
+														<FormMessage />
+													</FormItem>
+												)}
+											/>
 										</div>
 									</form>
 								</Form>

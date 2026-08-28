@@ -3,9 +3,9 @@ import { useMemo } from "react";
 import invoiceService from "@/core/api/services/invoice-service";
 import type { InvoiceExportPreviewRow } from "@/core/types/invoice";
 import type { ReportDefinition } from "../report-types";
-import { mapExportLinesToPreviewRows } from "./report-table-builders";
-import { matchesInvoiceType, normalizeCustomerText } from "./report-data-utils";
+import { normalizeCustomerText } from "./report-data-utils";
 import type { ReportFiltersValue } from "./report-filters";
+import { mapExportLinesToPreviewRows } from "./report-table-builders";
 import { normalizeReportFilters } from "./report-table-utils";
 
 interface UseInvoiceReportQueryParams {
@@ -55,45 +55,37 @@ export function useInvoiceReportQuery({
 
 	const invoices = useMemo(() => {
 		if (!invoiceQuery.data) return [];
-		const invoiceType = definition.invoiceType;
-		const invoiceList = invoiceQuery.data.list.filter((invoice) => {
+		return invoiceQuery.data.list.filter((invoice) => {
 			if (!customerId && customerTypeId) {
 				return customerTypeCustomerNames.has(normalizeCustomerText(invoice.customerName));
 			}
 			return true;
 		});
-		if (!invoiceType) return invoiceList;
-
-		return invoiceList.filter((invoice) => matchesInvoiceType(invoice, invoiceType));
-	}, [customerId, customerTypeCustomerNames, customerTypeId, definition.invoiceType, invoiceQuery.data]);
+	}, [customerId, customerTypeCustomerNames, customerTypeId, invoiceQuery.data]);
 
 	const invoiceIds = useMemo(() => {
-		if (!isInvoiceExport || !invoiceQuery.data) return [];
+		if (!isInvoiceExport) return [];
+		return invoices.map((invoice) => invoice.id).filter(Boolean);
+	}, [invoices, isInvoiceExport]);
 
-		const invoiceType = definition.invoiceType;
-		const filteredInvoices = invoiceQuery.data.list.filter((invoice) => {
-			if (!customerId && customerTypeId) {
-				return customerTypeCustomerNames.has(normalizeCustomerText(invoice.customerName));
-			}
-			return true;
-		});
-		const realInvoices = invoiceType
-			? filteredInvoices.filter((invoice) => matchesInvoiceType(invoice, invoiceType))
-			: filteredInvoices;
-
-		return realInvoices.map((invoice) => invoice.id).filter(Boolean);
-	}, [
-		customerId,
-		customerTypeCustomerNames,
-		customerTypeId,
-		definition.invoiceType,
-		invoiceQuery.data,
-		isInvoiceExport,
-	]);
+	const invoiceIdsFingerprint = useMemo(() => {
+		if (invoiceIds.length === 0) return "empty";
+		return `${invoiceIds.length}:${invoiceIds[0]}:${invoiceIds[invoiceIds.length - 1]}`;
+	}, [invoiceIds]);
 
 	const exportQuery = useQuery({
-		queryKey: ["report", "invoice-export", invoiceIds, productName ?? "all-products", customerTypeId ?? "all-types"],
-		queryFn: () => invoiceService.listInvoiceDetails(invoiceIds, { productName, referredBy: customerTypeId }),
+		queryKey: [
+			"report",
+			"invoice-export",
+			invoiceIdsFingerprint,
+			productName ?? "all-products",
+			customerTypeId ?? "all-types",
+		],
+		queryFn: () =>
+			invoiceService.listInvoiceDetails(invoiceIds, {
+				productName,
+				referredBy: customerTypeId,
+			}),
 		enabled: isInvoiceExport && invoiceIds.length > 0,
 	});
 

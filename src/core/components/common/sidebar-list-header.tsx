@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
 import { useDebounce } from "@/core/hooks";
 import { Input } from "@/core/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/core/ui/select";
 import { cn } from "@/core/utils";
+import { useEffect, useState } from "react";
 import { SidebarToggleButton } from "./sidebar-list";
 
 type SidebarOption = { value: string; label: string };
@@ -130,7 +130,7 @@ export function SidebarListHeader({
 
 	if (isCollapsed) {
 		return (
-			<div className={cn("absolute left-1/2 top-0 z-10 flex -translate-x-1/2 justify-center p-2", className)}>
+			<div className={cn("flex w-full justify-center p-2", className)}>
 				<SidebarToggleButton onClick={onMenuClick} isCollapsed={isCollapsed} variant="info" />
 			</div>
 		);

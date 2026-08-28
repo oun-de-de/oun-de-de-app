@@ -11,15 +11,18 @@ export function isReceiptRefNo(refNo: string | null | undefined) {
 }
 
 export function matchesInvoiceType(
-	invoice: { refNo?: string | null; type?: string | null },
-	expectedType: "invoice" | "receipt",
+	_invoice: { refNo?: string | null; type?: string | null },
+	_expectedType: "invoice" | "receipt",
 ) {
-	const normalizedType = normalizeInvoiceType(invoice.type);
-	if (normalizedType === "receipt" || normalizedType === "invoice") {
-		return normalizedType === expectedType;
-	}
+	// Comment out invoice/receipt type filtering to allow data mapping
+	return true;
 
-	return expectedType === "receipt" ? isReceiptRefNo(invoice.refNo) : !isReceiptRefNo(invoice.refNo);
+	// const normalizedType = normalizeInvoiceType(invoice.type);
+	// if (normalizedType === "receipt" || normalizedType === "invoice") {
+	// 	return normalizedType === expectedType;
+	// }
+
+	// return expectedType === "receipt" ? isReceiptRefNo(invoice.refNo) : !isReceiptRefNo(invoice.refNo);
 }
 
 export function normalizeCustomerText(value?: string | null) {

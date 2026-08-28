@@ -1,17 +1,18 @@
 import styled from "styled-components";
+import { useSettings } from "@/core/store/settingStore";
+import { ThemeLayout } from "@/core/types/enum";
 import { rgbAlpha } from "@/core/utils/theme";
 import { GLOBAL_CONFIG } from "@/global-config";
 import { RouterLink } from "@/routes/components/router-link";
-import { useNavLayout } from "./nav-layout-context";
 
 export function NavVerticalHeader() {
-	const isMini = useNavLayout().isMini;
+	const { themeLayout } = useSettings();
 
 	return (
-		<StyledHeader $isMini={isMini}>
+		<StyledHeader $isMini={themeLayout === ThemeLayout.Mini}>
 			<StyledTitleWrapper>
-				<StyledTitleLink href="/" $isMini={isMini}>
-					<StyledTitle $isMini={isMini}>{GLOBAL_CONFIG.appName}</StyledTitle>
+				<StyledTitleLink href="/" $isMini={themeLayout === ThemeLayout.Mini}>
+					<StyledTitle $isMini={themeLayout === ThemeLayout.Mini}>{GLOBAL_CONFIG.appName}</StyledTitle>
 				</StyledTitleLink>
 			</StyledTitleWrapper>
 		</StyledHeader>

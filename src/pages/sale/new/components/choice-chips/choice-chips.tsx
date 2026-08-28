@@ -81,8 +81,8 @@ export function ChoiceChips({
 			)}
 
 			<ScrollArea ref={scrollRef} onScroll={handleScroll}>
-				{options.map(({ id, name }) => {
-					const option = options.find((item) => item.id === id) ?? { id, name, description: "" };
+				{options.map((option) => {
+					const { id, name } = option;
 					const isActive = orderedValue.includes(id);
 
 					return (

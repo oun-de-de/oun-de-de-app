@@ -5,7 +5,6 @@
 /* editor */
 @import "react-quill/dist/quill.snow.css";
 
-
 /* import tailwind */
 @import "tailwindcss";
 @import "tw-animate-css";
@@ -15,252 +14,310 @@
 
 /* base layer */
 @layer base {
+	*,
+	::after,
+	::before,
+	::backdrop,
+	::file-selector-button {
+		/* https://tailwindcss.com/docs/upgrade-guide#default-border-color */
+		border-color: rgba(var(--colors-palette-gray-500Channel) / var(--opacity-border));
+	}
 
-  *,
-  ::after,
-  ::before,
-  ::backdrop,
-  ::file-selector-button {
-    /* https://tailwindcss.com/docs/upgrade-guide#default-border-color */
-    border-color: rgba(var(--colors-palette-gray-500Channel) / var(--opacity-border));
-  }
+	body {
+		background-color: var(--background);
+	}
 
-  body {
-    background-color: var(--background);
-  }
-
-  button:focus-visible,
-  [type="button"]:focus-visible,
-  [role="button"]:focus-visible {
-    outline: none;
-    box-shadow: none;
-  }
-
+	button:focus-visible,
+	[type="button"]:focus-visible,
+	[role="button"]:focus-visible {
+		outline: none;
+		box-shadow: none;
+	}
 }
 
 @theme {
-  --animate-collapsible-down: collapsible-down 0.2s ease-in-out;
-  --animate-collapsible-up: collapsible-up 0.2s ease-in-out;
+	--animate-collapsible-down: collapsible-down 0.2s ease-in-out;
+	--animate-collapsible-up: collapsible-up 0.2s ease-in-out;
 
-  @keyframes collapsible-down {
-    from {
-      height: 0;
-    }
+	@keyframes collapsible-down {
+		from {
+			height: 0;
+		}
 
-    to {
-      height: var(--radix-collapsible-content-height);
-    }
-  }
+		to {
+			height: var(--radix-collapsible-content-height);
+		}
+	}
 
-  @keyframes collapsible-up {
-    from {
-      height: var(--radix-collapsible-content-height);
-    }
+	@keyframes collapsible-up {
+		from {
+			height: var(--radix-collapsible-content-height);
+		}
 
-    to {
-      height: 0;
-    }
-  }
+		to {
+			height: 0;
+		}
+	}
 
-  --animate-slow-spin: spin 4s linear infinite;
+	--animate-slow-spin: spin 4s linear infinite;
 
-  @keyframes spin {
-    from {
-      transform: rotate(0deg);
-    }
+	@keyframes spin {
+		from {
+			transform: rotate(0deg);
+		}
 
-    to {
-      transform: rotate(360deg);
-    }
-  }
+		to {
+			transform: rotate(360deg);
+		}
+	}
 }
 
 /* Shadcn UI Light Theme */
 :root {
-  --radius: 0.5rem;
-  --background: var(--colors-common-white);
-  --foreground: var(--colors-common-black);
-  --card: var(--colors-common-white);
-  --card-foreground: var(--colors-common-black);
-  --popover: var(--colors-common-white);
-  --popover-foreground: var(--colors-common-black);
-  --primary: var(--colors-palette-primary-default);
-  --primary-foreground: var(--colors-palette-primary-lighter);
-  --secondary: var(--colors-palette-gray-200);
-  --secondary-foreground: var(--colors-palette-gray-600);
-  --muted: var(--colors-palette-gray-200);
-  --muted-foreground: var(--colors-palette-gray-500);
-  --accent: var(--colors-palette-gray-200);
-  --accent-foreground: var(--colors-palette-gray-600);
-  --destructive: var(--colors-palette-error-default);
-  --border: rgba(var(--colors-palette-gray-500Channel)/ var(--opacity-border));
-  --input: rgba(var(--colors-palette-gray-500Channel)/ var(--opacity-border));
-  --ring: var(--colors-palette-primary-default);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: var(--colors-palette-gray-200);
-  --sidebar-foreground: var(--colors-palette-gray-800);
-  --sidebar-primary: var(--colors-palette-primary-default);
-  --sidebar-primary-foreground: var(--colors-palette-primary-lighter);
-  --sidebar-accent: var(--colors-palette-gray-200);
-  --sidebar-accent-foreground: var(--colors-palette-gray-800);
-  --sidebar-border: var(--colors-palette-gray-200);
-  --sidebar-ring: var(--colors-palette-primary-default);
-  --ids-sem-ring-focus: 0 0 0 2px #ffffff, 0 0 0 4px #60a5fa;
+	--radius: 0.5rem;
+	--background: var(--colors-common-white);
+	--foreground: var(--colors-common-black);
+	--card: var(--colors-common-white);
+	--card-foreground: var(--colors-common-black);
+	--popover: var(--colors-common-white);
+	--popover-foreground: var(--colors-common-black);
+	--primary: var(--colors-palette-primary-default);
+	--primary-foreground: var(--colors-palette-primary-lighter);
+	--secondary: var(--colors-palette-gray-200);
+	--secondary-foreground: var(--colors-palette-gray-600);
+	--muted: var(--colors-palette-gray-200);
+	--muted-foreground: var(--colors-palette-gray-500);
+	--accent: var(--colors-palette-gray-200);
+	--accent-foreground: var(--colors-palette-gray-600);
+	--destructive: var(--colors-palette-error-default);
+	--border: rgba(var(--colors-palette-gray-500Channel) / var(--opacity-border));
+	--input: rgba(var(--colors-palette-gray-500Channel) / var(--opacity-border));
+	--ring: var(--colors-palette-primary-default);
+	--chart-1: oklch(0.646 0.222 41.116);
+	--chart-2: oklch(0.6 0.118 184.704);
+	--chart-3: oklch(0.398 0.07 227.392);
+	--chart-4: oklch(0.828 0.189 84.429);
+	--chart-5: oklch(0.769 0.188 70.08);
+	--sidebar: var(--colors-palette-gray-200);
+	--sidebar-foreground: var(--colors-palette-gray-800);
+	--sidebar-primary: var(--colors-palette-primary-default);
+	--sidebar-primary-foreground: var(--colors-palette-primary-lighter);
+	--sidebar-accent: var(--colors-palette-gray-200);
+	--sidebar-accent-foreground: var(--colors-palette-gray-800);
+	--sidebar-border: var(--colors-palette-gray-200);
+	--sidebar-ring: var(--colors-palette-primary-default);
+	--ids-sem-ring-focus: 0 0 0 2px #ffffff, 0 0 0 4px #60a5fa;
 }
 
 /* Shadcn UI Dark Theme */
 [data-theme-mode="dark"] {
-  --background: var(--colors-common-black);
-  --foreground: var(--colors-common-white);
-  --card: var(--colors-common-black);
-  --card-foreground: var(--colors-common-white);
-  --popover: var(--colors-common-black);
-  --popover-foreground: var(--colors-common-white);
-  --primary: var(--colors-palette-primary-default);
-  --primary-foreground: var(--colors-palette-primary-darker);
-  --secondary: var(--colors-background-neutral);
-  --secondary-foreground: var(--colors-palette-gray-500);
-  --muted: var(--colors-background-neutral);
-  --muted-foreground: var(--colors-palette-gray-400);
-  --accent: var(--colors-background-neutral);
-  --accent-foreground: var(--colors-palette-gray-500);
-  --destructive: var(--colors-palette-error-default);
-  --border: rgba(var(--colors-palette-gray-500Channel)/ var(--opacity-border));
-  --input: rgba(var(--colors-palette-gray-500Channel)/ var(--opacity-border));
-  --ring: var(--colors-palette-primary-default);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: var(--colors-background-neutral);
-  --sidebar-foreground: var(--colors-common-white);
-  --sidebar-primary: var(--colors-palette-primary-default);
-  --sidebar-primary-foreground: var(--colors-palette-primary-darker);
-  --sidebar-accent: var(--colors-background-neutral);
-  --sidebar-accent-foreground: var(--colors-common-white);
-  --sidebar-border: rgba(var(--colors-palette-gray-500Channel)/ var(--opacity-border));
-  --sidebar-ring: var(--colors-palette-primary-default);
+	--background: var(--colors-common-black);
+	--foreground: var(--colors-common-white);
+	--card: var(--colors-common-black);
+	--card-foreground: var(--colors-common-white);
+	--popover: var(--colors-common-black);
+	--popover-foreground: var(--colors-common-white);
+	--primary: var(--colors-palette-primary-default);
+	--primary-foreground: var(--colors-palette-primary-darker);
+	--secondary: var(--colors-background-neutral);
+	--secondary-foreground: var(--colors-palette-gray-500);
+	--muted: var(--colors-background-neutral);
+	--muted-foreground: var(--colors-palette-gray-400);
+	--accent: var(--colors-background-neutral);
+	--accent-foreground: var(--colors-palette-gray-500);
+	--destructive: var(--colors-palette-error-default);
+	--border: rgba(var(--colors-palette-gray-500Channel) / var(--opacity-border));
+	--input: rgba(var(--colors-palette-gray-500Channel) / var(--opacity-border));
+	--ring: var(--colors-palette-primary-default);
+	--chart-1: oklch(0.488 0.243 264.376);
+	--chart-2: oklch(0.696 0.17 162.48);
+	--chart-3: oklch(0.769 0.188 70.08);
+	--chart-4: oklch(0.627 0.265 303.9);
+	--chart-5: oklch(0.645 0.246 16.439);
+	--sidebar: var(--colors-background-neutral);
+	--sidebar-foreground: var(--colors-common-white);
+	--sidebar-primary: var(--colors-palette-primary-default);
+	--sidebar-primary-foreground: var(--colors-palette-primary-darker);
+	--sidebar-accent: var(--colors-background-neutral);
+	--sidebar-accent-foreground: var(--colors-common-white);
+	--sidebar-border: rgba(var(--colors-palette-gray-500Channel) / var(--opacity-border));
+	--sidebar-ring: var(--colors-palette-primary-default);
 }
 
 /* slash layout */
 :root {
-  --layout-nav-width: 200px;
-  --layout-nav-width-mini: 88px;
-  --layout-nav-height-horizontal: 48px;
-  --layout-header-height: 64px;
-  --layout-multi-tabs-height: 48px;
+	--layout-nav-width: 200px;
+	--layout-nav-width-mini: 88px;
+	--layout-nav-height-horizontal: 48px;
+	--layout-header-height: 64px;
+	--layout-multi-tabs-height: 48px;
+}
+
+@page {
+	size: auto;
+	margin: 8mm;
 }
 
 @media print {
-  html,
-  body {
-    margin: 0 !important;
-    padding: 0 !important;
-    background: #fff !important;
-  }
+	html,
+	body,
+	#root,
+	#root > div,
+	[data-slot="slash-layout-root"],
+	[data-slot="slash-layout-content"],
+	[data-slot="slash-layout-main"] {
+		margin: 0 !important;
+		padding: 0 !important;
+		padding-left: 0 !important;
+		padding-right: 0 !important;
+		padding-top: 0 !important;
+		padding-bottom: 0 !important;
+		background: #fff !important;
+		height: auto !important;
+		min-height: 0 !important;
+		width: 100% !important;
+		max-width: 100% !important;
+		overflow: visible !important;
+		position: static !important;
+		display: block !important;
+	}
 
-  body * {
-    visibility: hidden !important;
-  }
+	body * {
+		visibility: hidden;
+	}
 
-  .invoice-export-preview-page,
-  .invoice-export-preview-page *,
-  .report-print-page,
-  .report-print-page * {
-    visibility: visible !important;
-  }
+	header,
+	nav,
+	aside,
+	.print\:hidden,
+	[data-slot="slash-layout-header"],
+	[data-slot="slash-layout-nav"] {
+		display: none !important;
+	}
 
-  .invoice-export-preview-page {
-    position: absolute !important;
-    inset: 0 !important;
-    display: block !important;
-    height: auto !important;
-    min-height: 0 !important;
-    margin: 0 !important;
-    padding: 0 !important;
-  }
+	.invoice-export-preview-page,
+	.invoice-export-preview-page *,
+	.report-print-page,
+	.report-print-page * {
+		visibility: visible;
+	}
 
-  .invoice-export-preview-page .invoice-export-preview-template {
-    display: block !important;
-    padding: 0 !important;
-  }
+	.invoice-export-preview-page {
+		position: static !important;
+		display: block !important;
+		height: auto !important;
+		min-height: 0 !important;
+		margin: 0 !important;
+		padding: 0 !important;
+		overflow: visible !important;
+	}
 
-  .invoice-export-preview-page .invoice-export-print-target {
-    display: block !important;
-    position: static !important;
-    width: auto !important;
-    max-width: 100% !important;
-    margin: 0 auto !important;
-    padding: 0 !important;
-    border: none !important;
-    box-shadow: none !important;
-    border-radius: 0 !important;
-    transform: none !important;
-    background: #fff !important;
-    break-inside: avoid !important;
-    page-break-inside: avoid !important;
-  }
+	.invoice-export-preview-page .invoice-export-preview-template {
+		display: block !important;
+		padding: 0 !important;
+	}
 
-  .invoice-export-preview-page .invoice-export-print-target table {
-    width: 100% !important;
-    table-layout: fixed !important;
-    break-inside: avoid !important;
-    page-break-inside: avoid !important;
-  }
+	.invoice-export-preview-page .invoice-export-print-target {
+		display: block !important;
+		position: static !important;
+		width: auto !important;
+		max-width: 100% !important;
+		margin: 0 auto !important;
+		padding: 0 !important;
+		border: none !important;
+		box-shadow: none !important;
+		border-radius: 0 !important;
+		transform: none !important;
+		background: #fff !important;
+		overflow: visible !important;
+		break-inside: auto !important;
+		page-break-inside: auto !important;
+	}
 
-  .invoice-export-preview-page .invoice-print-sheet {
-    font-size: 10px !important;
-    line-height: 1.2 !important;
-    color: #111827 !important;
-  }
+	.invoice-export-preview-page .invoice-export-print-target table {
+		width: 100% !important;
+		table-layout: fixed !important;
+		page-break-inside: auto !important;
+		break-inside: auto !important;
+	}
 
-  .invoice-export-preview-page .invoice-print-sheet table {
-    font-size: 10px !important;
-  }
+	.invoice-export-preview-page .invoice-print-sheet {
+		font-size: 10px !important;
+		line-height: 1.2 !important;
+		color: #111827 !important;
+	}
 
-  .invoice-export-preview-page .invoice-print-sheet th,
-  .invoice-export-preview-page .invoice-print-sheet td {
-    border-color: #9ca3af !important;
-    padding: 3px 4px !important;
-    white-space: normal !important;
-    word-break: break-word !important;
-    overflow-wrap: anywhere !important;
-  }
+	.invoice-export-preview-page .invoice-print-sheet table {
+		font-size: 10px !important;
+	}
 
-  .invoice-export-preview-page .invoice-print-sheet .invoice-print-header {
-    margin-bottom: 4px !important;
-  }
+	.invoice-export-preview-page .invoice-print-sheet th,
+	.invoice-export-preview-page .invoice-print-sheet td {
+		border-color: #9ca3af !important;
+		padding: 3px 4px !important;
+		white-space: normal !important;
+		word-break: break-word !important;
+		overflow-wrap: anywhere !important;
+	}
 
-  .report-print-page {
-    position: absolute !important;
-    inset: 0 !important;
-    display: block !important;
-    height: auto !important;
-    min-height: 0 !important;
-    margin: 0 !important;
-    padding: 0 !important;
-  }
+	.invoice-export-preview-page .invoice-print-sheet .invoice-print-header {
+		margin-bottom: 4px !important;
+	}
 
-  .report-print-page .report-print-target {
-    display: block !important;
-    width: 100% !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    border: none !important;
-    box-shadow: none !important;
-    border-radius: 0 !important;
-    background: #fff !important;
-    break-inside: avoid !important;
-    page-break-inside: avoid !important;
-  }
+	.report-print-page {
+		position: static !important;
+		display: block !important;
+		height: auto !important;
+		min-height: 0 !important;
+		width: 100% !important;
+		margin: 0 auto !important;
+		padding: 0 !important;
+		overflow: visible !important;
+	}
 
-  .report-print-page .report-print-target table {
-    width: 100% !important;
-    table-layout: auto !important;
-  }
+	.report-print-page .report-print-target {
+		display: block !important;
+		width: 100% !important;
+		margin: 0 auto !important;
+		padding: 0 !important;
+		border: none !important;
+		box-shadow: none !important;
+		border-radius: 0 !important;
+		background: #fff !important;
+		overflow: visible !important;
+		break-inside: auto !important;
+		page-break-inside: auto !important;
+	}
+
+	.report-print-page .report-print-target table {
+		width: 100% !important;
+		table-layout: fixed !important;
+		page-break-inside: auto !important;
+		break-inside: auto !important;
+	}
+
+	.report-print-page .report-print-target th,
+	.report-print-page .report-print-target td {
+		padding: 2px 3px !important;
+		font-size: 8px !important;
+		line-height: 1.2 !important;
+		overflow: hidden !important;
+		text-overflow: ellipsis !important;
+	}
+
+	.report-print-page thead,
+	.invoice-export-preview-page thead {
+		display: table-header-group !important;
+	}
+
+	.report-print-page tfoot,
+	.invoice-export-preview-page tfoot {
+		display: table-row-group !important;
+	}
+
+	.report-print-page tr,
+	.invoice-export-preview-page tr {
+		page-break-inside: avoid !important;
+		break-inside: avoid !important;
+	}
 }

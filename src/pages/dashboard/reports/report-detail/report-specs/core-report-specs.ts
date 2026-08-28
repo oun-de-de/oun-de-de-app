@@ -1,8 +1,8 @@
+import { REPORT_TITLES } from "../../report-titles";
 import { buildCustomerListRows, buildCycleReportRows } from "../components/report-table-builders";
 import { REPORT_DEFAULT_DATE } from "../constants";
 import { buildCustomerListColumns, buildCycleColumns } from "../report-columns/core-report-columns";
-import { REPORT_FILTERS, type BuildReportRowsParams, type ReportDefinitionMap } from "../report-types";
-import { REPORT_TITLES } from "../../report-titles";
+import { type BuildReportRowsParams, REPORT_FILTERS, type ReportDefinitionMap } from "../report-types";
 
 function buildCycleSummaryRows({ cycles }: BuildReportRowsParams) {
 	return buildCycleReportRows(cycles);

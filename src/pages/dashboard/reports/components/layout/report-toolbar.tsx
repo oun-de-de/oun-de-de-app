@@ -17,7 +17,9 @@ import {
 	SORT_LABELS,
 	type SortMode,
 	TEMPLATE_LABELS,
+	TEXT_SIZE_LABELS,
 	type TemplateMode,
+	type TextSizeMode,
 } from "@/pages/dashboard/invoice/export-preview/constants";
 
 export interface ReportSectionVisibility {
@@ -57,6 +59,8 @@ interface ReportToolbarProps {
 	onOrientationModeChange?: (mode: OrientationMode) => void;
 	sortMode?: SortMode;
 	onSortModeChange?: (mode: SortMode) => void;
+	textSizeMode?: TextSizeMode;
+	onTextSizeModeChange?: (mode: TextSizeMode) => void;
 }
 
 function ReportToolbarComponent({
@@ -81,6 +85,8 @@ function ReportToolbarComponent({
 	onOrientationModeChange,
 	sortMode,
 	onSortModeChange,
+	textSizeMode,
+	onTextSizeModeChange,
 }: ReportToolbarProps) {
 	const [isCustomizeOpen, setIsCustomizeOpen] = React.useState(false);
 	const toggleColumn = React.useCallback(
@@ -205,6 +211,37 @@ function ReportToolbarComponent({
 								</DropdownMenu>
 							)}
 
+							{orientationMode && onOrientationModeChange && (
+								<DropdownMenu>
+									<DropdownMenuTrigger asChild className="border-none">
+										<Button
+											variant="ghost"
+											size="sm"
+											className="h-8 gap-1.5 px-2 text-sky-600 hover:bg-sky-50 hover:text-sky-700"
+										>
+											<Icon
+												icon={
+													orientationMode === "landscape" ? "mdi:phone-rotate-landscape" : "mdi:phone-rotate-portrait"
+												}
+												size="1.2em"
+											/>
+											<span className="text-xs font-medium">Orientation</span>
+										</Button>
+									</DropdownMenuTrigger>
+									<DropdownMenuContent align="start" className="w-40">
+										{(Object.keys(ORIENTATION_LABELS) as OrientationMode[]).map((mode) => (
+											<DropdownMenuItem key={mode} onClick={() => onOrientationModeChange(mode)}>
+												<Icon
+													icon={orientationMode === mode ? "mdi:radiobox-marked" : "mdi:radiobox-blank"}
+													size="1em"
+												/>
+												{ORIENTATION_LABELS[mode]}
+											</DropdownMenuItem>
+										))}
+									</DropdownMenuContent>
+								</DropdownMenu>
+							)}
+
 							{enableColumnCustomization && (
 								<DropdownMenu>
 									<DropdownMenuTrigger asChild className="border-none">
@@ -254,15 +291,38 @@ function ReportToolbarComponent({
 								</DropdownMenu>
 							)}
 
-							<Button
-								type="button"
-								variant="ghost"
-								size="sm"
-								className="h-8 gap-1.5 px-2 text-sky-600 hover:bg-sky-50 hover:text-sky-700"
-							>
-								<Icon icon="mdi:format-size" size="1.2em" />
-								<span className="text-xs font-medium">Text Size</span>
-							</Button>
+							{textSizeMode && onTextSizeModeChange ? (
+								<DropdownMenu>
+									<DropdownMenuTrigger asChild className="border-none">
+										<Button
+											variant="ghost"
+											size="sm"
+											className="h-8 gap-1.5 px-2 text-sky-600 hover:bg-sky-50 hover:text-sky-700"
+										>
+											<Icon icon="mdi:format-size" size="1.2em" />
+											<span className="text-xs font-medium">Text Size</span>
+										</Button>
+									</DropdownMenuTrigger>
+									<DropdownMenuContent align="start" className="w-36">
+										{(Object.keys(TEXT_SIZE_LABELS) as TextSizeMode[]).map((mode) => (
+											<DropdownMenuItem key={mode} onClick={() => onTextSizeModeChange(mode)}>
+												<Icon icon={textSizeMode === mode ? "mdi:radiobox-marked" : "mdi:radiobox-blank"} size="1em" />
+												{TEXT_SIZE_LABELS[mode]}
+											</DropdownMenuItem>
+										))}
+									</DropdownMenuContent>
+								</DropdownMenu>
+							) : (
+								<Button
+									type="button"
+									variant="ghost"
+									size="sm"
+									className="h-8 gap-1.5 px-2 text-sky-600 hover:bg-sky-50 hover:text-sky-700"
+								>
+									<Icon icon="mdi:format-size" size="1.2em" />
+									<span className="text-xs font-medium">Text Size</span>
+								</Button>
+							)}
 						</>
 					)}
 				</div>
@@ -407,6 +467,22 @@ function ReportToolbarComponent({
 											label={SORT_LABELS[mode]}
 											active={sortMode === mode}
 											onClick={() => onSortModeChange(mode)}
+										/>
+									))}
+								</div>
+							</div>
+						)}
+
+						{textSizeMode && onTextSizeModeChange && (
+							<div className="space-y-2">
+								<div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Text Size</div>
+								<div className="flex flex-wrap gap-2">
+									{(Object.keys(TEXT_SIZE_LABELS) as TextSizeMode[]).map((mode) => (
+										<ToolbarToggleButton
+											key={mode}
+											label={TEXT_SIZE_LABELS[mode]}
+											active={textSizeMode === mode}
+											onClick={() => onTextSizeModeChange(mode)}
 										/>
 									))}
 								</div>

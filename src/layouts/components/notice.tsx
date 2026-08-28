@@ -1,7 +1,7 @@
+import styled from "styled-components";
 import { Icon } from "@/core/components/icon";
 import { Badge } from "@/core/ui/badge";
 import { Button } from "@/core/ui/button";
-import styled from "styled-components";
 
 export default function NoticeButton() {
 	const count = 4;

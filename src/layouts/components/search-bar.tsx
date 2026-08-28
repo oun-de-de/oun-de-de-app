@@ -1,6 +1,7 @@
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useBoolean } from "react-use";
 import { Icon } from "@/core/components/icon";
 import useLocale from "@/core/locales/use-locale";
-import { useRouter } from "@/routes/hooks";
 import { Badge } from "@/core/ui/badge";
 import { Button } from "@/core/ui/button";
 import {
@@ -13,8 +14,7 @@ import {
 } from "@/core/ui/command";
 import { ScrollArea } from "@/core/ui/scroll-area";
 import { Text } from "@/core/ui/typography";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { useBoolean } from "react-use";
+import { useRouter } from "@/routes/hooks";
 import { useFilteredNavData } from "../dashboard/nav";
 
 interface SearchItem {
@@ -33,7 +33,7 @@ const HighlightText = ({ text, query }: { text: string; query: string }) => {
 		<>
 			{parts.map((part, i) =>
 				part.toLowerCase() === query.toLowerCase() ? (
-					// biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
+					// biome-ignore lint/suspicious/noArrayIndexKey: parts from regex match have no unique stable ID
 					<span key={i} className="text-primary">
 						{part}
 					</span>

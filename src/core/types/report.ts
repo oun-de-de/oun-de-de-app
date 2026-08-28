@@ -53,3 +53,65 @@ export interface MonthlyReportLine {
 export interface MonthlyReportDetailsResponse {
 	lines?: MonthlyReportLine[] | null;
 }
+
+export interface CashTransactionReportLine {
+	no?: number | null;
+	date?: string | null;
+	refNo?: string | null;
+	type?: "DEBIT" | "CREDIT" | null;
+	name?: string | null;
+	memo?: string | null;
+	debit?: number | null;
+	credit?: number | null;
+	balance?: number | null;
+}
+
+export interface CashTransactionReportResponse {
+	initCashOnHand?: number | null;
+	lines?: CashTransactionReportLine[] | null;
+}
+
+export interface CustomerInvoiceLine {
+	date?: string | null;
+	refNo?: string | null;
+	term?: number | null;
+	startDate?: string | null;
+	dueDate?: string | null;
+	amount?: number | null;
+	total?: number | null;
+	remaining?: number | null;
+}
+
+export interface CustomerPaymentLine {
+	date?: string | null;
+	refNo?: string | null;
+	openAmount?: number | null;
+	received?: number | null;
+}
+
+export interface CustomerTransactionDetailGroup {
+	no?: number | null;
+	customerName?: string | null;
+	invoices?: CustomerInvoiceLine[] | null;
+	payments?: CustomerPaymentLine[] | null;
+}
+
+export interface OpenInvoiceReportLine {
+	date?: string | null;
+	refNo?: string | null;
+	originalAmount?: number | null;
+}
+
+export interface OpenInvoiceCycleGroup {
+	cycleStartDate?: string | null;
+	cycleEndDate?: string | null;
+	totalOriginalAmount?: number | null;
+	totalPaidAmount?: number | null;
+	balance?: number | null;
+	invoices?: OpenInvoiceReportLine[] | null;
+}
+
+export interface OpenInvoiceCustomerGroup {
+	customerName?: string | null;
+	cycles?: OpenInvoiceCycleGroup[] | null;
+}

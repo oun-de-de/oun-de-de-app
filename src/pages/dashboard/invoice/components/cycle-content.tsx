@@ -135,7 +135,9 @@ export function CycleContent({
 	}
 
 	return (
-		<div className={`flex h-full min-h-0 w-full flex-1 flex-col gap-3 overflow-hidden ${isLoading ? "opacity-60 pointer-events-none" : ""}`}>
+		<div
+			className={`flex h-full min-h-0 w-full flex-1 flex-col gap-3 overflow-hidden ${isLoading ? "opacity-60 pointer-events-none" : ""}`}
+		>
 			{/* Header */}
 			<div className="shrink-0 flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-2">
 				<div className="flex items-center gap-2">

@@ -14,8 +14,8 @@ export const navItemStyles: NavItemStyles = {
 	icon: {
 		display: "inline-flex",
 		flexShrink: 0,
-		width: 22,
-		height: 22,
+		width: 20,
+		height: 20,
 		justifyContent: "center",
 		alignItems: "center",
 	},
@@ -31,10 +31,10 @@ export const navItemStyles: NavItemStyles = {
 		WebkitLineClamp: 1,
 		overflow: "hidden",
 		textOverflow: "ellipsis",
-		fontSize: "0.875rem",
+		fontSize: "0.75rem",
 		fontWeight: 500,
 		textAlign: "left",
-		lineHeight: 18 / 12,
+		lineHeight: 1.2,
 	},
 	caption: {
 		display: "-webkit-box",

@@ -15,7 +15,9 @@ import {
 import type { DailyIncomePosStore } from "../stores/income-pos/daily-income-pos-store";
 
 export default function DashboardIncomePos() {
-	const repo = Repository.get<DashboardRepository>(DashboardRepositoryImpl, { instanceName: "Dashboard-Income-Pos" });
+	const repo = Repository.get<DashboardRepository>(DashboardRepositoryImpl, {
+		instanceName: "Dashboard-Income-Pos",
+	});
 
 	const filter = useObservable(repo.selectedFilter$, repo.getSelectedFilter());
 
@@ -33,7 +35,7 @@ export default function DashboardIncomePos() {
 			builder={(state) => {
 				if (isErrorState(state)) {
 					return (
-						<StyledChartWrapper className="flex h-[320px] items-center justify-center">
+						<StyledChartWrapper className="flex h-[240px] items-center justify-center">
 							<span className="text-sm text-red-500">{(state as ErrorState).error.message}</span>
 						</StyledChartWrapper>
 					);
@@ -50,7 +52,7 @@ export default function DashboardIncomePos() {
 				const options: ApexCharts.ApexOptions = {
 					chart: {
 						type: "bar",
-						height: 350,
+						height: 270,
 						toolbar: { show: false },
 						fontFamily: "inherit",
 					},
@@ -131,7 +133,7 @@ export default function DashboardIncomePos() {
 
 				return (
 					<StyledChartWrapper className="-mx-3 -mb-3">
-						<StyledReactApexChart options={options} series={series} type="bar" height={320} width="100%" />
+						<StyledReactApexChart options={options} series={series} type="bar" height={240} width="100%" />
 					</StyledChartWrapper>
 				);
 			}}
@@ -141,7 +143,8 @@ export default function DashboardIncomePos() {
 
 //#region Styled Components
 const StyledChartWrapper = styled.div`
-  border-top: 1px solid ${({ theme }) => rgbAlpha(theme.colors.palette.gray[400], 0.4)};
+  border-top: 1px solid
+    ${({ theme }) => rgbAlpha(theme.colors.palette.gray[400], 0.4)};
 `;
 const StyledReactApexChart = styled(ReactApexChart)`
   .apexcharts-legend {

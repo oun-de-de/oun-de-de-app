@@ -9,12 +9,6 @@ import type {
 	TransactionRow,
 	VendorTransactionRow,
 } from "@/core/types/common";
-import { REPORT_TITLES } from "@/pages/dashboard/reports/report-titles";
-import type { ReportSectionData } from "@/pages/dashboard/reports/components/report-section";
-
-export interface MockReportSection extends ReportSectionData {
-	tab: string;
-}
 
 export const customerSummaryCards: SummaryStatCardData[] = [
 	{ label: "Deposit Balance", value: 0, color: "bg-sky-500", icon: "mdi:cash-plus" },
@@ -531,44 +525,32 @@ export const accountingRows: AccountingRow[] = [
 
 export const reportTabs = ["Customer", "Inventory", "Accounting"];
 
-export const reportSections: MockReportSection[] = [
+export const reportSections = [
 	// ── Customer tab ──────────────────────────────────
 	{
 		tab: "Customer",
 		title: "Cash Sale/Invoice",
 		icon: "mdi:cash",
 		items: [
-			{ slug: "sale-detail-by-customer", label: REPORT_TITLES["sale-detail-by-customer"], favorite: false },
-			{
-				slug: "open-invoice-detail-by-customer",
-				label: REPORT_TITLES["open-invoice-detail-by-customer"],
-				favorite: true,
-			},
-			{
-				slug: "open-invoice-on-period-by-group",
-				label: REPORT_TITLES["open-invoice-on-period-by-group"],
-				favorite: false,
-			},
+			{ slug: "sale-detail-by-customer", label: "Sale Detail By Customer", favorite: false },
+			{ slug: "open-invoice-detail-by-customer", label: "Open Invoice Detail Report", favorite: true },
+			{ slug: "open-invoice-on-period-by-group", label: "Open Invoice By Period Group", favorite: false },
 		],
 	},
 	{
 		tab: "Customer",
 		title: "Receipt",
 		icon: "mdi:receipt-text-outline",
-		items: [{ slug: "receipt-detail-by-customer", label: REPORT_TITLES["receipt-detail-by-customer"], favorite: false }],
+		items: [{ slug: "receipt-detail-by-customer", label: "Receipt Detail By Customer", favorite: false }],
 	},
 	{
 		tab: "Customer",
 		title: "List",
 		icon: "mdi:format-list-bulleted",
 		items: [
-			{ slug: "customer-list", label: REPORT_TITLES["customer-list"], favorite: false },
-			{ slug: "customer-transaction", label: REPORT_TITLES["customer-transaction"], favorite: false },
-			{
-				slug: "customer-transaction-detail-by-type",
-				label: REPORT_TITLES["customer-transaction-detail-by-type"],
-				favorite: true,
-			},
+			{ slug: "customer-list", label: "Customer List", favorite: false },
+			{ slug: "customer-transaction", label: "Customer Loan Register", favorite: false },
+			{ slug: "customer-transaction-detail-by-type", label: "Customer Transaction Detail By Type", favorite: true },
 		],
 	},
 	// ── Inventory tab ────────────────────────────────
@@ -577,15 +559,15 @@ export const reportSections: MockReportSection[] = [
 		title: "Stock",
 		icon: "mdi:package-variant-closed",
 		items: [
-			{ slug: "inventory-valuation-summary", label: REPORT_TITLES["inventory-valuation-summary"], favorite: false },
-			{ slug: "company-asset", label: REPORT_TITLES["company-asset"], favorite: false },
+			{ slug: "inventory-valuation-summary", label: "Inventory Stock Report", favorite: false },
+			{ slug: "company-asset", label: "Company Asset Register", favorite: false },
 		],
 	},
 	{
 		tab: "Inventory",
 		title: "List",
 		icon: "mdi:format-list-bulleted",
-		items: [{ slug: "product-list", label: REPORT_TITLES["product-list"], favorite: false }],
+		items: [{ slug: "product-list", label: "Product List", favorite: false }],
 	},
 	// ── Accounting tab ───────────────────────────────
 	{
@@ -593,8 +575,9 @@ export const reportSections: MockReportSection[] = [
 		title: "Ledger",
 		icon: "mdi:book-open-page-variant-outline",
 		items: [
-			{ slug: "general-ledger", label: REPORT_TITLES["general-ledger"], favorite: false },
-			// { slug: "trial-balance", label: "Trial Balance", favorite: false },
+			{ slug: "cash-transaction-report", label: "Cash Transaction Report", favorite: false },
+			{ slug: "general-ledger", label: "General Ledger", favorite: false },
+			{ slug: "trial-balance", label: "Trial Balance", favorite: false },
 		],
 	},
 	{
@@ -602,9 +585,9 @@ export const reportSections: MockReportSection[] = [
 		title: "Financial Statements",
 		icon: "mdi:chart-bar",
 		items: [
-			{ slug: "profit-and-loss", label: REPORT_TITLES["profit-and-loss"], favorite: false },
-			{ slug: "balance-sheet", label: REPORT_TITLES["balance-sheet"], favorite: false },
-			{ slug: "daily-report", label: REPORT_TITLES["daily-report"], favorite: false },
+			{ slug: "profit-and-loss", label: "Monthly Revenue & Expense", favorite: false },
+			{ slug: "balance-sheet", label: "Income & Expense Ledger", favorite: false },
+			{ slug: "daily-report", label: "Daily Report", favorite: false },
 		],
 	},
 ];

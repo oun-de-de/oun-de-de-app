@@ -1,10 +1,10 @@
+import type { ReportDefinition, ReportDefinitionMap } from "../report-types";
 import { ACCOUNTING_REPORT_SPECS } from "./accounting-report-specs";
 import { CORE_REPORT_SPECS } from "./core-report-specs";
 import { DAILY_REPORT_SPECS } from "./daily-report-specs";
 import { INVENTORY_REPORT_SPECS } from "./inventory-report-specs";
 import { INVOICE_REPORT_SPECS } from "./invoice-report-specs";
 import { LOAN_REPORT_SPECS } from "./loan-report-specs";
-import type { ReportDefinition, ReportDefinitionMap } from "../report-types";
 
 export * from "./accounting-report-specs";
 export * from "./core-report-specs";

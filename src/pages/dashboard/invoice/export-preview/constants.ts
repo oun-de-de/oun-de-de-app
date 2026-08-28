@@ -67,3 +67,22 @@ export function getTemplateClassName(templateMode: TemplateMode): string {
 			return "rounded-t-none gap-6 p-6";
 	}
 }
+
+export type TextSizeMode = "small" | "normal" | "large";
+
+export const TEXT_SIZE_LABELS: Record<TextSizeMode, string> = {
+	small: "Small",
+	normal: "Normal",
+	large: "Large",
+};
+
+export function getTextSizeClassName(textSizeMode: TextSizeMode = "normal"): string {
+	switch (textSizeMode) {
+		case "small":
+			return "text-xs [&_table]:text-[11px] [&_th]:text-[11px] [&_td]:text-[11px] [&_td]:py-1 [&_th]:py-1.5";
+		case "large":
+			return "text-base [&_table]:text-sm [&_th]:text-sm [&_td]:text-sm [&_td]:py-2.5 [&_th]:py-3";
+		default:
+			return "text-sm [&_table]:text-xs [&_th]:text-xs [&_td]:text-xs";
+	}
+}

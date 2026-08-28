@@ -14,9 +14,9 @@ const baseNavItemStyles = `
 	align-items: center;
 	align-content: center;
 	border-radius: 0.375rem;
-	padding: 0.375rem 0.5rem;
-	font-size: 0.875rem;
-	min-height: 44px;
+	padding: 0.25rem 0.375rem;
+	font-size: 0.75rem;
+	min-height: 34px;
 	transition: all 0.3s ease-in-out;
 `;
 
@@ -24,7 +24,7 @@ export const StyledNavItem = styled.div<StyledNavItemProps>`
 	${baseNavItemStyles}
 	color: ${({ theme, $active, $disabled, $depth }) => {
 		if ($disabled) return theme.colors.text.disabled;
-		if ($active && $depth === 1) return theme.colors.common.black;
+		if ($active && $depth === 1) return theme.colors.common.white;
 		return theme.colors.common.white;
 	}};
 	cursor: ${({ $disabled }) => ($disabled ? "not-allowed" : "pointer")};
@@ -32,14 +32,14 @@ export const StyledNavItem = styled.div<StyledNavItemProps>`
 	&:hover {
 		background-color: ${({ theme, $disabled, $active, $depth }) => {
 			if ($disabled) return "transparent";
-			if ($active && $depth === 1) return theme.colors.common.white;
+			if ($active && $depth === 1) return "#2185d0";
 			if ($active && $depth !== 1) return theme.colors.action.hover;
 			return theme.colors.action.hover;
 		}};
 	}
 
 	background-color: ${({ theme, $active, $depth }) => {
-		if ($active && $depth === 1) return theme.colors.common.white;
+		if ($active && $depth === 1) return "#2185d0";
 		if ($active && $depth !== 1) return theme.colors.action.hover;
 		return "transparent";
 	}};
@@ -51,13 +51,13 @@ export const StyledNavItemLink = styled(RouterLink as any).withConfig({
 	${baseNavItemStyles}
 	color: ${({ theme, $active, $disabled, $depth }) => {
 		if ($disabled) return theme.colors.text.disabled;
-		if ($active && $depth === 1) return theme.colors.common.black;
+		if ($active && $depth === 1) return theme.colors.common.white;
 		return theme.colors.common.white;
 	}} !important;
 	cursor: ${({ $disabled }) => ($disabled ? "not-allowed" : "pointer")};
 	text-decoration: none !important;
 	background-color: ${({ theme, $active, $depth }) => {
-		if ($active && $depth === 1) return theme.colors.common.white;
+		if ($active && $depth === 1) return "#2185d0";
 		if ($active && $depth !== 1) return theme.colors.action.hover;
 		return "transparent";
 	}} !important;
@@ -66,12 +66,12 @@ export const StyledNavItemLink = styled(RouterLink as any).withConfig({
 	&:hover {
 		color: ${({ theme, $active, $disabled, $depth }) => {
 			if ($disabled) return theme.colors.text.disabled;
-			if ($active && $depth === 1) return theme.colors.common.black;
+			if ($active && $depth === 1) return theme.colors.common.white;
 			return theme.colors.common.white;
 		}} !important;
 		background-color: ${({ theme, $disabled, $active, $depth }) => {
 			if ($disabled) return "transparent";
-			if ($active && $depth === 1) return theme.colors.common.white;
+			if ($active && $depth === 1) return "#2185d0";
 			if ($active && $depth !== 1) return theme.colors.common.white;
 			return theme.colors.action.hover;
 		}} !important;
@@ -83,7 +83,7 @@ export const StyledNavItemLink = styled(RouterLink as any).withConfig({
 	&:focus {
 		color: ${({ theme, $active, $disabled, $depth }) => {
 			if ($disabled) return theme.colors.text.disabled;
-			if ($active && $depth === 1) return theme.colors.common.black;
+			if ($active && $depth === 1) return theme.colors.common.white;
 			return theme.colors.common.white;
 		}} !important;
 		text-decoration: none !important;

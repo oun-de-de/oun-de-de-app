@@ -1,6 +1,6 @@
 import type { InventoryItem } from "@/core/types/inventory";
-import type { InventoryStockReportLine } from "@/core/types/report";
 import type { Product } from "@/core/types/product";
+import type { InventoryStockReportLine } from "@/core/types/report";
 import { formatFlexibleDisplayDate, parseFlexibleDateToUtcTime } from "@/core/utils/date-display";
 import { formatNumber } from "@/core/utils/formatters";
 import type { ReportTemplateRow } from "../../../components/layout/report-template-table";

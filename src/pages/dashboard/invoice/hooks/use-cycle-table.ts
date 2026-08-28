@@ -116,12 +116,9 @@ export function useCycleTable(customerId: string | null, requireCustomer = false
 	}, [currentPage, isSearching, pageSize, query.data?.list, searchedCycles]);
 	const summarySourceCycles = isSearching ? searchedCycles : (query.data?.list ?? []);
 
-	const onPageChange = useCallback(
-		(value: number) => {
-			setPage(value);
-		},
-		[],
-	);
+	const onPageChange = useCallback((value: number) => {
+		setPage(value);
+	}, []);
 	const onPageSizeChange = useCallback((value: number) => {
 		setPageSize(value);
 		setPage(DEFAULT_PAGE);

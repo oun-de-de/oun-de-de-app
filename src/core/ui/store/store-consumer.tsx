@@ -1,6 +1,6 @@
-import { useRef, useMemo, ReactNode } from "react";
+import { type ReactNode, useEffect, useMemo, useRef } from "react";
+import type { BaseStore } from "../../interfaces/base-store";
 import type { createBoundStore } from "../../utils/create-bound-store";
-import { BaseStore } from "../../interfaces/base-store";
 
 /**
  * Builder callback that receives state and returns ReactNode
@@ -64,40 +64,30 @@ export function StoreConsumer<Store extends BaseStore<Store["state"], Store["act
 	listenWhen,
 }: StoreConsumerProps<Store>) {
 	const state = store.useState();
-	const prevStateRef = useRef<Store["state"]>(state);
+	const prevBuildStateRef = useRef<Store["state"]>(state);
+	const prevListenStateRef = useRef<Store["state"]>(state);
 	const builtUIRef = useRef<ReactNode>(null);
 
+	// Rebuild UI if needed (store-builder behavior) — pure, no side effects here.
 	const builtUI = useMemo(() => {
-		let shouldBuild = true;
-		let shouldListen = true;
+		const shouldBuild = buildWhen ? buildWhen(prevBuildStateRef.current, state) : true;
+		prevBuildStateRef.current = state;
 
-		// Check if should rebuild UI (from store-builder.tsx)
-		if (buildWhen) {
-			shouldBuild = buildWhen(prevStateRef.current, state);
-		}
-
-		// Check if should call listener (from store-listener.tsx)
-		if (listenWhen) {
-			shouldListen = listenWhen(prevStateRef.current, state);
-		}
-		// Call listener if needed (store-listener behavior)
-		if (shouldListen) {
-			listener(state, prevStateRef.current);
-		}
-
-		// Update ref after checks
-		prevStateRef.current = state;
-
-		// Rebuild UI if needed (store-builder behavior)
 		if (shouldBuild) {
-			const newUI = builder(state);
-			builtUIRef.current = newUI;
-			return newUI;
+			builtUIRef.current = builder(state);
 		}
-
-		// Return cached UI if shouldn't rebuild
 		return builtUIRef.current;
-	}, [state, builder, listener, buildWhen, listenWhen]);
+	}, [state, builder, buildWhen]);
+
+	// Call listener if needed (store-listener behavior) — side effect runs after commit,
+	// not during render, so StrictMode double-invoke can't double-fire loadingOverlay etc.
+	useEffect(() => {
+		const shouldListen = listenWhen ? listenWhen(prevListenStateRef.current, state) : true;
+		if (shouldListen) {
+			listener(state, prevListenStateRef.current);
+		}
+		prevListenStateRef.current = state;
+	}, [state, listener, listenWhen]);
 
 	return builtUI;
 }

@@ -60,7 +60,7 @@ function Calendar({
 	className,
 	classNames,
 	showOutsideDays = true,
-	captionLayout = "buttons",
+	captionLayout = "dropdown",
 	...props
 }: CalendarProps & {
 	captionLayout?: "dropdown" | "buttons" | "dropdown-buttons";
@@ -82,7 +82,7 @@ function Calendar({
 						months: "flex flex-col sm:flex-row gap-2 justify-center",
 						month: "flex flex-col gap-3 items-center",
 						caption: "flex items-center justify-center w-full pb-2 gap-3",
-						caption_label: "text-sm font-semibold text-slate-700 min-w-[8rem] text-center",
+						caption_label: "hidden",
 						nav: "flex items-center gap-1",
 						nav_button: cn(
 							buttonVariants({ variant: "outline" }),

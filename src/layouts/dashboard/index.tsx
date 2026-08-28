@@ -75,7 +75,8 @@ function PcVerticalLayout() {
 			</NavLayoutProvider>
 
 			<div
-				className="relative flex h-screen w-full flex-col overflow-hidden transition-[padding] duration-300 ease-in-out print:h-auto print:overflow-visible"
+				data-slot="slash-layout-content"
+				className="relative w-full h-screen overflow-hidden flex flex-col transition-[padding] duration-300 ease-in-out print:h-auto print:overflow-visible print:p-0 print:static print:block"
 				style={{
 					paddingLeft: mainPaddingLeft,
 				}}
@@ -95,17 +96,17 @@ function PcVerticalLayout() {
 
 //#region Styled Components
 const StyledToggleButton = styled(Button)`
-	background-color: ${({ theme }) => theme.colors.common.white};
-	color: ${({ theme }) => theme.colors.common.black};
+  background-color: ${({ theme }) => theme.colors.common.white};
+  color: ${({ theme }) => theme.colors.common.black};
 
-	&:hover {
-		background-color: ${({ theme }) => theme.colors.common.white};
-		color: ${({ theme }) => theme.colors.common.black};
-	}
+  &:hover {
+    background-color: ${({ theme }) => theme.colors.common.white};
+    color: ${({ theme }) => theme.colors.common.black};
+  }
 
-	svg {
-		fill: ${({ theme }) => theme.colors.common.black};
-		color: ${({ theme }) => theme.colors.common.black};
-	}
+  svg {
+    fill: ${({ theme }) => theme.colors.common.black};
+    color: ${({ theme }) => theme.colors.common.black};
+  }
 `;
 //#endregion

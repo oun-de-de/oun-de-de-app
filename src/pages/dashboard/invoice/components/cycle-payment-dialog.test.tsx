@@ -35,9 +35,15 @@ vi.mock("../hooks/use-cycle-payments", () => ({
 }));
 
 vi.mock("../../accounting/components/form-date-time-local-picker", () => ({
-	FormDateTimeLocalPicker: ({ control, name, disabled }: { control: { register: (fieldName: string) => Record<string, unknown> }; name: string; disabled?: boolean }) => (
-		<input aria-label="Payment Date Time" disabled={disabled} {...control.register(name)} />
-	),
+	FormDateTimeLocalPicker: ({
+		control,
+		name,
+		disabled,
+	}: {
+		control: { register: (fieldName: string) => Record<string, unknown> };
+		name: string;
+		disabled?: boolean;
+	}) => <input aria-label="Payment Date Time" disabled={disabled} {...control.register(name)} />,
 }));
 
 vi.mock("@/core/api/services/cycle-service", () => ({
@@ -90,9 +96,7 @@ function renderDialog(props?: {
 	isCreatingPayment = props?.isPending ?? false;
 	isConvertingToLoan = props?.isConverting ?? false;
 	createPaymentMock.mockImplementation(props?.createPaymentImpl ?? vi.fn().mockResolvedValue(undefined));
-	convertToLoanMock.mockImplementation(
-		props?.convertToLoanImpl ?? vi.fn().mockResolvedValue({ id: "loan-1" }),
-	);
+	convertToLoanMock.mockImplementation(props?.convertToLoanImpl ?? vi.fn().mockResolvedValue({ id: "loan-1" }));
 
 	function TestHarness() {
 		const [open, setOpen] = useState(true);

@@ -1,6 +1,20 @@
 import type { ReportTemplateColumn } from "../../components/layout/report-template-table";
 import { buildSizedColumns } from "../report-column-helpers";
 
+export function buildCashTransactionColumns(): ReportTemplateColumn[] {
+	return buildSizedColumns([
+		["no", "No", "w-[5%]", "center"],
+		["date", "Date", "w-[11%]", "center"],
+		["refNo", "Ref No.", "w-[15%]"],
+		["type", "TYPE", "w-[10%]", "center"],
+		["name", "NAME", "w-[16%]"],
+		["memo", "MEMO", "w-[18%]"],
+		["debit", "DEBIT", "w-[11%]", "right"],
+		["credit", "CREDIT", "w-[11%]", "right"],
+		["balance", "BALANCE", "w-[13%]", "right"],
+	]);
+}
+
 export function buildLedgerColumns(): ReportTemplateColumn[] {
 	return buildSizedColumns([
 		["date", "DATE", "w-[10%]", "center"],
