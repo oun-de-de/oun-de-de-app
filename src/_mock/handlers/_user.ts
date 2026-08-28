@@ -1,8 +1,8 @@
-import { ResultStatus } from "@/core/types/enum";
 import { faker } from "@faker-js/faker";
-import { http, HttpResponse } from "msw";
-import { DB_USER } from "../assets_backup";
+import { HttpResponse, http } from "msw";
 import { UserApi } from "@/core/api/services/userService";
+import { ResultStatus } from "@/core/types/enum";
+import { DB_USER } from "../assets_backup";
 
 // Accept both /api/auth/... and /api/v1/auth/... (optional version segment)
 const signIn = http.post(new RegExp(`/api/v1${UserApi.SignIn}`), async () => {
@@ -52,18 +52,4 @@ const signOut = http.post(new RegExp(`/api/v1${UserApi.Logout}`), async ({ reque
 	});
 });
 
-const userList = http.get(new RegExp(`/api/v1${UserApi.User}$`), async () => {
-	return HttpResponse.json(
-		Array.from({ length: 10 }).map(() => ({
-			fullname: faker.person.fullName(),
-			email: faker.internet.email(),
-			avatar: faker.image.avatarGitHub(),
-			address: faker.location.streetAddress(),
-		})),
-		{
-			status: 200,
-		},
-	);
-});
-
-export { signIn, signOut, refresh, userList };
+export { signIn, signOut, refresh };

@@ -6,6 +6,7 @@ export type SaleProduct = {
 	price: number;
 	weight?: number;
 	amount: number;
+	qty?: number;
 	currency?: string;
 	imageUrl?: string;
 

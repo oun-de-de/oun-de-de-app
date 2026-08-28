@@ -1,6 +1,6 @@
 import { CalendarDays, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router";
+import { Link, useLocation, useNavigate } from "react-router";
 import { toast } from "sonner";
 import { BackButton, SplitButton } from "@/core/components/common";
 import { loadingOverlay } from "@/core/components/loading/controllers/loading-overlay-controller";
@@ -28,7 +28,10 @@ import { getChartAccountAccountTypeId } from "@/pages/dashboard/accounting/utils
 import { useGetCurrencyList } from "@/pages/dashboard/settings/hooks/use-settings";
 import { useCreateCashTransaction } from "../hooks/use-create-cash-transaction";
 
-const CASH_TRANSACTION_TYPE_OPTIONS: { value: CashTransactionType; label: string }[] = [
+const CASH_TRANSACTION_TYPE_OPTIONS: {
+	value: CashTransactionType;
+	label: string;
+}[] = [
 	{ value: "DEBIT", label: "Debit" },
 	{ value: "CREDIT", label: "Credit" },
 ];
@@ -70,6 +73,7 @@ function buildLineGroups(fromLines: TransactionLine[], toLines: TransactionLine[
 
 export default function CreateAccountingEntryPage() {
 	const navigate = useNavigate();
+	const isJournal = useLocation().pathname.endsWith("/create-journal");
 	const { chartAccounts, chartAccountOptions, customerOptions, employeeOptions, isLoading, journalClassOptions } =
 		useAccountingReferenceData({
 			accountTypesEnabled: false,
@@ -94,6 +98,9 @@ export default function CreateAccountingEntryPage() {
 		() => activeLines.reduce((sum, line) => sum + (Number(line.amount) || 0), 0),
 		[activeLines],
 	);
+	const fromTotal = useMemo(() => fromLines.reduce((sum, line) => sum + (Number(line.amount) || 0), 0), [fromLines]);
+	const toTotal = useMemo(() => toLines.reduce((sum, line) => sum + (Number(line.amount) || 0), 0), [toLines]);
+	const formText = isJournal ? ACCOUNTING_DRAFT_FORM_TEXT.journal : ACCOUNTING_DRAFT_FORM_TEXT.transaction;
 	const displayedDate = useMemo(() => formatLocalDateTime(date), [date]);
 	const chartAccountMap = useMemo(() => new Map(chartAccounts.map((item) => [item.id, item])), [chartAccounts]);
 	const currencyOptions = useMemo(() => currencies.map((item) => ({ value: item.id, label: item.name })), [currencies]);
@@ -157,6 +164,11 @@ export default function CreateAccountingEntryPage() {
 			return null;
 		}
 
+		if (isJournal && fromTotal !== toTotal) {
+			toast.error("Debit and credit totals must balance");
+			return null;
+		}
+
 		const details: CreateCashTransactionRequest["cashTransactionDetails"] = [];
 
 		for (const group of lineGroups) {
@@ -211,9 +223,9 @@ export default function CreateAccountingEntryPage() {
 		if (!payload) return;
 
 		try {
-			loadingOverlay.show("Processing transaction... Please wait.");
+			loadingOverlay.show(isJournal ? "Processing journal... Please wait." : "Processing transaction... Please wait.");
 			await createCashTransaction(payload);
-			toast.success(ACCOUNTING_DRAFT_FORM_TEXT.transaction.successMessage);
+			toast.success(formText.successMessage);
 			if (mode === "close") {
 				navigate("/dashboard/accounting");
 				return;
@@ -231,20 +243,16 @@ export default function CreateAccountingEntryPage() {
 		<div className="flex h-full flex-col gap-4 p-3 md:p-4">
 			<div className="flex items-center gap-3 pb-2">
 				<BackButton onClick={() => navigate("/dashboard/accounting")} />
-				<span className="text-base font-semibold text-slate-700">
-					{ACCOUNTING_DRAFT_FORM_TEXT.transaction.pageTitle}
-				</span>
+				<span className="text-base font-semibold text-slate-700">{formText.pageTitle}</span>
 			</div>
 
 			<Card>
 				<CardHeader className="flex justify-start items-end-safe border-b">
-					<CardTitle className="font-semibold text-slate-700 px-2">
-						{ACCOUNTING_DRAFT_FORM_TEXT.transaction.cardTitle}
-					</CardTitle>
+					<CardTitle className="font-semibold text-slate-700 px-2">{formText.cardTitle}</CardTitle>
 				</CardHeader>
 				<CardContent className="space-y-4 px-4 py-4">
 					<div className="rounded-md border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-900">
-						{ACCOUNTING_DRAFT_FORM_TEXT.transaction.notice}
+						{formText.notice}
 					</div>
 					<div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-6">
 						<div className="space-y-4">
@@ -477,9 +485,13 @@ export default function CreateAccountingEntryPage() {
 							/>
 							<div className="flex min-w-[240px] items-center justify-between rounded-md border bg-white px-4 py-3">
 								<span className="text-base font-semibold text-slate-700">
-									Total {activeEntryTab === "from" ? "(From)" : "(To)"}:
+									{isJournal
+										? `Debit ${formatNumber(fromTotal)} / Credit ${formatNumber(toTotal)}`
+										: `Total ${activeEntryTab === "from" ? "(From)" : "(To)"}:`}
 								</span>
-								<span className="text-lg font-semibold text-slate-900">{formatNumber(totalAmount)} ៛</span>
+								<span className="text-lg font-semibold text-slate-900">
+									{isJournal ? (fromTotal === toTotal ? "Balanced" : "Unbalanced") : `${formatNumber(totalAmount)} ៛`}
+								</span>
 							</div>
 						</div>
 					</div>
@@ -491,12 +503,12 @@ export default function CreateAccountingEntryPage() {
 						<SplitButton
 							variant="info"
 							mainAction={{
-								label: isSubmitting ? "Saving…" : ACCOUNTING_DRAFT_FORM_TEXT.transaction.saveAndClose,
+								label: isSubmitting ? "Saving…" : formText.saveAndClose,
 								onClick: () => void submitTransaction("close"),
 							}}
 							options={[
 								{
-									label: ACCOUNTING_DRAFT_FORM_TEXT.transaction.saveAndNew,
+									label: formText.saveAndNew,
 									onClick: () => void submitTransaction("new"),
 								},
 							]}

@@ -16,6 +16,14 @@ export interface Invoice {
 	paymentTerm?: string;
 }
 
+export interface PaymentResult {
+	id?: string;
+	cycleId?: string;
+	code?: string;
+	paymentDate?: string;
+	amount?: number;
+}
+
 export interface InvoiceExportLineApi {
 	refNo?: string;
 	customerName?: string;

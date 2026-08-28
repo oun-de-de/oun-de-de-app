@@ -60,17 +60,25 @@ type SaleProductsStoreProps = {
 	saleProductRepo: SaleProductRepository;
 };
 
-const createSaleProductsStore = ({ variant, saleProductRepo }: SaleProductsStoreProps) =>
-	create<SaleProductStore>((set, get) => ({
+const createSaleProductsStore = ({ variant, saleProductRepo }: SaleProductsStoreProps) => {
+	// ponytail: single global request counter, not per-action. Good enough to drop stale
+	// out-of-order responses; upgrade to AbortController per-action if cancellation is needed.
+	let requestId = 0;
+	const nextRequest = () => ++requestId;
+	const isStale = (id: number) => id !== requestId;
+
+	return create<SaleProductStore>((set, get) => ({
 		state: SaleProductInitialState({ variant }),
 		actions: {
 			async loadFirstPage() {
+				const id = nextRequest();
 				set({ state: SaleProductLoadFirstLoadingState(get().state) });
 				const result = await new GetSaleProductListUseCase(saleProductRepo).getSaleProductList({
 					filters: get().state.filters,
 					search: get().state.search,
 					categoryIds: get().state.selectedCategories.map((cat) => cat.id),
 				});
+				if (isStale(id)) return get().state.pagination;
 
 				return result.fold(
 					(failure) => {
@@ -88,6 +96,7 @@ const createSaleProductsStore = ({ variant, saleProductRepo }: SaleProductsStore
 				);
 			},
 			async loadMorePage(_page: number) {
+				const id = nextRequest();
 				set({
 					state: SaleProductLoadMoreLoadingState(get().state),
 				});
@@ -97,6 +106,8 @@ const createSaleProductsStore = ({ variant, saleProductRepo }: SaleProductsStore
 					search: get().state.search,
 					categoryIds: get().state.selectedCategories.map((cat) => cat.id),
 				});
+				if (isStale(id)) return get().state.pagination;
+
 				return result.fold(
 					(failure) => {
 						set({
@@ -113,6 +124,7 @@ const createSaleProductsStore = ({ variant, saleProductRepo }: SaleProductsStore
 				);
 			},
 			async reloadPage() {
+				const id = nextRequest();
 				set({
 					state: SaleProductReloadListLoadingState(get().state),
 				});
@@ -121,6 +133,8 @@ const createSaleProductsStore = ({ variant, saleProductRepo }: SaleProductsStore
 					search: get().state.search,
 					categoryIds: get().state.selectedCategories.map((cat) => cat.id),
 				});
+				if (isStale(id)) return get().state.pagination;
+
 				return result.fold(
 					(failure) => {
 						set({
@@ -137,6 +151,7 @@ const createSaleProductsStore = ({ variant, saleProductRepo }: SaleProductsStore
 				);
 			},
 			async searchProducts(search: string) {
+				const id = nextRequest();
 				set({
 					state: SaleProductSearchLoadingState(get().state, search),
 				});
@@ -145,6 +160,7 @@ const createSaleProductsStore = ({ variant, saleProductRepo }: SaleProductsStore
 					search,
 					categoryIds: get().state.selectedCategories.map((cat) => cat.id),
 				});
+				if (isStale(id)) return;
 
 				result.fold(
 					(failure) => {
@@ -160,6 +176,7 @@ const createSaleProductsStore = ({ variant, saleProductRepo }: SaleProductsStore
 				);
 			},
 			async filterProducts(filters: SaleFilters) {
+				const id = nextRequest();
 				set({
 					state: SaleProductFilterLoadingState(get().state, filters),
 				});
@@ -168,6 +185,7 @@ const createSaleProductsStore = ({ variant, saleProductRepo }: SaleProductsStore
 					search: get().state.search,
 					categoryIds: get().state.selectedCategories.map((cat) => cat.id),
 				});
+				if (isStale(id)) return;
 
 				result.fold(
 					(failure) => {
@@ -183,6 +201,7 @@ const createSaleProductsStore = ({ variant, saleProductRepo }: SaleProductsStore
 				);
 			},
 			async selectCategories(categories: SaleCategory[]) {
+				const id = nextRequest();
 				set({
 					state: SaleProductSelectCategoriesLoadingState(get().state, categories),
 				});
@@ -191,6 +210,7 @@ const createSaleProductsStore = ({ variant, saleProductRepo }: SaleProductsStore
 					search: get().state.search,
 					categoryIds: categories.map((cat) => cat.id),
 				});
+				if (isStale(id)) return;
 
 				result.fold(
 					(failure) => {
@@ -207,6 +227,7 @@ const createSaleProductsStore = ({ variant, saleProductRepo }: SaleProductsStore
 			},
 		},
 	}));
+};
 
 export const saleProductsBoundStore = (variant: string) =>
 	createBoundStore<SaleProductStore>({

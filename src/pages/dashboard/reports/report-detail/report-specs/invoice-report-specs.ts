@@ -1,8 +1,8 @@
 import { REPORT_TITLES } from "../../report-titles";
 import {
-	buildInvoiceReportRows,
 	buildMonthlyRevenueExpenseApiRows,
 	buildOpenInvoiceRows,
+	buildReceiptDetailRows,
 	buildSaleDetailRows,
 } from "../components/report-table-builders";
 import { REPORT_DEFAULT_DATE } from "../constants";
@@ -14,12 +14,12 @@ import {
 } from "../report-columns/invoice-report-columns";
 import { type BuildReportRowsParams, REPORT_FILTERS, type ReportDefinitionMap } from "../report-types";
 
-function buildReceiptDetailRows({ exportLines }: BuildReportRowsParams) {
-	return buildInvoiceReportRows(exportLines);
+function buildReceiptDetailReportRows({ invoices, previewRows, showDetail }: BuildReportRowsParams) {
+	return buildReceiptDetailRows(invoices, previewRows, showDetail);
 }
 
-function buildOpenInvoiceDetailRows({ invoices, previewRows }: BuildReportRowsParams) {
-	return buildOpenInvoiceRows(invoices, previewRows);
+function buildOpenInvoiceDetailRows({ invoices, previewRows, showDetail }: BuildReportRowsParams) {
+	return buildOpenInvoiceRows(invoices, previewRows, showDetail);
 }
 
 function buildSaleDetailReportRows({ invoices, exportLines }: BuildReportRowsParams) {
@@ -40,7 +40,12 @@ export const INVOICE_REPORT_SPECS: ReportDefinitionMap = {
 		buildRows: buildOpenInvoiceDetailRows,
 		dataSource: "invoice-export",
 		needsPreviewRows: true,
-		filterConfig: REPORT_FILTERS.customerAndDateRange,
+		filterConfig: {
+			customer: true,
+			customerType: true,
+			dateRange: false,
+			singleDate: true,
+		},
 	},
 	"sale-detail-by-customer": {
 		slug: "sale-detail-by-customer",
@@ -50,8 +55,10 @@ export const INVOICE_REPORT_SPECS: ReportDefinitionMap = {
 		buildColumns: buildSaleDetailColumns,
 		buildRows: buildSaleDetailReportRows,
 		dataSource: "invoice-export",
-		invoiceType: "invoice",
-		filterConfig: { ...REPORT_FILTERS.customerAndDateRange, customerType: true },
+		filterConfig: {
+			...REPORT_FILTERS.customerAndDateRange,
+			customerType: true,
+		},
 	},
 	"receipt-detail-by-customer": {
 		slug: "receipt-detail-by-customer",
@@ -59,10 +66,13 @@ export const INVOICE_REPORT_SPECS: ReportDefinitionMap = {
 		templateId: "receipt-detail-by-customer",
 		subtitle: REPORT_DEFAULT_DATE,
 		buildColumns: buildReceiptDetailColumns,
-		buildRows: buildReceiptDetailRows,
+		buildRows: buildReceiptDetailReportRows,
 		dataSource: "invoice-export",
-		invoiceType: "receipt",
-		filterConfig: REPORT_FILTERS.customerAndDateRange,
+		needsPreviewRows: true,
+		filterConfig: {
+			...REPORT_FILTERS.customerAndDateRange,
+			customerType: true,
+		},
 	},
 	"profit-and-loss": {
 		slug: "profit-and-loss",

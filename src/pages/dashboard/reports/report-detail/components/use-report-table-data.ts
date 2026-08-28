@@ -28,6 +28,7 @@ interface UseReportTableDataParams {
 }
 
 export function useReportTableData({ reportSlug, filters, sortMode }: UseReportTableDataParams) {
+	// Get report definition and data source
 	const definition = getReportDefinition(reportSlug);
 	const dataSource = definition.dataSource ?? "invoice-export";
 	const { customerId, customerTypeId } = normalizeReportFilters(filters);
@@ -106,9 +107,12 @@ export function useReportTableData({ reportSlug, filters, sortMode }: UseReportT
 				monthlyReportDetails: accountingData.monthlyReportDetails,
 				inventoryDateFrom,
 				inventoryDateTo,
+				showDetail: filters?.showDetail ?? true,
+				filters,
 			}),
 		[
 			definition,
+			filters,
 			invoiceData.invoices,
 			invoiceData.exportLines,
 			invoiceData.previewRows,

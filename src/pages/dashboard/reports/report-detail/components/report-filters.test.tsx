@@ -7,6 +7,7 @@ import productService from "@/core/api/services/product-service";
 import type { Customer } from "@/core/types/customer";
 import type { Product } from "@/core/types/product";
 import { getSafeAvatarImageUrl, ReportFilters, type ReportFiltersValue } from "./report-filters";
+import { formatFilterRange } from "./report-table-utils";
 
 vi.mock("@/core/api/services/customer-service", () => ({
 	default: {
@@ -113,18 +114,29 @@ function createWrapper() {
 
 function renderSaleDetailFilters(props?: {
 	value?: ReportFiltersValue;
-	onChange?: (value: ReportFiltersValue) => void;
-	onSubmit?: () => void;
+	onSubmit?: (value: ReportFiltersValue) => void;
 }) {
 	return render(
 		<ReportFilters
 			value={props?.value ?? defaultValue}
-			onChange={props?.onChange ?? vi.fn()}
 			onSubmit={props?.onSubmit ?? vi.fn()}
-			onReset={vi.fn()}
-			hasPendingChanges={false}
 			filterConfig={{ customer: true, customerType: true, dateRange: true }}
 			reportSlug="sale-detail-by-customer"
+		/>,
+		{ wrapper: createWrapper() },
+	);
+}
+
+function renderOpenInvoiceFilters(
+	reportSlug: "open-invoice-detail-by-customer" | "open-invoice-on-period-by-group",
+	onSubmit = vi.fn(),
+) {
+	return render(
+		<ReportFilters
+			value={defaultValue}
+			onSubmit={onSubmit}
+			filterConfig={{ customer: true, dateRange: true }}
+			reportSlug={reportSlug}
 		/>,
 		{ wrapper: createWrapper() },
 	);
@@ -166,34 +178,67 @@ describe("ReportFilters", () => {
 		expect(reportPeriod).toBeInTheDocument();
 	});
 
-	it("updates the selected Customer Type referrer", async () => {
+	it("renders and submits the Open Invoice detail filters", async () => {
 		const user = userEvent.setup();
-		const onChange = vi.fn();
-		renderSaleDetailFilters({ onChange });
+		const onSubmit = vi.fn();
+		renderOpenInvoiceFilters("open-invoice-detail-by-customer", onSubmit);
 
-		const customerTypeSelect = await screen.findByRole("combobox", { name: "Customer Type" });
+		expect(await screen.findByText("Job")).toBeInTheDocument();
+		expect(screen.getByText("Show Detail")).toBeInTheDocument();
+		await user.click(screen.getByRole("button", { name: "Submit" }));
+
+		await waitFor(() => expect(onSubmit).toHaveBeenCalledWith(defaultValue));
+	});
+
+	it("uses Group instead of Job for Open Invoice by group", async () => {
+		renderOpenInvoiceFilters("open-invoice-on-period-by-group");
+
+		expect(await screen.findByText("Group")).toBeInTheDocument();
+		expect(screen.queryByText("Job")).not.toBeInTheDocument();
+	});
+
+	it("submits the selected Customer Type referrer", async () => {
+		const user = userEvent.setup();
+		const onSubmit = vi.fn();
+		renderSaleDetailFilters({ onSubmit });
+
+		const customerTypeSelect = await screen.findByRole("combobox", {
+			name: "Customer Type",
+		});
 		await user.click(customerTypeSelect);
-		await user.click(within(screen.getByRole("listbox")).getByRole("option", { name: "C001 : Referrer Customer" }));
+		await user.click(
+			within(screen.getByRole("listbox")).getByRole("option", {
+				name: "C001 : Referrer Customer",
+			}),
+		);
 
+		await user.click(screen.getByRole("button", { name: "Submit" }));
 		await waitFor(() => {
-			expect(onChange).toHaveBeenCalledWith({
+			expect(onSubmit).toHaveBeenCalledWith({
 				...defaultValue,
 				customerTypeId: "customer-referrer",
 			});
 		});
 	});
 
-	it("updates the selected Product by product name", async () => {
+	it("submits the selected Product by product name", async () => {
 		const user = userEvent.setup();
-		const onChange = vi.fn();
-		renderSaleDetailFilters({ onChange });
+		const onSubmit = vi.fn();
+		renderSaleDetailFilters({ onSubmit });
 
-		const productSelect = await screen.findByRole("combobox", { name: "Product" });
+		const productSelect = await screen.findByRole("combobox", {
+			name: "Product",
+		});
 		await user.click(productSelect);
-		await user.click(within(screen.getByRole("listbox")).getByRole("option", { name: "Tube Ice" }));
+		await user.click(
+			within(screen.getByRole("listbox")).getByRole("option", {
+				name: "Tube Ice",
+			}),
+		);
 
+		await user.click(screen.getByRole("button", { name: "Submit" }));
 		await waitFor(() => {
-			expect(onChange).toHaveBeenCalledWith({
+			expect(onSubmit).toHaveBeenCalledWith({
 				...defaultValue,
 				productName: "Tube Ice",
 			});
@@ -214,6 +259,23 @@ describe("ReportFilters", () => {
 		expect(screen.getByLabelText("Item Summary")).toBeDisabled();
 	});
 
+	it("renders Cash Transaction Report filters without Group By", async () => {
+		render(
+			<ReportFilters
+				value={defaultValue}
+				onSubmit={vi.fn()}
+				filterConfig={{ customer: false, dateRange: true }}
+				reportSlug="cash-transaction-report"
+			/>,
+			{ wrapper: createWrapper() },
+		);
+
+		expect(await screen.findByText("Journal type")).toBeInTheDocument();
+		expect(screen.getByText("Chart of account")).toBeInTheDocument();
+		expect(screen.queryByText("Group By")).not.toBeInTheDocument();
+		expect(screen.queryByText("Group by")).not.toBeInTheDocument();
+	});
+
 	it("submits filters with the Enter key", async () => {
 		const user = userEvent.setup();
 		const onSubmit = vi.fn();
@@ -224,5 +286,14 @@ describe("ReportFilters", () => {
 		await user.keyboard("{Enter}");
 
 		expect(onSubmit).toHaveBeenCalledTimes(1);
+	});
+
+	it("formats single date filter properly without returning 'No date selected'", () => {
+		expect(formatFilterRange({ fromDate: "2026-08-19", useDateRange: false })).toBe("19/08/2026");
+		expect(formatFilterRange({ fromDate: "2026-08-19", toDate: "2026-08-19", useDateRange: true })).toBe("19/08/2026");
+		expect(formatFilterRange({ fromDate: "2026-08-01", toDate: "2026-08-31", useDateRange: true })).toBe(
+			"01/08/2026 To 31/08/2026",
+		);
+		expect(formatFilterRange(undefined)).toBe("No date selected");
 	});
 });

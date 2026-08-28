@@ -5,7 +5,6 @@ import { rgbAlpha } from "@/core/utils/theme";
 import BreadCrumb from "../components/bread-crumb";
 import NavHistoryMenu from "../components/nav-history-menu";
 import ScreenControl from "../components/screen-control";
-import SettingButton from "../components/setting-button";
 
 interface HeaderProps {
 	leftSlot?: ReactNode;
@@ -23,8 +22,6 @@ export default function Header({ leftSlot }: HeaderProps) {
 
 				<div className="flex items-center gap-2 mr-2 flex-shrink-0">
 					<ScreenControl />
-					<SettingButton />
-					{/* <NoticeButton /> */}
 				</div>
 			</StyledTopRow>
 
@@ -37,31 +34,33 @@ export default function Header({ leftSlot }: HeaderProps) {
 
 //#region Styled Components
 const StyledHeader = styled.header`
-	position: sticky;
-	top: 0;
-	left: 0;
-	right: 0;
-	z-index: 30;
-	display: flex;
-	flex-direction: column;
-	justify-content: center;
-	flex-grow: 0;
-	flex-shrink: 0;
-	background-color: ${({ theme }) => theme.colors.common.white};
-	min-height: var(--layout-header-height);
-	border-bottom: 1px solid ${({ theme }) => rgbAlpha(theme.colors.palette.gray[400], 0.4)};
+  position: sticky;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  flex-grow: 0;
+  flex-shrink: 0;
+  background-color: ${({ theme }) => theme.colors.common.white};
+  min-height: var(--layout-header-height);
+  border-bottom: 1px solid
+    ${({ theme }) => rgbAlpha(theme.colors.palette.gray[400], 0.4)};
 `;
 
 const StyledTopRow = styled.div`
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	padding: 0 1rem;
-	height: var(--layout-header-height);
-	border-bottom: 1px solid ${({ theme }) => rgbAlpha(theme.colors.palette.gray[400], 0.4)};
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 0.75rem;
+  height: var(--layout-header-height);
+  border-bottom: 1px solid
+    ${({ theme }) => rgbAlpha(theme.colors.palette.gray[400], 0.4)};
 `;
 
 const StyledBottomRow = styled.div`
-	padding: 0.25rem 0;
+  padding: 0.25rem 0;
 `;
 //#endregion

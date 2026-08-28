@@ -24,14 +24,13 @@ import {
 	saleGetProducts,
 	saleWarehouses,
 } from "./handlers/_sale";
-import { refresh, signIn, signOut, userList } from "./handlers/_user";
+import { refresh, signIn, signOut } from "./handlers/_user";
 import { createVehicle, deleteVehicle, getVehicleById, getVehicleList, updateVehicle } from "./handlers/_vehicle";
 
 const handlers = [
 	signIn,
 	signOut,
 	refresh,
-	userList,
 	mockTokenExpired,
 	menuList,
 	customerList,

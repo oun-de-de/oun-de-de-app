@@ -7,20 +7,31 @@ export function normalizeReportFilters(filters?: ReportFiltersValue) {
 	const customerTypeId =
 		filters?.customerTypeId && filters.customerTypeId !== "all" ? filters.customerTypeId : undefined;
 	const productName = filters?.productName && filters.productName !== "all" ? filters.productName : undefined;
+	const isDateRange = filters?.useDateRange === true;
 	const reportDateFrom =
-		filters?.useDateRange && filters.fromDate && /^\d{4}-\d{2}-\d{2}$/.test(filters.fromDate)
+		isDateRange && filters?.fromDate && /^\d{4}-\d{2}-\d{2}$/.test(filters.fromDate)
 			? `${filters.fromDate}T00:00:00`
 			: undefined;
+	const targetToDate = isDateRange ? filters?.toDate : filters?.fromDate;
 	const reportDateTo =
-		filters?.useDateRange && filters.toDate && /^\d{4}-\d{2}-\d{2}$/.test(filters.toDate)
-			? `${filters.toDate}T23:59:59`
-			: undefined;
+		targetToDate && /^\d{4}-\d{2}-\d{2}$/.test(targetToDate) ? `${targetToDate}T23:59:59` : undefined;
 
 	return { customerId, customerTypeId, productName, reportDateFrom, reportDateTo };
 }
 
-export function formatFilterRange(filters?: ReportFiltersValue): string {
-	if (!filters?.useDateRange || !filters.fromDate || !filters.toDate) return "No date selected";
+export function formatFilterRange(filters?: Partial<ReportFiltersValue>): string {
+	if (!filters?.fromDate && !filters?.toDate) return "No date selected";
+
+	// Single date mode or only fromDate provided
+	if (filters.fromDate && (!filters.useDateRange || !filters.toDate)) {
+		return formatFilterDateForDisplay(filters.fromDate);
+	}
+
+	// Only toDate provided
+	if (!filters.fromDate && filters.toDate) {
+		return formatFilterDateForDisplay(filters.toDate);
+	}
+
 	const fromDate = formatFilterDateForDisplay(filters.fromDate);
 	const toDate = formatFilterDateForDisplay(filters.toDate);
 	return filters.fromDate === filters.toDate ? fromDate : `${fromDate} To ${toDate}`;
@@ -90,7 +101,7 @@ export function parseNumericCell(value: unknown): number {
 	} else if (hasCommaDecimal) {
 		// Comma as decimal separator
 		const lastCommaIdx = body.lastIndexOf(",");
-		normalized = body.substring(0, lastCommaIdx).replace(/,/g, "") + "." + body.substring(lastCommaIdx + 1);
+		normalized = `${body.substring(0, lastCommaIdx).replace(/,/g, "")}.${body.substring(lastCommaIdx + 1)}`;
 	} else {
 		// Comma as thousands separator only
 		normalized = body.replace(/,/g, "");

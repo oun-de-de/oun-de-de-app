@@ -109,7 +109,7 @@ function renderRows(table: ReportTableInstance, hasNoRows: boolean, tableColSpan
 	}
 
 	return table.getRowModel().rows.map((row) => (
-		<tr key={row.id} className={row.original.rowClassName}>
+		<tr key={row.id} className={cn(row.original.rowClassName, "print:break-inside-avoid")}>
 			{row.getVisibleCells().map((cell) => {
 				const meta = getColumnMeta(cell.column.columnDef);
 				const cellClassName = row.original.cellClassNames?.[cell.column.id];
@@ -121,19 +121,6 @@ function renderRows(table: ReportTableInstance, hasNoRows: boolean, tableColSpan
 			})}
 		</tr>
 	));
-}
-
-function renderSummaryRows(summaryRows: ReportTemplateSummaryRow[], summaryLabelColSpan: number) {
-	return (
-		<tfoot>
-			{summaryRows.map((summaryRow) => (
-				<SummaryRow key={summaryRow.key}>
-					<SummaryLabelCell colSpan={summaryLabelColSpan}>{summaryRow.label}</SummaryLabelCell>
-					<SummaryValueCell>{summaryRow.value}</SummaryValueCell>
-				</SummaryRow>
-			))}
-		</tfoot>
-	);
 }
 
 export const ReportTemplateTable = React.memo(function ReportTemplateTable({
@@ -168,7 +155,6 @@ export const ReportTemplateTable = React.memo(function ReportTemplateTable({
 	});
 	const visibleColumns = table.getVisibleLeafColumns();
 	const tableColSpan = Math.max(visibleColumns.length, 1);
-	const summaryLabelColSpan = Math.max(tableColSpan - 1, 1);
 	const hasNoRows = rows.length === 0;
 
 	return (
@@ -187,13 +173,26 @@ export const ReportTemplateTable = React.memo(function ReportTemplateTable({
 
 			<ReportTableWrapper>
 				<ReportTableElement>
-					{showTableHeader && <thead>{renderHeaderGroups(table)}</thead>}
+					{showTableHeader && <thead className="print:table-header-group">{renderHeaderGroups(table)}</thead>}
 
 					<tbody>{renderRows(table, hasNoRows, tableColSpan, emptyText)}</tbody>
-
-					{summaryRows.length > 0 && renderSummaryRows(summaryRows, summaryLabelColSpan)}
 				</ReportTableElement>
 			</ReportTableWrapper>
+
+			{summaryRows.length > 0 && (
+				<SummaryContainer>
+					<SummaryTable>
+						<tbody>
+							{summaryRows.map((summaryRow) => (
+								<SummaryRow key={summaryRow.key}>
+									<SummaryLabelCell>{summaryRow.label}</SummaryLabelCell>
+									<SummaryValueCell>{summaryRow.value}</SummaryValueCell>
+								</SummaryRow>
+							))}
+						</tbody>
+					</SummaryTable>
+				</SummaryContainer>
+			)}
 
 			<FooterSection>
 				<FooterMetaColumn>
@@ -214,11 +213,12 @@ const ReportTableRoot = styled.div.attrs({
 })``;
 
 const ReportHeader = styled.div.attrs({
-	className: "flex flex-col items-center gap-1 text-center text-black",
+	className: "flex flex-col items-center gap-1 text-center text-black print:break-inside-avoid",
 })``;
 
 const MetaContainer = styled.div.attrs({
-	className: "px-1 mb-2 grid grid-cols-1 gap-4 text-xs font-semibold text-black sm:grid-cols-2 md:grid-cols-4",
+	className:
+		"px-1 mb-2 grid grid-cols-1 gap-4 text-xs font-semibold text-black sm:grid-cols-2 md:grid-cols-4 print:break-inside-avoid",
 })``;
 
 const MetaColumn = styled.div.attrs({
@@ -243,11 +243,13 @@ const TableHeaderRow = styled.tr.attrs({
 })``;
 
 const HeaderCell = styled.th.attrs({
-	className: "border-b border-r border-black px-2 py-1.5 align-top font-bold break-words print:px-1 print:py-1",
+	className:
+		"border-b border-r border-black px-1.5 py-1.5 align-middle font-bold break-normal whitespace-nowrap print:px-0.5 print:py-1 print:text-[8px]",
 })``;
 
 const BodyCell = styled.td.attrs({
-	className: "border-b border-r border-black px-2 py-1.5 align-top break-words print:px-1 print:py-1",
+	className:
+		"border-b border-r border-black px-1.5 py-1.5 align-top break-normal print:px-0.5 print:py-1 print:text-[8px]",
 })``;
 
 const EmptyRow = styled.tr.attrs({
@@ -258,22 +260,30 @@ const EmptyRowCell = styled.td.attrs({
 	className: "border-b border-r border-black p-10 text-center",
 })``;
 
+const SummaryContainer = styled.div.attrs({
+	className: "flex justify-end w-full mt-2 print:mt-3 print:break-inside-avoid",
+})``;
+
+const SummaryTable = styled.table.attrs({
+	className:
+		"w-[340px] border-collapse border border-black text-[12px] font-bold text-black print:w-[280px] print:text-[10px]",
+})``;
+
 const SummaryRow = styled.tr.attrs({
-	className: "text-black",
+	className: "border-b border-black last:border-b-0",
 })``;
 
 const SummaryLabelCell = styled.td.attrs({
 	className:
-		"border-b border-r border-black px-2 py-2 text-right text-[12px] font-bold uppercase whitespace-nowrap print:px-1 print:py-1",
+		"border-r border-black px-3 py-1.5 text-right font-bold uppercase whitespace-nowrap bg-slate-50/50 print:px-2 print:py-1",
 })``;
 
 const SummaryValueCell = styled.td.attrs({
-	className:
-		"border-b border-r border-black px-2 py-2 text-right text-[12px] font-bold whitespace-nowrap print:px-1 print:py-1",
+	className: "px-3 py-1.5 text-right font-bold whitespace-nowrap min-w-[100px] print:px-2 print:py-1",
 })``;
 
 const FooterSection = styled.div.attrs({
-	className: "mt-3 flex justify-between text-[11px] text-black",
+	className: "mt-3 flex justify-between text-[11px] text-black print:break-inside-avoid",
 })``;
 
 const FooterMetaColumn = styled.div.attrs({

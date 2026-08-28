@@ -12,7 +12,6 @@ import { REPORT_TITLES } from "../../report-titles";
 import { REPORT_KHMER_TITLE } from "../constants";
 import type { ReportFilterConfig, ReportTemplateId } from "../report-types";
 import type { ReportFiltersValue } from "./report-filters";
-import { buildOpenInvoiceSummaryRows } from "./report-table-builders";
 import { formatFilterDateForDisplay, formatFilterRange, parseNumericCell } from "./report-table-utils";
 
 export interface ReportPresentation {
@@ -77,45 +76,10 @@ function buildDefaultHeader(title: string, dateText?: string) {
 }
 
 function buildLedgerMetaColumns(): ReportTemplateMetaColumn[] {
-	return [{ key: "currency", rows: ["Currency: KHR"], align: "left", className: "md:col-span-1" }];
-}
-
-function buildWorkbookFilterMetaColumns(
-	filters: ReportFiltersValue | undefined,
-	customerLabel?: string,
-	selectedCustomer?: Customer,
-	selectedCustomerTypeLabel?: string,
-	customerTypeCustomerCount?: number,
-): ReportTemplateMetaColumn[] {
-	const fromDate = formatFilterDateForDisplay(filters?.fromDate);
-	const toDate = formatFilterDateForDisplay(filters?.toDate);
-	const dateRange = fromDate === toDate ? fromDate : `${fromDate} To ${toDate}`;
-	const customerDisplay = selectedCustomer
-		? `${selectedCustomer.code} : ${selectedCustomer.name}`
-		: customerLabel?.trim() || "All Customers";
-	const geographyDisplay = selectedCustomer?.geography?.trim() || "All";
-	const paymentTermDisplay = selectedCustomer?.paymentTerm?.duration
-		? `${selectedCustomer.paymentTerm.duration} days`
-		: "All";
-	const customerTypeDisplay = selectedCustomerTypeLabel?.trim() || "All";
-	const customerTypeCountDisplay =
-		typeof customerTypeCustomerCount === "number" ? String(customerTypeCustomerCount) : "All";
-
 	return [
-		{ key: "date", rows: [dateRange], align: "left", className: "md:col-span-3" },
-		{ key: "branch", rows: ["Branch:", "[All]"], align: "left", className: "md:col-span-1" },
-		{ key: "term", rows: ["Term:", `[${paymentTermDisplay}]`], align: "left", className: "md:col-span-1" },
-		{ key: "geography", rows: ["Geography:", `[${geographyDisplay}]`], align: "left", className: "md:col-span-1" },
-		{ key: "customer", rows: ["Customer:", `[${customerDisplay}]`], align: "left", className: "md:col-span-3" },
 		{
-			key: "customer-type",
-			rows: ["Customer Type:", `[${customerTypeDisplay}]`],
-			align: "left",
-			className: "md:col-span-2",
-		},
-		{
-			key: "customer-type-count",
-			rows: ["Customer in group:", `[${customerTypeCountDisplay}]`],
+			key: "currency",
+			rows: ["Currency: KHR"],
 			align: "left",
 			className: "md:col-span-1",
 		},
@@ -182,28 +146,67 @@ function buildSaleDetailSummary(rows: ReportTemplateRow[]): ReportTemplateSummar
 	);
 
 	return toSummaryRows([
-		{ key: "sale-detail-total-qty", label: "Total Qty", value: formatNumber(totals.totalQty) },
-		{ key: "sale-detail-total-amount", label: "Total Amount", value: formatNumber(totals.totalAmount) },
-		{ key: "sale-detail-cash-invoice", label: "Cash + Invoice", value: formatNumber(totals.cashInvoiceCount) },
-		{ key: "sale-detail-total-customer", label: "Total Customer", value: formatNumber(totals.totalCustomers) },
+		{
+			key: "sale-detail-total-qty",
+			label: "Total Qty",
+			value: formatNumber(totals.totalQty),
+		},
+		{
+			key: "sale-detail-total-amount",
+			label: "Total Amount",
+			value: formatNumber(totals.totalAmount),
+		},
+		{
+			key: "sale-detail-cash-invoice",
+			label: "Cash + Invoice",
+			value: formatNumber(totals.cashInvoiceCount),
+		},
+		{
+			key: "sale-detail-total-customer",
+			label: "Total Customer",
+			value: formatNumber(totals.totalCustomers),
+		},
 	]);
 }
 
 function buildCustomerLoanMetaColumns(): ReportTemplateMetaColumn[] {
 	return [
-		{ key: "title", rows: [REPORT_TITLES["customer-transaction"]], className: "md:col-span-1" },
-		{ key: "term", rows: ["Payment term: Monthly Installments"], align: "center", className: "md:col-span-1" },
-		{ key: "scope", rows: ["Borrower type: Customer"], align: "right", className: "md:col-span-1" },
+		{
+			key: "title",
+			rows: [REPORT_TITLES["customer-transaction"]],
+			className: "md:col-span-1",
+		},
+		{
+			key: "term",
+			rows: ["Payment term: Monthly Installments"],
+			align: "center",
+			className: "md:col-span-1",
+		},
+		{
+			key: "scope",
+			rows: ["Borrower type: Customer"],
+			align: "right",
+			className: "md:col-span-1",
+		},
 	];
 }
 
 function buildEmployeeLoanMetaColumns(): ReportTemplateMetaColumn[] {
 	return [
-		{ key: "title", rows: [REPORT_TITLES["customer-transaction-detail-by-type"]], className: "md:col-span-1" },
-		{ key: "term", rows: ["Payment term: Monthly Installments"], align: "center", className: "md:col-span-1" },
+		{
+			key: "title",
+			rows: ["Employee Loan Ledger"],
+			className: "md:col-span-1",
+		},
+		{
+			key: "term",
+			rows: ["Payment term: Monthly Installments"],
+			align: "center",
+			className: "md:col-span-1",
+		},
 		{
 			key: "scope",
-			rows: [REPORT_TITLES["customer-transaction-detail-by-type"]],
+			rows: ["Borrower type: Employee"],
 			align: "right",
 			className: "md:col-span-1",
 		},
@@ -256,7 +259,11 @@ function sumLatestBalanceByItem(rows: ReportTemplateRow[]): number {
 }
 
 function toSummaryRows(items: SummaryDefinition[]): ReportTemplateSummaryRow[] {
-	return items.map((item) => ({ key: item.key, label: item.label, value: item.value }));
+	return items.map((item) => ({
+		key: item.key,
+		label: item.label,
+		value: item.value,
+	}));
 }
 
 function buildSingleAmountSummary(
@@ -270,8 +277,16 @@ function buildSingleAmountSummary(
 
 function buildDebitCreditSummary(prefix: string, rows: ReportTemplateRow[]): ReportTemplateSummaryRow[] {
 	return toSummaryRows([
-		{ key: `${prefix}-debit`, label: "Total debit", value: formatNumber(sumCell(rows, "debit")) },
-		{ key: `${prefix}-credit`, label: "Total credit", value: formatNumber(sumCell(rows, "credit")) },
+		{
+			key: `${prefix}-debit`,
+			label: "Total debit",
+			value: formatNumber(sumCell(rows, "debit")),
+		},
+		{
+			key: `${prefix}-credit`,
+			label: "Total credit",
+			value: formatNumber(sumCell(rows, "credit")),
+		},
 	]);
 }
 
@@ -353,9 +368,21 @@ function buildCustomerLoanPresentation({ filters, rows }: ReportPresentationBuil
 	return buildSimplePresentation(REPORT_TITLES["customer-transaction"], formatFilterRange(filters), {
 		metaColumns: buildCustomerLoanMetaColumns(),
 		summaryRows: toSummaryRows([
-			{ key: "loan-debit", label: "Total principal", value: formatNumber(sumCell(rows, "debit")) },
-			{ key: "loan-credit", label: "Total collected", value: formatNumber(sumCell(rows, "credit")) },
-			{ key: "loan-balance", label: "Outstanding balance", value: formatNumber(sumCell(rows, "balance")) },
+			{
+				key: "loan-debit",
+				label: "Total principal",
+				value: formatNumber(sumCell(rows, "debit")),
+			},
+			{
+				key: "loan-credit",
+				label: "Total collected",
+				value: formatNumber(sumCell(rows, "credit")),
+			},
+			{
+				key: "loan-balance",
+				label: "Outstanding balance",
+				value: formatNumber(sumCell(rows, "balance")),
+			},
 		]),
 		emptyText: "No customer loans found.",
 	});
@@ -382,27 +409,230 @@ function buildSaleDetailPresentation({
 	});
 }
 
-function buildOpenInvoicePresentation(params: ReportPresentationBuilderParams): ReportPresentation {
-	const { title, filters, selectedCustomerLabel, selectedCustomer, rows, previewRows } = params;
-	const openInvoiceRows = rows.map((row) => ({
-		refNo: String(row.cells.refNo ?? ""),
-		customerName: String(row.cells.customer ?? ""),
-		amount: parseNumericCell(row.cells.originalAmount),
-	}));
-	const { customerCount, totalBalance } = buildOpenInvoiceSummaryRows(openInvoiceRows, previewRows);
+function buildOpenInvoiceHeader(title: string, dateText?: string) {
+	return (
+		<div className="flex flex-col gap-0 text-black">
+			<div className="flex items-center justify-between px-4 py-3">
+				<div className="flex w-20 justify-start">
+					<div className="flex size-20 shrink-0 items-center justify-center overflow-hidden rounded-full border-[3px] border-sky-500 bg-white">
+						<img
+							src={PremiumIceLogo}
+							alt="Premium Ice Logo"
+							width={80}
+							height={80}
+							className="size-full object-cover"
+						/>
+					</div>
+				</div>
+				<div className="flex-1 text-center">
+					<div className="text-[20px] font-bold">{REPORT_KHMER_TITLE}</div>
+					<div className="mt-1 text-[16px] font-bold tracking-wide underline">{title.toUpperCase()}</div>
+					{dateText && <div className="mt-1 text-[13px] font-semibold text-slate-600">{dateText}</div>}
+				</div>
+				<div className="w-20" />
+			</div>
+		</div>
+	);
+}
 
+function buildOpenInvoiceMetaColumns(
+	_filters?: ReportFiltersValue,
+	selectedCustomerLabel?: string,
+	selectedCustomer?: Customer,
+): ReportTemplateMetaColumn[] {
+	const customerDisplay = selectedCustomer
+		? `${selectedCustomer.code ? `${selectedCustomer.code} : ` : ""}${selectedCustomer.name}`
+		: selectedCustomerLabel && selectedCustomerLabel !== "All Customers"
+			? selectedCustomerLabel
+			: "All";
+
+	return [
+		{
+			key: "open-inv-meta-left",
+			rows: ["Branch: ['01 : ភ្នំពេញ']", `Customer: [${customerDisplay}]`],
+			align: "left",
+			className: "md:col-span-1",
+		},
+		{
+			key: "open-inv-meta-center",
+			rows: ["Term: [All]", "Category: [All]"],
+			align: "center",
+			className: "md:col-span-1",
+		},
+		{
+			key: "open-inv-meta-right",
+			rows: ["Geography: [All]", "Employee: [All]"],
+			align: "right",
+			className: "md:col-span-1",
+		},
+	];
+}
+
+function buildOpenInvoicePresentation(params: ReportPresentationBuilderParams): ReportPresentation {
+	const { title, filters, selectedCustomerLabel, selectedCustomer } = params;
+	const dateText = formatFilterDateForDisplay(filters?.fromDate);
+
+	return {
+		headerContent: buildOpenInvoiceHeader(title, dateText),
+		metaColumns: buildOpenInvoiceMetaColumns(filters, selectedCustomerLabel, selectedCustomer),
+		showTableHeader: true,
+	};
+}
+
+function buildCashTransactionHeader(title: string, dateText?: string) {
+	return (
+		<div className="flex flex-col gap-0 text-black">
+			<div className="flex items-center justify-between px-4 py-3">
+				<div className="flex w-20 justify-start">
+					<div className="flex size-20 shrink-0 items-center justify-center overflow-hidden rounded-full border-[3px] border-sky-500 bg-white">
+						<img
+							src={PremiumIceLogo}
+							alt="Premium Ice Logo"
+							width={80}
+							height={80}
+							className="size-full object-cover"
+						/>
+					</div>
+				</div>
+				<div className="flex-1 text-center">
+					<div className="text-[20px] font-bold">{REPORT_KHMER_TITLE}</div>
+					<div className="text-[13px] font-medium text-slate-700">ភ្នំពេញ</div>
+					<div className="text-[13px] font-medium text-slate-700">070669863</div>
+					<div className="mt-2 text-[16px] font-bold tracking-wide">{title.toUpperCase()}</div>
+					{dateText && <div className="mt-1 text-[13px] font-semibold text-slate-600">{dateText}</div>}
+				</div>
+				<div className="w-20" />
+			</div>
+		</div>
+	);
+}
+
+function buildCashTransactionMetaColumns(): ReportTemplateMetaColumn[] {
+	return [
+		{
+			key: "branch-journal",
+			rows: ["Branch: ['ភ្នំពេញ']", "Journal type: ['All']"],
+			align: "left",
+			className: "md:col-span-1",
+		},
+		{
+			key: "chart-of-account",
+			rows: ["Chart of account: ['All']"],
+			align: "center",
+			className: "md:col-span-2",
+		},
+		{
+			key: "currency",
+			rows: ["Currency: KHR"],
+			align: "right",
+			className: "md:col-span-1",
+		},
+	];
+}
+
+function buildCashTransactionPresentation({ filters }: ReportPresentationBuilderParams): ReportPresentation {
+	const dateRange = formatFilterRange(filters);
+
+	return {
+		headerContent: buildCashTransactionHeader("CASH TRANSACTION", dateRange),
+		metaColumns: buildCashTransactionMetaColumns(),
+		showTableHeader: true,
+	};
+}
+
+function buildReceiptDetailPresentation({
+	title,
+	filters,
+	selectedCustomer,
+	selectedCustomerLabel,
+}: ReportPresentationBuilderParams): ReportPresentation {
 	return buildSimplePresentation(title, formatFilterRange(filters), {
-		metaColumns: buildWorkbookFilterMetaColumns(filters, selectedCustomerLabel, selectedCustomer),
-		summaryRows: [
-			{ key: "invoice-customers", label: "Total customer", value: customerCount },
-			{ key: "invoice-balance", label: "Total balance", value: `${formatNumber(totalBalance)} ៛` },
-		],
+		metaColumns: buildSaleDetailMetaColumns(selectedCustomer, selectedCustomerLabel),
+		showTableHeader: true,
 	});
+}
+
+function buildCustomerTransactionDetailByTypeMetaColumns(
+	selectedCustomer?: Customer,
+	selectedCustomerLabel?: string,
+): ReportTemplateMetaColumn[] {
+	const customerDisplay = selectedCustomer
+		? `${selectedCustomer.code ? `${selectedCustomer.code} : ` : ""}${selectedCustomer.name}`
+		: selectedCustomerLabel && selectedCustomerLabel !== "All Customers"
+			? selectedCustomerLabel
+			: "All";
+
+	return [
+		{
+			key: "tx-meta-left",
+			rows: ["Branch: ['01 : ភ្នំពេញ']", "Geography: [All]"],
+			align: "left",
+			className: "md:col-span-1",
+		},
+		{
+			key: "tx-meta-center",
+			rows: ["Customer Type: [All]", `Customer: [${customerDisplay}]`],
+			align: "center",
+			className: "md:col-span-1",
+		},
+		{
+			key: "tx-meta-right",
+			rows: ["Category: [All]", "Item: [All]"],
+			align: "right",
+			className: "md:col-span-1",
+		},
+	];
+}
+
+function buildCustomerTransactionDetailByTypePresentation(params: ReportPresentationBuilderParams): ReportPresentation {
+	const { title, filters, selectedCustomer, selectedCustomerLabel, rows } = params;
+	const dateRange = formatFilterRange(filters);
+
+	let totalQty = 0;
+	let totalInvoice = 0;
+	let totalReceive = 0;
+
+	for (const row of rows) {
+		if (row.key.startsWith("tx-inv-row-")) {
+			totalQty += parseNumericCell(row.cells.qty);
+			totalInvoice += parseNumericCell(row.cells.total);
+		} else if (row.key.startsWith("tx-rcp-row-")) {
+			totalReceive += parseNumericCell(row.cells.total);
+		}
+	}
+
+	const totalAmount = totalInvoice - totalReceive;
+
+	return {
+		headerContent: buildOpenInvoiceHeader(title, dateRange),
+		metaColumns: buildCustomerTransactionDetailByTypeMetaColumns(selectedCustomer, selectedCustomerLabel),
+		summaryRows: [
+			{ key: "sum-qty", label: "Total Qty", value: formatNumber(totalQty) },
+			{ key: "sum-cash", label: "Total Cash", value: "-" },
+			{
+				key: "sum-invoice",
+				label: "Total Invoice",
+				value: `${formatNumber(totalInvoice)}`,
+			},
+			{
+				key: "sum-receive",
+				label: "Total Receive",
+				value: `${formatNumber(totalReceive)}`,
+			},
+			{
+				key: "sum-amount",
+				label: "Total Amount",
+				value: `${formatNumber(totalAmount)}`,
+			},
+		],
+		showTableHeader: true,
+	};
 }
 
 const PRESENTATION_BUILDERS: Partial<
 	Record<ReportTemplateId, (params: ReportPresentationBuilderParams) => ReportPresentation>
 > = {
+	"cash-transaction-report": buildCashTransactionPresentation,
 	"monthly-revenue-expense-summary": buildMonthlyPresentation,
 	"daily-report-summary": buildDailyPresentation,
 	"company-asset-register": buildCompanyAssetPresentation,
@@ -411,6 +641,8 @@ const PRESENTATION_BUILDERS: Partial<
 	"customer-loan-register": buildCustomerLoanPresentation,
 	"employee-loan-ledger": buildEmployeeLoanPresentation,
 	"sale-detail-by-customer": buildSaleDetailPresentation,
+	"receipt-detail-by-customer": buildReceiptDetailPresentation,
+	"customer-transaction-detail-by-type": buildCustomerTransactionDetailByTypePresentation,
 	"open-invoice-detail-by-customer": buildOpenInvoicePresentation,
 };
 

@@ -1,6 +1,6 @@
+import styled from "styled-components";
 import { Icon } from "@/core/components/icon";
 import { Button } from "@/core/ui/button";
-import styled from "styled-components";
 
 export default function SettingButton() {
 	return (

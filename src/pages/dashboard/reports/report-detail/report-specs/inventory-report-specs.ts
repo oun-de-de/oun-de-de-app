@@ -1,8 +1,9 @@
+import { REPORT_TITLES } from "../../report-titles";
 import {
 	buildCompanyAssetRows,
-	filterInventoryStockReportRowsByDate,
 	buildInventoryStockReportRows,
 	buildProductListRows,
+	filterInventoryStockReportRowsByDate,
 } from "../components/report-table-builders";
 import { REPORT_DEFAULT_DATE } from "../constants";
 import {
@@ -10,8 +11,7 @@ import {
 	buildInventoryStockColumns,
 	buildProductListColumns,
 } from "../report-columns/inventory-report-columns";
-import { REPORT_FILTERS, type BuildReportRowsParams, type ReportDefinitionMap } from "../report-types";
-import { REPORT_TITLES } from "../../report-titles";
+import { type BuildReportRowsParams, REPORT_FILTERS, type ReportDefinitionMap } from "../report-types";
 
 function buildInventoryStockRows({ inventoryStockReport, inventoryDateFrom, inventoryDateTo }: BuildReportRowsParams) {
 	return filterInventoryStockReportRowsByDate(

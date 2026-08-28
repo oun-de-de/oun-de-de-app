@@ -47,9 +47,21 @@ export const ACCOUNTING_TRANSACTION_TYPE_TO_API = {
 } as const;
 
 export const ACCOUNTING_CREATE_OPTION_TARGETS = [
-	{ label: "Create Expense", path: "/dashboard/accounting/create-expense", isDraftOnly: false },
-	{ label: "Create Cash Transaction", path: "/dashboard/accounting/create-cash-transaction", isDraftOnly: false },
-	{ label: "Create Revenue", path: "/dashboard/accounting/create-revenue", isDraftOnly: false },
+	{
+		label: "Create Expense",
+		path: "/dashboard/accounting/create-expense",
+		isDraftOnly: false,
+	},
+	{
+		label: "Create Cash Transaction",
+		path: "/dashboard/accounting/create-cash-transaction",
+		isDraftOnly: false,
+	},
+	{
+		label: "Create Revenue",
+		path: "/dashboard/accounting/create-revenue",
+		isDraftOnly: false,
+	},
 	// { label: "Create Chart Account", path: "/dashboard/accounting/create-chart-account", isDraftOnly: false },
 ] as const;
 
@@ -90,7 +102,11 @@ export const ACCOUNTING_TRANSACTION_NAME_OPTIONS = [
 export const ACCOUNTING_EXPENSE_NAME_OPTIONS = [
 	{ value: "customer-001", label: "កាណា", type: "Customer" },
 	{ value: "customer-002", label: "គុណ (2ភ្នូតង)", type: "Customer" },
-	{ value: "customer-003", label: "សុភ័ក្រ្ត (តាំងជាប់ផ្សារតាខ្មៅ)", type: "Customer" },
+	{
+		value: "customer-003",
+		label: "សុភ័ក្រ្ត (តាំងជាប់ផ្សារតាខ្មៅ)",
+		type: "Customer",
+	},
 	{ value: "customer-004", label: "ព្រីង", type: "Customer" },
 	{ value: "customer-005", label: "មុនា", type: "Customer" },
 	{ value: "customer-006", label: "មី (2ខ65511)", type: "Customer" },
@@ -143,8 +159,8 @@ export const ACCOUNTING_DRAFT_FORM_TEXT = {
 		successMessage: "Expense saved",
 	},
 	revenue: {
-		pageTitle: "Create Cash Revenue",
-		cardTitle: "Create Cash Revenue",
+		pageTitle: "Create Revenue",
+		cardTitle: "Revenue",
 		notice: "Complete the revenue details before saving. Revenue transactions use Debit.",
 		saveAndClose: "Save & Close",
 		saveAndNew: "Save & New",

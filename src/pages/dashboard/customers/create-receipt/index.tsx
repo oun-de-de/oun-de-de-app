@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useParams } from "react-router";
 import Icon from "@/core/components/icon/icon";
 import { Text } from "@/core/ui/typography";
 import { ReceiptFooter } from "./components/receipt-footer";
@@ -7,6 +8,7 @@ import { ReceiptInfo } from "./components/receipt-info";
 import { ReceiptInvoiceTable } from "./components/receipt-invoice-table";
 
 export default function CreateReceiptPage() {
+	const { id } = useParams();
 	const [date, setDate] = useState(() => {
 		const today = new Date();
 		const year = today.getFullYear();
@@ -21,7 +23,7 @@ export default function CreateReceiptPage() {
 			<div className="flex items-center gap-3">
 				<Icon icon="mdi:plus-circle-outline" className="text-gray-400" />
 				<Text variant="subTitle1" className="font-bold">
-					Receipt
+					{id ? "Edit Receipt" : "Receipt"}
 				</Text>
 			</div>
 

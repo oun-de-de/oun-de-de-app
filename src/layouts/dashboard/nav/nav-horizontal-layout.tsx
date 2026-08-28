@@ -1,7 +1,6 @@
 import { NavHorizontal } from "@/core/components/nav";
 import type { NavProps } from "@/core/components/nav/types";
-import { ScrollBar } from "@/core/ui/scroll-area";
-import { ScrollArea } from "@/core/ui/scroll-area";
+import { ScrollArea, ScrollBar } from "@/core/ui/scroll-area";
 
 export function NavHorizontalLayout({ data }: NavProps) {
 	return (

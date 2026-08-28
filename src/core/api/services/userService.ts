@@ -1,5 +1,5 @@
-import { AppAuthAccount, AppUserData } from "@/core/services/auth/models/app-auth-account";
 import { AppAuthService } from "@/core/services/auth/app-auth-service";
+import type { AppAuthAccount } from "@/core/services/auth/models/app-auth-account";
 import { apiClient, noAuthApi } from "../apiClient";
 
 export interface SignInReq {
@@ -20,7 +20,6 @@ export enum UserApi {
 	SignUp = "/auth/sign-up",
 	Logout = "/auth/sign-out",
 	Refresh = "/auth/token/refresh",
-	User = "/user",
 }
 
 class UserService {
@@ -47,13 +46,6 @@ class UserService {
 		const response = await apiClient.post<string>({
 			url: UserApi.Logout,
 			data: { refreshToken } satisfies TokenRefreshRequest,
-		});
-		return response;
-	}
-
-	async findById(id: string) {
-		const response = await apiClient.get<AppUserData[]>({
-			url: `${UserApi.User}/${id}`,
 		});
 		return response;
 	}

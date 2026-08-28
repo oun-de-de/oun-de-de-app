@@ -41,6 +41,14 @@ export const ROUTE_TITLE_MAPPINGS = [
 		title: "Create Customer",
 	},
 	{
+		path: "/dashboard/customers/edit-receipt",
+		title: "Edit Receipt",
+	},
+	{
+		path: "/dashboard/customers/receipt-print-preview",
+		title: "Receipt Print Preview",
+	},
+	{
 		path: "/dashboard/employees",
 		title: "Employee Center",
 	},
@@ -65,56 +73,28 @@ export const ROUTE_TITLE_MAPPINGS = [
 		title: "Coupon Center",
 	},
 	{
-		path: "/dashboard/coupons/create",
-		title: "Create Coupon",
-	},
-	{
-		path: "/dashboard/coupons/edit",
-		title: "Edit Coupon",
-	},
-	{
 		path: "/dashboard/cash-transactions",
-		title: "Accounting",
+		title: "Accounting Center",
 	},
 	{
 		path: "/dashboard/accounting-center",
-		title: "Accounting",
+		title: "Accounting Center",
 	},
 	{
 		path: "/dashboard/accounting",
-		title: "Accounting",
-	},
-	{
-		path: "/dashboard/accounting/create-expense",
-		title: "Create Cash Expense",
-	},
-	{
-		path: "/dashboard/accounting/expense-preview",
-		title: "Expense Preview",
-	},
-	{
-		path: "/dashboard/accounting/create-revenue",
-		title: "Create Cash Revenue",
-	},
-	{
-		path: "/dashboard/accounting/revenue-preview",
-		title: "Revenue Preview",
-	},
-	{
-		path: "/dashboard/accounting/create-chart-account",
-		title: "Create Chart Account",
+		title: "Accounting Center",
 	},
 	{
 		path: "/dashboard/accounting/edit-chart-account",
-		title: "View Chart Account",
-	},
-	{
-		path: "/dashboard/accounting/create-cash-transaction",
-		title: "Create Cash Transaction",
+		title: "Edit Chart Account",
 	},
 	{
 		path: "/dashboard/reports",
 		title: "Reports",
+	},
+	{
+		path: "/dashboard/reports/detail/cash-transaction-report",
+		title: "Cash Transaction Report",
 	},
 	{
 		path: "/dashboard/settings",

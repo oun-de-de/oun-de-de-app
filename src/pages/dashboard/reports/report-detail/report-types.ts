@@ -16,6 +16,7 @@ import type {
 	ReportTemplateSummaryRow,
 } from "../components/layout/report-template-table";
 import type { ReportColumnOption, ReportColumnVisibility } from "../components/layout/report-toolbar";
+import type { ReportFiltersValue } from "./components/report-filter-types";
 
 export type ReportDataSource =
 	| "invoice-export"
@@ -30,9 +31,11 @@ export type ReportDataSource =
 	| "monthly-report-api"
 	| "monthly-report-details-api"
 	| "asset-list"
+	| "cash-transaction-api"
 	| "unsupported";
 
 export type ReportTemplateId =
+	| "cash-transaction-report"
 	| "monthly-revenue-expense-summary"
 	| "income-expense-ledger"
 	| "daily-report-summary"
@@ -45,6 +48,7 @@ export type ReportTemplateId =
 	| "customer-list"
 	| "cycle-summary"
 	| "receipt-detail-by-customer"
+	| "customer-transaction-detail-by-type"
 	| "unsupported";
 
 export type ReportInvoiceType = "invoice" | "receipt";
@@ -101,6 +105,8 @@ export interface BuildReportRowsParams {
 	monthlyReportDetails?: MonthlyReportDetailsResponse;
 	inventoryDateFrom?: string;
 	inventoryDateTo?: string;
+	showDetail?: boolean;
+	filters?: ReportFiltersValue;
 }
 
 export function getReportColumnOptions(definition: ReportDefinition): ReportColumnOption[] {

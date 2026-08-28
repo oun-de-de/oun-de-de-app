@@ -1,12 +1,13 @@
 import { toast } from "sonner";
 import type { PagePaginatedResponse } from "@/core/types/common";
-import type { Invoice, InvoiceExportLineApi } from "@/core/types/invoice";
+import type { Invoice, InvoiceExportLineApi, PaymentResult } from "@/core/types/invoice";
 import type { Pagination } from "@/core/types/pagination";
 import { mapPagePaginatedResponseToPagination } from "@/core/utils/pagination";
 import { apiClient } from "../apiClient";
 
 export enum INVOICE_API {
 	LIST = "/invoices",
+	PAYMENTS = "/payments",
 }
 
 export const getInvoices = (params?: {
@@ -114,9 +115,32 @@ export const updateInvoice = (invoiceIds: string[], customerName?: string) =>
 			...(customerName !== undefined ? { customerName } : {}),
 		},
 	});
+export const getPayments = (params?: {
+	page?: number;
+	size?: number;
+	sort?: string;
+	customerId?: string;
+	from?: string;
+	to?: string;
+}): Promise<Pagination<PaymentResult>> =>
+	apiClient
+		.get<PagePaginatedResponse<PaymentResult>>({
+			url: INVOICE_API.PAYMENTS,
+			params: {
+				page: params?.page ? params.page - 1 : 0,
+				size: params?.size,
+				sort: params?.sort ?? "paymentDate,desc",
+				customer_id: params?.customerId,
+				from: params?.from,
+				to: params?.to,
+			},
+		})
+		.then((res) => mapPagePaginatedResponseToPagination(res));
+
 export default {
 	getInvoices,
 	getAllInvoices,
 	listInvoiceDetails,
 	updateInvoice,
+	getPayments,
 };

@@ -35,7 +35,7 @@ export default function DashboardIncomeAccounting() {
 			builder={(state) => {
 				if (isErrorState(state)) {
 					return (
-						<StyledChartWrapper className="flex h-[320px] items-center justify-center">
+						<StyledChartWrapper className="flex h-[240px] items-center justify-center">
 							<span className="text-sm text-red-500">{(state as ErrorState).error.message}</span>
 						</StyledChartWrapper>
 					);
@@ -56,7 +56,7 @@ export default function DashboardIncomeAccounting() {
 				const options: ApexCharts.ApexOptions = {
 					chart: {
 						type: "area",
-						height: 350,
+						height: 270,
 						toolbar: { show: false },
 						fontFamily: "inherit",
 					},
@@ -136,7 +136,7 @@ export default function DashboardIncomeAccounting() {
 
 				return (
 					<StyledChartWrapper className="-mx-3 -mb-3">
-						<StyledReactApexChart options={options} series={series} type="area" height={320} width="100%" />
+						<StyledReactApexChart options={options} series={series} type="area" height={240} width="100%" />
 					</StyledChartWrapper>
 				);
 			}}
@@ -146,7 +146,8 @@ export default function DashboardIncomeAccounting() {
 
 //#region Styled Components
 const StyledChartWrapper = styled.div`
-    border-top: 1px solid ${({ theme }) => rgbAlpha(theme.colors.palette.gray[400], 0.4)};
+  border-top: 1px solid
+    ${({ theme }) => rgbAlpha(theme.colors.palette.gray[400], 0.4)};
 `;
 const StyledReactApexChart = styled(ReactApexChart)`
   .apexcharts-legend {

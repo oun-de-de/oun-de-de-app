@@ -36,6 +36,21 @@ function toPersistableState(state: unknown) {
 	}
 }
 
+// Collapse detail/ID routes to their base path
+const getCanonicalPath = (pathname: string): string => {
+	// Exact match — keep as-is
+	if (SORTED_PATHS.includes(pathname as any)) return pathname;
+
+	// Prefix match — return the matched base instead of the raw path
+	for (const base of SORTED_PATHS) {
+		if (pathname.startsWith(`${base}/`)) {
+			return base;
+		}
+	}
+
+	return pathname;
+};
+
 export default function NavHistoryMenu() {
 	const location = useLocation();
 	const navigate = useNavigate();
@@ -97,21 +112,6 @@ export default function NavHistoryMenu() {
 		const el = scrollRef.current;
 		if (!el) return;
 		el.scrollBy({ left: delta, behavior: "smooth" });
-	};
-
-	// Collapse detail/ID routes to their base path
-	const getCanonicalPath = (pathname: string): string => {
-		// Exact match — keep as-is
-		if (SORTED_PATHS.includes(pathname as any)) return pathname;
-
-		// Prefix match — return the matched base instead of the raw path
-		for (const base of SORTED_PATHS) {
-			if (pathname.startsWith(`${base}/`)) {
-				return base;
-			}
-		}
-
-		return pathname;
 	};
 
 	// Create path to title mapping from nav data
@@ -238,7 +238,7 @@ export default function NavHistoryMenu() {
 		});
 	}, [location.pathname, location.search, location.hash, location.state, getTitleFromPath]);
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
+	// biome-ignore lint/correctness/useExhaustiveDependencies: updateScrollState is triggered on history update
 	useEffect(() => {
 		updateScrollState();
 	}, [history, updateScrollState]);

@@ -1,6 +1,5 @@
-import { EXPORT_PREVIEW_COLUMNS } from "../../../invoice/export-preview/components/export-preview-columns";
-import type { ReportColumnVisibility } from "../../components/layout/report-toolbar";
 import type { ReportTemplateColumn } from "../../components/layout/report-template-table";
+import type { ReportColumnVisibility } from "../../components/layout/report-toolbar";
 import { buildSizedColumns } from "../report-column-helpers";
 
 export const INVOICE_REPORT_COLUMN_LABELS: Partial<Record<keyof ReportColumnVisibility, string>> = {
@@ -41,34 +40,57 @@ export function buildSaleDetailHiddenColumnKeys(showColumns?: ReportColumnVisibi
 
 export function buildOpenInvoiceDetailColumns(): ReportTemplateColumn[] {
 	return buildSizedColumns([
-		["no", "NO", "w-[5%]", "center"],
-		["customer", "CUSTOMER", "w-[18%]"],
-		["date", "DATE", "w-[11%]", "center"],
-		["refNo", "REF NO", "w-[14%]"],
-		["employee", "EMPLOYEE", "w-[12%]"],
-		["originalAmount", "ORIGINAL AMOUNT", "w-[12%]", "right"],
-		["received", "RECEIVED", "w-[10%]", "right"],
-		["balance", "BALANCE", "w-[10%]", "right"],
-		["paymentTerm", "PAYMENT TERM", "w-[13%]"],
-		["notification", "NOTIFICATION ALERT", "w-[15%]"],
+		["no", "No", "w-[5%]", "center"],
+		["customer", "Customer", "w-[20%]"],
+		["date", "Date", "w-[11%]", "center"],
+		["refNo", "Ref NO", "w-[14%]"],
+		["employee", "Employee", "w-[14%]"],
+		["originalAmount", "Original Amount", "w-[12%]", "right"],
+		["received", "Received", "w-[12%]", "right"],
+		["balance", "Balance", "w-[12%]", "right"],
 	]);
 }
 
 export function buildSaleDetailColumns(): ReportTemplateColumn[] {
 	return buildSizedColumns([
-		["no", "NO", "w-[5%]", "center"],
-		["customer", "CUSTOMER", "w-[16%]"],
+		["no", "NO", "w-[4%]", "center"],
+		["customer", "CUSTOMER", "w-[17%]"],
 		["date", "DATE", "w-[11%]", "center"],
-		["refNo", "REF NO", "w-[13%]"],
-		["type", "TYPE", "w-[10%]", "center"],
-		["category", "CATEGORY", "w-[14%]"],
-		["item", "ITEM", "w-[13%]"],
+		["refNo", "REF NO", "w-[12%]"],
+		["type", "TYPE", "w-[8%]", "center"],
+		["category", "CATEGORY", "w-[12%]"],
+		["item", "ITEM", "w-[12%]"],
 		["qty", "QTY", "w-[6%]", "right"],
-		["price", "PRICE", "w-[7%]", "right"],
+		["price", "PRICE", "w-[8%]", "right"],
 		["amount", "AMOUNT", "w-[10%]", "right"],
 	]);
 }
 
 export function buildReceiptDetailColumns(): ReportTemplateColumn[] {
-	return EXPORT_PREVIEW_COLUMNS;
+	return buildSizedColumns([
+		["no", "No", "w-[5%]", "center"],
+		["customer", "Customer", "w-[20%]"],
+		["date", "Date", "w-[11%]", "center"],
+		["refNo", "Ref NO", "w-[14%]"],
+		["employee", "Employee", "w-[14%]"],
+		["originalAmount", "Original Amount", "w-[12%]", "right"],
+		["received", "Received", "w-[12%]", "right"],
+		["balance", "Balance", "w-[12%]", "right"],
+	]);
+}
+
+export function buildCustomerTransactionDetailByTypeColumns(): ReportTemplateColumn[] {
+	return buildSizedColumns([
+		["no", "No", "w-[3.5%]", "center"],
+		["date", "Date", "w-[15%]"],
+		["refNo", "Ref NO", "w-[12%]"],
+		["category", "Category", "w-[8%]"],
+		["term", "Term", "w-[6%]"],
+		["dueDate", "Due Date", "w-[9%]"],
+		["qty", "Qty", "w-[5.5%]", "right"],
+		["amount", "Amount", "w-[11%]", "right"],
+		["discount", "Dis($)", "w-[6%]", "right"],
+		["total", "Total", "w-[12%]", "right"],
+		["remaining", "Remaining", "w-[12%]", "right"],
+	]);
 }

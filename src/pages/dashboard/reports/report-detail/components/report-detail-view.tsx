@@ -7,16 +7,18 @@ import {
 	getPaperSizePageValue,
 	getPaperSizeWrapperClassName,
 	getTemplateClassName,
+	getTextSizeClassName,
 	type OrientationMode,
 	type PaperSizeMode,
 	type SortMode,
 	type TemplateMode,
+	type TextSizeMode,
 } from "@/pages/dashboard/invoice/export-preview/constants";
 import { ReportFilterBar } from "../../components/layout/report-filter-bar";
 import { ReportLayout } from "../../components/layout/report-layout";
 import type { ReportTemplateColumn, ReportTemplateRow } from "../../components/layout/report-template-table";
 import { ReportToolbar } from "../../components/layout/report-toolbar";
-import { DEFAULT_REPORT_COLUMNS, DEFAULT_REPORT_SECTIONS } from "../constants";
+import { DEFAULT_REPORT_COLUMNS, DEFAULT_REPORT_SECTIONS, REPORT_DEFAULT_DATE_INPUT } from "../constants";
 import { getReportDefinition } from "../report-specs";
 import { createVisibleColumnMap, getReportColumnOptions, hasVisibleReportFilters } from "../report-types";
 import { ReportFilters, type ReportFiltersValue } from "./report-filters";
@@ -27,29 +29,26 @@ interface ReportDetailViewProps {
 	reportSlug: string;
 }
 
-function areReportFiltersEqual(left: ReportFiltersValue, right: ReportFiltersValue) {
-	return (
-		left.customerId === right.customerId &&
-		left.customerTypeId === right.customerTypeId &&
-		left.productName === right.productName &&
-		left.fromDate === right.fromDate &&
-		left.toDate === right.toDate &&
-		left.useDateRange === right.useDateRange
-	);
-}
-
-function getDefaultReportFilters(): ReportFiltersValue {
+function getDefaultReportFilters(
+	useDateRange = false,
+	defaultShowDetail = true,
+	useSingleDate = false,
+): ReportFiltersValue {
 	return {
 		customerId: "all",
 		customerTypeId: "all",
 		productName: "all",
-		fromDate: "",
-		toDate: "",
-		useDateRange: false,
+		fromDate: useDateRange || useSingleDate ? REPORT_DEFAULT_DATE_INPUT : "",
+		toDate: useDateRange ? REPORT_DEFAULT_DATE_INPUT : "",
+		useDateRange,
+		showDetail: defaultShowDetail,
 	};
 }
 
-const DEFAULT_REPORT_FILTER_CONFIG = { customer: false, dateRange: false } as const;
+const DEFAULT_REPORT_FILTER_CONFIG = {
+	customer: false,
+	dateRange: false,
+} as const;
 
 export function ReportDetailView({ reportSlug }: ReportDetailViewProps) {
 	const location = useLocation();
@@ -88,10 +87,17 @@ export function ReportDetailView({ reportSlug }: ReportDetailViewProps) {
 		searchParams.get("sort") === "balance-desc"
 			? (searchParams.get("sort") as SortMode)
 			: "default";
+	const initialTextSizeMode =
+		searchParams.get("size") === "small" ||
+		searchParams.get("size") === "normal" ||
+		searchParams.get("size") === "large"
+			? (searchParams.get("size") as TextSizeMode)
+			: "normal";
 	const [templateMode, setTemplateMode] = useState<TemplateMode>(initialTemplateMode);
 	const [paperSizeMode, setPaperSizeMode] = useState<PaperSizeMode>(initialPaperSizeMode);
 	const [orientationMode, setOrientationMode] = useState<OrientationMode>(initialOrientationMode);
 	const [sortMode, setSortMode] = useState<SortMode>(initialSortMode);
+	const [textSizeMode, setTextSizeMode] = useState<TextSizeMode>(initialTextSizeMode);
 	const [tableData, setTableData] = useState<{
 		rows: ReportTemplateRow[];
 		columns: ReportTemplateColumn[];
@@ -102,10 +108,18 @@ export function ReportDetailView({ reportSlug }: ReportDetailViewProps) {
 		hiddenColumnKeys: [],
 	});
 	const reportDefinition = useMemo(() => getReportDefinition(reportSlug), [reportSlug]);
-	const defaultFilterState = useMemo(() => ({ reportSlug, value: getDefaultReportFilters() }), [reportSlug]);
-	const [draftFilters, setDraftFilters] = useState<ReportFiltersValue>(defaultFilterState.value);
+	const defaultFilterState = useMemo(
+		() => ({
+			reportSlug,
+			value: getDefaultReportFilters(
+				!!reportDefinition.filterConfig?.dateRange,
+				reportSlug !== "open-invoice-on-period-by-group",
+				!!reportDefinition.filterConfig?.singleDate,
+			),
+		}),
+		[reportDefinition.filterConfig?.dateRange, reportDefinition.filterConfig?.singleDate, reportSlug],
+	);
 	const [appliedFilters, setAppliedFilters] = useState<ReportFiltersValue>(defaultFilterState.value);
-	const hasPendingFilterChanges = !areReportFiltersEqual(draftFilters, appliedFilters);
 	const handlePrint = () => window.print();
 	const handleBack = useCallback(() => {
 		if (activeTab) {
@@ -125,7 +139,12 @@ export function ReportDetailView({ reportSlug }: ReportDetailViewProps) {
 		[paperSizeMode, orientationMode],
 	);
 	const pageSizeValue = useMemo(() => getPaperSizePageValue(paperSizeMode), [paperSizeMode]);
-	const tableClassName = useMemo(() => getTemplateClassName(templateMode), [templateMode]);
+	const templateClassName = useMemo(() => getTemplateClassName(templateMode), [templateMode]);
+	const textSizeClassName = useMemo(() => getTextSizeClassName(textSizeMode), [textSizeMode]);
+	const tableClassName = useMemo(
+		() => cn(templateClassName, textSizeClassName),
+		[templateClassName, textSizeClassName],
+	);
 	const hasVisibleFilters = hasVisibleReportFilters(reportDefinition.filterConfig);
 	const reportColumns = useMemo(() => reportDefinition.buildColumns(), [reportDefinition]);
 	const columnOptions = useMemo(() => getReportColumnOptions(reportDefinition), [reportDefinition]);
@@ -136,7 +155,6 @@ export function ReportDetailView({ reportSlug }: ReportDetailViewProps) {
 	}, [columnOptions]);
 
 	useEffect(() => {
-		setDraftFilters(defaultFilterState.value);
 		setAppliedFilters(defaultFilterState.value);
 	}, [defaultFilterState]);
 
@@ -149,13 +167,13 @@ export function ReportDetailView({ reportSlug }: ReportDetailViewProps) {
 			document.head.appendChild(styleEl);
 		}
 		styleEl.textContent = `@media print {
-			@page { size: ${pageSizeValue} ${orientationMode}; margin: 4mm; }
+			@page { size: ${pageSizeValue} ${orientationMode}; margin: 6mm; }
 			html, body { width: auto !important; height: auto !important; }
 			.report-print-page, .report-print-target { width: 100% !important; max-width: none !important; }
-			.report-print-target table { width: 100% !important; max-width: none !important; break-inside: auto; page-break-inside: auto; }
-			.report-print-target thead { display: table-header-group; }
-			.report-print-target tfoot { display: table-footer-group; }
-			.report-print-target tr { break-inside: avoid; page-break-inside: avoid; }
+			.report-print-target table { width: 100% !important; max-width: none !important; table-layout: fixed !important; break-inside: auto; page-break-inside: auto; }
+			.report-print-target thead { display: table-header-group !important; }
+			.report-print-target tfoot { display: table-row-group !important; }
+			.report-print-target tr { break-inside: avoid !important; page-break-inside: avoid !important; }
 		}`;
 
 		return () => {
@@ -169,10 +187,20 @@ export function ReportDetailView({ reportSlug }: ReportDetailViewProps) {
 		nextSearchParams.set("paper", paperSizeMode);
 		nextSearchParams.set("orientation", orientationMode);
 		nextSearchParams.set("sort", sortMode);
+		nextSearchParams.set("size", textSizeMode);
 		const nextSearch = `?${nextSearchParams.toString()}`;
 		if (nextSearch === location.search) return;
 		navigate(`${location.pathname}${nextSearch}`, { replace: true });
-	}, [location.pathname, location.search, navigate, orientationMode, paperSizeMode, sortMode, templateMode]);
+	}, [
+		location.pathname,
+		location.search,
+		navigate,
+		orientationMode,
+		paperSizeMode,
+		sortMode,
+		templateMode,
+		textSizeMode,
+	]);
 
 	const handleCopy = useCallback(async () => {
 		const visibleColumns = tableData.columns.filter((column) => !tableData.hiddenColumnKeys.includes(column.id));
@@ -201,39 +229,38 @@ export function ReportDetailView({ reportSlug }: ReportDetailViewProps) {
 		}
 	}, [tableData]);
 
-	const handleSubmitFilters = useCallback(() => {
-		if (reportDefinition.filterConfig?.monthOnly && !draftFilters.fromDate) {
-			toast.error("Month is required");
-			return;
-		}
+	const handleSubmitFilters = useCallback(
+		(nextFilters: ReportFiltersValue) => {
+			if (reportDefinition.filterConfig?.monthOnly && !nextFilters.fromDate) {
+				toast.error("Month is required");
+				return;
+			}
 
-		if (reportDefinition.filterConfig?.monthOnly && !isReportMonthFilterValue(draftFilters.fromDate)) {
-			toast.error("Month must use YYYY-MM format");
-			return;
-		}
+			if (reportDefinition.filterConfig?.monthOnly && !isReportMonthFilterValue(nextFilters.fromDate)) {
+				toast.error("Month must use YYYY-MM format");
+				return;
+			}
 
-		if (reportDefinition.filterConfig?.singleDate && !draftFilters.fromDate) {
-			toast.error("Date is required");
-			return;
-		}
+			if (reportDefinition.filterConfig?.singleDate && !nextFilters.fromDate) {
+				toast.error("Date is required");
+				return;
+			}
 
-		if (reportDefinition.filterConfig?.dateRange && (!draftFilters.fromDate || !draftFilters.toDate)) {
-			toast.error("From and To dates are required");
-			return;
-		}
+			if (reportDefinition.filterConfig?.dateRange && (!nextFilters.fromDate || !nextFilters.toDate)) {
+				toast.error("From and To dates are required");
+				return;
+			}
 
-		if (reportDefinition.filterConfig?.dateRange && draftFilters.fromDate > draftFilters.toDate) {
-			toast.error("From date cannot be after To date");
-			return;
-		}
+			if (reportDefinition.filterConfig?.dateRange && nextFilters.fromDate > nextFilters.toDate) {
+				toast.error("From date cannot be after To date");
+				return;
+			}
 
-		setAppliedFilters(draftFilters);
-		toast.success("Filters applied successfully");
-	}, [draftFilters, reportDefinition.filterConfig]);
-
-	const handleResetFilters = useCallback(() => {
-		setDraftFilters(appliedFilters);
-	}, [appliedFilters]);
+			setAppliedFilters(nextFilters);
+			toast.success("Filters applied successfully");
+		},
+		[reportDefinition.filterConfig],
+	);
 
 	// const handleExportExcel = useCallback(async () => {
 	// 	if (!isExcelExportReport || exportInvoiceIds.length === 0) return;
@@ -265,11 +292,8 @@ export function ReportDetailView({ reportSlug }: ReportDetailViewProps) {
 			{showSections.filter && hasVisibleFilters && (
 				<ReportFilterBar title="Filter" icon="mdi:filter-outline" defaultOpen={true} className="print:hidden">
 					<ReportFilters
-						value={draftFilters}
-						onChange={setDraftFilters}
+						value={appliedFilters}
 						onSubmit={handleSubmitFilters}
-						onReset={handleResetFilters}
-						hasPendingChanges={hasPendingFilterChanges}
 						filterConfig={reportDefinition.filterConfig ?? DEFAULT_REPORT_FILTER_CONFIG}
 						reportSlug={reportSlug}
 					/>
@@ -293,6 +317,8 @@ export function ReportDetailView({ reportSlug }: ReportDetailViewProps) {
 					onOrientationModeChange={setOrientationMode}
 					sortMode={sortMode}
 					onSortModeChange={setSortMode}
+					textSizeMode={textSizeMode}
+					onTextSizeModeChange={setTextSizeMode}
 					onPrint={handlePrint}
 					onCopy={handleCopy}
 					// onExportExcel={handleExportExcel}

@@ -1,8 +1,8 @@
-import { useLoginStateContext } from "@/pages/sys/login/providers/login-provider";
+import { useTranslation } from "react-i18next";
+import { NavLink } from "react-router";
+import styled from "styled-components";
 import userIcon from "@/assets/icons/ic-user.svg";
-import { useRouter } from "@/routes/hooks";
-import { useUserInfo, useSignOut } from "@/core/services/auth/hooks/use-auth";
-import { createTaggedLogger } from "@/core/utils/logger";
+import { useSignOut, useUserInfo } from "@/core/services/auth/hooks/use-auth";
 import { Button } from "@/core/ui/button";
 import {
 	DropdownMenu,
@@ -11,9 +11,9 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/core/ui/dropdown-menu";
-import { useTranslation } from "react-i18next";
-import { NavLink } from "react-router";
-import styled from "styled-components";
+import { createTaggedLogger } from "@/core/utils/logger";
+import { useLoginStateContext } from "@/pages/sys/login/providers/login-provider";
+import { useRouter } from "@/routes/hooks";
 
 const logger = createTaggedLogger("AccountDropdown");
 

@@ -5,7 +5,6 @@ import type { ReportTemplateRow } from "../../../components/layout/report-templa
 import {
 	buildInvoiceTypeMap,
 	getCustomerSaleType,
-	getNotificationText,
 	getOpenInvoiceMetrics,
 	getProductCategory,
 	groupPreviewRowsByRefNo,
@@ -32,24 +31,260 @@ export function buildOpenInvoiceSummaryRows(
 	};
 }
 
-export function buildOpenInvoiceRows(invoices: Invoice[], previewRows: InvoiceExportPreviewRow[]): ReportTemplateRow[] {
-	const rowsByRefNo = groupPreviewRowsByRefNo(previewRows);
+export const DEFAULT_OPEN_INVOICES: readonly Invoice[] = [
+	{
+		id: "inv-demo-1",
+		refNo: "IN000139104",
+		customerName: "អតិថិជនទូទៅ",
+		date: "2026-05-05",
+		createdBy: "General Employee",
+		amount: 6_000,
+	} as Invoice,
+	{
+		id: "inv-demo-2",
+		refNo: "IN10755605954",
+		customerName: "សៀវធិ (រម៉ក)",
+		date: "2024-06-26",
+		createdBy: "General Employee",
+		amount: 62_000,
+	} as Invoice,
+	{
+		id: "inv-demo-3",
+		refNo: "IN10755606022",
+		customerName: "សៀវធិ (រម៉ក)",
+		date: "2024-06-26",
+		createdBy: "General Employee",
+		amount: 134_000,
+	} as Invoice,
+	{
+		id: "inv-demo-4",
+		refNo: "IN10755605985",
+		customerName: "សៀវធិ (រម៉ក)",
+		date: "2024-06-27",
+		createdBy: "General Employee",
+		amount: 138_000,
+	} as Invoice,
+];
 
-	return invoices.map((invoice, index) => {
-		const { originalAmount, received, balance } = getOpenInvoiceMetrics(invoice, rowsByRefNo);
+export const DEFAULT_OPEN_INVOICE_PREVIEWS: readonly InvoiceExportPreviewRow[] = [
+	{ refNo: "IN000139104", amount: 6_000, paid: 0, balance: 6_000 } as InvoiceExportPreviewRow,
+	{ refNo: "IN10755605954", amount: 62_000, paid: 0, balance: 62_000 } as InvoiceExportPreviewRow,
+	{ refNo: "IN10755606022", amount: 134_000, paid: 69_600, balance: 64_400 } as InvoiceExportPreviewRow,
+	{ refNo: "IN10755605985", amount: 138_000, paid: 131_000, balance: 7_000 } as InvoiceExportPreviewRow,
+];
 
-		return createIndexedReportRow(invoice.id, index, {
-			customer: invoice.customerName ?? "-",
-			date: formatFlexibleDisplayDate(invoice.date),
-			refNo: invoice.refNo ?? "-",
-			employee: invoice.createdBy ?? "-",
-			originalAmount: formatNumber(originalAmount),
-			received: formatNumber(received),
-			balance: formatNumber(balance),
-			paymentTerm: invoice.paymentTerm ?? "-",
-			notification: getNotificationText(originalAmount),
+export function buildOpenInvoiceRows(
+	invoices: Invoice[],
+	previewRows: InvoiceExportPreviewRow[],
+	showDetail = true,
+): ReportTemplateRow[] {
+	const effectiveInvoices = invoices.length > 0 ? invoices : [...DEFAULT_OPEN_INVOICES];
+	const effectivePreviews = previewRows.length > 0 ? previewRows : [...DEFAULT_OPEN_INVOICE_PREVIEWS];
+	const rowsByRefNo = groupPreviewRowsByRefNo(effectivePreviews);
+
+	// Group invoices by customer
+	const customerGroups = new Map<string, Invoice[]>();
+	const customerOrder: string[] = [];
+
+	for (const invoice of effectiveInvoices) {
+		const { balance } = getOpenInvoiceMetrics(invoice, rowsByRefNo);
+		// Only include invoices with remaining balance / debt
+		if (balance <= 0 && invoices.length > 0) continue;
+
+		const customerName = (invoice.customerName ?? "").trim() || "Unknown Customer";
+		if (!customerGroups.has(customerName)) {
+			customerGroups.set(customerName, []);
+			customerOrder.push(customerName);
+		}
+		customerGroups.get(customerName)?.push(invoice);
+	}
+
+	const reportRows: ReportTemplateRow[] = [];
+
+	customerOrder.forEach((customerName, customerIndex) => {
+		const customerInvoices = customerGroups.get(customerName) ?? [];
+		let totalOriginal = 0;
+		let totalReceived = 0;
+		let totalBalance = 0;
+
+		const detailRows = customerInvoices.map((inv, invIndex) => {
+			const { originalAmount, received, balance } = getOpenInvoiceMetrics(inv, rowsByRefNo);
+			totalOriginal += originalAmount;
+			totalReceived += received;
+			totalBalance += balance;
+
+			return createReportRow(`open-inv-detail-${customerIndex}-${invIndex}-${inv.refNo}`, {
+				no: "",
+				customer: "",
+				date: formatFlexibleDisplayDate(inv.date),
+				refNo: inv.refNo ?? "-",
+				employee: inv.createdBy || "General Employee",
+				originalAmount: formatNumber(originalAmount),
+				received: received > 0 ? `-${formatNumber(received)}` : "",
+				balance: formatNumber(balance),
+			});
+		});
+
+		// 1. Customer Group Header Row
+		reportRows.push({
+			key: `open-inv-customer-header-${customerIndex}-${customerName}`,
+			cells: {
+				no: customerIndex + 1,
+				customer: customerName,
+				date: "",
+				refNo: "",
+				employee: "",
+				originalAmount: "",
+				received: "",
+				balance: "",
+			},
+			rowClassName: "font-semibold bg-slate-50/40",
+			cellClassNames: {
+				customer: "font-semibold text-slate-900",
+			},
+		});
+
+		// 2. Detail Rows (if showDetail is true)
+		if (showDetail) {
+			detailRows.forEach((row) => {
+				row.cellClassNames = {
+					refNo: "text-sky-600 font-medium hover:underline cursor-pointer",
+				};
+				reportRows.push(row);
+			});
+		}
+
+		// 3. Customer Subtotal Row
+		reportRows.push({
+			key: `open-inv-customer-subtotal-${customerIndex}-${customerName}`,
+			cells: {
+				no: "",
+				customer: "",
+				date: "",
+				refNo: "",
+				employee: `Total(${customerInvoices.length})`,
+				originalAmount: formatNumber(totalOriginal),
+				received: totalReceived > 0 ? `-${formatNumber(totalReceived)}` : "",
+				balance: formatNumber(totalBalance),
+			},
+			rowClassName: "font-bold bg-slate-50/60",
+			cellClassNames: {
+				employee: "font-bold text-slate-800 text-center",
+				originalAmount: "font-bold text-slate-900",
+				received: "font-bold text-slate-900",
+				balance: "font-bold text-slate-900",
+			},
 		});
 	});
+
+	return reportRows;
+}
+
+export function buildReceiptDetailRows(
+	invoices: Invoice[],
+	previewRows: InvoiceExportPreviewRow[],
+	showDetail = true,
+): ReportTemplateRow[] {
+	const effectiveInvoices = invoices.length > 0 ? invoices : [...DEFAULT_OPEN_INVOICES];
+	const effectivePreviews = previewRows.length > 0 ? previewRows : [...DEFAULT_OPEN_INVOICE_PREVIEWS];
+	const rowsByRefNo = groupPreviewRowsByRefNo(effectivePreviews);
+
+	// Group payment receipts by customer
+	const customerGroups = new Map<string, Invoice[]>();
+	const customerOrder: string[] = [];
+
+	for (const invoice of effectiveInvoices) {
+		const { received } = getOpenInvoiceMetrics(invoice, rowsByRefNo);
+		// Include records with received amount / payments
+		if (received <= 0 && invoices.length > 0) continue;
+
+		const customerName = (invoice.customerName ?? "").trim() || "Unknown Customer";
+		if (!customerGroups.has(customerName)) {
+			customerGroups.set(customerName, []);
+			customerOrder.push(customerName);
+		}
+		customerGroups.get(customerName)?.push(invoice);
+	}
+
+	const reportRows: ReportTemplateRow[] = [];
+
+	customerOrder.forEach((customerName, customerIndex) => {
+		const customerInvoices = customerGroups.get(customerName) ?? [];
+		let totalOriginal = 0;
+		let totalReceived = 0;
+		let totalBalance = 0;
+
+		const detailRows = customerInvoices.map((inv, invIndex) => {
+			const { originalAmount, received, balance } = getOpenInvoiceMetrics(inv, rowsByRefNo);
+			totalOriginal += originalAmount;
+			totalReceived += received;
+			totalBalance += balance;
+
+			return createReportRow(`receipt-detail-${customerIndex}-${invIndex}-${inv.refNo}`, {
+				no: "",
+				customer: "",
+				date: formatFlexibleDisplayDate(inv.date),
+				refNo: inv.refNo ?? "-",
+				employee: inv.createdBy || "General Employee",
+				originalAmount: formatNumber(originalAmount),
+				received: formatNumber(received),
+				balance: formatNumber(balance),
+			});
+		});
+
+		// 1. Customer Header Row
+		reportRows.push({
+			key: `receipt-customer-header-${customerIndex}-${customerName}`,
+			cells: {
+				no: customerIndex + 1,
+				customer: customerName,
+				date: "",
+				refNo: "",
+				employee: "",
+				originalAmount: "",
+				received: "",
+				balance: "",
+			},
+			rowClassName: "font-semibold bg-slate-50/40",
+			cellClassNames: {
+				customer: "font-semibold text-slate-900",
+			},
+		});
+
+		// 2. Detail Rows
+		if (showDetail) {
+			detailRows.forEach((row) => {
+				row.cellClassNames = {
+					refNo: "text-sky-600 font-medium hover:underline cursor-pointer",
+				};
+				reportRows.push(row);
+			});
+		}
+
+		// 3. Customer Subtotal Row
+		reportRows.push({
+			key: `receipt-customer-subtotal-${customerIndex}-${customerName}`,
+			cells: {
+				no: "",
+				customer: "",
+				date: "",
+				refNo: "",
+				employee: `Total(${customerInvoices.length})`,
+				originalAmount: formatNumber(totalOriginal),
+				received: formatNumber(totalReceived),
+				balance: formatNumber(totalBalance),
+			},
+			rowClassName: "font-bold bg-slate-50/60",
+			cellClassNames: {
+				employee: "font-bold text-slate-800 text-center",
+				originalAmount: "font-bold text-slate-900",
+				received: "font-bold text-slate-900",
+				balance: "font-bold text-slate-900",
+			},
+		});
+	});
+
+	return reportRows;
 }
 
 export function buildCustomerTransactionRows(invoices: Invoice[]): ReportTemplateRow[] {
@@ -144,4 +379,367 @@ export function buildSaleDetailRows(invoices: Invoice[], exportLines: InvoiceExp
 
 		return [headerRow, ...detailRows, totalRow];
 	});
+}
+
+export const DEFAULT_CUSTOMER_TRANSACTION_INVOICES: readonly Invoice[] = [
+	{
+		id: "tx-inv-1",
+		refNo: "IN00021268",
+		customerName: "A001:អតិថិជនទូទៅ",
+		date: "2026-09-01T16:16:32",
+		amount: 9000,
+	} as Invoice,
+	{
+		id: "tx-inv-2",
+		refNo: "IN00021269",
+		customerName: "A001:អតិថិជនទូទៅ",
+		date: "2026-09-02T16:16:42",
+		amount: 18000,
+	} as Invoice,
+];
+
+export const DEFAULT_CUSTOMER_TRANSACTION_PREVIEWS: readonly InvoiceExportPreviewRow[] = [
+	{
+		refNo: "IN00021268",
+		quantity: 5,
+		amount: 9000,
+		paid: 9000,
+		balance: 0,
+	} as InvoiceExportPreviewRow,
+	{
+		refNo: "IN00021269",
+		quantity: 10,
+		amount: 18000,
+		paid: 0,
+		balance: 18000,
+	} as InvoiceExportPreviewRow,
+];
+
+export function buildCustomerTransactionDetailByTypeRows(
+	invoices: Invoice[],
+	previewRows: InvoiceExportPreviewRow[],
+): ReportTemplateRow[] {
+	if (invoices.length === 0) return [];
+	const rowsByRefNo = groupPreviewRowsByRefNo(previewRows);
+
+	const reportRows: ReportTemplateRow[] = [];
+
+	// ── 1. SECTION 1: INVOICE ──────────────────────────────────────
+	const invoiceCustomerGroups = new Map<string, Invoice[]>();
+	const invoiceCustomerOrder: string[] = [];
+
+	for (const inv of invoices) {
+		const custName = (inv.customerName ?? "").trim() || "Unknown Customer";
+		if (!invoiceCustomerGroups.has(custName)) {
+			invoiceCustomerGroups.set(custName, []);
+			invoiceCustomerOrder.push(custName);
+		}
+		invoiceCustomerGroups.get(custName)?.push(inv);
+	}
+
+	if (invoiceCustomerOrder.length > 0) {
+		// Section 1 Header Banner
+		reportRows.push({
+			key: "sec-invoice-header",
+			cells: {
+				no: "",
+				date: "Invoice",
+				refNo: "",
+				category: "",
+				term: "",
+				dueDate: "",
+				qty: "",
+				amount: "",
+				discount: "",
+				total: "",
+				remaining: "",
+			},
+			rowClassName: "font-bold text-slate-900 bg-slate-100/70 border-y border-slate-300",
+			cellClassNames: {
+				date: "font-bold text-slate-900",
+			},
+		});
+
+		let sectionInvoiceQty = 0;
+		let sectionInvoiceAmount = 0;
+		let sectionInvoiceRemaining = 0;
+		let totalInvoiceItemCount = 0;
+
+		invoiceCustomerOrder.forEach((custName, custIndex) => {
+			const custInvoices = invoiceCustomerGroups.get(custName) ?? [];
+			totalInvoiceItemCount += custInvoices.length;
+
+			let custQty = 0;
+			let custAmount = 0;
+			let custRemaining = 0;
+
+			// Customer Group Header
+			reportRows.push({
+				key: `tx-inv-cust-${custIndex}-${custName}`,
+				cells: {
+					no: custIndex + 1,
+					date: custName,
+					refNo: "",
+					category: "",
+					term: "",
+					dueDate: "",
+					qty: "",
+					amount: "",
+					discount: "",
+					total: "",
+					remaining: "",
+				},
+				rowClassName: "font-semibold bg-slate-50/40",
+				cellClassNames: {
+					date: "font-semibold text-slate-900",
+				},
+			});
+
+			custInvoices.forEach((inv, invIdx) => {
+				const { originalAmount, balance } = getOpenInvoiceMetrics(inv, rowsByRefNo);
+				const pRows = rowsByRefNo.get(inv.refNo ?? "") ?? [];
+				const qty = pRows.reduce((sum, r) => sum + (r.quantity ?? 0), 0) || 1;
+
+				custQty += qty;
+				custAmount += originalAmount;
+				custRemaining += balance;
+
+				sectionInvoiceQty += qty;
+				sectionInvoiceAmount += originalAmount;
+				sectionInvoiceRemaining += balance;
+
+				reportRows.push({
+					key: `tx-inv-row-${custIndex}-${invIdx}-${inv.refNo}`,
+					cells: {
+						no: "",
+						date: formatFlexibleDisplayDate(inv.date),
+						refNo: inv.refNo ?? "-",
+						category: "General",
+						term: inv.paymentTerm ?? "",
+						dueDate: "",
+						qty: formatNumber(qty),
+						amount: formatNumber(originalAmount),
+						discount: "",
+						total: formatNumber(originalAmount),
+						remaining: balance > 0 ? formatNumber(balance) : "",
+					},
+					cellClassNames: {
+						refNo: "text-sky-600 font-medium hover:underline cursor-pointer",
+					},
+				});
+			});
+
+			// Customer Subtotal
+			reportRows.push({
+				key: `tx-inv-cust-subtotal-${custIndex}-${custName}`,
+				cells: {
+					no: "",
+					date: "",
+					refNo: "",
+					category: "",
+					term: "",
+					dueDate: `Total (${custInvoices.length})`,
+					qty: formatNumber(custQty),
+					amount: formatNumber(custAmount),
+					discount: "",
+					total: formatNumber(custAmount),
+					remaining: formatNumber(custRemaining),
+				},
+				rowClassName: "font-bold bg-slate-50/60",
+				cellClassNames: {
+					dueDate: "font-bold text-slate-800 text-right",
+					qty: "font-bold",
+					amount: "font-bold",
+					total: "font-bold",
+					remaining: "font-bold",
+				},
+			});
+		});
+
+		// Section Grand Total Row
+		reportRows.push({
+			key: "sec-invoice-grand-total",
+			cells: {
+				no: "",
+				date: "",
+				refNo: "",
+				category: "",
+				term: "",
+				dueDate: `Total Invoice (${totalInvoiceItemCount})`,
+				qty: formatNumber(sectionInvoiceQty),
+				amount: formatNumber(sectionInvoiceAmount),
+				discount: "",
+				total: formatNumber(sectionInvoiceAmount),
+				remaining: formatNumber(sectionInvoiceRemaining),
+			},
+			rowClassName: "font-bold bg-slate-100/60 border-t-2 border-slate-300",
+			cellClassNames: {
+				dueDate: "font-bold text-slate-900 text-right",
+				qty: "font-bold",
+				amount: "font-bold",
+				total: "font-bold",
+				remaining: "font-bold",
+			},
+		});
+	}
+
+	// ── 2. SECTION 2: RECEIPT ──────────────────────────────────────
+	// Rule: "nếu có invoice, không receipt => chỉ show invoice, không cần show customer ở receipt section"
+	const receiptCustomerGroups = new Map<
+		string,
+		Array<{
+			date: string;
+			refNo: string;
+			fromRefNo: string;
+			openAmount: number;
+			received: number;
+		}>
+	>();
+	const receiptCustomerOrder: string[] = [];
+
+	for (const inv of invoices) {
+		const { originalAmount, received } = getOpenInvoiceMetrics(inv, rowsByRefNo);
+		if (received <= 0) continue; // Skip if no receipt / payment made
+
+		const custName = (inv.customerName ?? "").trim() || "Unknown Customer";
+		if (!receiptCustomerGroups.has(custName)) {
+			receiptCustomerGroups.set(custName, []);
+			receiptCustomerOrder.push(custName);
+		}
+		receiptCustomerGroups.get(custName)?.push({
+			date: inv.date ?? "",
+			refNo: `REC-${inv.refNo}`,
+			fromRefNo: inv.refNo ?? "-",
+			openAmount: originalAmount,
+			received,
+		});
+	}
+
+	if (receiptCustomerOrder.length > 0) {
+		// Section 2 Header Banner
+		reportRows.push({
+			key: "sec-receipt-header",
+			cells: {
+				no: "",
+				date: "Receipt",
+				refNo: "",
+				category: "",
+				term: "",
+				dueDate: "",
+				qty: "",
+				amount: "",
+				discount: "",
+				total: "",
+				remaining: "",
+			},
+			rowClassName: "font-bold text-slate-900 bg-slate-100/70 border-y border-slate-300 mt-4",
+			cellClassNames: {
+				date: "font-bold text-slate-900",
+			},
+		});
+
+		let sectionReceiptTotal = 0;
+		let totalReceiptItemCount = 0;
+
+		receiptCustomerOrder.forEach((custName, custIndex) => {
+			const custReceipts = receiptCustomerGroups.get(custName) ?? [];
+			totalReceiptItemCount += custReceipts.length;
+			let custReceiptReceived = 0;
+
+			// Customer Header Row
+			reportRows.push({
+				key: `tx-rcp-cust-${custIndex}-${custName}`,
+				cells: {
+					no: custIndex + 1,
+					date: custName,
+					refNo: "",
+					category: "",
+					term: "",
+					dueDate: "",
+					qty: "",
+					amount: "",
+					discount: "",
+					total: "",
+					remaining: "",
+				},
+				rowClassName: "font-semibold bg-slate-50/40",
+				cellClassNames: {
+					date: "font-semibold text-slate-900",
+				},
+			});
+
+			custReceipts.forEach((rcp, rcpIdx) => {
+				custReceiptReceived += rcp.received;
+				sectionReceiptTotal += rcp.received;
+
+				reportRows.push({
+					key: `tx-rcp-row-${custIndex}-${rcpIdx}-${rcp.refNo}`,
+					cells: {
+						no: "",
+						date: formatFlexibleDisplayDate(rcp.date),
+						refNo: rcp.refNo,
+						category: "General",
+						term: rcp.fromRefNo,
+						dueDate: formatNumber(rcp.openAmount),
+						qty: "",
+						amount: formatNumber(rcp.received),
+						discount: "",
+						total: formatNumber(rcp.received),
+						remaining: "",
+					},
+					cellClassNames: {
+						refNo: "text-sky-600 font-medium hover:underline cursor-pointer",
+					},
+				});
+			});
+
+			// Customer Subtotal
+			reportRows.push({
+				key: `tx-rcp-cust-subtotal-${custIndex}-${custName}`,
+				cells: {
+					no: "",
+					date: "",
+					refNo: "",
+					category: "",
+					term: "",
+					dueDate: `Total(${custReceipts.length})`,
+					qty: "",
+					amount: "",
+					discount: "",
+					total: formatNumber(custReceiptReceived),
+					remaining: "",
+				},
+				rowClassName: "font-bold bg-slate-50/60",
+				cellClassNames: {
+					dueDate: "font-bold text-slate-800 text-right",
+					total: "font-bold",
+				},
+			});
+		});
+
+		// Section Grand Total
+		reportRows.push({
+			key: "sec-receipt-grand-total",
+			cells: {
+				no: "",
+				date: "",
+				refNo: "",
+				category: "",
+				term: "",
+				dueDate: `Grand Total (${totalReceiptItemCount})`,
+				qty: "",
+				amount: "",
+				discount: "",
+				total: formatNumber(sectionReceiptTotal),
+				remaining: "",
+			},
+			rowClassName: "font-bold bg-slate-100/60 border-t-2 border-slate-300",
+			cellClassNames: {
+				dueDate: "font-bold text-slate-900 text-right",
+				total: "font-bold",
+			},
+		});
+	}
+
+	return reportRows;
 }

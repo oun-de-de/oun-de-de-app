@@ -1,15 +1,21 @@
+import { REPORT_TITLES } from "../../report-titles";
 import {
+	buildCashTransactionReportRows,
 	buildMonthlyReportDetailRows,
 	// buildTrialBalanceRows,
 } from "../components/report-table-builders";
 import { REPORT_DEFAULT_DATE } from "../constants";
 import {
-	buildLedgerColumns,
+	buildCashTransactionColumns,
 	buildIncomeExpenseLedgerColumns,
+	buildLedgerColumns,
 	// buildTrialBalanceColumns,
 } from "../report-columns/accounting-report-columns";
-import { REPORT_FILTERS, type BuildReportRowsParams, type ReportDefinitionMap } from "../report-types";
-import { REPORT_TITLES } from "../../report-titles";
+import { type BuildReportRowsParams, REPORT_FILTERS, type ReportDefinitionMap } from "../report-types";
+
+function buildCashTransactionReportApiRows({ monthlyReportDetails }: BuildReportRowsParams) {
+	return buildCashTransactionReportRows(monthlyReportDetails);
+}
 
 function buildGeneralLedgerApiRows({ monthlyReportDetails }: BuildReportRowsParams) {
 	return buildMonthlyReportDetailRows(monthlyReportDetails);
@@ -24,6 +30,16 @@ function buildIncomeExpenseApiReportRows({ monthlyReportDetails }: BuildReportRo
 }
 
 export const ACCOUNTING_REPORT_SPECS: ReportDefinitionMap = {
+	"cash-transaction-report": {
+		slug: "cash-transaction-report",
+		title: REPORT_TITLES["cash-transaction-report"],
+		templateId: "cash-transaction-report",
+		subtitle: REPORT_DEFAULT_DATE,
+		buildColumns: buildCashTransactionColumns,
+		buildRows: buildCashTransactionReportApiRows,
+		dataSource: "monthly-report-details-api",
+		filterConfig: REPORT_FILTERS.dateRangeOnly,
+	},
 	"general-ledger": {
 		slug: "general-ledger",
 		title: REPORT_TITLES["general-ledger"],

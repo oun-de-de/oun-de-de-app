@@ -15,7 +15,7 @@ export function NavItem(item: NavItemProps) {
 	const content = (
 		<>
 			{/* Icon */}
-			<span style={navItemStyles.icon} className="mr-3 items-center justify-center">
+			<span style={navItemStyles.icon} className="mr-2 items-center justify-center">
 				{icon && typeof icon === "string" ? <Icon icon={icon} /> : icon}
 			</span>
 
@@ -56,7 +56,7 @@ export function NavItem(item: NavItemProps) {
 	);
 
 	return (
-		<NavItemRenderer item={item} className="min-h-[44px]">
+		<NavItemRenderer item={item} className="min-h-[34px]">
 			{content}
 		</NavItemRenderer>
 	);

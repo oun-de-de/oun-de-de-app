@@ -21,7 +21,7 @@ export function ReportFilterBar({ title, icon, children, defaultOpen = true, cla
 	return (
 		<Card className={cn("w-full transition-all duration-200", className)}>
 			<Collapsible open={isOpen} onOpenChange={setIsOpen}>
-				<CardContent className="flex flex-col gap-4 p-2 md:p-4">
+				<CardContent className="flex flex-col gap-3 p-2 md:p-3">
 					<div className="flex items-center justify-between">
 						<div className="flex items-center gap-2">
 							<Icon icon={icon} className="text-sky-600" />
@@ -39,7 +39,7 @@ export function ReportFilterBar({ title, icon, children, defaultOpen = true, cla
 						</CollapsibleTrigger>
 					</div>
 					<CollapsibleContent>
-						<div className="px-1 pt-2">{children}</div>
+						<div className="px-1 pt-1">{children}</div>
 					</CollapsibleContent>
 				</CardContent>
 			</Collapsible>
