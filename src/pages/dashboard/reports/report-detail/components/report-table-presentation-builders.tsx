@@ -468,13 +468,26 @@ function buildOpenInvoiceMetaColumns(
 	];
 }
 
+function buildOpenInvoiceSummary(rows: ReportTemplateRow[]): ReportTemplateSummaryRow[] {
+	const totalCustomer = rows.filter((row) => row.key.startsWith("open-inv-customer-header-")).length;
+	const totalBalance = rows
+		.filter((row) => row.key.startsWith("open-inv-customer-subtotal-"))
+		.reduce((sum, row) => sum + parseNumericCell(row.cells.balance), 0);
+
+	return toSummaryRows([
+		{ key: "open-inv-total-customer", label: "Total Customer", value: formatNumber(totalCustomer) },
+		{ key: "open-inv-total-balance", label: "Total Balance", value: formatNumber(totalBalance) },
+	]);
+}
+
 function buildOpenInvoicePresentation(params: ReportPresentationBuilderParams): ReportPresentation {
-	const { title, filters, selectedCustomerLabel, selectedCustomer } = params;
+	const { title, filters, selectedCustomerLabel, selectedCustomer, rows } = params;
 	const dateText = formatFilterDateForDisplay(filters?.fromDate);
 
 	return {
 		headerContent: buildOpenInvoiceHeader(title, dateText),
 		metaColumns: buildOpenInvoiceMetaColumns(filters, selectedCustomerLabel, selectedCustomer),
+		summaryRows: buildOpenInvoiceSummary(rows),
 		showTableHeader: true,
 	};
 }
