@@ -91,7 +91,7 @@ function includesAnyKeyword(value: string, keywords: readonly string[]) {
 	return keywords.some((keyword) => value.includes(keyword));
 }
 
-function isReceiptInvoice(invoice: Pick<Invoice, "refNo" | "type">): boolean {
+export function isReceiptInvoice(invoice: Pick<Invoice, "refNo" | "type">): boolean {
 	const normalizedType = normalizeText(invoice.type);
 	if (normalizedType === "receipt") return true;
 

@@ -8,6 +8,7 @@ import {
 	getOpenInvoiceMetrics,
 	getProductCategory,
 	groupPreviewRowsByRefNo,
+	isReceiptInvoice,
 } from "./invoice-builder-helpers";
 import { createIndexedReportRow, createReportRow } from "./report-row-helpers";
 
@@ -147,9 +148,6 @@ export function buildOpenInvoiceRows(
 		// 2. Detail Rows (if showDetail is true)
 		if (showDetail) {
 			detailRows.forEach((row) => {
-				row.cellClassNames = {
-					refNo: "text-sky-600 font-medium hover:underline cursor-pointer",
-				};
 				reportRows.push(row);
 			});
 		}
@@ -194,9 +192,7 @@ export function buildReceiptDetailRows(
 	const customerOrder: string[] = [];
 
 	for (const invoice of effectiveInvoices) {
-		const { received } = getOpenInvoiceMetrics(invoice, rowsByRefNo);
-		// Include records with received amount / payments
-		if (received <= 0 && invoices.length > 0) continue;
+		if (!isReceiptInvoice(invoice)) continue;
 
 		const customerName = (invoice.customerName ?? "").trim() || "Unknown Customer";
 		if (!customerGroups.has(customerName)) {
@@ -254,9 +250,6 @@ export function buildReceiptDetailRows(
 		// 2. Detail Rows
 		if (showDetail) {
 			detailRows.forEach((row) => {
-				row.cellClassNames = {
-					refNo: "text-sky-600 font-medium hover:underline cursor-pointer",
-				};
 				reportRows.push(row);
 			});
 		}
@@ -514,7 +507,7 @@ export function buildCustomerTransactionDetailByTypeRows(
 						no: "",
 						date: formatFlexibleDisplayDate(inv.date),
 						refNo: inv.refNo ?? "-",
-						category: "General",
+						category: getProductCategory(pRows[0]?.productName),
 						term: inv.paymentTerm ?? "",
 						dueDate: "",
 						qty: formatNumber(qty),
@@ -522,9 +515,6 @@ export function buildCustomerTransactionDetailByTypeRows(
 						discount: "",
 						total: formatNumber(originalAmount),
 						remaining: balance > 0 ? formatNumber(balance) : "",
-					},
-					cellClassNames: {
-						refNo: "text-sky-600 font-medium hover:underline cursor-pointer",
 					},
 				});
 			});
@@ -678,7 +668,7 @@ export function buildCustomerTransactionDetailByTypeRows(
 						no: "",
 						date: formatFlexibleDisplayDate(rcp.date),
 						refNo: rcp.refNo,
-						category: "General",
+						category: getProductCategory(rowsByRefNo.get(rcp.fromRefNo)?.[0]?.productName),
 						term: rcp.fromRefNo,
 						dueDate: formatNumber(rcp.openAmount),
 						qty: "",
@@ -686,9 +676,6 @@ export function buildCustomerTransactionDetailByTypeRows(
 						discount: "",
 						total: formatNumber(rcp.received),
 						remaining: "",
-					},
-					cellClassNames: {
-						refNo: "text-sky-600 font-medium hover:underline cursor-pointer",
 					},
 				});
 			});

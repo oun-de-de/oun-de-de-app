@@ -88,18 +88,29 @@ describe("invoice detail builders", () => {
 	});
 
 	it("builds receipt detail rows with customer payments", () => {
+		const receiptInvoices: Invoice[] = [
+			...invoices,
+			{
+				id: "invoice-4",
+				refNo: "REC000001",
+				customerName: "Customer A",
+				amount: 100000,
+				date: "2026-06-11",
+				type: "receipt",
+			},
+		];
 		const previewRows: InvoiceExportPreviewRow[] = [
 			{
-				refNo: "IN000145530",
-				amount: 330600,
+				refNo: "REC000001",
+				amount: 100000,
 				paid: 100000,
-				balance: 230600,
+				balance: 0,
 			} as InvoiceExportPreviewRow,
 		];
-		const rows = buildReceiptDetailRows(invoices, previewRows, true);
+		const rows = buildReceiptDetailRows(receiptInvoices, previewRows, true);
 		expect(rows.length).toBeGreaterThan(0);
 		expect(rows[0]?.cells.customer).toBe("Customer A");
-		expect(rows[1]?.cells.refNo).toBe("IN000145530");
+		expect(rows[1]?.cells.refNo).toBe("REC000001");
 		expect(rows[1]?.cells.received).toBe("100,000");
 	});
 

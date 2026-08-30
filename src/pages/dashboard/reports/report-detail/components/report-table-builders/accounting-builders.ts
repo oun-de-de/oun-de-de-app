@@ -82,9 +82,6 @@ function createCashTransactionRow(
 			credit: item.credit ? formatNumber(item.credit) : "",
 			balance: formatNumber(runningBalance),
 		},
-		cellClassNames: {
-			refNo: "text-sky-600 font-medium hover:underline cursor-pointer",
-		},
 	};
 }
 
