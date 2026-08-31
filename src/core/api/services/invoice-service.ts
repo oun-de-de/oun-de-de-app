@@ -124,7 +124,7 @@ export const getPayments = (params?: {
 	to?: string;
 }): Promise<Pagination<PaymentResult>> =>
 	apiClient
-		.get<PagePaginatedResponse<PaymentResult>>({
+		.get<PagePaginatedResponse<PaymentResult> | PaymentResult[]>({
 			url: INVOICE_API.PAYMENTS,
 			params: {
 				page: params?.page ? params.page - 1 : 0,
@@ -135,7 +135,18 @@ export const getPayments = (params?: {
 				to: params?.to,
 			},
 		})
-		.then((res) => mapPagePaginatedResponseToPagination(res));
+		.then((res) => {
+			if (Array.isArray(res)) {
+				return {
+					list: res,
+					page: 1,
+					pageSize: res.length,
+					pageCount: 1,
+					total: res.length,
+				};
+			}
+			return mapPagePaginatedResponseToPagination(res);
+		});
 
 export default {
 	getInvoices,

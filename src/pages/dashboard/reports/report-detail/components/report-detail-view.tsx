@@ -38,6 +38,7 @@ function getDefaultReportFilters(
 		customerId: "all",
 		customerTypeId: "all",
 		productName: "all",
+		employeeId: "all",
 		fromDate: useDateRange || useSingleDate ? REPORT_DEFAULT_DATE_INPUT : "",
 		toDate: useDateRange ? REPORT_DEFAULT_DATE_INPUT : "",
 		useDateRange,

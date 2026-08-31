@@ -3,10 +3,13 @@ import { Calendar as CalendarIcon, Search } from "lucide-react";
 import { memo, type ReactNode, useEffect } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import customerService from "@/core/api/services/customer-service";
+import employeeService from "@/core/api/services/employee-service";
 import productService from "@/core/api/services/product-service";
 import { CUSTOMER_QUERY_KEYS } from "@/core/query-keys/customer-query-keys";
+import { EMPLOYEE_QUERY_KEYS } from "@/core/query-keys/employee-query-keys";
 import { PRODUCT_QUERY_KEYS } from "@/core/query-keys/product-query-keys";
 import type { Customer } from "@/core/types/customer";
+import type { Employee } from "@/core/types/employee";
 import type { Product } from "@/core/types/product";
 import { Avatar, AvatarFallback, AvatarImage } from "@/core/ui/avatar";
 import { Badge } from "@/core/ui/badge";
@@ -246,6 +249,36 @@ function ProductSelect({ id, value, products, onChange }: ProductSelectProps) {
 	);
 }
 
+type EmployeeSelectProps = {
+	id: string;
+	value?: string;
+	employees: Employee[];
+	onChange: (employeeId: string) => void;
+};
+
+function EmployeeSelect({ id, value, employees, onChange }: EmployeeSelectProps) {
+	return (
+		<FilterRow label="Employee">
+			<Select value={value || "all"} onValueChange={onChange}>
+				<SelectTrigger id={id} className="h-8 text-slate-500" aria-label="Employee">
+					<SelectValue placeholder="Select employee" />
+				</SelectTrigger>
+				<SelectContent>
+					<SelectItem value="all">All</SelectItem>
+					{employees.map((emp) => {
+						const fullName = [emp.firstName, emp.lastName].filter(Boolean).join(" ") || emp.username;
+						return (
+							<SelectItem key={emp.id} value={emp.id}>
+								{fullName}
+							</SelectItem>
+						);
+					})}
+				</SelectContent>
+			</Select>
+		</FilterRow>
+	);
+}
+
 type RabbitReportPeriodFieldProps = {
 	fromDate: string;
 	toDate: string;
@@ -371,19 +404,37 @@ type OpenInvoiceFilterFormProps = {
 	reportSlug: string;
 	value: ReportFiltersValue;
 	customers: Customer[];
+	employees: Employee[];
 	updateFilters: (nextValue: ReportFiltersValue) => void;
 	onSubmit: (e?: React.BaseSyntheticEvent) => void;
 };
 
-function OpenInvoiceFilterForm({ reportSlug, value, customers, updateFilters, onSubmit }: OpenInvoiceFilterFormProps) {
+function OpenInvoiceFilterForm({
+	reportSlug,
+	value,
+	customers,
+	employees,
+	updateFilters,
+	onSubmit,
+}: OpenInvoiceFilterFormProps) {
 	const isGrouped = reportSlug === "open-invoice-on-period-by-group";
-	const { customerId, customerTypeId, fromDate, showDetail } = value;
+	const { customerId, customerTypeId, employeeId, fromDate, toDate, showDetail } = value;
 
 	return (
 		<form className="grid gap-x-8 gap-y-2 xl:grid-cols-2" onSubmit={onSubmit}>
 			<div className="flex flex-col gap-2">
 				<StaticReportSelect id="report-branch" label="Branch" />
-				<StaticReportSelect id="report-employee" label="Employee" />
+				<EmployeeSelect
+					id="report-employee"
+					value={employeeId}
+					employees={employees}
+					onChange={(nextEmployeeId) =>
+						updateFilters({
+							...value,
+							employeeId: nextEmployeeId,
+						})
+					}
+				/>
 				<StaticReportSelect id="report-category" label="Category" />
 				<StaticReportSelect id="report-term" label="Term" />
 				<StaticReportSelect id="report-job" label={isGrouped ? "Group" : "Job"} />
@@ -415,20 +466,24 @@ function OpenInvoiceFilterForm({ reportSlug, value, customers, updateFilters, on
 						})
 					}
 				/>
-				<FilterRow label="Report Date" required>
-					<ReportDatePickerButton
-						id="report-date"
-						value={fromDate}
-						onChange={(nextDate) =>
-							updateFilters({
-								...value,
-								fromDate: nextDate,
-								toDate: nextDate,
-								useDateRange: false,
-							})
-						}
-					/>
-				</FilterRow>
+				<RabbitReportPeriodField
+					fromDate={fromDate}
+					toDate={toDate}
+					onFromDateChange={(nextFromDate) =>
+						updateFilters({
+							...value,
+							fromDate: nextFromDate,
+							useDateRange: true,
+						})
+					}
+					onToDateChange={(nextToDate) =>
+						updateFilters({
+							...value,
+							toDate: nextToDate,
+							useDateRange: true,
+						})
+					}
+				/>
 				<FilterRow label="Show Detail">
 					<Checkbox
 						id="report-show-detail"
@@ -614,6 +669,10 @@ export const ReportFilters = memo(function ReportFilters({
 		queryKey: PRODUCT_QUERY_KEYS.list(),
 		queryFn: productService.getProductList,
 	});
+	const { data: employees = [] } = useQuery({
+		queryKey: EMPLOYEE_QUERY_KEYS.list(),
+		queryFn: employeeService.getEmployeeList,
+	});
 	const customers = customersResponse?.list ?? [];
 	const isSaleDetail = reportSlug === "sale-detail-by-customer" || reportSlug === "receipt-detail-by-customer";
 	const isOpenInvoiceReport =
@@ -628,6 +687,7 @@ export const ReportFilters = memo(function ReportFilters({
 				reportSlug={reportSlug}
 				value={value}
 				customers={customers}
+				employees={employees}
 				updateFilters={updateFilters}
 				onSubmit={submit}
 			/>
@@ -661,7 +721,12 @@ export const ReportFilters = memo(function ReportFilters({
 					<div className="flex flex-col gap-4">
 						<StaticReportSelect id="report-branch" label="Branch" />
 						<StaticReportSelect id="report-warehouse" label="Warehouse" />
-						<StaticReportSelect id="report-employee" label="Employee" />
+						<EmployeeSelect
+							id="report-employee-sale"
+							value={value.employeeId}
+							employees={employees}
+							onChange={(nextEmployeeId) => updateFilters({ ...value, employeeId: nextEmployeeId })}
+						/>
 						<StaticReportSelect id="report-geography" label="Geography" />
 						{filterConfig.customerType && (
 							<CustomerSelect
@@ -762,7 +827,12 @@ export const ReportFilters = memo(function ReportFilters({
 				<div className="flex flex-col gap-4">
 					<StaticReportSelect id="report-branch" label="Branch" />
 					<StaticReportSelect id="report-warehouse" label="Warehouse" />
-					<StaticReportSelect id="report-employee" label="Employee" />
+					<EmployeeSelect
+						id="report-employee"
+						value={value.employeeId}
+						employees={employees}
+						onChange={(nextEmployeeId) => updateFilters({ ...value, employeeId: nextEmployeeId })}
+					/>
 					<StaticReportSelect id="report-geography" label="Geography" />
 					{filterConfig.customerType && (
 						<CustomerSelect

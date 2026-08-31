@@ -13,6 +13,7 @@ import { buildReportPresentation } from "./report-table-presentation-builders";
 import { useReportTableData } from "./use-report-table-data";
 
 const EMPTY_SUMMARY_ROWS: ReportTemplateSummaryRow[] = [];
+const EMPTY_ROWS: ReportTemplateRow[] = [];
 
 interface ReportTableProps {
 	columns: ReportTemplateColumn[];
@@ -51,6 +52,7 @@ export const ReportTable = React.memo(function ReportTable({
 		customerTypeCustomerCount,
 		sourceRows,
 		sortedRows,
+		isLoading,
 	} = useReportTableData({
 		reportSlug,
 		filters,
@@ -111,10 +113,10 @@ export const ReportTable = React.memo(function ReportTable({
 			metaColumns={presentation.metaColumns}
 			showTableHeader={presentation.showTableHeader}
 			columns={columns}
-			rows={sortedRows}
+			rows={isLoading ? EMPTY_ROWS : sortedRows}
 			hiddenColumnKeys={hiddenColumnKeys}
 			summaryRows={presentation.summaryRows ?? definition.summaryRows ?? EMPTY_SUMMARY_ROWS}
-			emptyText={presentation.emptyText ?? definition.emptyText}
+			emptyText={isLoading ? "Loading..." : (presentation.emptyText ?? definition.emptyText)}
 			timestampText={formatReportTimestamp("administrator", new Date())}
 		/>
 	);

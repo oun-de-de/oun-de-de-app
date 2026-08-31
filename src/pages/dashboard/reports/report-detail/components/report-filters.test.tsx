@@ -184,17 +184,19 @@ describe("ReportFilters", () => {
 		renderOpenInvoiceFilters("open-invoice-detail-by-customer", onSubmit);
 
 		expect(await screen.findByText("Job")).toBeInTheDocument();
+		expect(screen.getByText("Report Period")).toBeInTheDocument();
 		expect(screen.getByText("Show Detail")).toBeInTheDocument();
 		await user.click(screen.getByRole("button", { name: "Submit" }));
 
 		await waitFor(() => expect(onSubmit).toHaveBeenCalledWith(defaultValue));
 	});
 
-	it("uses Group instead of Job for Open Invoice by group", async () => {
+	it("uses Group and Report Period date range for Open Invoice by group", async () => {
 		renderOpenInvoiceFilters("open-invoice-on-period-by-group");
 
 		expect(await screen.findByText("Group")).toBeInTheDocument();
 		expect(screen.queryByText("Job")).not.toBeInTheDocument();
+		expect(screen.getByText("Report Period")).toBeInTheDocument();
 	});
 
 	it("submits the selected Customer Type referrer", async () => {
