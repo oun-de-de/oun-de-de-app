@@ -101,6 +101,10 @@ export function buildOpenInvoiceRows(
 	}
 
 	const reportRows: ReportTemplateRow[] = [];
+	let grandTotalOriginal = 0;
+	let grandTotalReceived = 0;
+	let grandTotalBalance = 0;
+	let grandTotalInvoiceCount = 0;
 
 	customerOrder.forEach((customerName, customerIndex) => {
 		const customerInvoices = customerGroups.get(customerName) ?? [];
@@ -113,6 +117,10 @@ export function buildOpenInvoiceRows(
 			totalOriginal += originalAmount;
 			totalReceived += received;
 			totalBalance += balance;
+			grandTotalOriginal += originalAmount;
+			grandTotalReceived += received;
+			grandTotalBalance += balance;
+			grandTotalInvoiceCount += 1;
 
 			return createReportRow(`open-inv-detail-${customerIndex}-${invIndex}-${inv.refNo}`, {
 				no: "",
@@ -175,6 +183,29 @@ export function buildOpenInvoiceRows(
 		});
 	});
 
+	if (customerOrder.length > 0) {
+		reportRows.push({
+			key: "open-inv-grand-total",
+			cells: {
+				no: "",
+				customer: `Grand Total (${grandTotalInvoiceCount})`,
+				date: "",
+				refNo: "",
+				employee: "",
+				originalAmount: formatNumber(grandTotalOriginal),
+				received: grandTotalReceived > 0 ? `-${formatNumber(grandTotalReceived)}` : "",
+				balance: formatNumber(grandTotalBalance),
+			},
+			rowClassName: "font-bold bg-slate-100/80 border-t-2 border-slate-300",
+			cellClassNames: {
+				customer: "font-bold text-slate-900",
+				originalAmount: "font-bold text-slate-900",
+				received: "font-bold text-slate-900",
+				balance: "font-bold text-slate-900",
+			},
+		});
+	}
+
 	return reportRows;
 }
 
@@ -183,8 +214,9 @@ export function buildReceiptDetailRows(
 	previewRows: InvoiceExportPreviewRow[],
 	showDetail = true,
 ): ReportTemplateRow[] {
-	const effectiveInvoices = invoices.length > 0 ? invoices : [...DEFAULT_OPEN_INVOICES];
-	const effectivePreviews = previewRows.length > 0 ? previewRows : [...DEFAULT_OPEN_INVOICE_PREVIEWS];
+	const useDefaults = invoices.length === 0 && previewRows.length === 0;
+	const effectiveInvoices = useDefaults ? [...DEFAULT_OPEN_INVOICES] : invoices;
+	const effectivePreviews = useDefaults ? [...DEFAULT_OPEN_INVOICE_PREVIEWS] : previewRows;
 	const rowsByRefNo = groupPreviewRowsByRefNo(effectivePreviews);
 
 	// Group payment receipts by customer
@@ -203,6 +235,10 @@ export function buildReceiptDetailRows(
 	}
 
 	const reportRows: ReportTemplateRow[] = [];
+	let grandTotalOriginal = 0;
+	let grandTotalReceived = 0;
+	let grandTotalBalance = 0;
+	let grandTotalInvoiceCount = 0;
 
 	customerOrder.forEach((customerName, customerIndex) => {
 		const customerInvoices = customerGroups.get(customerName) ?? [];
@@ -211,10 +247,26 @@ export function buildReceiptDetailRows(
 		let totalBalance = 0;
 
 		const detailRows = customerInvoices.map((inv, invIndex) => {
-			const { originalAmount, received, balance } = getOpenInvoiceMetrics(inv, rowsByRefNo);
+			const { originalAmount, received, balance } =
+				rowsByRefNo.size > 0
+					? getOpenInvoiceMetrics(inv, rowsByRefNo)
+					: {
+							originalAmount: (inv as any).originalAmount ?? inv.amount ?? 0,
+							received: (inv as any).received ?? inv.amount ?? 0,
+							balance:
+								(inv as any).balance ??
+								Math.max(
+									0,
+									((inv as any).originalAmount ?? inv.amount ?? 0) - ((inv as any).received ?? inv.amount ?? 0),
+								),
+						};
 			totalOriginal += originalAmount;
 			totalReceived += received;
 			totalBalance += balance;
+			grandTotalOriginal += originalAmount;
+			grandTotalReceived += received;
+			grandTotalBalance += balance;
+			grandTotalInvoiceCount += 1;
 
 			return createReportRow(`receipt-detail-${customerIndex}-${invIndex}-${inv.refNo}`, {
 				no: "",
@@ -275,6 +327,28 @@ export function buildReceiptDetailRows(
 				balance: "font-bold text-slate-900",
 			},
 		});
+	});
+
+	// Grand Total Row
+	reportRows.push({
+		key: "receipt-grand-total",
+		cells: {
+			no: "",
+			customer: `Grand Total (${grandTotalInvoiceCount})`,
+			date: "",
+			refNo: "",
+			employee: "",
+			originalAmount: formatNumber(grandTotalOriginal),
+			received: formatNumber(grandTotalReceived),
+			balance: formatNumber(grandTotalBalance),
+		},
+		rowClassName: "font-bold bg-slate-100/80 border-t-2 border-slate-300",
+		cellClassNames: {
+			customer: "font-bold text-slate-900",
+			originalAmount: "font-bold text-slate-900",
+			received: "font-bold text-slate-900",
+			balance: "font-bold text-slate-900",
+		},
 	});
 
 	return reportRows;

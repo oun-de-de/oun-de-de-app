@@ -642,6 +642,37 @@ function buildCustomerTransactionDetailByTypePresentation(params: ReportPresenta
 	};
 }
 
+function buildCycleSummary(rows: ReportTemplateRow[]): ReportTemplateSummaryRow[] {
+	let totalInvoice = 0;
+	let totalPaid = 0;
+	let totalOutstanding = 0;
+
+	for (const row of rows) {
+		if (row.key === "cycle-grand-total") continue;
+		totalInvoice += parseNumericCell(row.cells.invoiceTotal);
+		totalPaid += parseNumericCell(row.cells.paid);
+		totalOutstanding += parseNumericCell(row.cells.outstanding);
+	}
+
+	return toSummaryRows([
+		{ key: "cycle-total-invoice", label: "Total Invoice", value: formatNumber(totalInvoice) },
+		{ key: "cycle-total-paid", label: "Total Paid", value: formatNumber(totalPaid) },
+		{ key: "cycle-total-balance", label: "Total Balance", value: formatNumber(totalOutstanding) },
+	]);
+}
+
+function buildCyclePresentation(params: ReportPresentationBuilderParams): ReportPresentation {
+	const { title, filters, selectedCustomerLabel, selectedCustomer, rows } = params;
+	const dateRange = formatFilterRange(filters);
+
+	return {
+		headerContent: buildOpenInvoiceHeader(title, dateRange),
+		metaColumns: buildOpenInvoiceMetaColumns(filters, selectedCustomerLabel, selectedCustomer),
+		summaryRows: buildCycleSummary(rows),
+		showTableHeader: true,
+	};
+}
+
 const PRESENTATION_BUILDERS: Partial<
 	Record<ReportTemplateId, (params: ReportPresentationBuilderParams) => ReportPresentation>
 > = {
@@ -657,6 +688,7 @@ const PRESENTATION_BUILDERS: Partial<
 	"receipt-detail-by-customer": buildReceiptDetailPresentation,
 	"customer-transaction-detail-by-type": buildCustomerTransactionDetailByTypePresentation,
 	"open-invoice-detail-by-customer": buildOpenInvoicePresentation,
+	"cycle-summary": buildCyclePresentation,
 };
 
 export function buildReportPresentation(params: ReportPresentationBuilderParams): ReportPresentation {

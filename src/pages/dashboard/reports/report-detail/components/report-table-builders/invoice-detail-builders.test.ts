@@ -75,7 +75,8 @@ describe("invoice detail builders", () => {
 		const rows = buildOpenInvoiceRows(invoices, [], true);
 		// Customer A: Header, Detail 1, Detail 2, Subtotal -> 4 rows
 		// Customer B: Header, Detail 1, Subtotal -> 3 rows
-		expect(rows).toHaveLength(7);
+		// Grand Total -> 1 row
+		expect(rows).toHaveLength(8);
 		expect(rows[0]?.cells.customer).toBe("Customer A");
 		expect(rows[1]?.cells.refNo).toBe("IN000145530");
 		expect(rows[2]?.cells.refNo).toBe("IN000145531");
@@ -85,6 +86,8 @@ describe("invoice detail builders", () => {
 		expect(rows[5]?.cells.refNo).toBe("CS000145494");
 		expect(rows[6]?.cells.employee).toBe("Total(1)");
 		expect(rows[6]?.cells.originalAmount).toBe("102,600");
+		expect(rows[7]?.cells.customer).toBe("Grand Total (3)");
+		expect(rows[7]?.cells.originalAmount).toBe("533,200");
 	});
 
 	it("builds receipt detail rows with customer payments", () => {
@@ -112,6 +115,29 @@ describe("invoice detail builders", () => {
 		expect(rows[0]?.cells.customer).toBe("Customer A");
 		expect(rows[1]?.cells.refNo).toBe("REC000001");
 		expect(rows[1]?.cells.received).toBe("100,000");
+	});
+
+	it("builds receipt detail rows directly from payment records when previewRows is empty", () => {
+		const receiptInvoices: Invoice[] = [
+			{
+				id: "pay-1",
+				refNo: "IN000017939",
+				customerName: "Customer A",
+				amount: 50000,
+				received: 50000,
+				originalAmount: 50000,
+				balance: 0,
+				date: "2026-08-29",
+				type: "receipt",
+			} as any,
+		];
+		const rows = buildReceiptDetailRows(receiptInvoices, [], true);
+		expect(rows.length).toBeGreaterThan(0);
+		expect(rows[0]?.cells.customer).toBe("Customer A");
+		expect(rows[1]?.cells.refNo).toBe("IN000017939");
+		expect(rows[1]?.cells.received).toBe("50,000");
+		expect(rows[1]?.cells.originalAmount).toBe("50,000");
+		expect(rows[1]?.cells.balance).toBe("0");
 	});
 
 	it("builds customer transaction detail by type with invoices on top and receipts on bottom conditionally", () => {

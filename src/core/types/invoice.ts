@@ -20,8 +20,16 @@ export interface PaymentResult {
 	id?: string;
 	cycleId?: string;
 	code?: string;
+	refNo?: string;
+	customerName?: string;
+	customerId?: string;
+	date?: string;
 	paymentDate?: string;
 	amount?: number;
+	received?: number;
+	originalAmount?: number;
+	balance?: number;
+	createdBy?: string;
 }
 
 export interface InvoiceExportLineApi {

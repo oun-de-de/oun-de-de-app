@@ -3,10 +3,11 @@ import { buildSizedColumns } from "../report-column-helpers";
 
 export function buildCycleColumns(): ReportTemplateColumn[] {
 	return buildSizedColumns([
-		["customer", "Customer"],
-		["cycle", "Cycle"],
-		["invoiceTotal", "Invoice Total"],
-		["paid", "Paid"],
+		["customer", "Customer", "w-[25%]"],
+		["cycle", "Cycle", "w-[27%]"],
+		["invoiceTotal", "Invoice Total", "w-[16%]", "right"],
+		["paid", "Paid", "w-[16%]", "right"],
+		["outstanding", "Balance", "w-[16%]", "right"],
 	]);
 }
 

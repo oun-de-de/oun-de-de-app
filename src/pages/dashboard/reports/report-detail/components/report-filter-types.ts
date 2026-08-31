@@ -4,6 +4,7 @@ export type ReportFiltersValue = {
 	customerId: string;
 	customerTypeId: string;
 	productName: string;
+	employeeId?: string;
 	fromDate: string;
 	toDate: string;
 	useDateRange: boolean;

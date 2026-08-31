@@ -9,9 +9,7 @@ export function normalizeReportFilters(filters?: ReportFiltersValue) {
 	const productName = filters?.productName && filters.productName !== "all" ? filters.productName : undefined;
 	const isDateRange = filters?.useDateRange === true;
 	const reportDateFrom =
-		isDateRange && filters?.fromDate && /^\d{4}-\d{2}-\d{2}$/.test(filters.fromDate)
-			? `${filters.fromDate}T00:00:00`
-			: undefined;
+		filters?.fromDate && /^\d{4}-\d{2}-\d{2}$/.test(filters.fromDate) ? `${filters.fromDate}T00:00:00` : undefined;
 	const targetToDate = isDateRange ? filters?.toDate : filters?.fromDate;
 	const reportDateTo =
 		targetToDate && /^\d{4}-\d{2}-\d{2}$/.test(targetToDate) ? `${targetToDate}T23:59:59` : undefined;
