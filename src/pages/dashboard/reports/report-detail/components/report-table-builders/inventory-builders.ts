@@ -181,6 +181,13 @@ function createOpeningBalanceRow(row: ReportTemplateRow): ReportTemplateRow {
 	};
 }
 
+/**
+ * Note (verified against the live API on 2026-09-01): /reports/inventory-stock-report already
+ * filters by date server-side and returns [] for a range with no movement, so the carry-forward
+ * branch below currently never runs — there is nothing left to carry. It is kept because it is the
+ * correct client-side behaviour if that endpoint ever returns full history, or if this report moves
+ * to one that does. The unit tests cover it directly.
+ */
 export function filterInventoryStockReportRowsByDate(
 	rows: ReportTemplateRow[],
 	fromDate: string | undefined,
