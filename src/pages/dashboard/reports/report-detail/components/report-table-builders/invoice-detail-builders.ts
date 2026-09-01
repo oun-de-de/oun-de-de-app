@@ -1,4 +1,4 @@
-import type { Invoice, InvoiceExportLineApi, InvoiceExportPreviewRow } from "@/core/types/invoice";
+import type { Invoice, InvoiceExportLineApi, InvoiceExportPreviewRow, PaymentResult } from "@/core/types/invoice";
 import { formatFlexibleDisplayDate } from "@/core/utils/date-display";
 import { formatNumber } from "@/core/utils/formatters";
 import type { ReportTemplateRow } from "../../../components/layout/report-template-table";
@@ -414,6 +414,7 @@ export function buildSaleDetailRows(invoices: Invoice[], exportLines: InvoiceExp
 export function buildCustomerTransactionDetailByTypeRows(
 	invoices: Invoice[],
 	previewRows: InvoiceExportPreviewRow[],
+	payments: PaymentResult[] = [],
 ): ReportTemplateRow[] {
 	if (invoices.length === 0) return [];
 	const rowsByRefNo = groupPreviewRowsByRefNo(previewRows);
@@ -581,33 +582,33 @@ export function buildCustomerTransactionDetailByTypeRows(
 	}
 
 	// ── 2. SECTION 2: RECEIPT ──────────────────────────────────────
-	// Rule: "nếu có invoice, không receipt => chỉ show invoice, không cần show customer ở receipt section"
+	// Built from real payment records. Deriving them from invoices instead would mean inventing a
+	// reference number ("REC-" + the invoice's), which is not a document anyone can look up.
+	// Rule: a customer with invoices but no payments appears only in the invoice section.
 	const receiptCustomerGroups = new Map<
 		string,
 		Array<{
 			date: string;
 			refNo: string;
-			fromRefNo: string;
 			openAmount: number;
 			received: number;
 		}>
 	>();
 	const receiptCustomerOrder: string[] = [];
 
-	for (const inv of invoices) {
-		const { originalAmount, received } = getOpenInvoiceMetrics(inv, rowsByRefNo);
-		if (received <= 0) continue; // Skip if no receipt / payment made
+	for (const payment of payments) {
+		const received = payment.received ?? payment.amount ?? 0;
+		if (received <= 0) continue;
 
-		const custName = (inv.customerName ?? "").trim() || "Unknown Customer";
+		const custName = (payment.customerName ?? "").trim() || "Unknown Customer";
 		if (!receiptCustomerGroups.has(custName)) {
 			receiptCustomerGroups.set(custName, []);
 			receiptCustomerOrder.push(custName);
 		}
 		receiptCustomerGroups.get(custName)?.push({
-			date: inv.date ?? "",
-			refNo: `REC-${inv.refNo}`,
-			fromRefNo: inv.refNo ?? "-",
-			openAmount: originalAmount,
+			date: payment.date || payment.paymentDate || "",
+			refNo: payment.refNo || payment.code || payment.id || "-",
+			openAmount: payment.originalAmount ?? payment.amount ?? received,
 			received,
 		});
 	}
@@ -677,8 +678,8 @@ export function buildCustomerTransactionDetailByTypeRows(
 						no: "",
 						date: formatFlexibleDisplayDate(rcp.date),
 						refNo: rcp.refNo,
-						category: getProductCategory(rowsByRefNo.get(rcp.fromRefNo)?.[0]?.productName),
-						term: rcp.fromRefNo,
+						category: "",
+						term: "",
 						dueDate: formatNumber(rcp.openAmount),
 						qty: "",
 						amount: formatNumber(rcp.received),

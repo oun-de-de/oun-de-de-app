@@ -1,4 +1,10 @@
-import type { Invoice, InvoiceExportLineApi, InvoiceExportPreviewRow } from "@/core/types/invoice";
+import type { Invoice, InvoiceExportLineApi, InvoiceExportPreviewRow, PaymentResult } from "@/core/types/invoice";
+
+// An invoice marked as partly paid: the old builder used this to synthesise a receipt row.
+const previewRowsWithPayment: InvoiceExportPreviewRow[] = [
+	{ refNo: "IN000145530", quantity: 5, amount: 330600, paid: 100000, balance: 230600 } as InvoiceExportPreviewRow,
+];
+
 import {
 	buildCustomerTransactionDetailByTypeRows,
 	buildOpenInvoiceRows,
@@ -176,7 +182,10 @@ describe("invoice detail builders", () => {
 				balance: 102600,
 			} as InvoiceExportPreviewRow,
 		];
-		const rows = buildCustomerTransactionDetailByTypeRows(invoices, previewRows);
+		const payments: PaymentResult[] = [
+			{ id: "pay-1", refNo: "REC000009", customerName: "Customer A", date: "2026-06-12", received: 100000 },
+		];
+		const rows = buildCustomerTransactionDetailByTypeRows(invoices, previewRows, payments);
 
 		// Section 1: Invoice banner exists
 		expect(rows.some((r) => r.cells.date === "Invoice")).toBe(true);
@@ -190,10 +199,29 @@ describe("invoice detail builders", () => {
 
 		// Section 2: Receipt banner exists
 		expect(rows.some((r) => r.cells.date === "Receipt")).toBe(true);
-		// Receipt section includes Customer A (paid 100000)
+		// Receipt section includes Customer A, who has a payment record
 		const receiptRows = rows.slice(rows.findIndex((r) => r.cells.date === "Receipt"));
 		expect(receiptRows.some((r) => r.cells.date === "Customer A")).toBe(true);
-		// Receipt section DOES NOT include Customer B (paid 0)
+		// Customer B has no payment, so no receipt group
 		expect(receiptRows.some((r) => r.cells.date === "Customer B")).toBe(false);
+	});
+
+	it("shows the real payment reference, never one derived from the invoice", () => {
+		const payments: PaymentResult[] = [
+			{ id: "pay-1", refNo: "REC000009", customerName: "Customer A", date: "2026-06-12", received: 100000 },
+		];
+		const rows = buildCustomerTransactionDetailByTypeRows(invoices, [], payments);
+		const receiptRow = rows.find((row) => row.key.startsWith("tx-rcp-row-"));
+
+		expect(receiptRow?.cells.refNo).toBe("REC000009");
+		// "REC-IN000145530" was a string invented from the invoice; no such document exists.
+		expect(rows.every((row) => !String(row.cells.refNo ?? "").startsWith("REC-IN"))).toBe(true);
+	});
+
+	it("omits the receipt section entirely when no payments were recorded", () => {
+		const rows = buildCustomerTransactionDetailByTypeRows(invoices, previewRowsWithPayment, []);
+
+		expect(rows.some((row) => row.cells.date === "Invoice")).toBe(true);
+		expect(rows.some((row) => row.cells.date === "Receipt")).toBe(false);
 	});
 });

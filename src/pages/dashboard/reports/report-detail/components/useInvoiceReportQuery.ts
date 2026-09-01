@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import invoiceService from "@/core/api/services/invoice-service";
-import type { InvoiceExportPreviewRow } from "@/core/types/invoice";
+import type { InvoiceExportPreviewRow, PaymentResult } from "@/core/types/invoice";
 import type { ReportDefinition } from "../report-types";
 import { normalizeCustomerText } from "./report-data-utils";
 import type { ReportFiltersValue } from "./report-filters";
@@ -29,6 +29,9 @@ export function useInvoiceReportQuery({
 }: UseInvoiceReportQueryParams) {
 	const { productName, reportDateFrom, reportDateTo } = normalizeReportFilters(filters);
 	const isReceiptReport = definition.slug === "receipt-detail-by-customer";
+	// customer-transaction-detail-by-type shows a receipt section alongside its invoices, and needs
+	// the real payment records to fill it.
+	const needsPayments = isReceiptReport || definition.slug === "customer-transaction-detail-by-type";
 	const shouldBuildPreviewRows = definition.needsPreviewRows === true;
 
 	const paymentQuery = useQuery({
@@ -49,7 +52,7 @@ export function useInvoiceReportQuery({
 				from: reportDateFrom,
 				to: reportDateTo,
 			}),
-		enabled: isReceiptReport && isInvoiceExport && hasRequiredDateFilters,
+		enabled: needsPayments && isInvoiceExport && hasRequiredDateFilters,
 	});
 
 	const invoiceQuery = useQuery({
@@ -137,13 +140,24 @@ export function useInvoiceReportQuery({
 		[exportQuery.data, shouldBuildPreviewRows],
 	);
 
+	const payments = useMemo<PaymentResult[]>(() => {
+		if (isReceiptReport || !paymentQuery.data) return [];
+		return paymentQuery.data.list.filter((payment) => {
+			if (customerTypeId) {
+				return customerTypeCustomerNames.has(normalizeCustomerText(payment.customerName));
+			}
+			return true;
+		});
+	}, [customerTypeCustomerNames, customerTypeId, isReceiptReport, paymentQuery.data]);
+
 	return {
 		invoices,
+		payments,
 		invoiceIds,
 		exportLines: exportQuery.data ?? [],
 		previewRows,
 		isLoading:
 			(isReceiptReport ? paymentQuery.isLoading : invoiceQuery.isLoading) ||
-			(!isReceiptReport && exportQuery.isLoading),
+			(!isReceiptReport && (exportQuery.isLoading || (needsPayments && paymentQuery.isLoading))),
 	};
 }

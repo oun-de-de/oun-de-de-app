@@ -9,8 +9,8 @@ function buildCustomerLoanRegisterRows({ loanContent, allCustomers, installments
 	return buildCustomerLoanRows(loanContent, allCustomers, installmentsByLoanId);
 }
 
-function buildCustomerTransactionDetailByTypeReportRows({ invoices, previewRows }: BuildReportRowsParams) {
-	return buildCustomerTransactionDetailByTypeRows(invoices, previewRows);
+function buildCustomerTransactionDetailByTypeReportRows({ invoices, previewRows, payments }: BuildReportRowsParams) {
+	return buildCustomerTransactionDetailByTypeRows(invoices, previewRows, payments);
 }
 
 export const LOAN_REPORT_SPECS: ReportDefinitionMap = {

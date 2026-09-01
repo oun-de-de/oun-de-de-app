@@ -115,6 +115,32 @@ describe("useInvoiceReportQuery customer + customer type filters", () => {
 		await waitFor(() => expect(result.current.invoices).toEqual([]));
 	});
 
+	it("fetches payments for customer-transaction-detail-by-type, which shows a receipt section", async () => {
+		const definition = {
+			slug: "customer-transaction-detail-by-type",
+			dataSource: "invoice-export",
+		} as ReportDefinition;
+
+		const { result } = renderHook(
+			() =>
+				useInvoiceReportQuery({
+					definition,
+					filters: { fromDate: "2026-06-01", toDate: "2026-06-30" } as never,
+					isInvoiceExport: true,
+					hasRequiredDateFilters: true,
+					customerId: undefined,
+					customerTypeId: undefined,
+					customerTypeCustomerNames: new Set<string>(),
+				}),
+			{ wrapper: createWrapper() },
+		);
+
+		// Both sections need data: invoices for section 1, real payments for section 2.
+		await waitFor(() => expect(result.current.payments.length).toBeGreaterThan(0));
+		expect(invoiceService.getPayments).toHaveBeenCalled();
+		expect(invoiceService.getInvoices).toHaveBeenCalled();
+	});
+
 	it("applies the same AND rule on the receipt report, which reads /payments", async () => {
 		const { result } = renderQuery({
 			slug: "receipt-detail-by-customer",

@@ -1,7 +1,7 @@
 import type { Customer } from "@/core/types/customer";
 import type { Cycle } from "@/core/types/cycle";
 import type { InventoryItem } from "@/core/types/inventory";
-import type { Invoice, InvoiceExportLineApi, InvoiceExportPreviewRow } from "@/core/types/invoice";
+import type { Invoice, InvoiceExportLineApi, InvoiceExportPreviewRow, PaymentResult } from "@/core/types/invoice";
 import type { BorrowerType, Installment, Loan } from "@/core/types/loan";
 import type { Product } from "@/core/types/product";
 import type {
@@ -88,6 +88,7 @@ export type ReportDefinitionMap = Record<string, ReportDefinition>;
 
 export interface BuildReportRowsParams {
 	invoices: Invoice[];
+	payments: PaymentResult[];
 	exportLines: InvoiceExportLineApi[];
 	previewRows: InvoiceExportPreviewRow[];
 	cycles: Cycle[];

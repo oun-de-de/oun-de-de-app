@@ -95,6 +95,7 @@ export function useReportTableData({ reportSlug, filters, sortMode }: UseReportT
 		() =>
 			definition.buildRows({
 				invoices: invoiceData.invoices,
+				payments: invoiceData.payments,
 				exportLines: invoiceData.exportLines,
 				previewRows: invoiceData.previewRows,
 				cycles: domainData.cycles,
@@ -118,6 +119,7 @@ export function useReportTableData({ reportSlug, filters, sortMode }: UseReportT
 			definition,
 			filters,
 			invoiceData.invoices,
+			invoiceData.payments,
 			invoiceData.exportLines,
 			invoiceData.previewRows,
 			domainData.cycles,
