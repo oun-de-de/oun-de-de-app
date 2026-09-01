@@ -278,6 +278,50 @@ describe("ReportFilters", () => {
 		expect(screen.queryByText("Group by")).not.toBeInTheDocument();
 	});
 
+	it("gives Cash Transaction Report a report period matching its dateRange filterConfig", async () => {
+		const user = userEvent.setup();
+		const onSubmit = vi.fn();
+		render(
+			<ReportFilters
+				value={defaultValue}
+				onSubmit={onSubmit}
+				filterConfig={{ customer: false, dateRange: true }}
+				reportSlug="cash-transaction-report"
+			/>,
+			{ wrapper: createWrapper() },
+		);
+
+		expect(await screen.findByText("Report Period")).toBeInTheDocument();
+		expect(screen.getByRole("button", { name: /01\/06\/2026/ })).toBeInTheDocument();
+		expect(screen.getByRole("button", { name: /10\/06\/2026/ })).toBeInTheDocument();
+
+		await user.click(screen.getByRole("button", { name: "Submit" }));
+		await waitFor(() => expect(onSubmit).toHaveBeenCalledWith(defaultValue));
+	});
+
+	it("disables filter controls that no query reads", async () => {
+		renderSaleDetailFilters();
+
+		// Employee and the static placeholder selects feed nothing; Customer stays live.
+		expect(await screen.findByRole("combobox", { name: "Employee" })).toBeDisabled();
+		expect(screen.getByRole("combobox", { name: "Customer" })).not.toBeDisabled();
+		expect(screen.getByRole("combobox", { name: "Product" })).not.toBeDisabled();
+	});
+
+	it("disables Product for receipt-detail, which reads /payments and ignores productName", async () => {
+		render(
+			<ReportFilters
+				value={defaultValue}
+				onSubmit={vi.fn()}
+				filterConfig={{ customer: true, customerType: true, dateRange: true }}
+				reportSlug="receipt-detail-by-customer"
+			/>,
+			{ wrapper: createWrapper() },
+		);
+
+		expect(await screen.findByRole("combobox", { name: "Product" })).toBeDisabled();
+	});
+
 	it("submits filters with the Enter key", async () => {
 		const user = userEvent.setup();
 		const onSubmit = vi.fn();

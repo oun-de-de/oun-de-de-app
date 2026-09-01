@@ -52,8 +52,6 @@ export type ReportTemplateId =
 	| "customer-transaction-detail-by-type"
 	| "unsupported";
 
-export type ReportInvoiceType = "invoice" | "receipt";
-
 export interface ReportFilterConfig {
 	customer: boolean;
 	customerType?: boolean;
@@ -81,7 +79,6 @@ export interface ReportDefinition {
 	summaryRows?: ReportTemplateSummaryRow[];
 	dataSource?: ReportDataSource;
 	needsPreviewRows?: boolean;
-	invoiceType?: ReportInvoiceType;
 	loanBorrowerType?: BorrowerType;
 	emptyText?: string;
 	filterConfig?: ReportFilterConfig;

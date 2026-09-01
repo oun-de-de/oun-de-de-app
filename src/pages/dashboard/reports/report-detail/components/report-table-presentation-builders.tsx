@@ -343,16 +343,10 @@ function buildCompanyAssetPresentation({ rows }: ReportPresentationBuilderParams
 	});
 }
 
-function buildLedgerPresentation({
-	title,
-	filters,
-	rows,
-	reportSlug,
-}: ReportPresentationBuilderParams): ReportPresentation {
-	const prefix = reportSlug === "trial-balance" ? "trial" : "ledger";
+function buildLedgerPresentation({ title, filters, rows }: ReportPresentationBuilderParams): ReportPresentation {
 	return buildSimplePresentation(title, formatFilterRange(filters), {
 		metaColumns: buildLedgerMetaColumns(),
-		summaryRows: buildDebitCreditSummary(prefix, rows),
+		summaryRows: buildDebitCreditSummary("ledger", rows),
 	});
 }
 

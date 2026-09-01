@@ -2,29 +2,6 @@ import { formatDateToYYYYMMDD } from "@/pages/dashboard/accounting/utils/format-
 import type { ReportDefinition } from "../report-types";
 import type { ReportFiltersValue } from "./report-filters";
 
-export function normalizeInvoiceType(value: string | null | undefined) {
-	return (value ?? "").trim().toLowerCase();
-}
-
-export function isReceiptRefNo(refNo: string | null | undefined) {
-	return /^(rec|rcp|rc)/i.test((refNo ?? "").trim());
-}
-
-export function matchesInvoiceType(
-	_invoice: { refNo?: string | null; type?: string | null },
-	_expectedType: "invoice" | "receipt",
-) {
-	// Comment out invoice/receipt type filtering to allow data mapping
-	return true;
-
-	// const normalizedType = normalizeInvoiceType(invoice.type);
-	// if (normalizedType === "receipt" || normalizedType === "invoice") {
-	// 	return normalizedType === expectedType;
-	// }
-
-	// return expectedType === "receipt" ? isReceiptRefNo(invoice.refNo) : !isReceiptRefNo(invoice.refNo);
-}
-
 export function normalizeCustomerText(value?: string | null) {
 	return (value ?? "").trim().toLowerCase();
 }

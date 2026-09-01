@@ -182,7 +182,8 @@ type StaticReportSelectProps = {
 function StaticReportSelect({ id, label, value = "all", required }: StaticReportSelectProps) {
 	return (
 		<FilterRow label={label} required={required}>
-			<Select value={value}>
+			{/* ponytail: disabled because nothing reads this value yet; drop `disabled` once a query consumes it. */}
+			<Select value={value} disabled>
 				<SelectTrigger id={id} className="h-8 text-slate-500">
 					<SelectValue />
 				</SelectTrigger>
@@ -227,12 +228,13 @@ type ProductSelectProps = {
 	value: string;
 	products: Product[];
 	onChange: (productName: string) => void;
+	disabled?: boolean;
 };
 
-function ProductSelect({ id, value, products, onChange }: ProductSelectProps) {
+function ProductSelect({ id, value, products, onChange, disabled }: ProductSelectProps) {
 	return (
 		<FilterRow label="Product">
-			<Select value={value} onValueChange={onChange}>
+			<Select value={value} onValueChange={onChange} disabled={disabled}>
 				<SelectTrigger id={id} className="h-8 text-slate-500" aria-label="Product">
 					<SelectValue placeholder="Select product" />
 				</SelectTrigger>
@@ -259,7 +261,8 @@ type EmployeeSelectProps = {
 function EmployeeSelect({ id, value, employees, onChange }: EmployeeSelectProps) {
 	return (
 		<FilterRow label="Employee">
-			<Select value={value || "all"} onValueChange={onChange}>
+			{/* ponytail: disabled because no query reads filters.employeeId; drop `disabled` once one does. */}
+			<Select value={value || "all"} onValueChange={onChange} disabled>
 				<SelectTrigger id={id} className="h-8 text-slate-500" aria-label="Employee">
 					<SelectValue placeholder="Select employee" />
 				</SelectTrigger>
@@ -585,13 +588,22 @@ function CustomerTransactionDetailByTypeFilterForm({
 	);
 }
 
-function CashTransactionFilterForm({ onSubmit }: { onSubmit: (e?: React.BaseSyntheticEvent) => void }) {
+type CashTransactionFilterFormProps = {
+	value: ReportFiltersValue;
+	updateFilters: (nextValue: ReportFiltersValue) => void;
+	onSubmit: (e?: React.BaseSyntheticEvent) => void;
+};
+
+function CashTransactionFilterForm({ value, updateFilters, onSubmit }: CashTransactionFilterFormProps) {
+	const { fromDate, toDate } = value;
+
 	return (
 		<form className="flex flex-col gap-3" onSubmit={onSubmit}>
 			<div className="grid grid-cols-1 gap-x-8 gap-y-2 md:grid-cols-2">
 				<div className="flex flex-col gap-2">
 					<FilterRow label="Journal type">
-						<Select defaultValue="all">
+						{/* ponytail: disabled because no query reads it; drop `disabled` once one does. */}
+						<Select defaultValue="all" disabled>
 							<SelectTrigger id="cash-journal-type" className="h-8 text-slate-500">
 								<SelectValue placeholder="- All -" />
 							</SelectTrigger>
@@ -605,8 +617,9 @@ function CashTransactionFilterForm({ onSubmit }: { onSubmit: (e?: React.BaseSynt
 					</FilterRow>
 
 					<FilterRow label="Chart of account">
+						{/* ponytail: disabled because no query reads it; drop `disabled` once one does. */}
 						<div className="grid grid-cols-2 gap-2">
-							<Select defaultValue="all">
+							<Select defaultValue="all" disabled>
 								<SelectTrigger id="cash-chart-of-account-1" className="h-8 text-slate-500">
 									<SelectValue placeholder="- All -" />
 								</SelectTrigger>
@@ -615,7 +628,7 @@ function CashTransactionFilterForm({ onSubmit }: { onSubmit: (e?: React.BaseSynt
 									<SelectItem value="10110">10110 : Cash on hand</SelectItem>
 								</SelectContent>
 							</Select>
-							<Select defaultValue="all">
+							<Select defaultValue="all" disabled>
 								<SelectTrigger id="cash-chart-of-account-2" className="h-8 text-slate-500">
 									<SelectValue placeholder="All" />
 								</SelectTrigger>
@@ -628,8 +641,27 @@ function CashTransactionFilterForm({ onSubmit }: { onSubmit: (e?: React.BaseSynt
 					</FilterRow>
 				</div>
 
-				<div className="flex flex-col justify-end gap-2">
-					<div className="flex items-center justify-start md:pt-6">
+				<div className="flex flex-col justify-between gap-2">
+					<RabbitReportPeriodField
+						fromDate={fromDate}
+						toDate={toDate}
+						onFromDateChange={(nextFromDate) =>
+							updateFilters({
+								...value,
+								fromDate: nextFromDate,
+								useDateRange: true,
+							})
+						}
+						onToDateChange={(nextToDate) =>
+							updateFilters({
+								...value,
+								toDate: nextToDate,
+								useDateRange: true,
+							})
+						}
+					/>
+
+					<div className="flex items-center justify-start">
 						<Button type="submit" className="h-8 w-fit bg-sky-500 px-5 hover:bg-sky-600">
 							<Search className="mr-1.5 h-3.5 w-3.5" />
 							Submit
@@ -706,7 +738,7 @@ export const ReportFilters = memo(function ReportFilters({
 	}
 
 	if (isCashTransactionReport) {
-		return <CashTransactionFilterForm onSubmit={submit} />;
+		return <CashTransactionFilterForm value={value} updateFilters={updateFilters} onSubmit={submit} />;
 	}
 
 	if (isSaleDetail) {
@@ -765,6 +797,7 @@ export const ReportFilters = memo(function ReportFilters({
 							value={productName}
 							products={products}
 							onChange={(nextProductName) => updateFilters({ ...value, productName: nextProductName })}
+							disabled={reportSlug === "receipt-detail-by-customer"}
 						/>
 
 						<FilterRow label="Promotion">
@@ -863,11 +896,13 @@ export const ReportFilters = memo(function ReportFilters({
 					<StaticReportSelect id="report-item-category" label="Item Category" />
 					<StaticReportSelect id="report-group" label="Group" />
 					<StaticReportSelect id="report-rank" label="Rank" />
+					{/* ponytail: productName only reaches listInvoiceDetails, which no report in this branch uses. */}
 					<ProductSelect
 						id="report-product"
 						value={productName}
 						products={products}
 						onChange={(nextProductName) => updateFilters({ ...value, productName: nextProductName })}
+						disabled
 					/>
 
 					<FilterRow label="Promotion">

@@ -16,18 +16,17 @@ export function buildCashTransactionColumns(): ReportTemplateColumn[] {
 }
 
 export function buildLedgerColumns(): ReportTemplateColumn[] {
+	// Columns mirror buildMonthlyReportDetailRows; EMPLOYEE / CLASS / PRODUCT were dropped because
+	// that builder never emits those keys.
 	return buildSizedColumns([
-		["date", "DATE", "w-[10%]", "center"],
-		["type", "TYPE", "w-[10%]", "center"],
-		["refNo", "REF NO", "w-[12%]"],
-		["employee", "EMPLOYEE", "w-[14%]"],
-		["memo", "MEMO", "w-[12%]"],
-		["class", "CLASS", "w-[10%]"],
-		["name", "NAME", "w-[14%]"],
-		["product", "PRODUCT", "w-[8%]"],
-		["debit", "DEBIT", "w-[13%]", "right"],
-		["credit", "CREDIT", "w-[13%]", "right"],
-		["balance", "BALANCE", "w-[13%]", "right"],
+		["date", "DATE", "w-[12%]", "center"],
+		["type", "TYPE", "w-[12%]", "center"],
+		["refNo", "REF NO", "w-[15%]"],
+		["name", "NAME", "w-[18%]"],
+		["memo", "MEMO", "w-[15%]"],
+		["debit", "DEBIT", "w-[9%]", "right"],
+		["credit", "CREDIT", "w-[9%]", "right"],
+		["balance", "BALANCE", "w-[10%]", "right"],
 	]);
 }
 
@@ -42,15 +41,6 @@ export function buildIncomeExpenseLedgerColumns(): ReportTemplateColumn[] {
 		["debit", "DEBIT", "w-[10%]", "right"],
 		["credit", "CREDIT", "w-[10%]", "right"],
 		["balance", "BALANCE", "w-[12%]", "right"],
-	]);
-}
-
-export function buildTrialBalanceColumns(): ReportTemplateColumn[] {
-	return buildSizedColumns([
-		["no", "NO", "w-[5%]", "center"],
-		["account", "ACCOUNT", "w-[40%]"],
-		["debit", "DEBIT", "w-[25%]", "right"],
-		["credit", "CREDIT", "w-[25%]", "right"],
 	]);
 }
 
