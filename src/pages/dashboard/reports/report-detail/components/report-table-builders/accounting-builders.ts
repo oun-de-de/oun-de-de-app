@@ -1,4 +1,4 @@
-import type { MonthlyReportDetailsResponse } from "@/core/types/report";
+import type { CashTransactionReportResponse, MonthlyReportDetailsResponse } from "@/core/types/report";
 import { formatDisplayDate, formatNumber } from "@/core/utils/formatters";
 import type { ReportTemplateRow } from "../../../components/layout/report-template-table";
 import { createLedgerCells, createReportRow } from "./report-row-helpers";
@@ -14,11 +14,11 @@ interface CashTransactionLineItem {
 }
 
 const DEFAULT_CASH_ACCOUNT_NAME = "10110 : ប្រាក់សុទ្ធ (Cash on hand)";
-const DEFAULT_OPENING_BALANCE = 1_303_709_200;
 
 function createAccountHeaderRow(accountName: string, openingBalance: number): ReportTemplateRow {
 	return {
 		key: `account-header-${accountName}`,
+		isStructural: true,
 		cells: {
 			no: accountName,
 			date: "",
@@ -97,12 +97,12 @@ function createGrandTotalRow(totalDebit: number, totalCredit: number): ReportTem
 	};
 }
 
-function mapApiLinesToCashItems(lines: NonNullable<MonthlyReportDetailsResponse["lines"]>): CashTransactionLineItem[] {
+function mapApiLinesToCashItems(lines: NonNullable<CashTransactionReportResponse["lines"]>): CashTransactionLineItem[] {
 	return lines.map((line) => ({
 		date: line.date ?? "",
 		refNo: line.refNo ?? "-",
-		type: line.reason ?? (line.debit ? "Receipt" : "Expense"),
-		name: line.customerName ?? "",
+		type: line.type ?? (line.debit ? "Receipt" : "Expense"),
+		name: line.name ?? "",
 		memo: line.memo ?? "",
 		debit: line.debit ?? 0,
 		credit: line.credit ?? 0,
@@ -110,16 +110,16 @@ function mapApiLinesToCashItems(lines: NonNullable<MonthlyReportDetailsResponse[
 }
 
 export function buildCashTransactionReportRows(
-	monthlyReportDetails?: MonthlyReportDetailsResponse,
+	cashTransactionReport?: CashTransactionReportResponse,
 ): ReportTemplateRow[] {
-	const rawLines = monthlyReportDetails?.lines ?? [];
-	const items = mapApiLinesToCashItems(rawLines);
+	const items = mapApiLinesToCashItems(cashTransactionReport?.lines ?? []);
+	const openingBalance = cashTransactionReport?.initCashOnHand ?? 0;
 
-	let currentBalance = DEFAULT_OPENING_BALANCE;
+	let currentBalance = openingBalance;
 	let totalDebit = 0;
 	let totalCredit = 0;
 
-	const rows: ReportTemplateRow[] = [createAccountHeaderRow(DEFAULT_CASH_ACCOUNT_NAME, DEFAULT_OPENING_BALANCE)];
+	const rows: ReportTemplateRow[] = [createAccountHeaderRow(DEFAULT_CASH_ACCOUNT_NAME, openingBalance)];
 
 	items.forEach((item, index) => {
 		currentBalance += item.debit - item.credit;

@@ -4,6 +4,7 @@ import type { ReportTemplateRow } from "../../components/layout/report-template-
 import { getReportDefinition } from "../report-specs";
 import {
 	isAssetListDataSource,
+	isCashTransactionApiDataSource,
 	isCustomerListDataSource,
 	isCycleDataSource,
 	isDailyReportApiDataSource,
@@ -43,8 +44,9 @@ export function useReportTableData({ reportSlug, filters, sortMode }: UseReportT
 	const isInventoryStockReportApi = isInventoryStockReportApiDataSource(dataSource);
 	const isMonthlyReportApi = isMonthlyReportApiDataSource(dataSource);
 	const isMonthlyReportDetailsApi = isMonthlyReportDetailsApiDataSource(dataSource);
+	const isCashTransactionApi = isCashTransactionApiDataSource(dataSource);
 
-	const { hasRequiredDateFilters, reportDate, reportPeriod, inventoryDateFrom, inventoryDateTo } = getReportDateContext(
+	const { hasRequiredDateFilters, reportDate, reportPeriod, rangeDateFrom, rangeDateTo } = getReportDateContext(
 		definition,
 		filters,
 	);
@@ -80,12 +82,13 @@ export function useReportTableData({ reportSlug, filters, sortMode }: UseReportT
 		hasRequiredDateFilters,
 		reportDate,
 		reportPeriod,
-		inventoryDateFrom,
-		inventoryDateTo,
+		rangeDateFrom,
+		rangeDateTo,
 		isDailyReportApi,
 		isInventoryStockReportApi,
 		isMonthlyReportApi,
 		isMonthlyReportDetailsApi,
+		isCashTransactionApi,
 	});
 
 	const sourceRows = useMemo<ReportTemplateRow[]>(
@@ -105,8 +108,9 @@ export function useReportTableData({ reportSlug, filters, sortMode }: UseReportT
 				inventoryStockReport: accountingData.inventoryStockReport,
 				monthlyReport: accountingData.monthlyReport,
 				monthlyReportDetails: accountingData.monthlyReportDetails,
-				inventoryDateFrom,
-				inventoryDateTo,
+				cashTransactionReport: accountingData.cashTransactionReport,
+				rangeDateFrom,
+				rangeDateTo,
 				showDetail: filters?.showDetail ?? true,
 				filters,
 			}),
@@ -127,8 +131,9 @@ export function useReportTableData({ reportSlug, filters, sortMode }: UseReportT
 			accountingData.inventoryStockReport,
 			accountingData.monthlyReport,
 			accountingData.monthlyReportDetails,
-			inventoryDateFrom,
-			inventoryDateTo,
+			accountingData.cashTransactionReport,
+			rangeDateFrom,
+			rangeDateTo,
 		],
 	);
 

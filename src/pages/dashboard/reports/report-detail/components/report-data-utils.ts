@@ -61,14 +61,14 @@ export function getReportDateContext(definition: ReportDefinition, filters?: Rep
 		? filters?.fromDate || filters?.toDate || defaultReportPeriod
 		: (filters?.toDate || filters?.fromDate || defaultReportDate).slice(0, 7);
 
-	const inventoryDateFrom = filters?.fromDate || reportDate;
-	const inventoryDateTo = filters?.toDate || inventoryDateFrom;
+	const rangeDateFrom = filters?.fromDate || reportDate;
+	const rangeDateTo = filters?.toDate || rangeDateFrom;
 
 	return {
 		hasRequiredDateFilters,
 		reportDate,
 		reportPeriod,
-		inventoryDateFrom,
-		inventoryDateTo,
+		rangeDateFrom,
+		rangeDateTo,
 	};
 }

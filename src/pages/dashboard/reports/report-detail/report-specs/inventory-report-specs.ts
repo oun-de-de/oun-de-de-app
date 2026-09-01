@@ -13,11 +13,11 @@ import {
 } from "../report-columns/inventory-report-columns";
 import { type BuildReportRowsParams, REPORT_FILTERS, type ReportDefinitionMap } from "../report-types";
 
-function buildInventoryStockRows({ inventoryStockReport, inventoryDateFrom, inventoryDateTo }: BuildReportRowsParams) {
+function buildInventoryStockRows({ inventoryStockReport, rangeDateFrom, rangeDateTo }: BuildReportRowsParams) {
 	return filterInventoryStockReportRowsByDate(
 		buildInventoryStockReportRows(inventoryStockReport),
-		inventoryDateFrom,
-		inventoryDateTo,
+		rangeDateFrom,
+		rangeDateTo,
 	);
 }
 

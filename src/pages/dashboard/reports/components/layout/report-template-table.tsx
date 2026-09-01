@@ -55,6 +55,8 @@ export interface ReportTemplateRow {
 	cells: Record<string, React.ReactNode>;
 	rowClassName?: string;
 	cellClassNames?: Partial<Record<string, string>>;
+	/** Group header, subtotal, or grand total. Sorting keeps these in place and reorders around them. */
+	isStructural?: boolean;
 }
 
 interface ReportTemplateTableProps {

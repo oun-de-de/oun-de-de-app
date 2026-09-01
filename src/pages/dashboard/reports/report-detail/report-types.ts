@@ -5,6 +5,7 @@ import type { Invoice, InvoiceExportLineApi, InvoiceExportPreviewRow } from "@/c
 import type { BorrowerType, Installment, Loan } from "@/core/types/loan";
 import type { Product } from "@/core/types/product";
 import type {
+	CashTransactionReportResponse,
 	DailyReportResponse,
 	InventoryStockReportLine,
 	MonthlyReportDetailsResponse,
@@ -103,8 +104,9 @@ export interface BuildReportRowsParams {
 	inventoryStockReport?: InventoryStockReportLine[];
 	monthlyReport?: MonthlyReportResponse;
 	monthlyReportDetails?: MonthlyReportDetailsResponse;
-	inventoryDateFrom?: string;
-	inventoryDateTo?: string;
+	cashTransactionReport?: CashTransactionReportResponse;
+	rangeDateFrom?: string;
+	rangeDateTo?: string;
 	showDetail?: boolean;
 	filters?: ReportFiltersValue;
 }
@@ -138,6 +140,10 @@ export function isMonthlyReportApiDataSource(dataSource: ReportDataSource): bool
 
 export function isMonthlyReportDetailsApiDataSource(dataSource: ReportDataSource): boolean {
 	return dataSource === "monthly-report-details-api";
+}
+
+export function isCashTransactionApiDataSource(dataSource: ReportDataSource): boolean {
+	return dataSource === "cash-transaction-api";
 }
 
 export function isCycleDataSource(dataSource: ReportDataSource): boolean {
