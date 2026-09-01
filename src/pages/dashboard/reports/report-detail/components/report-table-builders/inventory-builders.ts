@@ -156,6 +156,31 @@ export function buildInventoryStockReportRows(lines: InventoryStockReportLine[] 
 		});
 }
 
+/**
+ * An item that still holds stock but saw no movement in the range is carried forward as an
+ * opening-balance row: name and balance only. Reusing its last movement row would show that
+ * movement's date and in/out quantities as if they happened inside the range.
+ */
+function createOpeningBalanceRow(row: ReportTemplateRow): ReportTemplateRow {
+	const itemKey = getInventoryItemKey(row);
+
+	return {
+		key: `inventory-opening-${itemKey}`,
+		cells: {
+			...row.cells,
+			stockInDate: EMPTY_CELL,
+			stockInQty: EMPTY_CELL,
+			stockOutDate: EMPTY_CELL,
+			stockOutName: EMPTY_CELL,
+			stockOutQty: EMPTY_CELL,
+			balanceDate: EMPTY_CELL,
+			supplierName: EMPTY_CELL,
+			supplierPhone: EMPTY_CELL,
+			supplierAddress: EMPTY_CELL,
+		},
+	};
+}
+
 export function filterInventoryStockReportRowsByDate(
 	rows: ReportTemplateRow[],
 	fromDate: string | undefined,
@@ -171,21 +196,23 @@ export function filterInventoryStockReportRowsByDate(
 		return Number.isFinite(rowTime) && rowTime >= fromTime && rowTime <= toTime;
 	});
 
+	// Rows arrive oldest-first, so the last one per item carries its running balance.
 	const latestRowByItem = new Map<string, ReportTemplateRow>();
 	for (const row of rows) {
 		latestRowByItem.set(getInventoryItemKey(row), row);
 	}
 
 	const visibleItemKeys = new Set(rowsWithinRange.map(getInventoryItemKey));
+	const openingRows: ReportTemplateRow[] = [];
 
 	for (const [itemKey, row] of latestRowByItem.entries()) {
 		if (visibleItemKeys.has(itemKey)) continue;
 		if (parseNumericCell(row.cells.balanceQty) <= 0) continue;
 
-		rowsWithinRange.push(row);
+		openingRows.push(createOpeningBalanceRow(row));
 	}
 
-	return rowsWithinRange;
+	return [...openingRows, ...rowsWithinRange];
 }
 
 export function buildCompanyAssetRows(items: InventoryItem[]): ReportTemplateRow[] {
