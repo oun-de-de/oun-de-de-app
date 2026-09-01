@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Calendar as CalendarIcon, Search } from "lucide-react";
-import { memo, type ReactNode, useEffect } from "react";
+import { memo, type ReactNode, useEffect, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import customerService from "@/core/api/services/customer-service";
 import employeeService from "@/core/api/services/employee-service";
@@ -95,11 +95,12 @@ type ReportDatePickerButtonProps = {
 };
 
 function ReportDatePickerButton({ id, value, onChange, className }: ReportDatePickerButtonProps) {
+	const [isOpen, setIsOpen] = useState(false);
 	const selectedDate = parseReportFilterDate(value);
 	const displayValue = selectedDate ? formatFilterDateForDisplay(value) : "Select date";
 
 	return (
-		<Popover>
+		<Popover open={isOpen} onOpenChange={setIsOpen}>
 			<PopoverTrigger asChild>
 				<Button
 					id={id}
@@ -116,7 +117,11 @@ function ReportDatePickerButton({ id, value, onChange, className }: ReportDatePi
 					mode="single"
 					selected={selectedDate}
 					onSelect={(date) => {
-						onChange(date ? formatDateToYYYYMMDD(date) : "");
+						// `mode="single"` toggles: re-clicking the selected day reports undefined.
+						// Report dates are required, so treat that as a no-op rather than clearing them.
+						if (!date) return;
+						onChange(formatDateToYYYYMMDD(date));
+						setIsOpen(false);
 					}}
 					initialFocus
 				/>

@@ -334,6 +334,28 @@ describe("ReportFilters", () => {
 		expect(onSubmit).toHaveBeenCalledTimes(1);
 	});
 
+	it("keeps the picked date when the same day is clicked again", async () => {
+		const user = userEvent.setup();
+		// Start on a date inside the month the calendar opens on, so the selected day is on screen.
+		const today = new Date();
+		const iso = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-15`;
+		const display = `15/${String(today.getMonth() + 1).padStart(2, "0")}/${today.getFullYear()}`;
+		renderSaleDetailFilters({ value: { ...defaultValue, fromDate: iso } });
+
+		await user.click(await screen.findByRole("button", { name: new RegExp(display) }));
+
+		// react-day-picker's single mode toggles: clicking the selected day reports undefined.
+		// Treating that as "clear" wiped a required filter and blocked Submit.
+		const selectedDay = document.querySelector(
+			'[role="dialog"] .rdp-day_selected, [role="dialog"] [aria-selected="true"]',
+		);
+		expect(selectedDay).not.toBeNull();
+		await user.click(selectedDay as HTMLElement);
+
+		expect(screen.getByRole("button", { name: new RegExp(display) })).toBeInTheDocument();
+		expect(screen.queryByRole("button", { name: "Select date" })).not.toBeInTheDocument();
+	});
+
 	it("formats single date filter properly without returning 'No date selected'", () => {
 		expect(formatFilterRange({ fromDate: "2026-08-19", useDateRange: false })).toBe("19/08/2026");
 		expect(formatFilterRange({ fromDate: "2026-08-19", toDate: "2026-08-19", useDateRange: true })).toBe("19/08/2026");
