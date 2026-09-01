@@ -118,6 +118,29 @@ function getTextCell(row: ReportTemplateRow, ...keys: string[]): string {
 	return "";
 }
 
+type RowComparator = (left: ReportTemplateRow, right: ReportTemplateRow) => number;
+
+/**
+ * Sorts only the runs of data rows between structural rows (group headers, subtotals, grand
+ * totals), leaving those in place. On a flat report this is a plain sort of the whole array.
+ */
+function sortWithinGroups(rows: ReportTemplateRow[], compare: RowComparator): ReportTemplateRow[] {
+	const sorted: ReportTemplateRow[] = [];
+	let run: ReportTemplateRow[] = [];
+
+	for (const row of rows) {
+		if (row.isStructural) {
+			sorted.push(...run.sort(compare), row);
+			run = [];
+			continue;
+		}
+		run.push(row);
+	}
+
+	sorted.push(...run.sort(compare));
+	return sorted;
+}
+
 export function sortReportRows(rows: ReportTemplateRow[], sortMode: SortMode): ReportTemplateRow[] {
 	if (sortMode === "default" || rows.length === 0) return rows;
 
@@ -134,7 +157,7 @@ export function sortReportRows(rows: ReportTemplateRow[], sortMode: SortMode): R
 			dateCache.set(val, parsed);
 			return parsed;
 		};
-		return nextRows.sort((left, right) => {
+		return sortWithinGroups(nextRows, (left, right) => {
 			const l = getCachedDate(left.cells.date);
 			const r = getCachedDate(right.cells.date);
 			return sortMode === "date-desc" ? r - l : l - r;
@@ -149,7 +172,7 @@ export function sortReportRows(rows: ReportTemplateRow[], sortMode: SortMode): R
 			}
 			return textCache.get(row.key) ?? "";
 		};
-		return nextRows.sort((left, right) => getCachedText(left).localeCompare(getCachedText(right)));
+		return sortWithinGroups(nextRows, (left, right) => getCachedText(left).localeCompare(getCachedText(right)));
 	}
 
 	if (sortMode === "balance-desc") {
@@ -162,7 +185,7 @@ export function sortReportRows(rows: ReportTemplateRow[], sortMode: SortMode): R
 			numCache.set(key, parsed);
 			return parsed;
 		};
-		return nextRows.sort((left, right) => {
+		return sortWithinGroups(nextRows, (left, right) => {
 			const l = getCachedNum(left.cells.balance ?? left.cells.amount ?? left.cells.value ?? left.cells.debit);
 			const r = getCachedNum(right.cells.balance ?? right.cells.amount ?? right.cells.value ?? right.cells.debit);
 			return r - l;

@@ -63,6 +63,7 @@ function createAccountSubtotalRow(
 ): ReportTemplateRow {
 	return {
 		key: `account-subtotal-${accountName}`,
+		isStructural: true,
 		cells: {
 			no: `Total ${accountName}`,
 			date: "",
@@ -82,6 +83,7 @@ function createGrandTotalRow(totalDebit: number, totalCredit: number): ReportTem
 	const netChange = totalDebit - totalCredit;
 	return {
 		key: "cash-grand-total",
+		isStructural: true,
 		cells: {
 			no: "Total",
 			date: "",

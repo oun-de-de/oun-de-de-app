@@ -93,6 +93,7 @@ export function buildOpenInvoiceRows(
 		// 1. Customer Group Header Row
 		reportRows.push({
 			key: `open-inv-customer-header-${customerIndex}-${customerName}`,
+			isStructural: true,
 			cells: {
 				no: customerIndex + 1,
 				customer: customerName,
@@ -119,6 +120,7 @@ export function buildOpenInvoiceRows(
 		// 3. Customer Subtotal Row
 		reportRows.push({
 			key: `open-inv-customer-subtotal-${customerIndex}-${customerName}`,
+			isStructural: true,
 			cells: {
 				no: "",
 				customer: "",
@@ -142,6 +144,7 @@ export function buildOpenInvoiceRows(
 	if (customerOrder.length > 0) {
 		reportRows.push({
 			key: "open-inv-grand-total",
+			isStructural: true,
 			cells: {
 				no: "",
 				customer: `Grand Total (${grandTotalInvoiceCount})`,
@@ -236,6 +239,7 @@ export function buildReceiptDetailRows(
 		// 1. Customer Header Row
 		reportRows.push({
 			key: `receipt-customer-header-${customerIndex}-${customerName}`,
+			isStructural: true,
 			cells: {
 				no: customerIndex + 1,
 				customer: customerName,
@@ -262,6 +266,7 @@ export function buildReceiptDetailRows(
 		// 3. Customer Subtotal Row
 		reportRows.push({
 			key: `receipt-customer-subtotal-${customerIndex}-${customerName}`,
+			isStructural: true,
 			cells: {
 				no: "",
 				customer: "",
@@ -286,6 +291,7 @@ export function buildReceiptDetailRows(
 	if (customerOrder.length > 0) {
 		reportRows.push({
 			key: "receipt-grand-total",
+			isStructural: true,
 			cells: {
 				no: "",
 				customer: `Grand Total (${grandTotalInvoiceCount})`,
@@ -358,6 +364,7 @@ export function buildSaleDetailRows(invoices: Invoice[], exportLines: InvoiceExp
 			price: "",
 			amount: "",
 		});
+		headerRow.isStructural = true;
 		headerRow.rowClassName = "font-semibold";
 		headerRow.cellClassNames = {
 			customer: "font-semibold",
@@ -392,6 +399,7 @@ export function buildSaleDetailRows(invoices: Invoice[], exportLines: InvoiceExp
 			price: "",
 			amount: formatNumber(totalAmount),
 		});
+		totalRow.isStructural = true;
 		totalRow.rowClassName = "font-semibold";
 		totalRow.cellClassNames = {
 			item: "text-right",
@@ -429,6 +437,7 @@ export function buildCustomerTransactionDetailByTypeRows(
 		// Section 1 Header Banner
 		reportRows.push({
 			key: "sec-invoice-header",
+			isStructural: true,
 			cells: {
 				no: "",
 				date: "Invoice",
@@ -464,6 +473,7 @@ export function buildCustomerTransactionDetailByTypeRows(
 			// Customer Group Header
 			reportRows.push({
 				key: `tx-inv-cust-${custIndex}-${custName}`,
+				isStructural: true,
 				cells: {
 					no: custIndex + 1,
 					date: custName,
@@ -517,6 +527,7 @@ export function buildCustomerTransactionDetailByTypeRows(
 			// Customer Subtotal
 			reportRows.push({
 				key: `tx-inv-cust-subtotal-${custIndex}-${custName}`,
+				isStructural: true,
 				cells: {
 					no: "",
 					date: "",
@@ -544,6 +555,7 @@ export function buildCustomerTransactionDetailByTypeRows(
 		// Section Grand Total Row
 		reportRows.push({
 			key: "sec-invoice-grand-total",
+			isStructural: true,
 			cells: {
 				no: "",
 				date: "",
@@ -604,6 +616,7 @@ export function buildCustomerTransactionDetailByTypeRows(
 		// Section 2 Header Banner
 		reportRows.push({
 			key: "sec-receipt-header",
+			isStructural: true,
 			cells: {
 				no: "",
 				date: "Receipt",
@@ -634,6 +647,7 @@ export function buildCustomerTransactionDetailByTypeRows(
 			// Customer Header Row
 			reportRows.push({
 				key: `tx-rcp-cust-${custIndex}-${custName}`,
+				isStructural: true,
 				cells: {
 					no: custIndex + 1,
 					date: custName,
@@ -678,6 +692,7 @@ export function buildCustomerTransactionDetailByTypeRows(
 			// Customer Subtotal
 			reportRows.push({
 				key: `tx-rcp-cust-subtotal-${custIndex}-${custName}`,
+				isStructural: true,
 				cells: {
 					no: "",
 					date: "",
@@ -702,6 +717,7 @@ export function buildCustomerTransactionDetailByTypeRows(
 		// Section Grand Total
 		reportRows.push({
 			key: "sec-receipt-grand-total",
+			isStructural: true,
 			cells: {
 				no: "",
 				date: "",

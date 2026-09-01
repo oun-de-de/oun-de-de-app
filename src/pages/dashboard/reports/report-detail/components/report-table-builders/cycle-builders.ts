@@ -32,6 +32,7 @@ export function buildCycleReportRows(cycles: Cycle[]): ReportTemplateRow[] {
 	if (cycles.length > 0) {
 		rows.push({
 			key: "cycle-grand-total",
+			isStructural: true,
 			cells: {
 				customer: "Total",
 				cycle: "",
