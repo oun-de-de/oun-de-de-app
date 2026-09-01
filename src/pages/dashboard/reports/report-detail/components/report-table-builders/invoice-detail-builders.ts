@@ -32,65 +32,21 @@ export function buildOpenInvoiceSummaryRows(
 	};
 }
 
-export const DEFAULT_OPEN_INVOICES: readonly Invoice[] = [
-	{
-		id: "inv-demo-1",
-		refNo: "IN000139104",
-		customerName: "អតិថិជនទូទៅ",
-		date: "2026-05-05",
-		createdBy: "General Employee",
-		amount: 6_000,
-	} as Invoice,
-	{
-		id: "inv-demo-2",
-		refNo: "IN10755605954",
-		customerName: "សៀវធិ (រម៉ក)",
-		date: "2024-06-26",
-		createdBy: "General Employee",
-		amount: 62_000,
-	} as Invoice,
-	{
-		id: "inv-demo-3",
-		refNo: "IN10755606022",
-		customerName: "សៀវធិ (រម៉ក)",
-		date: "2024-06-26",
-		createdBy: "General Employee",
-		amount: 134_000,
-	} as Invoice,
-	{
-		id: "inv-demo-4",
-		refNo: "IN10755605985",
-		customerName: "សៀវធិ (រម៉ក)",
-		date: "2024-06-27",
-		createdBy: "General Employee",
-		amount: 138_000,
-	} as Invoice,
-];
-
-export const DEFAULT_OPEN_INVOICE_PREVIEWS: readonly InvoiceExportPreviewRow[] = [
-	{ refNo: "IN000139104", amount: 6_000, paid: 0, balance: 6_000 } as InvoiceExportPreviewRow,
-	{ refNo: "IN10755605954", amount: 62_000, paid: 0, balance: 62_000 } as InvoiceExportPreviewRow,
-	{ refNo: "IN10755606022", amount: 134_000, paid: 69_600, balance: 64_400 } as InvoiceExportPreviewRow,
-	{ refNo: "IN10755605985", amount: 138_000, paid: 131_000, balance: 7_000 } as InvoiceExportPreviewRow,
-];
-
 export function buildOpenInvoiceRows(
 	invoices: Invoice[],
 	previewRows: InvoiceExportPreviewRow[],
 	showDetail = true,
 ): ReportTemplateRow[] {
-	const effectiveInvoices = invoices.length > 0 ? invoices : [...DEFAULT_OPEN_INVOICES];
-	const effectivePreviews = previewRows.length > 0 ? previewRows : [...DEFAULT_OPEN_INVOICE_PREVIEWS];
-	const rowsByRefNo = groupPreviewRowsByRefNo(effectivePreviews);
+	const rowsByRefNo = groupPreviewRowsByRefNo(previewRows);
 
 	// Group invoices by customer
 	const customerGroups = new Map<string, Invoice[]>();
 	const customerOrder: string[] = [];
 
-	for (const invoice of effectiveInvoices) {
+	for (const invoice of invoices) {
 		const { balance } = getOpenInvoiceMetrics(invoice, rowsByRefNo);
 		// Only include invoices with remaining balance / debt
-		if (balance <= 0 && invoices.length > 0) continue;
+		if (balance <= 0) continue;
 
 		const customerName = (invoice.customerName ?? "").trim() || "Unknown Customer";
 		if (!customerGroups.has(customerName)) {
@@ -214,16 +170,13 @@ export function buildReceiptDetailRows(
 	previewRows: InvoiceExportPreviewRow[],
 	showDetail = true,
 ): ReportTemplateRow[] {
-	const useDefaults = invoices.length === 0 && previewRows.length === 0;
-	const effectiveInvoices = useDefaults ? [...DEFAULT_OPEN_INVOICES] : invoices;
-	const effectivePreviews = useDefaults ? [...DEFAULT_OPEN_INVOICE_PREVIEWS] : previewRows;
-	const rowsByRefNo = groupPreviewRowsByRefNo(effectivePreviews);
+	const rowsByRefNo = groupPreviewRowsByRefNo(previewRows);
 
 	// Group payment receipts by customer
 	const customerGroups = new Map<string, Invoice[]>();
 	const customerOrder: string[] = [];
 
-	for (const invoice of effectiveInvoices) {
+	for (const invoice of invoices) {
 		if (!isReceiptInvoice(invoice)) continue;
 
 		const customerName = (invoice.customerName ?? "").trim() || "Unknown Customer";
@@ -329,27 +282,29 @@ export function buildReceiptDetailRows(
 		});
 	});
 
-	// Grand Total Row
-	reportRows.push({
-		key: "receipt-grand-total",
-		cells: {
-			no: "",
-			customer: `Grand Total (${grandTotalInvoiceCount})`,
-			date: "",
-			refNo: "",
-			employee: "",
-			originalAmount: formatNumber(grandTotalOriginal),
-			received: formatNumber(grandTotalReceived),
-			balance: formatNumber(grandTotalBalance),
-		},
-		rowClassName: "font-bold bg-slate-100/80 border-t-2 border-slate-300",
-		cellClassNames: {
-			customer: "font-bold text-slate-900",
-			originalAmount: "font-bold text-slate-900",
-			received: "font-bold text-slate-900",
-			balance: "font-bold text-slate-900",
-		},
-	});
+	// Grand Total Row — only when there is something to total.
+	if (customerOrder.length > 0) {
+		reportRows.push({
+			key: "receipt-grand-total",
+			cells: {
+				no: "",
+				customer: `Grand Total (${grandTotalInvoiceCount})`,
+				date: "",
+				refNo: "",
+				employee: "",
+				originalAmount: formatNumber(grandTotalOriginal),
+				received: formatNumber(grandTotalReceived),
+				balance: formatNumber(grandTotalBalance),
+			},
+			rowClassName: "font-bold bg-slate-100/80 border-t-2 border-slate-300",
+			cellClassNames: {
+				customer: "font-bold text-slate-900",
+				originalAmount: "font-bold text-slate-900",
+				received: "font-bold text-slate-900",
+				balance: "font-bold text-slate-900",
+			},
+		});
+	}
 
 	return reportRows;
 }
@@ -447,40 +402,6 @@ export function buildSaleDetailRows(invoices: Invoice[], exportLines: InvoiceExp
 		return [headerRow, ...detailRows, totalRow];
 	});
 }
-
-export const DEFAULT_CUSTOMER_TRANSACTION_INVOICES: readonly Invoice[] = [
-	{
-		id: "tx-inv-1",
-		refNo: "IN00021268",
-		customerName: "A001:អតិថិជនទូទៅ",
-		date: "2026-09-01T16:16:32",
-		amount: 9000,
-	} as Invoice,
-	{
-		id: "tx-inv-2",
-		refNo: "IN00021269",
-		customerName: "A001:អតិថិជនទូទៅ",
-		date: "2026-09-02T16:16:42",
-		amount: 18000,
-	} as Invoice,
-];
-
-export const DEFAULT_CUSTOMER_TRANSACTION_PREVIEWS: readonly InvoiceExportPreviewRow[] = [
-	{
-		refNo: "IN00021268",
-		quantity: 5,
-		amount: 9000,
-		paid: 9000,
-		balance: 0,
-	} as InvoiceExportPreviewRow,
-	{
-		refNo: "IN00021269",
-		quantity: 10,
-		amount: 18000,
-		paid: 0,
-		balance: 18000,
-	} as InvoiceExportPreviewRow,
-];
 
 export function buildCustomerTransactionDetailByTypeRows(
 	invoices: Invoice[],

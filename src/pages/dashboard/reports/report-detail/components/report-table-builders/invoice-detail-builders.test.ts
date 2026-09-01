@@ -140,6 +140,25 @@ describe("invoice detail builders", () => {
 		expect(rows[1]?.cells.balance).toBe("0");
 	});
 
+	it("renders nothing when there is no data, instead of demo rows", () => {
+		expect(buildOpenInvoiceRows([], [], true)).toEqual([]);
+		expect(buildReceiptDetailRows([], [], true)).toEqual([]);
+	});
+
+	it("omits fully-paid invoices from the open invoice report", () => {
+		const paidPreviews: InvoiceExportPreviewRow[] = [
+			{ refNo: "IN000145530", amount: 330600, paid: 330600, balance: 0 } as InvoiceExportPreviewRow,
+			{ refNo: "CS000145494", amount: 102600, paid: 102600, balance: 0 } as InvoiceExportPreviewRow,
+			{ refNo: "IN000145531", amount: 100000, paid: 0, balance: 100000 } as InvoiceExportPreviewRow,
+		];
+		const rows = buildOpenInvoiceRows(invoices, paidPreviews, true);
+
+		// Only IN000145531 still carries a balance, so Customer B drops out entirely.
+		expect(rows.map((row) => row.cells.refNo)).toContain("IN000145531");
+		expect(rows.map((row) => row.cells.refNo)).not.toContain("CS000145494");
+		expect(rows.some((row) => row.cells.customer === "Customer B")).toBe(false);
+	});
+
 	it("builds customer transaction detail by type with invoices on top and receipts on bottom conditionally", () => {
 		const previewRows: InvoiceExportPreviewRow[] = [
 			{
