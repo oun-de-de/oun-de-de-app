@@ -115,10 +115,11 @@ export function useDomainReportQuery({
 			),
 		[customerTypeCustomers],
 	);
+	// Customer and Customer Type compose with AND: picking both narrows to that one customer,
+	// and only if it actually belongs to the selected type.
 	const filteredCustomers = useMemo(() => {
-		if (customerId) return customers.filter((customer) => customer.id === customerId);
-		if (customerTypeId) return customerTypeCustomers;
-		return customers;
+		const byType = customerTypeId ? customerTypeCustomers : customers;
+		return customerId ? byType.filter((customer) => customer.id === customerId) : byType;
 	}, [customerId, customerTypeCustomers, customerTypeId, customers]);
 
 	const installmentsByLoanId = useMemo(

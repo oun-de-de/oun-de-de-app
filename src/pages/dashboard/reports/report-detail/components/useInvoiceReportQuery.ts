@@ -28,7 +28,6 @@ export function useInvoiceReportQuery({
 	customerTypeCustomerNames,
 }: UseInvoiceReportQueryParams) {
 	const { productName, reportDateFrom, reportDateTo } = normalizeReportFilters(filters);
-	const hasCustomerTypeFilter = Boolean(customerTypeId);
 	const isReceiptReport = definition.slug === "receipt-detail-by-customer";
 	const shouldBuildPreviewRows = definition.needsPreviewRows === true;
 
@@ -37,7 +36,7 @@ export function useInvoiceReportQuery({
 			"report",
 			"payment-list",
 			definition.slug,
-			hasCustomerTypeFilter ? "all" : (customerId ?? "all"),
+			customerId ?? "all",
 			customerTypeId ?? "all-types",
 			reportDateFrom ?? "",
 			reportDateTo ?? "",
@@ -46,7 +45,7 @@ export function useInvoiceReportQuery({
 			invoiceService.getPayments({
 				page: 1,
 				size: 10000,
-				customerId: hasCustomerTypeFilter ? undefined : customerId,
+				customerId,
 				from: reportDateFrom,
 				to: reportDateTo,
 			}),
@@ -58,7 +57,7 @@ export function useInvoiceReportQuery({
 			"report",
 			"invoice-list",
 			definition.slug,
-			hasCustomerTypeFilter ? "all" : (customerId ?? "all"),
+			customerId ?? "all",
 			customerTypeId ?? "all-types",
 			reportDateFrom ?? "",
 			reportDateTo ?? "",
@@ -68,7 +67,7 @@ export function useInvoiceReportQuery({
 				page: 1,
 				size: 10000,
 				sort: "date,desc",
-				customerId: hasCustomerTypeFilter ? undefined : customerId,
+				customerId,
 				from: reportDateFrom,
 				to: reportDateTo,
 			}),
@@ -91,7 +90,7 @@ export function useInvoiceReportQuery({
 				createdBy: payment.createdBy || "General Employee",
 			}));
 			return list.filter((item) => {
-				if (!customerId && customerTypeId) {
+				if (customerTypeId) {
 					return customerTypeCustomerNames.has(normalizeCustomerText(item.customerName));
 				}
 				return true;
@@ -100,12 +99,12 @@ export function useInvoiceReportQuery({
 
 		if (!invoiceQuery.data) return [];
 		return invoiceQuery.data.list.filter((invoice) => {
-			if (!customerId && customerTypeId) {
+			if (customerTypeId) {
 				return customerTypeCustomerNames.has(normalizeCustomerText(invoice.customerName));
 			}
 			return true;
 		});
-	}, [customerId, customerTypeCustomerNames, customerTypeId, invoiceQuery.data, isReceiptReport, paymentQuery.data]);
+	}, [customerTypeCustomerNames, customerTypeId, invoiceQuery.data, isReceiptReport, paymentQuery.data]);
 
 	const invoiceIds = useMemo(() => {
 		if (!isInvoiceExport || isReceiptReport) return [];
