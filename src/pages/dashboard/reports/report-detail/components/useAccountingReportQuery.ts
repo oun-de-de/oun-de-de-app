@@ -7,24 +7,28 @@ interface UseAccountingReportQueryParams {
 	hasRequiredDateFilters: boolean;
 	reportDate: string;
 	reportPeriod: string;
-	inventoryDateFrom: string;
-	inventoryDateTo: string;
+	rangeDateFrom: string;
+	rangeDateTo: string;
 	isDailyReportApi: boolean;
 	isInventoryStockReportApi: boolean;
 	isMonthlyReportApi: boolean;
 	isMonthlyReportDetailsApi: boolean;
+	isCashTransactionApi: boolean;
+	isOpenInvoiceReportApi: boolean;
 }
 
 export function useAccountingReportQuery({
 	hasRequiredDateFilters,
 	reportDate,
 	reportPeriod,
-	inventoryDateFrom,
-	inventoryDateTo,
+	rangeDateFrom,
+	rangeDateTo,
 	isDailyReportApi,
 	isInventoryStockReportApi,
 	isMonthlyReportApi,
 	isMonthlyReportDetailsApi,
+	isCashTransactionApi,
+	isOpenInvoiceReportApi,
 }: UseAccountingReportQueryParams) {
 	const dailyReportQuery = useQuery({
 		queryKey: ["report", "daily-report", reportDate],
@@ -33,8 +37,8 @@ export function useAccountingReportQuery({
 	});
 
 	const inventoryStockReportQuery = useQuery({
-		queryKey: ["report", "inventory-stock-report", inventoryDateFrom, inventoryDateTo],
-		queryFn: () => reportService.getInventoryStockReport(inventoryDateFrom, inventoryDateTo),
+		queryKey: ["report", "inventory-stock-report", rangeDateFrom, rangeDateTo],
+		queryFn: () => reportService.getInventoryStockReport(rangeDateFrom, rangeDateTo),
 		enabled: isInventoryStockReportApi && hasRequiredDateFilters,
 	});
 
@@ -50,15 +54,31 @@ export function useAccountingReportQuery({
 		enabled: isMonthlyReportDetailsApi && hasRequiredDateFilters,
 	});
 
+	const cashTransactionQuery = useQuery({
+		queryKey: ["report", "cash-transaction-report", rangeDateFrom, rangeDateTo],
+		queryFn: () => reportService.getCashTransactionReport(rangeDateFrom, rangeDateTo),
+		enabled: isCashTransactionApi && hasRequiredDateFilters,
+	});
+
+	const openInvoiceReportQuery = useQuery({
+		queryKey: ["report", "open-invoice-report", rangeDateFrom, rangeDateTo],
+		queryFn: () => reportService.getOpenInvoiceReport(rangeDateFrom, rangeDateTo),
+		enabled: isOpenInvoiceReportApi && hasRequiredDateFilters,
+	});
+
 	return {
 		dailyReport: dailyReportQuery.data,
 		inventoryStockReport: inventoryStockReportQuery.data,
 		monthlyReport: monthlyReportQuery.data,
 		monthlyReportDetails: monthlyReportDetailsQuery.data,
+		cashTransactionReport: cashTransactionQuery.data,
+		openInvoiceReport: openInvoiceReportQuery.data,
 		isLoading:
 			dailyReportQuery.isLoading ||
 			inventoryStockReportQuery.isLoading ||
 			monthlyReportQuery.isLoading ||
-			monthlyReportDetailsQuery.isLoading,
+			monthlyReportDetailsQuery.isLoading ||
+			cashTransactionQuery.isLoading ||
+			openInvoiceReportQuery.isLoading,
 	};
 }

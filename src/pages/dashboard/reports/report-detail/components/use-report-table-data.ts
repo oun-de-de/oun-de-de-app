@@ -4,14 +4,15 @@ import type { ReportTemplateRow } from "../../components/layout/report-template-
 import { getReportDefinition } from "../report-specs";
 import {
 	isAssetListDataSource,
+	isCashTransactionApiDataSource,
 	isCustomerListDataSource,
-	isCycleDataSource,
 	isDailyReportApiDataSource,
 	isInventoryStockReportApiDataSource,
 	isInvoiceDataSource,
 	isLoanListDataSource,
 	isMonthlyReportApiDataSource,
 	isMonthlyReportDetailsApiDataSource,
+	isOpenInvoiceReportApiDataSource,
 	isProductListDataSource,
 } from "../report-types";
 import { getReportDateContext } from "./report-data-utils";
@@ -34,7 +35,6 @@ export function useReportTableData({ reportSlug, filters, sortMode }: UseReportT
 	const { customerId, customerTypeId } = normalizeReportFilters(filters);
 
 	const isInvoiceExport = isInvoiceDataSource(dataSource);
-	const isCycle = isCycleDataSource(dataSource);
 	const isCustomerList = isCustomerListDataSource(dataSource);
 	const isProductList = isProductListDataSource(dataSource);
 	const isAssetList = isAssetListDataSource(dataSource);
@@ -43,8 +43,10 @@ export function useReportTableData({ reportSlug, filters, sortMode }: UseReportT
 	const isInventoryStockReportApi = isInventoryStockReportApiDataSource(dataSource);
 	const isMonthlyReportApi = isMonthlyReportApiDataSource(dataSource);
 	const isMonthlyReportDetailsApi = isMonthlyReportDetailsApiDataSource(dataSource);
+	const isCashTransactionApi = isCashTransactionApiDataSource(dataSource);
+	const isOpenInvoiceReportApi = isOpenInvoiceReportApiDataSource(dataSource);
 
-	const { hasRequiredDateFilters, reportDate, reportPeriod, inventoryDateFrom, inventoryDateTo } = getReportDateContext(
+	const { hasRequiredDateFilters, reportDate, reportPeriod, rangeDateFrom, rangeDateTo } = getReportDateContext(
 		definition,
 		filters,
 	);
@@ -53,12 +55,10 @@ export function useReportTableData({ reportSlug, filters, sortMode }: UseReportT
 	const domainData = useDomainReportQuery({
 		definition,
 		filters,
-		hasRequiredDateFilters,
 		isCustomerList,
 		isProductList,
 		isAssetList,
 		isLoanList,
-		isCycle,
 		customerId,
 		customerTypeId,
 	});
@@ -80,21 +80,23 @@ export function useReportTableData({ reportSlug, filters, sortMode }: UseReportT
 		hasRequiredDateFilters,
 		reportDate,
 		reportPeriod,
-		inventoryDateFrom,
-		inventoryDateTo,
+		rangeDateFrom,
+		rangeDateTo,
 		isDailyReportApi,
 		isInventoryStockReportApi,
 		isMonthlyReportApi,
 		isMonthlyReportDetailsApi,
+		isCashTransactionApi,
+		isOpenInvoiceReportApi,
 	});
 
 	const sourceRows = useMemo<ReportTemplateRow[]>(
 		() =>
 			definition.buildRows({
 				invoices: invoiceData.invoices,
+				payments: invoiceData.payments,
 				exportLines: invoiceData.exportLines,
 				previewRows: invoiceData.previewRows,
-				cycles: domainData.cycles,
 				filteredCustomers: domainData.filteredCustomers,
 				allCustomers: domainData.customers,
 				loanContent: domainData.loanContent,
@@ -105,8 +107,10 @@ export function useReportTableData({ reportSlug, filters, sortMode }: UseReportT
 				inventoryStockReport: accountingData.inventoryStockReport,
 				monthlyReport: accountingData.monthlyReport,
 				monthlyReportDetails: accountingData.monthlyReportDetails,
-				inventoryDateFrom,
-				inventoryDateTo,
+				cashTransactionReport: accountingData.cashTransactionReport,
+				openInvoiceReport: accountingData.openInvoiceReport,
+				rangeDateFrom,
+				rangeDateTo,
 				showDetail: filters?.showDetail ?? true,
 				filters,
 			}),
@@ -114,9 +118,9 @@ export function useReportTableData({ reportSlug, filters, sortMode }: UseReportT
 			definition,
 			filters,
 			invoiceData.invoices,
+			invoiceData.payments,
 			invoiceData.exportLines,
 			invoiceData.previewRows,
-			domainData.cycles,
 			domainData.filteredCustomers,
 			domainData.customers,
 			domainData.loanContent,
@@ -127,8 +131,10 @@ export function useReportTableData({ reportSlug, filters, sortMode }: UseReportT
 			accountingData.inventoryStockReport,
 			accountingData.monthlyReport,
 			accountingData.monthlyReportDetails,
-			inventoryDateFrom,
-			inventoryDateTo,
+			accountingData.cashTransactionReport,
+			accountingData.openInvoiceReport,
+			rangeDateFrom,
+			rangeDateTo,
 		],
 	);
 

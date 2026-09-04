@@ -125,18 +125,16 @@ function buildSaleDetailMetaColumns(
 }
 
 function buildSaleDetailSummary(rows: ReportTemplateRow[]): ReportTemplateSummaryRow[] {
+	// Match on row keys, not cell shape: the per-customer TOTAL row also carries a qty and a blank no.
 	const totals = rows.reduce(
 		(acc, row) => {
-			const isDetailRow = row.cells.qty !== "" && row.cells.no === "";
-			const isHeaderRow = row.cells.no !== "";
-
-			if (isDetailRow) {
+			if (row.key.startsWith("sale-")) {
 				acc.totalQty += parseNumericCell(row.cells.qty);
 				acc.totalAmount += parseNumericCell(row.cells.amount);
 				acc.cashInvoiceCount += 1;
 			}
 
-			if (isHeaderRow) {
+			if (row.key.startsWith("customer-group-") && !row.key.endsWith("-total")) {
 				acc.totalCustomers += 1;
 			}
 
@@ -345,16 +343,10 @@ function buildCompanyAssetPresentation({ rows }: ReportPresentationBuilderParams
 	});
 }
 
-function buildLedgerPresentation({
-	title,
-	filters,
-	rows,
-	reportSlug,
-}: ReportPresentationBuilderParams): ReportPresentation {
-	const prefix = reportSlug === "trial-balance" ? "trial" : "ledger";
+function buildLedgerPresentation({ title, filters, rows }: ReportPresentationBuilderParams): ReportPresentation {
 	return buildSimplePresentation(title, formatFilterRange(filters), {
 		metaColumns: buildLedgerMetaColumns(),
-		summaryRows: buildDebitCreditSummary(prefix, rows),
+		summaryRows: buildDebitCreditSummary("ledger", rows),
 	});
 }
 

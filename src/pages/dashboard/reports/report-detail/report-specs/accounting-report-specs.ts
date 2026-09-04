@@ -13,8 +13,8 @@ import {
 } from "../report-columns/accounting-report-columns";
 import { type BuildReportRowsParams, REPORT_FILTERS, type ReportDefinitionMap } from "../report-types";
 
-function buildCashTransactionReportApiRows({ monthlyReportDetails }: BuildReportRowsParams) {
-	return buildCashTransactionReportRows(monthlyReportDetails);
+function buildCashTransactionReportApiRows({ cashTransactionReport }: BuildReportRowsParams) {
+	return buildCashTransactionReportRows(cashTransactionReport);
 }
 
 function buildGeneralLedgerApiRows({ monthlyReportDetails }: BuildReportRowsParams) {
@@ -37,7 +37,7 @@ export const ACCOUNTING_REPORT_SPECS: ReportDefinitionMap = {
 		subtitle: REPORT_DEFAULT_DATE,
 		buildColumns: buildCashTransactionColumns,
 		buildRows: buildCashTransactionReportApiRows,
-		dataSource: "monthly-report-details-api",
+		dataSource: "cash-transaction-api",
 		filterConfig: REPORT_FILTERS.dateRangeOnly,
 	},
 	"general-ledger": {

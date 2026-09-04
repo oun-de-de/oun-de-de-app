@@ -577,7 +577,6 @@ export const reportSections = [
 		items: [
 			{ slug: "cash-transaction-report", label: "Cash Transaction Report", favorite: false },
 			{ slug: "general-ledger", label: "General Ledger", favorite: false },
-			{ slug: "trial-balance", label: "Trial Balance", favorite: false },
 		],
 	},
 	{

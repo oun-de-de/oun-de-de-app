@@ -1,4 +1,4 @@
-import type { Invoice, InvoiceExportLineApi, InvoiceExportPreviewRow } from "@/core/types/invoice";
+import type { Invoice, InvoiceExportLineApi, InvoiceExportPreviewRow, PaymentResult } from "@/core/types/invoice";
 import { formatFlexibleDisplayDate } from "@/core/utils/date-display";
 import { formatNumber } from "@/core/utils/formatters";
 import type { ReportTemplateRow } from "../../../components/layout/report-template-table";
@@ -32,65 +32,21 @@ export function buildOpenInvoiceSummaryRows(
 	};
 }
 
-export const DEFAULT_OPEN_INVOICES: readonly Invoice[] = [
-	{
-		id: "inv-demo-1",
-		refNo: "IN000139104",
-		customerName: "អតិថិជនទូទៅ",
-		date: "2026-05-05",
-		createdBy: "General Employee",
-		amount: 6_000,
-	} as Invoice,
-	{
-		id: "inv-demo-2",
-		refNo: "IN10755605954",
-		customerName: "សៀវធិ (រម៉ក)",
-		date: "2024-06-26",
-		createdBy: "General Employee",
-		amount: 62_000,
-	} as Invoice,
-	{
-		id: "inv-demo-3",
-		refNo: "IN10755606022",
-		customerName: "សៀវធិ (រម៉ក)",
-		date: "2024-06-26",
-		createdBy: "General Employee",
-		amount: 134_000,
-	} as Invoice,
-	{
-		id: "inv-demo-4",
-		refNo: "IN10755605985",
-		customerName: "សៀវធិ (រម៉ក)",
-		date: "2024-06-27",
-		createdBy: "General Employee",
-		amount: 138_000,
-	} as Invoice,
-];
-
-export const DEFAULT_OPEN_INVOICE_PREVIEWS: readonly InvoiceExportPreviewRow[] = [
-	{ refNo: "IN000139104", amount: 6_000, paid: 0, balance: 6_000 } as InvoiceExportPreviewRow,
-	{ refNo: "IN10755605954", amount: 62_000, paid: 0, balance: 62_000 } as InvoiceExportPreviewRow,
-	{ refNo: "IN10755606022", amount: 134_000, paid: 69_600, balance: 64_400 } as InvoiceExportPreviewRow,
-	{ refNo: "IN10755605985", amount: 138_000, paid: 131_000, balance: 7_000 } as InvoiceExportPreviewRow,
-];
-
 export function buildOpenInvoiceRows(
 	invoices: Invoice[],
 	previewRows: InvoiceExportPreviewRow[],
 	showDetail = true,
 ): ReportTemplateRow[] {
-	const effectiveInvoices = invoices.length > 0 ? invoices : [...DEFAULT_OPEN_INVOICES];
-	const effectivePreviews = previewRows.length > 0 ? previewRows : [...DEFAULT_OPEN_INVOICE_PREVIEWS];
-	const rowsByRefNo = groupPreviewRowsByRefNo(effectivePreviews);
+	const rowsByRefNo = groupPreviewRowsByRefNo(previewRows);
 
 	// Group invoices by customer
 	const customerGroups = new Map<string, Invoice[]>();
 	const customerOrder: string[] = [];
 
-	for (const invoice of effectiveInvoices) {
+	for (const invoice of invoices) {
 		const { balance } = getOpenInvoiceMetrics(invoice, rowsByRefNo);
 		// Only include invoices with remaining balance / debt
-		if (balance <= 0 && invoices.length > 0) continue;
+		if (balance <= 0) continue;
 
 		const customerName = (invoice.customerName ?? "").trim() || "Unknown Customer";
 		if (!customerGroups.has(customerName)) {
@@ -137,6 +93,7 @@ export function buildOpenInvoiceRows(
 		// 1. Customer Group Header Row
 		reportRows.push({
 			key: `open-inv-customer-header-${customerIndex}-${customerName}`,
+			isStructural: true,
 			cells: {
 				no: customerIndex + 1,
 				customer: customerName,
@@ -163,6 +120,7 @@ export function buildOpenInvoiceRows(
 		// 3. Customer Subtotal Row
 		reportRows.push({
 			key: `open-inv-customer-subtotal-${customerIndex}-${customerName}`,
+			isStructural: true,
 			cells: {
 				no: "",
 				customer: "",
@@ -186,6 +144,7 @@ export function buildOpenInvoiceRows(
 	if (customerOrder.length > 0) {
 		reportRows.push({
 			key: "open-inv-grand-total",
+			isStructural: true,
 			cells: {
 				no: "",
 				customer: `Grand Total (${grandTotalInvoiceCount})`,
@@ -214,16 +173,13 @@ export function buildReceiptDetailRows(
 	previewRows: InvoiceExportPreviewRow[],
 	showDetail = true,
 ): ReportTemplateRow[] {
-	const useDefaults = invoices.length === 0 && previewRows.length === 0;
-	const effectiveInvoices = useDefaults ? [...DEFAULT_OPEN_INVOICES] : invoices;
-	const effectivePreviews = useDefaults ? [...DEFAULT_OPEN_INVOICE_PREVIEWS] : previewRows;
-	const rowsByRefNo = groupPreviewRowsByRefNo(effectivePreviews);
+	const rowsByRefNo = groupPreviewRowsByRefNo(previewRows);
 
 	// Group payment receipts by customer
 	const customerGroups = new Map<string, Invoice[]>();
 	const customerOrder: string[] = [];
 
-	for (const invoice of effectiveInvoices) {
+	for (const invoice of invoices) {
 		if (!isReceiptInvoice(invoice)) continue;
 
 		const customerName = (invoice.customerName ?? "").trim() || "Unknown Customer";
@@ -283,6 +239,7 @@ export function buildReceiptDetailRows(
 		// 1. Customer Header Row
 		reportRows.push({
 			key: `receipt-customer-header-${customerIndex}-${customerName}`,
+			isStructural: true,
 			cells: {
 				no: customerIndex + 1,
 				customer: customerName,
@@ -309,6 +266,7 @@ export function buildReceiptDetailRows(
 		// 3. Customer Subtotal Row
 		reportRows.push({
 			key: `receipt-customer-subtotal-${customerIndex}-${customerName}`,
+			isStructural: true,
 			cells: {
 				no: "",
 				customer: "",
@@ -329,27 +287,30 @@ export function buildReceiptDetailRows(
 		});
 	});
 
-	// Grand Total Row
-	reportRows.push({
-		key: "receipt-grand-total",
-		cells: {
-			no: "",
-			customer: `Grand Total (${grandTotalInvoiceCount})`,
-			date: "",
-			refNo: "",
-			employee: "",
-			originalAmount: formatNumber(grandTotalOriginal),
-			received: formatNumber(grandTotalReceived),
-			balance: formatNumber(grandTotalBalance),
-		},
-		rowClassName: "font-bold bg-slate-100/80 border-t-2 border-slate-300",
-		cellClassNames: {
-			customer: "font-bold text-slate-900",
-			originalAmount: "font-bold text-slate-900",
-			received: "font-bold text-slate-900",
-			balance: "font-bold text-slate-900",
-		},
-	});
+	// Grand Total Row — only when there is something to total.
+	if (customerOrder.length > 0) {
+		reportRows.push({
+			key: "receipt-grand-total",
+			isStructural: true,
+			cells: {
+				no: "",
+				customer: `Grand Total (${grandTotalInvoiceCount})`,
+				date: "",
+				refNo: "",
+				employee: "",
+				originalAmount: formatNumber(grandTotalOriginal),
+				received: formatNumber(grandTotalReceived),
+				balance: formatNumber(grandTotalBalance),
+			},
+			rowClassName: "font-bold bg-slate-100/80 border-t-2 border-slate-300",
+			cellClassNames: {
+				customer: "font-bold text-slate-900",
+				originalAmount: "font-bold text-slate-900",
+				received: "font-bold text-slate-900",
+				balance: "font-bold text-slate-900",
+			},
+		});
+	}
 
 	return reportRows;
 }
@@ -403,6 +364,7 @@ export function buildSaleDetailRows(invoices: Invoice[], exportLines: InvoiceExp
 			price: "",
 			amount: "",
 		});
+		headerRow.isStructural = true;
 		headerRow.rowClassName = "font-semibold";
 		headerRow.cellClassNames = {
 			customer: "font-semibold",
@@ -437,6 +399,7 @@ export function buildSaleDetailRows(invoices: Invoice[], exportLines: InvoiceExp
 			price: "",
 			amount: formatNumber(totalAmount),
 		});
+		totalRow.isStructural = true;
 		totalRow.rowClassName = "font-semibold";
 		totalRow.cellClassNames = {
 			item: "text-right",
@@ -448,45 +411,12 @@ export function buildSaleDetailRows(invoices: Invoice[], exportLines: InvoiceExp
 	});
 }
 
-export const DEFAULT_CUSTOMER_TRANSACTION_INVOICES: readonly Invoice[] = [
-	{
-		id: "tx-inv-1",
-		refNo: "IN00021268",
-		customerName: "A001:អតិថិជនទូទៅ",
-		date: "2026-09-01T16:16:32",
-		amount: 9000,
-	} as Invoice,
-	{
-		id: "tx-inv-2",
-		refNo: "IN00021269",
-		customerName: "A001:អតិថិជនទូទៅ",
-		date: "2026-09-02T16:16:42",
-		amount: 18000,
-	} as Invoice,
-];
-
-export const DEFAULT_CUSTOMER_TRANSACTION_PREVIEWS: readonly InvoiceExportPreviewRow[] = [
-	{
-		refNo: "IN00021268",
-		quantity: 5,
-		amount: 9000,
-		paid: 9000,
-		balance: 0,
-	} as InvoiceExportPreviewRow,
-	{
-		refNo: "IN00021269",
-		quantity: 10,
-		amount: 18000,
-		paid: 0,
-		balance: 18000,
-	} as InvoiceExportPreviewRow,
-];
-
 export function buildCustomerTransactionDetailByTypeRows(
 	invoices: Invoice[],
 	previewRows: InvoiceExportPreviewRow[],
+	payments: PaymentResult[] = [],
 ): ReportTemplateRow[] {
-	if (invoices.length === 0) return [];
+	if (invoices.length === 0 && payments.length === 0) return [];
 	const rowsByRefNo = groupPreviewRowsByRefNo(previewRows);
 
 	const reportRows: ReportTemplateRow[] = [];
@@ -508,6 +438,7 @@ export function buildCustomerTransactionDetailByTypeRows(
 		// Section 1 Header Banner
 		reportRows.push({
 			key: "sec-invoice-header",
+			isStructural: true,
 			cells: {
 				no: "",
 				date: "Invoice",
@@ -543,6 +474,7 @@ export function buildCustomerTransactionDetailByTypeRows(
 			// Customer Group Header
 			reportRows.push({
 				key: `tx-inv-cust-${custIndex}-${custName}`,
+				isStructural: true,
 				cells: {
 					no: custIndex + 1,
 					date: custName,
@@ -596,6 +528,7 @@ export function buildCustomerTransactionDetailByTypeRows(
 			// Customer Subtotal
 			reportRows.push({
 				key: `tx-inv-cust-subtotal-${custIndex}-${custName}`,
+				isStructural: true,
 				cells: {
 					no: "",
 					date: "",
@@ -623,6 +556,7 @@ export function buildCustomerTransactionDetailByTypeRows(
 		// Section Grand Total Row
 		reportRows.push({
 			key: "sec-invoice-grand-total",
+			isStructural: true,
 			cells: {
 				no: "",
 				date: "",
@@ -648,33 +582,33 @@ export function buildCustomerTransactionDetailByTypeRows(
 	}
 
 	// ── 2. SECTION 2: RECEIPT ──────────────────────────────────────
-	// Rule: "nếu có invoice, không receipt => chỉ show invoice, không cần show customer ở receipt section"
+	// Built from real payment records. Deriving them from invoices instead would mean inventing a
+	// reference number ("REC-" + the invoice's), which is not a document anyone can look up.
+	// Rule: a customer with invoices but no payments appears only in the invoice section.
 	const receiptCustomerGroups = new Map<
 		string,
 		Array<{
 			date: string;
 			refNo: string;
-			fromRefNo: string;
 			openAmount: number;
 			received: number;
 		}>
 	>();
 	const receiptCustomerOrder: string[] = [];
 
-	for (const inv of invoices) {
-		const { originalAmount, received } = getOpenInvoiceMetrics(inv, rowsByRefNo);
-		if (received <= 0) continue; // Skip if no receipt / payment made
+	for (const payment of payments) {
+		const received = payment.received ?? payment.amount ?? 0;
+		if (received <= 0) continue;
 
-		const custName = (inv.customerName ?? "").trim() || "Unknown Customer";
+		const custName = (payment.customerName ?? "").trim() || "Unknown Customer";
 		if (!receiptCustomerGroups.has(custName)) {
 			receiptCustomerGroups.set(custName, []);
 			receiptCustomerOrder.push(custName);
 		}
 		receiptCustomerGroups.get(custName)?.push({
-			date: inv.date ?? "",
-			refNo: `REC-${inv.refNo}`,
-			fromRefNo: inv.refNo ?? "-",
-			openAmount: originalAmount,
+			date: payment.date || payment.paymentDate || "",
+			refNo: payment.refNo || payment.code || payment.id || "-",
+			openAmount: payment.originalAmount ?? payment.amount ?? received,
 			received,
 		});
 	}
@@ -683,6 +617,7 @@ export function buildCustomerTransactionDetailByTypeRows(
 		// Section 2 Header Banner
 		reportRows.push({
 			key: "sec-receipt-header",
+			isStructural: true,
 			cells: {
 				no: "",
 				date: "Receipt",
@@ -713,6 +648,7 @@ export function buildCustomerTransactionDetailByTypeRows(
 			// Customer Header Row
 			reportRows.push({
 				key: `tx-rcp-cust-${custIndex}-${custName}`,
+				isStructural: true,
 				cells: {
 					no: custIndex + 1,
 					date: custName,
@@ -742,8 +678,8 @@ export function buildCustomerTransactionDetailByTypeRows(
 						no: "",
 						date: formatFlexibleDisplayDate(rcp.date),
 						refNo: rcp.refNo,
-						category: getProductCategory(rowsByRefNo.get(rcp.fromRefNo)?.[0]?.productName),
-						term: rcp.fromRefNo,
+						category: "",
+						term: "",
 						dueDate: formatNumber(rcp.openAmount),
 						qty: "",
 						amount: formatNumber(rcp.received),
@@ -757,6 +693,7 @@ export function buildCustomerTransactionDetailByTypeRows(
 			// Customer Subtotal
 			reportRows.push({
 				key: `tx-rcp-cust-subtotal-${custIndex}-${custName}`,
+				isStructural: true,
 				cells: {
 					no: "",
 					date: "",
@@ -781,6 +718,7 @@ export function buildCustomerTransactionDetailByTypeRows(
 		// Section Grand Total
 		reportRows.push({
 			key: "sec-receipt-grand-total",
+			isStructural: true,
 			cells: {
 				no: "",
 				date: "",

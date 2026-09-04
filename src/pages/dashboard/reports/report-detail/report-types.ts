@@ -1,14 +1,15 @@
 import type { Customer } from "@/core/types/customer";
-import type { Cycle } from "@/core/types/cycle";
 import type { InventoryItem } from "@/core/types/inventory";
-import type { Invoice, InvoiceExportLineApi, InvoiceExportPreviewRow } from "@/core/types/invoice";
+import type { Invoice, InvoiceExportLineApi, InvoiceExportPreviewRow, PaymentResult } from "@/core/types/invoice";
 import type { BorrowerType, Installment, Loan } from "@/core/types/loan";
 import type { Product } from "@/core/types/product";
 import type {
+	CashTransactionReportResponse,
 	DailyReportResponse,
 	InventoryStockReportLine,
 	MonthlyReportDetailsResponse,
 	MonthlyReportResponse,
+	OpenInvoiceCustomerGroup,
 } from "@/core/types/report";
 import type {
 	ReportTemplateColumn,
@@ -20,7 +21,6 @@ import type { ReportFiltersValue } from "./components/report-filter-types";
 
 export type ReportDataSource =
 	| "invoice-export"
-	| "cycle"
 	| "customer-list"
 	| "product-list"
 	| "loan-list"
@@ -32,6 +32,7 @@ export type ReportDataSource =
 	| "monthly-report-details-api"
 	| "asset-list"
 	| "cash-transaction-api"
+	| "open-invoice-report-api"
 	| "unsupported";
 
 export type ReportTemplateId =
@@ -51,14 +52,13 @@ export type ReportTemplateId =
 	| "customer-transaction-detail-by-type"
 	| "unsupported";
 
-export type ReportInvoiceType = "invoice" | "receipt";
-
 export interface ReportFilterConfig {
 	customer: boolean;
 	customerType?: boolean;
 	dateRange: boolean;
 	singleDate?: boolean;
 	monthOnly?: boolean;
+	showDetail?: boolean;
 }
 
 export const REPORT_FILTERS = {
@@ -80,7 +80,6 @@ export interface ReportDefinition {
 	summaryRows?: ReportTemplateSummaryRow[];
 	dataSource?: ReportDataSource;
 	needsPreviewRows?: boolean;
-	invoiceType?: ReportInvoiceType;
 	loanBorrowerType?: BorrowerType;
 	emptyText?: string;
 	filterConfig?: ReportFilterConfig;
@@ -90,9 +89,9 @@ export type ReportDefinitionMap = Record<string, ReportDefinition>;
 
 export interface BuildReportRowsParams {
 	invoices: Invoice[];
+	payments: PaymentResult[];
 	exportLines: InvoiceExportLineApi[];
 	previewRows: InvoiceExportPreviewRow[];
-	cycles: Cycle[];
 	filteredCustomers: Customer[];
 	allCustomers: Customer[];
 	loanContent: Loan[];
@@ -103,8 +102,10 @@ export interface BuildReportRowsParams {
 	inventoryStockReport?: InventoryStockReportLine[];
 	monthlyReport?: MonthlyReportResponse;
 	monthlyReportDetails?: MonthlyReportDetailsResponse;
-	inventoryDateFrom?: string;
-	inventoryDateTo?: string;
+	cashTransactionReport?: CashTransactionReportResponse;
+	openInvoiceReport?: OpenInvoiceCustomerGroup[];
+	rangeDateFrom?: string;
+	rangeDateTo?: string;
 	showDetail?: boolean;
 	filters?: ReportFiltersValue;
 }
@@ -140,8 +141,12 @@ export function isMonthlyReportDetailsApiDataSource(dataSource: ReportDataSource
 	return dataSource === "monthly-report-details-api";
 }
 
-export function isCycleDataSource(dataSource: ReportDataSource): boolean {
-	return dataSource === "cycle";
+export function isCashTransactionApiDataSource(dataSource: ReportDataSource): boolean {
+	return dataSource === "cash-transaction-api";
+}
+
+export function isOpenInvoiceReportApiDataSource(dataSource: ReportDataSource): boolean {
+	return dataSource === "open-invoice-report-api";
 }
 
 export function isCustomerListDataSource(dataSource: ReportDataSource): boolean {

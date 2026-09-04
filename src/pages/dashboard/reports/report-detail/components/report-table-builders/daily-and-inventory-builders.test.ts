@@ -85,7 +85,7 @@ describe("daily and inventory report builders", () => {
 		expect(row.cells.other).toBe("Alert threshold: 1 | Unit type: COUNT");
 	});
 
-	it("keeps latest positive stock row visible when filtering outside the date range", () => {
+	it("carries stock held outside the range forward as an opening balance row", () => {
 		const lines: InventoryStockReportLine[] = [
 			{
 				itemCode: "ICE-001",
@@ -116,8 +116,37 @@ describe("daily and inventory report builders", () => {
 		const rows = buildInventoryStockReportRows(lines);
 		const filteredRows = filterInventoryStockReportRowsByDate(rows, "2025-04-01", "2025-04-30");
 
+		// Dryer Machine only moved in May, so it leads as an opening balance instead of trailing the
+		// April rows with its May date attached.
 		expect(filteredRows).toHaveLength(3);
-		expect(filteredRows.map((row) => row.cells.balanceName)).toEqual(["Ice Box", "Ice Box", "Dryer Machine"]);
-		expect(filteredRows[2]?.cells.balanceQty).toBe("1");
+		expect(filteredRows.map((row) => row.cells.balanceName)).toEqual(["Dryer Machine", "Ice Box", "Ice Box"]);
+
+		const openingRow = filteredRows[0];
+		expect(openingRow?.cells.balanceQty).toBe("1");
+		// Its May movement must not be presented as if it happened inside the range.
+		expect(openingRow?.cells.stockInDate).toBe("-");
+		expect(openingRow?.cells.stockInQty).toBe("-");
+		expect(openingRow?.cells.stockOutQty).toBe("-");
+		expect(openingRow?.cells.balanceDate).toBe("-");
+
+		// Rows that really fall inside the range keep their dates and quantities.
+		expect(filteredRows[1]?.cells.stockInDate).toBe("01/04/2025");
+		expect(filteredRows[1]?.cells.stockInQty).toBe("5");
+	});
+
+	it("still omits carried-forward items whose stock ran out", () => {
+		const lines: InventoryStockReportLine[] = [
+			{ itemCode: "ICE-001", itemName: "Ice Box", quantity: 5, type: "IN", createdAt: "2025-04-01T08:00:00" },
+			{ itemCode: "DRY-001", itemName: "Dryer Machine", quantity: 3, type: "IN", createdAt: "2025-05-01T08:00:00" },
+			{ itemCode: "DRY-001", itemName: "Dryer Machine", quantity: 3, type: "OUT", createdAt: "2025-05-02T08:00:00" },
+		];
+
+		const filteredRows = filterInventoryStockReportRowsByDate(
+			buildInventoryStockReportRows(lines),
+			"2025-04-01",
+			"2025-04-30",
+		);
+
+		expect(filteredRows.map((row) => row.cells.balanceName)).toEqual(["Ice Box"]);
 	});
 });
