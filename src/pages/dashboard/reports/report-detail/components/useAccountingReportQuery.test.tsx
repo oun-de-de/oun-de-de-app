@@ -5,6 +5,7 @@ import reportService from "@/core/api/services/report-service";
 import { getReportDefinition } from "../report-specs";
 import {
 	isCashTransactionApiDataSource,
+	isOpenInvoiceReportApiDataSource,
 	isDailyReportApiDataSource,
 	isInventoryStockReportApiDataSource,
 	isMonthlyReportApiDataSource,
@@ -43,6 +44,7 @@ function renderAccountingQuery(slug: string, filters: ReportFiltersValue) {
 				isMonthlyReportApi: isMonthlyReportApiDataSource(dataSource),
 				isMonthlyReportDetailsApi: isMonthlyReportDetailsApiDataSource(dataSource),
 				isCashTransactionApi: isCashTransactionApiDataSource(dataSource),
+				isOpenInvoiceReportApi: isOpenInvoiceReportApiDataSource(dataSource),
 			}),
 		{ wrapper: createWrapper() },
 	);

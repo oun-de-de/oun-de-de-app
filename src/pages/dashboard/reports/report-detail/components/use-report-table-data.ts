@@ -6,13 +6,13 @@ import {
 	isAssetListDataSource,
 	isCashTransactionApiDataSource,
 	isCustomerListDataSource,
-	isCycleDataSource,
 	isDailyReportApiDataSource,
 	isInventoryStockReportApiDataSource,
 	isInvoiceDataSource,
 	isLoanListDataSource,
 	isMonthlyReportApiDataSource,
 	isMonthlyReportDetailsApiDataSource,
+	isOpenInvoiceReportApiDataSource,
 	isProductListDataSource,
 } from "../report-types";
 import { getReportDateContext } from "./report-data-utils";
@@ -35,7 +35,6 @@ export function useReportTableData({ reportSlug, filters, sortMode }: UseReportT
 	const { customerId, customerTypeId } = normalizeReportFilters(filters);
 
 	const isInvoiceExport = isInvoiceDataSource(dataSource);
-	const isCycle = isCycleDataSource(dataSource);
 	const isCustomerList = isCustomerListDataSource(dataSource);
 	const isProductList = isProductListDataSource(dataSource);
 	const isAssetList = isAssetListDataSource(dataSource);
@@ -45,6 +44,7 @@ export function useReportTableData({ reportSlug, filters, sortMode }: UseReportT
 	const isMonthlyReportApi = isMonthlyReportApiDataSource(dataSource);
 	const isMonthlyReportDetailsApi = isMonthlyReportDetailsApiDataSource(dataSource);
 	const isCashTransactionApi = isCashTransactionApiDataSource(dataSource);
+	const isOpenInvoiceReportApi = isOpenInvoiceReportApiDataSource(dataSource);
 
 	const { hasRequiredDateFilters, reportDate, reportPeriod, rangeDateFrom, rangeDateTo } = getReportDateContext(
 		definition,
@@ -55,12 +55,10 @@ export function useReportTableData({ reportSlug, filters, sortMode }: UseReportT
 	const domainData = useDomainReportQuery({
 		definition,
 		filters,
-		hasRequiredDateFilters,
 		isCustomerList,
 		isProductList,
 		isAssetList,
 		isLoanList,
-		isCycle,
 		customerId,
 		customerTypeId,
 	});
@@ -89,6 +87,7 @@ export function useReportTableData({ reportSlug, filters, sortMode }: UseReportT
 		isMonthlyReportApi,
 		isMonthlyReportDetailsApi,
 		isCashTransactionApi,
+		isOpenInvoiceReportApi,
 	});
 
 	const sourceRows = useMemo<ReportTemplateRow[]>(
@@ -98,7 +97,6 @@ export function useReportTableData({ reportSlug, filters, sortMode }: UseReportT
 				payments: invoiceData.payments,
 				exportLines: invoiceData.exportLines,
 				previewRows: invoiceData.previewRows,
-				cycles: domainData.cycles,
 				filteredCustomers: domainData.filteredCustomers,
 				allCustomers: domainData.customers,
 				loanContent: domainData.loanContent,
@@ -110,6 +108,7 @@ export function useReportTableData({ reportSlug, filters, sortMode }: UseReportT
 				monthlyReport: accountingData.monthlyReport,
 				monthlyReportDetails: accountingData.monthlyReportDetails,
 				cashTransactionReport: accountingData.cashTransactionReport,
+				openInvoiceReport: accountingData.openInvoiceReport,
 				rangeDateFrom,
 				rangeDateTo,
 				showDetail: filters?.showDetail ?? true,
@@ -122,7 +121,6 @@ export function useReportTableData({ reportSlug, filters, sortMode }: UseReportT
 			invoiceData.payments,
 			invoiceData.exportLines,
 			invoiceData.previewRows,
-			domainData.cycles,
 			domainData.filteredCustomers,
 			domainData.customers,
 			domainData.loanContent,
@@ -134,6 +132,7 @@ export function useReportTableData({ reportSlug, filters, sortMode }: UseReportT
 			accountingData.monthlyReport,
 			accountingData.monthlyReportDetails,
 			accountingData.cashTransactionReport,
+			accountingData.openInvoiceReport,
 			rangeDateFrom,
 			rangeDateTo,
 		],

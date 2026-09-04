@@ -14,6 +14,7 @@ interface UseAccountingReportQueryParams {
 	isMonthlyReportApi: boolean;
 	isMonthlyReportDetailsApi: boolean;
 	isCashTransactionApi: boolean;
+	isOpenInvoiceReportApi: boolean;
 }
 
 export function useAccountingReportQuery({
@@ -27,6 +28,7 @@ export function useAccountingReportQuery({
 	isMonthlyReportApi,
 	isMonthlyReportDetailsApi,
 	isCashTransactionApi,
+	isOpenInvoiceReportApi,
 }: UseAccountingReportQueryParams) {
 	const dailyReportQuery = useQuery({
 		queryKey: ["report", "daily-report", reportDate],
@@ -58,17 +60,25 @@ export function useAccountingReportQuery({
 		enabled: isCashTransactionApi && hasRequiredDateFilters,
 	});
 
+	const openInvoiceReportQuery = useQuery({
+		queryKey: ["report", "open-invoice-report", rangeDateFrom, rangeDateTo],
+		queryFn: () => reportService.getOpenInvoiceReport(rangeDateFrom, rangeDateTo),
+		enabled: isOpenInvoiceReportApi && hasRequiredDateFilters,
+	});
+
 	return {
 		dailyReport: dailyReportQuery.data,
 		inventoryStockReport: inventoryStockReportQuery.data,
 		monthlyReport: monthlyReportQuery.data,
 		monthlyReportDetails: monthlyReportDetailsQuery.data,
 		cashTransactionReport: cashTransactionQuery.data,
+		openInvoiceReport: openInvoiceReportQuery.data,
 		isLoading:
 			dailyReportQuery.isLoading ||
 			inventoryStockReportQuery.isLoading ||
 			monthlyReportQuery.isLoading ||
 			monthlyReportDetailsQuery.isLoading ||
-			cashTransactionQuery.isLoading,
+			cashTransactionQuery.isLoading ||
+			openInvoiceReportQuery.isLoading,
 	};
 }

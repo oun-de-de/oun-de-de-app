@@ -4,8 +4,8 @@ import { REPORT_DEFAULT_DATE } from "../constants";
 import { buildCustomerListColumns, buildCycleColumns } from "../report-columns/core-report-columns";
 import { type BuildReportRowsParams, REPORT_FILTERS, type ReportDefinitionMap } from "../report-types";
 
-function buildCycleSummaryRows({ cycles }: BuildReportRowsParams) {
-	return buildCycleReportRows(cycles);
+function buildCycleSummaryRows({ openInvoiceReport, showDetail }: BuildReportRowsParams) {
+	return buildCycleReportRows(openInvoiceReport ?? [], showDetail);
 }
 
 function buildCustomerListReportRows({ filteredCustomers }: BuildReportRowsParams) {
@@ -20,8 +20,8 @@ export const CORE_REPORT_SPECS: ReportDefinitionMap = {
 		subtitle: REPORT_DEFAULT_DATE,
 		buildColumns: buildCycleColumns,
 		buildRows: buildCycleSummaryRows,
-		dataSource: "cycle",
-		filterConfig: REPORT_FILTERS.customerAndDateRange,
+		dataSource: "open-invoice-report-api",
+		filterConfig: { ...REPORT_FILTERS.customerAndDateRange, showDetail: true },
 	},
 	"customer-list": {
 		slug: "customer-list",

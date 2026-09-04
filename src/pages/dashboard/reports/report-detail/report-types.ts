@@ -1,5 +1,4 @@
 import type { Customer } from "@/core/types/customer";
-import type { Cycle } from "@/core/types/cycle";
 import type { InventoryItem } from "@/core/types/inventory";
 import type { Invoice, InvoiceExportLineApi, InvoiceExportPreviewRow, PaymentResult } from "@/core/types/invoice";
 import type { BorrowerType, Installment, Loan } from "@/core/types/loan";
@@ -10,6 +9,7 @@ import type {
 	InventoryStockReportLine,
 	MonthlyReportDetailsResponse,
 	MonthlyReportResponse,
+	OpenInvoiceCustomerGroup,
 } from "@/core/types/report";
 import type {
 	ReportTemplateColumn,
@@ -21,7 +21,6 @@ import type { ReportFiltersValue } from "./components/report-filter-types";
 
 export type ReportDataSource =
 	| "invoice-export"
-	| "cycle"
 	| "customer-list"
 	| "product-list"
 	| "loan-list"
@@ -33,6 +32,7 @@ export type ReportDataSource =
 	| "monthly-report-details-api"
 	| "asset-list"
 	| "cash-transaction-api"
+	| "open-invoice-report-api"
 	| "unsupported";
 
 export type ReportTemplateId =
@@ -58,6 +58,7 @@ export interface ReportFilterConfig {
 	dateRange: boolean;
 	singleDate?: boolean;
 	monthOnly?: boolean;
+	showDetail?: boolean;
 }
 
 export const REPORT_FILTERS = {
@@ -91,7 +92,6 @@ export interface BuildReportRowsParams {
 	payments: PaymentResult[];
 	exportLines: InvoiceExportLineApi[];
 	previewRows: InvoiceExportPreviewRow[];
-	cycles: Cycle[];
 	filteredCustomers: Customer[];
 	allCustomers: Customer[];
 	loanContent: Loan[];
@@ -103,6 +103,7 @@ export interface BuildReportRowsParams {
 	monthlyReport?: MonthlyReportResponse;
 	monthlyReportDetails?: MonthlyReportDetailsResponse;
 	cashTransactionReport?: CashTransactionReportResponse;
+	openInvoiceReport?: OpenInvoiceCustomerGroup[];
 	rangeDateFrom?: string;
 	rangeDateTo?: string;
 	showDetail?: boolean;
@@ -144,8 +145,8 @@ export function isCashTransactionApiDataSource(dataSource: ReportDataSource): bo
 	return dataSource === "cash-transaction-api";
 }
 
-export function isCycleDataSource(dataSource: ReportDataSource): boolean {
-	return dataSource === "cycle";
+export function isOpenInvoiceReportApiDataSource(dataSource: ReportDataSource): boolean {
+	return dataSource === "open-invoice-report-api";
 }
 
 export function isCustomerListDataSource(dataSource: ReportDataSource): boolean {

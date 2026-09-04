@@ -1,7 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import customerService from "@/core/api/services/customer-service";
-import cycleService from "@/core/api/services/cycle-service";
 import inventoryService from "@/core/api/services/inventory-service";
 import loanService from "@/core/api/services/loan-service";
 import productService from "@/core/api/services/product-service";
@@ -15,12 +14,10 @@ import { normalizeReportFilters } from "./report-table-utils";
 interface UseDomainReportQueryParams {
 	definition: ReportDefinition;
 	filters?: ReportFiltersValue;
-	hasRequiredDateFilters: boolean;
 	isCustomerList: boolean;
 	isProductList: boolean;
 	isAssetList: boolean;
 	isLoanList: boolean;
-	isCycle: boolean;
 	customerId?: string;
 	customerTypeId?: string;
 }
@@ -28,12 +25,10 @@ interface UseDomainReportQueryParams {
 export function useDomainReportQuery({
 	definition,
 	filters,
-	hasRequiredDateFilters,
 	isCustomerList,
 	isProductList,
 	isAssetList,
 	isLoanList,
-	isCycle,
 	customerId,
 	customerTypeId,
 }: UseDomainReportQueryParams) {
@@ -83,21 +78,8 @@ export function useDomainReportQuery({
 		enabled: isLoanList,
 	});
 
-	const cycleQuery = useQuery({
-		queryKey: ["report", "cycle-list", customerId ?? "all", reportDateFrom ?? "", reportDateTo ?? ""],
-		queryFn: () =>
-			cycleService.getCycles({
-				page: 1,
-				size: 10000,
-				sort: "startDate,desc",
-				customerId,
-				from: reportDateFrom,
-				to: reportDateTo,
-			}),
-		enabled: isCycle && hasRequiredDateFilters,
-	});
-
 	const customers = customerQuery.data?.list ?? [];
+
 	const selectedCustomerType = useMemo(
 		() => (customerTypeId ? customers.find((customer) => customer.id === customerTypeId) : undefined),
 		[customerTypeId, customers],
@@ -140,12 +122,7 @@ export function useDomainReportQuery({
 		inventoryItems: inventoryItemsQuery.data,
 		loanContent: loanQuery.data?.content ?? [],
 		installmentsByLoanId: loanQuery.data ? installmentsByLoanId : {},
-		cycles: cycleQuery.data?.list ?? [],
 		isLoading:
-			customerQuery.isLoading ||
-			productQuery.isLoading ||
-			inventoryItemsQuery.isLoading ||
-			loanQuery.isLoading ||
-			cycleQuery.isLoading,
+			customerQuery.isLoading || productQuery.isLoading || inventoryItemsQuery.isLoading || loanQuery.isLoading,
 	};
 }
