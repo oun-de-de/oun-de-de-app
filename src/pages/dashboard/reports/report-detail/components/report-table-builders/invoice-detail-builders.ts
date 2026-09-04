@@ -416,7 +416,7 @@ export function buildCustomerTransactionDetailByTypeRows(
 	previewRows: InvoiceExportPreviewRow[],
 	payments: PaymentResult[] = [],
 ): ReportTemplateRow[] {
-	if (invoices.length === 0) return [];
+	if (invoices.length === 0 && payments.length === 0) return [];
 	const rowsByRefNo = groupPreviewRowsByRefNo(previewRows);
 
 	const reportRows: ReportTemplateRow[] = [];

@@ -44,6 +44,7 @@ describe("cycle-builders", () => {
 		expect(rows[0]?.key).toContain("cycle-customer-header");
 
 		// Row 1: Cycle A detail
+		expect(rows[1]?.isStructural).toBe(true);
 		expect(rows[1]?.cells.cycle).toBe("01/08/2026 - 15/08/2026");
 		expect(rows[1]?.cells.invoiceTotal).toBe("500,000");
 		expect(rows[1]?.cells.paid).toBe("300,000");
@@ -61,6 +62,7 @@ describe("cycle-builders", () => {
 		expect(rows[3]?.cells.customer).toBe("Customer B");
 
 		// Row 4: Cycle B detail
+		expect(rows[4]?.isStructural).toBe(true);
 		expect(rows[4]?.cells.cycle).toBe("05/08/2026 - 20/08/2026");
 		expect(rows[4]?.cells.invoiceTotal).toBe("200,000");
 		expect(rows[4]?.cells.paid).toBe("200,000");

@@ -224,4 +224,15 @@ describe("invoice detail builders", () => {
 		expect(rows.some((row) => row.cells.date === "Invoice")).toBe(true);
 		expect(rows.some((row) => row.cells.date === "Receipt")).toBe(false);
 	});
+
+	it("shows the receipt section when there are payments even if invoices are empty", () => {
+		const payments: PaymentResult[] = [
+			{ id: "pay-1", refNo: "REC000009", customerName: "Customer A", date: "2026-06-12", received: 100000 },
+		];
+		const rows = buildCustomerTransactionDetailByTypeRows([], [], payments);
+
+		expect(rows.some((row) => row.cells.date === "Invoice")).toBe(false);
+		expect(rows.some((row) => row.cells.date === "Receipt")).toBe(true);
+		expect(rows.some((row) => row.cells.refNo === "REC000009")).toBe(true);
+	});
 });

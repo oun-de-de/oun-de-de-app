@@ -45,8 +45,8 @@ export function buildCycleReportRows(groups: OpenInvoiceCustomerGroup[], showDet
 			custTotalPaid += paid;
 			custTotalOutstanding += outstanding;
 
-			rows.push(
-				createReportRow(`cycle-${groupIndex}-${cycleIndex}`, {
+			rows.push({
+				...createReportRow(`cycle-${groupIndex}-${cycleIndex}`, {
 					no: "",
 					customer: "",
 					cycle: `${startDate} - ${endDate}`,
@@ -55,7 +55,8 @@ export function buildCycleReportRows(groups: OpenInvoiceCustomerGroup[], showDet
 					paid: formatNumber(paid),
 					outstanding: formatNumber(outstanding),
 				}),
-			);
+				isStructural: true,
+			});
 
 			if (showDetail) {
 				(cycle.invoices ?? []).forEach((inv, invIndex) => {

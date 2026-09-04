@@ -1,5 +1,5 @@
-import type { Cycle } from "@/core/types/cycle";
 import type { Invoice, InvoiceExportLineApi, InvoiceExportPreviewRow } from "@/core/types/invoice";
+import type { OpenInvoiceCustomerGroup } from "@/core/types/report";
 import type { ReportTemplateRow } from "../../components/layout/report-template-table";
 import { buildCashTransactionReportRows } from "./report-table-builders/accounting-builders";
 import { buildCycleReportRows } from "./report-table-builders/cycle-builders";
@@ -84,16 +84,19 @@ describe("grouped builders mark their structural rows", () => {
 	const exportLines: InvoiceExportLineApi[] = [
 		{ refNo: "IN1", customerName: "Alice", date: "2026-06-09", productName: "P", quantity: 5, amount: 100 },
 	];
-	const cycles: Cycle[] = [
+	const cycles: OpenInvoiceCustomerGroup[] = [
 		{
-			id: "c1",
-			customerId: "cust-1",
 			customerName: "Alice",
-			startDate: "2026-06-01",
-			endDate: "2026-06-15",
-			status: "OPEN",
-			totalAmount: 500,
-			totalPaidAmount: 300,
+			cycles: [
+				{
+					cycleStartDate: "2026-06-01",
+					cycleEndDate: "2026-06-15",
+					totalOriginalAmount: 500,
+					totalPaidAmount: 300,
+					balance: 200,
+					invoices: [],
+				},
+			],
 		},
 	];
 
@@ -101,7 +104,7 @@ describe("grouped builders mark their structural rows", () => {
 	// Group headers are not uniformly named: some say "header", others are just the customer key
 	// (`customer-group-0-Alice`, `tx-inv-cust-0-Alice`) whose detail rows use a different prefix.
 	const STRUCTURAL_KEY =
-		/header|subtotal|grand-total|^customer-group-[^-]+-[^-]+$|^customer-group-.*-total$|^tx-(inv|rcp)-cust-\d+-/;
+		/header|subtotal|grand-total|^customer-group-[^-]+-[^-]+$|^customer-group-.*-total$|^tx-(inv|rcp)-cust-\d+-|^cycle-\d+-\d+$/;
 
 	it.each([
 		["open invoice", () => buildOpenInvoiceRows(invoices, previews, true)],

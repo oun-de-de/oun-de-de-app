@@ -158,8 +158,8 @@ export function sortReportRows(rows: ReportTemplateRow[], sortMode: SortMode): R
 			return parsed;
 		};
 		return sortWithinGroups(nextRows, (left, right) => {
-			const l = getCachedDate(left.cells.date);
-			const r = getCachedDate(right.cells.date);
+			const l = getCachedDate(left.cells.date ?? left.cells.cycle);
+			const r = getCachedDate(right.cells.date ?? right.cells.cycle);
 			return sortMode === "date-desc" ? r - l : l - r;
 		});
 	}
@@ -186,8 +186,22 @@ export function sortReportRows(rows: ReportTemplateRow[], sortMode: SortMode): R
 			return parsed;
 		};
 		return sortWithinGroups(nextRows, (left, right) => {
-			const l = getCachedNum(left.cells.balance ?? left.cells.amount ?? left.cells.value ?? left.cells.debit);
-			const r = getCachedNum(right.cells.balance ?? right.cells.amount ?? right.cells.value ?? right.cells.debit);
+			const l = getCachedNum(
+				left.cells.balance ??
+					left.cells.amount ??
+					left.cells.value ??
+					left.cells.debit ??
+					left.cells.outstanding ??
+					left.cells.invoiceTotal,
+			);
+			const r = getCachedNum(
+				right.cells.balance ??
+					right.cells.amount ??
+					right.cells.value ??
+					right.cells.debit ??
+					right.cells.outstanding ??
+					right.cells.invoiceTotal,
+			);
 			return r - l;
 		});
 	}

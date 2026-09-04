@@ -1,11 +1,17 @@
 import { REPORT_TITLES } from "../../report-titles";
+import { normalizeCustomerText } from "../components/report-data-utils";
 import { buildCustomerListRows, buildCycleReportRows } from "../components/report-table-builders";
 import { REPORT_DEFAULT_DATE } from "../constants";
 import { buildCustomerListColumns, buildCycleColumns } from "../report-columns/core-report-columns";
 import { type BuildReportRowsParams, REPORT_FILTERS, type ReportDefinitionMap } from "../report-types";
 
-function buildCycleSummaryRows({ openInvoiceReport, showDetail }: BuildReportRowsParams) {
-	return buildCycleReportRows(openInvoiceReport ?? [], showDetail);
+function buildCycleSummaryRows({ openInvoiceReport, showDetail, filteredCustomers, filters }: BuildReportRowsParams) {
+	let groups = openInvoiceReport ?? [];
+	if (filters?.customerId || filters?.customerTypeId) {
+		const allowed = new Set(filteredCustomers.map((c) => normalizeCustomerText(c.name)));
+		groups = groups.filter((g) => allowed.has(normalizeCustomerText(g.customerName)));
+	}
+	return buildCycleReportRows(groups, showDetail);
 }
 
 function buildCustomerListReportRows({ filteredCustomers }: BuildReportRowsParams) {
