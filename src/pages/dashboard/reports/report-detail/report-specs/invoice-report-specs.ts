@@ -41,7 +41,7 @@ export const INVOICE_REPORT_SPECS: ReportDefinitionMap = {
 		dataSource: "invoice-export",
 		needsPreviewRows: true,
 		filterConfig: {
-			...REPORT_FILTERS.customerAndDateRange,
+			...REPORT_FILTERS.customerAndSingleDate,
 			customerType: true,
 		},
 	},
