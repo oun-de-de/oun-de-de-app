@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { Calendar as CalendarIcon, Search } from "lucide-react";
-import { memo, type ReactNode, useEffect, useState } from "react";
+import { Search } from "lucide-react";
+import { memo, useEffect, useMemo } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import employeeService from "@/core/api/services/employee-service";
 import productService from "@/core/api/services/product-service";
@@ -10,172 +10,31 @@ import { PRODUCT_QUERY_KEYS } from "@/core/query-keys/product-query-keys";
 import type { Customer } from "@/core/types/customer";
 import type { Employee } from "@/core/types/employee";
 import type { Product } from "@/core/types/product";
-import { Avatar, AvatarFallback, AvatarImage } from "@/core/ui/avatar";
-import { Badge } from "@/core/ui/badge";
 import { Button } from "@/core/ui/button";
-import { Calendar } from "@/core/ui/calendar";
 import { Checkbox } from "@/core/ui/checkbox";
 import { Label } from "@/core/ui/label";
-import { Popover, PopoverContent, PopoverTrigger } from "@/core/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/core/ui/select";
-import { formatDateToYYYYMMDD } from "@/pages/dashboard/accounting/utils/format-local-date-time";
 import type { ReportFiltersProps, ReportFiltersValue } from "./report-filter-types";
 
 export type { ReportFiltersValue } from "./report-filter-types";
+export { getSafeAvatarImageUrl, CustomerProfileCard } from "./report-filter-profile";
+export { FilterRow, ReportSearchCombobox, type ReportComboboxOption } from "./report-search-combobox";
+export {
+	MONTH_OPTIONS,
+	ReportDatePickerButton,
+	ReportMonthField,
+	RabbitReportPeriodField,
+} from "./report-date-fields";
 
-import { fetchAllCustomers, getCustomersWithinType } from "./report-data-utils";
-import { formatFilterDateForDisplay } from "./report-table-utils";
-
-function FilterRow({ label, required, children }: { label: string; required?: boolean; children: ReactNode }) {
-	return (
-		<div className="grid grid-cols-[7.5rem_minmax(0,1fr)] items-center gap-3">
-			<Label className="text-slate-600">
-				{required ? <span className="text-red-500">*</span> : null} {label}
-			</Label>
-			{children}
-		</div>
-	);
-}
-
-const MONTH_OPTIONS = [
-	{ value: "01", label: "January" },
-	{ value: "02", label: "February" },
-	{ value: "03", label: "March" },
-	{ value: "04", label: "April" },
-	{ value: "05", label: "May" },
-	{ value: "06", label: "June" },
-	{ value: "07", label: "July" },
-	{ value: "08", label: "August" },
-	{ value: "09", label: "September" },
-	{ value: "10", label: "October" },
-	{ value: "11", label: "November" },
-	{ value: "12", label: "December" },
-] as const;
-
-function parseReportFilterDate(value?: string) {
-	if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return undefined;
-	const [year, month, day] = value.split("-").map(Number);
-	const date = new Date(year, month - 1, day);
-	if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) {
-		return undefined;
-	}
-	return date;
-}
-
-export function getSafeAvatarImageUrl(value?: string | null): string | undefined {
-	const trimmedValue = value?.trim();
-	if (!trimmedValue) return undefined;
-
-	try {
-		const baseUrl = typeof window !== "undefined" ? window.location.origin : "http://localhost";
-		const url = new URL(trimmedValue, baseUrl);
-		if (url.protocol !== "http:" && url.protocol !== "https:") {
-			return undefined;
-		}
-		return trimmedValue;
-	} catch {
-		return undefined;
-	}
-}
-
-function parseMonthFilterValue(value?: string) {
-	if (!value) return { year: "", month: "" };
-	const [year, month] = value.split("-");
-	return {
-		year: /^\d{4}$/.test(year ?? "") ? year : "",
-		month: /^(0[1-9]|1[0-2])$/.test(month ?? "") ? month : "",
-	};
-}
-
-type ReportDatePickerButtonProps = {
-	id: string;
-	value: string;
-	onChange: (value: string) => void;
-	className?: string;
-};
-
-function ReportDatePickerButton({ id, value, onChange, className }: ReportDatePickerButtonProps) {
-	const [isOpen, setIsOpen] = useState(false);
-	const selectedDate = parseReportFilterDate(value);
-	const displayValue = selectedDate ? formatFilterDateForDisplay(value) : "Select date";
-
-	return (
-		<Popover open={isOpen} onOpenChange={setIsOpen}>
-			<PopoverTrigger asChild>
-				<Button
-					id={id}
-					type="button"
-					variant="outline"
-					className={className ?? "h-10 justify-between px-3 text-slate-500 hover:bg-white"}
-				>
-					<span>{displayValue}</span>
-					<CalendarIcon className="h-4 w-4 text-slate-400" />
-				</Button>
-			</PopoverTrigger>
-			<PopoverContent className="w-auto p-0" align="start">
-				<Calendar
-					mode="single"
-					selected={selectedDate}
-					onSelect={(date) => {
-						// `mode="single"` toggles: re-clicking the selected day reports undefined.
-						// Report dates are required, so treat that as a no-op rather than clearing them.
-						if (!date) return;
-						onChange(formatDateToYYYYMMDD(date));
-						setIsOpen(false);
-					}}
-					initialFocus
-				/>
-			</PopoverContent>
-		</Popover>
-	);
-}
-
-type ReportMonthFieldProps = {
-	value: string;
-	onChange: (value: string) => void;
-};
-
-function ReportMonthField({ value, onChange }: ReportMonthFieldProps) {
-	const { year, month } = parseMonthFilterValue(value);
-	const currentYear = new Date().getFullYear();
-	const yearOptions = Array.from({ length: 8 }, (_, index) => String(currentYear - index));
-
-	const updateValue = (nextYear: string, nextMonth: string) => {
-		onChange(`${nextYear || ""}-${nextMonth || ""}`);
-	};
-
-	return (
-		<div className="flex flex-col gap-1.5">
-			<div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-				<Select value={month} onValueChange={(nextMonth) => updateValue(year, nextMonth)}>
-					<SelectTrigger className="h-10 text-slate-500">
-						<SelectValue placeholder="Select month" />
-					</SelectTrigger>
-					<SelectContent>
-						{MONTH_OPTIONS.map((option) => (
-							<SelectItem key={option.value} value={option.value}>
-								{option.label}
-							</SelectItem>
-						))}
-					</SelectContent>
-				</Select>
-
-				<Select value={year} onValueChange={(nextYear) => updateValue(nextYear, month)}>
-					<SelectTrigger className="h-10 text-slate-500">
-						<SelectValue placeholder="Select year" />
-					</SelectTrigger>
-					<SelectContent>
-						{yearOptions.map((option) => (
-							<SelectItem key={option} value={option}>
-								{option}
-							</SelectItem>
-						))}
-					</SelectContent>
-				</Select>
-			</div>
-		</div>
-	);
-}
+import {
+	fetchAllCustomers,
+	getCustomersWithinType,
+	toCustomerComboboxOptions,
+	toEmployeeComboboxOptions,
+} from "./report-data-utils";
+import { FilterRow, ReportSearchCombobox, type ReportComboboxOption } from "./report-search-combobox";
+import { ReportDatePickerButton, ReportMonthField, RabbitReportPeriodField } from "./report-date-fields";
+import { CustomerProfileCard } from "./report-filter-profile";
 
 type StaticReportSelectProps = {
 	id: string;
@@ -287,127 +146,6 @@ function EmployeeSelect({ id, value, employees, onChange }: EmployeeSelectProps)
 	);
 }
 
-type RabbitReportPeriodFieldProps = {
-	fromDate: string;
-	toDate: string;
-	onFromDateChange: (value: string) => void;
-	onToDateChange: (value: string) => void;
-};
-
-function RabbitReportPeriodField({ fromDate, toDate, onFromDateChange, onToDateChange }: RabbitReportPeriodFieldProps) {
-	return (
-		<FilterRow label="Report Period" required>
-			<div className="flex h-10 items-stretch overflow-hidden rounded-md border border-slate-200 bg-white">
-				<div className="flex w-10 shrink-0 items-center justify-center border-r border-slate-200 text-slate-400">
-					<CalendarIcon className="h-4 w-4" />
-				</div>
-				<ReportDatePickerButton
-					id="report-period-from"
-					value={fromDate}
-					onChange={onFromDateChange}
-					className="h-10 flex-1 justify-start rounded-none border-0 px-3 text-slate-500 shadow-none hover:bg-white"
-				/>
-				<div className="flex items-center px-2 text-slate-400">-</div>
-				<ReportDatePickerButton
-					id="report-period-to"
-					value={toDate}
-					onChange={onToDateChange}
-					className="h-10 flex-1 justify-start rounded-none border-0 px-3 text-slate-500 shadow-none hover:bg-white"
-				/>
-			</div>
-		</FilterRow>
-	);
-}
-
-function CustomerProfileCard({ customer }: { customer: Customer }) {
-	const safeProfileUrl = getSafeAvatarImageUrl(customer.profileUrl);
-
-	return (
-		<div className="flex items-start gap-5 rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition-all hover:shadow-md">
-			<Avatar className="h-20 w-20 border-2 border-slate-100 shadow-sm">
-				<AvatarImage src={safeProfileUrl} alt={customer.name} className="object-cover" />
-				<AvatarFallback className="bg-slate-50 text-xl font-semibold text-slate-400">
-					{customer.name.substring(0, 2).toUpperCase()}
-				</AvatarFallback>
-			</Avatar>
-			<div className="flex flex-1 flex-col gap-2">
-				<div className="flex items-center justify-between">
-					<div className="flex items-center gap-3">
-						<h3 className="text-xl font-bold text-slate-900">{customer.name}</h3>
-						{customer.code && (
-							<Badge
-								variant="outline"
-								className="border-sky-100 bg-sky-50 px-2.5 py-0.5 text-xs font-semibold text-sky-700"
-							>
-								{customer.code}
-							</Badge>
-						)}
-					</div>
-					<Badge variant={customer.status ? "success" : "error"} className="capitalize">
-						{customer.status ? "Active" : "Inactive"}
-					</Badge>
-				</div>
-
-				<div className="grid grid-cols-1 gap-x-8 gap-y-2 text-sm text-slate-600 sm:grid-cols-2 lg:grid-cols-3">
-					{customer.telephone && (
-						<div className="flex items-center gap-2">
-							<span className="shrink-0 font-medium text-slate-400">Phone:</span>
-							<span className="text-slate-700">{customer.telephone}</span>
-						</div>
-					)}
-					{customer.email && (
-						<div className="flex items-center gap-2">
-							<span className="shrink-0 font-medium text-slate-400">Email:</span>
-							<span className="truncate text-slate-700" title={customer.email}>
-								{customer.email}
-							</span>
-						</div>
-					)}
-					{customer.address && (
-						<div className="flex items-center gap-2">
-							<span className="shrink-0 font-medium text-slate-400">Address:</span>
-							<span className="truncate text-slate-700" title={customer.address}>
-								{customer.address}
-							</span>
-						</div>
-					)}
-				</div>
-
-				<div className="mt-2 flex flex-wrap gap-6 border-t border-slate-100 pt-3">
-					{customer.depositBalance !== undefined && (
-						<div className="flex flex-col">
-							<span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Deposit Balance</span>
-							<span className="text-base font-bold text-emerald-600">
-								{customer.depositBalance.toLocaleString(undefined, {
-									style: "currency",
-									currency: "USD",
-								})}
-							</span>
-						</div>
-					)}
-					{customer.creditLimit !== undefined && (
-						<div className="flex flex-col">
-							<span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Credit Limit</span>
-							<span className="text-base font-bold text-amber-600">
-								{customer.creditLimit.toLocaleString(undefined, {
-									style: "currency",
-									currency: "USD",
-								})}
-							</span>
-						</div>
-					)}
-					{customer.invoiceCount !== undefined && (
-						<div className="flex flex-col">
-							<span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Invoices</span>
-							<span className="text-base font-bold text-slate-700">{customer.invoiceCount}</span>
-						</div>
-					)}
-				</div>
-			</div>
-		</div>
-	);
-}
-
 type OpenInvoiceFilterFormProps = {
 	reportSlug: string;
 	value: ReportFiltersValue;
@@ -416,6 +154,21 @@ type OpenInvoiceFilterFormProps = {
 	updateFilters: (nextValue: ReportFiltersValue) => void;
 	onSubmit: (e?: React.BaseSyntheticEvent) => void;
 };
+
+const OPEN_INVOICE_BRANCH_OPTIONS: ReportComboboxOption[] = [
+	{ value: "01", label: "01 : ភ្នំពេញ" },
+	{ value: "all", label: "All" },
+];
+
+const OPEN_INVOICE_CATEGORY_OPTIONS: ReportComboboxOption[] = [{ value: "all", label: "All" }];
+
+const OPEN_INVOICE_TERM_OPTIONS: ReportComboboxOption[] = [{ value: "all", label: "All" }];
+
+const OPEN_INVOICE_JOB_OPTIONS: ReportComboboxOption[] = [{ value: "all", label: "Please Select" }];
+
+const OPEN_INVOICE_GROUP_OPTIONS: ReportComboboxOption[] = [{ value: "all", label: "All" }];
+
+const OPEN_INVOICE_GEOGRAPHY_OPTIONS: ReportComboboxOption[] = [{ value: "all", label: "All" }];
 
 function OpenInvoiceFilterForm({
 	reportSlug,
@@ -426,17 +179,53 @@ function OpenInvoiceFilterForm({
 	onSubmit,
 }: OpenInvoiceFilterFormProps) {
 	const isGrouped = reportSlug === "open-invoice-on-period-by-group";
-	const { customerId, customerTypeId, employeeId, fromDate, toDate, showDetail } = value;
+	const {
+		customerId,
+		customerTypeId,
+		employeeId,
+		fromDate,
+		toDate,
+		showDetail,
+		branchId,
+		geography,
+		category,
+		term,
+		job,
+	} = value;
 	const customersInType = getCustomersWithinType(customers, customerTypeId);
+
+	const employeeOptions = useMemo<ReportComboboxOption[]>(() => toEmployeeComboboxOptions(employees), [employees]);
+
+	const customerTypeOptions = useMemo<ReportComboboxOption[]>(() => toCustomerComboboxOptions(customers), [customers]);
+
+	const customerOptions = useMemo<ReportComboboxOption[]>(
+		() => toCustomerComboboxOptions(customersInType),
+		[customersInType],
+	);
+
+	const selectedBranch = branchId ?? "01";
 
 	return (
 		<form className="grid gap-x-8 gap-y-2 xl:grid-cols-2" onSubmit={onSubmit}>
 			<div className="flex flex-col gap-2">
-				<StaticReportSelect id="report-branch" label="Branch" />
-				<EmployeeSelect
+				<ReportSearchCombobox
+					id="report-branch"
+					label="Branch"
+					required
+					value={selectedBranch}
+					options={OPEN_INVOICE_BRANCH_OPTIONS}
+					onChange={(nextBranchId) =>
+						updateFilters({
+							...value,
+							branchId: nextBranchId,
+						})
+					}
+				/>
+				<ReportSearchCombobox
 					id="report-employee"
-					value={employeeId}
-					employees={employees}
+					label="Employee"
+					value={employeeId || "all"}
+					options={employeeOptions}
 					onChange={(nextEmployeeId) =>
 						updateFilters({
 							...value,
@@ -444,21 +233,63 @@ function OpenInvoiceFilterForm({
 						})
 					}
 				/>
-				<StaticReportSelect id="report-category" label="Category" />
-				<StaticReportSelect id="report-term" label="Term" />
-				<StaticReportSelect id="report-job" label={isGrouped ? "Group" : "Job"} />
+				<ReportSearchCombobox
+					id="report-category"
+					label="Category"
+					value={category || "all"}
+					options={OPEN_INVOICE_CATEGORY_OPTIONS}
+					onChange={(nextCategory) =>
+						updateFilters({
+							...value,
+							category: nextCategory,
+						})
+					}
+				/>
+				<ReportSearchCombobox
+					id="report-term"
+					label="Term"
+					value={term || "all"}
+					options={OPEN_INVOICE_TERM_OPTIONS}
+					onChange={(nextTerm) =>
+						updateFilters({
+							...value,
+							term: nextTerm,
+						})
+					}
+				/>
+				<ReportSearchCombobox
+					id="report-job"
+					label={isGrouped ? "Group" : "Job"}
+					value={job || "all"}
+					options={isGrouped ? OPEN_INVOICE_GROUP_OPTIONS : OPEN_INVOICE_JOB_OPTIONS}
+					onChange={(nextJob) =>
+						updateFilters({
+							...value,
+							job: nextJob,
+						})
+					}
+				/>
 			</div>
 
 			<div className="flex flex-col gap-2">
-				<StaticReportSelect id="report-geography" label="Geography" />
-				<CustomerSelect
+				<ReportSearchCombobox
+					id="report-geography"
+					label="Geography"
+					value={geography || "all"}
+					options={OPEN_INVOICE_GEOGRAPHY_OPTIONS}
+					onChange={(nextGeography) =>
+						updateFilters({
+							...value,
+							geography: nextGeography,
+						})
+					}
+				/>
+				<ReportSearchCombobox
 					id="report-customer-type"
 					label="Customer Type"
-					value={customerTypeId}
-					customers={customers}
+					value={customerTypeId || "all"}
+					options={customerTypeOptions}
 					onChange={(nextCustomerTypeId) => {
-						// Customer Type limits Customer; changing the type invalidates
-						// the previously picked customer, so reset it to All.
 						updateFilters({
 							...value,
 							customerTypeId: nextCustomerTypeId,
@@ -466,11 +297,11 @@ function OpenInvoiceFilterForm({
 						});
 					}}
 				/>
-				<CustomerSelect
+				<ReportSearchCombobox
 					id="customer"
 					label="Customer"
-					value={customerId}
-					customers={customersInType}
+					value={customerId || "all"}
+					options={customerOptions}
 					onChange={(nextCustomerId) =>
 						updateFilters({
 							...value,
@@ -478,24 +309,41 @@ function OpenInvoiceFilterForm({
 						})
 					}
 				/>
-				<RabbitReportPeriodField
-					fromDate={fromDate}
-					toDate={toDate}
-					onFromDateChange={(nextFromDate) =>
-						updateFilters({
-							...value,
-							fromDate: nextFromDate,
-							useDateRange: true,
-						})
-					}
-					onToDateChange={(nextToDate) =>
-						updateFilters({
-							...value,
-							toDate: nextToDate,
-							useDateRange: true,
-						})
-					}
-				/>
+				{!isGrouped ? (
+					<FilterRow label="Report Date" required>
+						<ReportDatePickerButton
+							id="report-date"
+							value={fromDate || toDate}
+							onChange={(nextDate) =>
+								updateFilters({
+									...value,
+									fromDate: nextDate,
+									toDate: nextDate,
+									useDateRange: false,
+								})
+							}
+						/>
+					</FilterRow>
+				) : (
+					<RabbitReportPeriodField
+						fromDate={fromDate}
+						toDate={toDate}
+						onFromDateChange={(nextFromDate) =>
+							updateFilters({
+								...value,
+								fromDate: nextFromDate,
+								useDateRange: true,
+							})
+						}
+						onToDateChange={(nextToDate) =>
+							updateFilters({
+								...value,
+								toDate: nextToDate,
+								useDateRange: true,
+							})
+						}
+					/>
+				)}
 				<FilterRow label="Show Detail">
 					<Checkbox
 						id="report-show-detail"
