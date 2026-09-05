@@ -1,12 +1,17 @@
 import type { SortMode } from "../../../invoice/export-preview/constants";
 import type { ReportTemplateRow } from "../../components/layout/report-template-table";
+import { normalizeCustomerText } from "./report-data-utils";
 import type { ReportFiltersValue } from "./report-filters";
 
 export function normalizeReportFilters(filters?: ReportFiltersValue) {
-	const customerId = filters?.customerId && filters.customerId !== "all" ? filters.customerId : undefined;
+	const customerId =
+		filters?.customerId && normalizeCustomerText(filters.customerId) !== "all" ? filters.customerId : undefined;
 	const customerTypeId =
-		filters?.customerTypeId && filters.customerTypeId !== "all" ? filters.customerTypeId : undefined;
-	const productName = filters?.productName && filters.productName !== "all" ? filters.productName : undefined;
+		filters?.customerTypeId && normalizeCustomerText(filters.customerTypeId) !== "all"
+			? filters.customerTypeId
+			: undefined;
+	const productName =
+		filters?.productName && normalizeCustomerText(filters.productName) !== "all" ? filters.productName : undefined;
 	const isDateRange = filters?.useDateRange === true;
 	const reportDateFrom =
 		filters?.fromDate && /^\d{4}-\d{2}-\d{2}$/.test(filters.fromDate) ? `${filters.fromDate}T00:00:00` : undefined;

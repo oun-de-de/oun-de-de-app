@@ -49,6 +49,7 @@ interface ReportToolbarProps {
 	enableColumnCustomization?: boolean;
 	onPrint?: () => void;
 	onCopy?: () => void;
+	isCopyDisabled?: boolean;
 	onExportExcel?: () => void;
 	isExportExcelDisabled?: boolean;
 	templateMode?: TemplateMode;
@@ -75,6 +76,7 @@ function ReportToolbarComponent({
 	enableColumnCustomization = true,
 	onPrint,
 	onCopy,
+	isCopyDisabled = false,
 	onExportExcel,
 	isExportExcelDisabled = false,
 	templateMode,
@@ -343,7 +345,9 @@ function ReportToolbarComponent({
 								disabled={!onExportExcel || isExportExcelDisabled}
 							/>
 							<ToolbarButton icon="mdi:printer-outline" label="Print" onClick={onPrint} />
-							{onCopy && <ToolbarButton icon="mdi:content-copy" label="Copy" onClick={onCopy} />}
+							{onCopy && (
+								<ToolbarButton icon="mdi:content-copy" label="Copy" onClick={onCopy} disabled={isCopyDisabled} />
+							)}
 						</>
 					)}
 				</div>

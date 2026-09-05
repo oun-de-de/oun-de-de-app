@@ -15,8 +15,9 @@ import {
 	isOpenInvoiceReportApiDataSource,
 	isProductListDataSource,
 } from "../report-types";
-import { getReportDateContext } from "./report-data-utils";
+import { getReportDateContext, normalizeCustomerText } from "./report-data-utils";
 import type { ReportFiltersValue } from "./report-filters";
+import { combineQueryStates } from "./report-query-utils";
 import { normalizeReportFilters, sortReportRows } from "./report-table-utils";
 import { useAccountingReportQuery } from "./useAccountingReportQuery";
 import { useDomainReportQuery } from "./useDomainReportQuery";
@@ -90,31 +91,37 @@ export function useReportTableData({ reportSlug, filters, sortMode }: UseReportT
 		isOpenInvoiceReportApi,
 	});
 
+	const queryState = combineQueryStates(domainData, invoiceData, accountingData);
+	const { isLoading, isError, refetch } = queryState;
+
 	const sourceRows = useMemo<ReportTemplateRow[]>(
 		() =>
-			definition.buildRows({
-				invoices: invoiceData.invoices,
-				payments: invoiceData.payments,
-				exportLines: invoiceData.exportLines,
-				previewRows: invoiceData.previewRows,
-				filteredCustomers: domainData.filteredCustomers,
-				allCustomers: domainData.customers,
-				loanContent: domainData.loanContent,
-				installmentsByLoanId: domainData.installmentsByLoanId,
-				products: domainData.products,
-				inventoryItems: domainData.inventoryItems,
-				dailyReport: accountingData.dailyReport,
-				inventoryStockReport: accountingData.inventoryStockReport,
-				monthlyReport: accountingData.monthlyReport,
-				monthlyReportDetails: accountingData.monthlyReportDetails,
-				cashTransactionReport: accountingData.cashTransactionReport,
-				openInvoiceReport: accountingData.openInvoiceReport,
-				rangeDateFrom,
-				rangeDateTo,
-				showDetail: filters?.showDetail ?? true,
-				filters,
-			}),
+			isError
+				? []
+				: definition.buildRows({
+						invoices: invoiceData.invoices,
+						payments: invoiceData.payments,
+						exportLines: invoiceData.exportLines,
+						previewRows: invoiceData.previewRows,
+						filteredCustomers: domainData.filteredCustomers,
+						allCustomers: domainData.customers,
+						loanContent: domainData.loanContent,
+						installmentsByLoanId: domainData.installmentsByLoanId,
+						products: domainData.products,
+						inventoryItems: domainData.inventoryItems,
+						dailyReport: accountingData.dailyReport,
+						inventoryStockReport: accountingData.inventoryStockReport,
+						monthlyReport: accountingData.monthlyReport,
+						monthlyReportDetails: accountingData.monthlyReportDetails,
+						cashTransactionReport: accountingData.cashTransactionReport,
+						openInvoiceReport: accountingData.openInvoiceReport,
+						rangeDateFrom,
+						rangeDateTo,
+						showDetail: filters?.showDetail ?? true,
+						filters,
+					}),
 		[
+			isError,
 			definition,
 			filters,
 			invoiceData.invoices,
@@ -138,7 +145,10 @@ export function useReportTableData({ reportSlug, filters, sortMode }: UseReportT
 		],
 	);
 
-	const sortedRows = useMemo(() => sortReportRows(sourceRows, sortMode), [sourceRows, sortMode]);
+	const sortedRows = useMemo(
+		() => (isError ? [] : sortReportRows(sourceRows, sortMode)),
+		[isError, sourceRows, sortMode],
+	);
 
 	const selectedCustomerInfo = useMemo(() => {
 		if (!customerId) {
@@ -156,8 +166,11 @@ export function useReportTableData({ reportSlug, filters, sortMode }: UseReportT
 		};
 	}, [customerId, domainData.customers, domainData.filteredCustomers]);
 
-	const selectedCustomerType = domainData.customers.find((c) => c.id === customerTypeId);
-	const selectedCustomerTypeLabel = customerTypeId
+	const isCustomerTypeAll = !customerTypeId || normalizeCustomerText(customerTypeId) === "all";
+	const selectedCustomerType = !isCustomerTypeAll
+		? domainData.customers.find((c) => c.id === customerTypeId)
+		: undefined;
+	const selectedCustomerTypeLabel = !isCustomerTypeAll
 		? selectedCustomerType
 			? selectedCustomerType.code
 				? `${selectedCustomerType.code} : ${selectedCustomerType.name}`
@@ -172,9 +185,11 @@ export function useReportTableData({ reportSlug, filters, sortMode }: UseReportT
 		selectedCustomerLabel: selectedCustomerInfo.selectedCustomerLabel,
 		selectedCustomer: selectedCustomerInfo.selectedCustomer,
 		selectedCustomerTypeLabel,
-		customerTypeCustomerCount: customerTypeId ? domainData.customerTypeCustomers.length : undefined,
+		customerTypeCustomerCount: !isCustomerTypeAll ? domainData.customerTypeCustomers.length : undefined,
 		sourceRows,
 		sortedRows,
-		isLoading: domainData.isLoading || invoiceData.isLoading || accountingData.isLoading,
+		isLoading,
+		isError,
+		refetch,
 	};
 }

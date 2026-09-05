@@ -219,8 +219,32 @@ describe("ReportFilters", () => {
 			expect(onSubmit).toHaveBeenCalledWith({
 				...defaultValue,
 				customerTypeId: "customer-referrer",
+				// Changing the type resets the dependent Customer filter back to All.
+				customerId: "all",
 			});
 		});
+	});
+
+	it("limits Customer options to the selected Customer Type", async () => {
+		const user = userEvent.setup();
+		renderSaleDetailFilters();
+
+		const customerTypeSelect = await screen.findByRole("combobox", {
+			name: "Customer Type",
+		});
+		await user.click(customerTypeSelect);
+		await user.click(
+			within(screen.getByRole("listbox")).getByRole("option", {
+				name: "C001 : Referrer Customer",
+			}),
+		);
+
+		await user.click(screen.getByRole("combobox", { name: "Customer" }));
+		const customerOptions = within(screen.getByRole("listbox")).getAllByRole("option");
+		const customerOptionNames = customerOptions.map((option) => option.textContent);
+		// Matches existing matchesCustomerType semantics: customers referred by the
+		// selected type, not the referrer itself.
+		expect(customerOptionNames).toEqual(["All", "C002 : Introduced Customer"]);
 	});
 
 	it("submits the selected Product by product name", async () => {
@@ -354,6 +378,47 @@ describe("ReportFilters", () => {
 
 		expect(screen.getByRole("button", { name: new RegExp(display) })).toBeInTheDocument();
 		expect(screen.queryByRole("button", { name: "Select date" })).not.toBeInTheDocument();
+	});
+
+	it("DefaultReportFilterForm limits Customer options to selected Customer Type and resets customerId", async () => {
+		const user = userEvent.setup();
+		const onSubmit = vi.fn();
+		render(
+			<ReportFilters
+				value={{ ...defaultValue, customerId: "customer-child" }}
+				onSubmit={onSubmit}
+				filterConfig={{ customer: true, customerType: true, dateRange: true }}
+				reportSlug="custom-report"
+			/>,
+			{ wrapper: createWrapper() },
+		);
+
+		const customerTypeSelect = await screen.findByRole("combobox", {
+			name: "Customer Type",
+		});
+		await user.click(customerTypeSelect);
+		await user.click(
+			within(screen.getByRole("listbox")).getByRole("option", {
+				name: "C001 : Referrer Customer",
+			}),
+		);
+
+		// Changing customerType should have reset customerId to "all"
+		await user.click(screen.getByRole("button", { name: "Submit" }));
+		await waitFor(() => {
+			expect(onSubmit).toHaveBeenCalledWith(
+				expect.objectContaining({
+					customerTypeId: "customer-referrer",
+					customerId: "all",
+				}),
+			);
+		});
+
+		// And Customer dropdown options are filtered
+		await user.click(screen.getByRole("combobox", { name: "Customer" }));
+		const customerOptions = within(screen.getByRole("listbox")).getAllByRole("option");
+		const customerOptionNames = customerOptions.map((option) => option.textContent);
+		expect(customerOptionNames).toEqual(["All", "C002 : Introduced Customer"]);
 	});
 
 	it("formats single date filter properly without returning 'No date selected'", () => {
