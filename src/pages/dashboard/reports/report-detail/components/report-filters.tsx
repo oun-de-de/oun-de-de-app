@@ -2,7 +2,6 @@ import { useQuery } from "@tanstack/react-query";
 import { Calendar as CalendarIcon, Search } from "lucide-react";
 import { memo, type ReactNode, useEffect, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
-import customerService from "@/core/api/services/customer-service";
 import employeeService from "@/core/api/services/employee-service";
 import productService from "@/core/api/services/product-service";
 import { CUSTOMER_QUERY_KEYS } from "@/core/query-keys/customer-query-keys";
@@ -24,6 +23,7 @@ import type { ReportFiltersProps, ReportFiltersValue } from "./report-filter-typ
 
 export type { ReportFiltersValue } from "./report-filter-types";
 
+import { fetchAllCustomers, getCustomersWithinType } from "./report-data-utils";
 import { formatFilterDateForDisplay } from "./report-table-utils";
 
 function FilterRow({ label, required, children }: { label: string; required?: boolean; children: ReactNode }) {
@@ -427,6 +427,7 @@ function OpenInvoiceFilterForm({
 }: OpenInvoiceFilterFormProps) {
 	const isGrouped = reportSlug === "open-invoice-on-period-by-group";
 	const { customerId, customerTypeId, employeeId, fromDate, toDate, showDetail } = value;
+	const customersInType = getCustomersWithinType(customers, customerTypeId);
 
 	return (
 		<form className="grid gap-x-8 gap-y-2 xl:grid-cols-2" onSubmit={onSubmit}>
@@ -455,18 +456,21 @@ function OpenInvoiceFilterForm({
 					label="Customer Type"
 					value={customerTypeId}
 					customers={customers}
-					onChange={(nextCustomerTypeId) =>
+					onChange={(nextCustomerTypeId) => {
+						// Customer Type limits Customer; changing the type invalidates
+						// the previously picked customer, so reset it to All.
 						updateFilters({
 							...value,
 							customerTypeId: nextCustomerTypeId,
-						})
-					}
+							customerId: "all",
+						});
+					}}
 				/>
 				<CustomerSelect
 					id="customer"
 					label="Customer"
 					value={customerId}
-					customers={customers}
+					customers={customersInType}
 					onChange={(nextCustomerId) =>
 						updateFilters({
 							...value,
@@ -529,6 +533,7 @@ function CustomerTransactionDetailByTypeFilterForm({
 	onSubmit,
 }: CustomerTransactionDetailByTypeFilterFormProps) {
 	const { customerId, customerTypeId, fromDate, toDate } = value;
+	const customersInType = getCustomersWithinType(customers, customerTypeId);
 
 	return (
 		<form className="grid gap-x-8 gap-y-2 xl:grid-cols-2" onSubmit={onSubmit}>
@@ -540,18 +545,19 @@ function CustomerTransactionDetailByTypeFilterForm({
 					label="Customer Type"
 					value={customerTypeId}
 					customers={customers}
-					onChange={(nextCustomerTypeId) =>
+					onChange={(nextCustomerTypeId) => {
 						updateFilters({
 							...value,
 							customerTypeId: nextCustomerTypeId,
-						})
-					}
+							customerId: "all",
+						});
+					}}
 				/>
 				<CustomerSelect
 					id="customer"
 					label="Customer"
 					value={customerId}
-					customers={customers}
+					customers={customersInType}
 					onChange={(nextCustomerId) =>
 						updateFilters({
 							...value,
@@ -696,10 +702,9 @@ export const ReportFilters = memo(function ReportFilters({
 	useEffect(() => reset(appliedValue), [appliedValue, reset]);
 	const submit = handleSubmit((nextValue) => onSubmit(nextValue));
 	const { customerId, productName, fromDate, toDate } = value;
-	const customerListParams = { limit: 10000 };
-	const { data: customersResponse } = useQuery({
-		queryKey: CUSTOMER_QUERY_KEYS.list(customerListParams),
-		queryFn: () => customerService.getCustomerList(customerListParams),
+	const { data: customers = [] } = useQuery({
+		queryKey: CUSTOMER_QUERY_KEYS.list({ all: true }),
+		queryFn: () => fetchAllCustomers(),
 		enabled: filterConfig.customer || !!filterConfig.customerType,
 	});
 	const { data: products = [] } = useQuery({
@@ -710,7 +715,6 @@ export const ReportFilters = memo(function ReportFilters({
 		queryKey: EMPLOYEE_QUERY_KEYS.list(),
 		queryFn: employeeService.getEmployeeList,
 	});
-	const customers = customersResponse?.list ?? [];
 	const isSaleDetail = reportSlug === "sale-detail-by-customer" || reportSlug === "receipt-detail-by-customer";
 	const isOpenInvoiceReport =
 		reportSlug === "open-invoice-detail-by-customer" || reportSlug === "open-invoice-on-period-by-group";
@@ -771,12 +775,13 @@ export const ReportFilters = memo(function ReportFilters({
 								label="Customer Type"
 								value={value.customerTypeId}
 								customers={customers}
-								onChange={(nextCustomerTypeId) =>
+								onChange={(nextCustomerTypeId) => {
 									updateFilters({
 										...value,
 										customerTypeId: nextCustomerTypeId,
-									})
-								}
+										customerId: "all",
+									});
+								}}
 							/>
 						)}
 						<StaticReportSelect id="report-location" label="Location" />
@@ -784,7 +789,7 @@ export const ReportFilters = memo(function ReportFilters({
 							id="customer-sale"
 							label="Customer"
 							value={customerId}
-							customers={customers}
+							customers={getCustomersWithinType(customers, value.customerTypeId)}
 							onChange={(nextCustomerId) => updateFilters({ ...value, customerId: nextCustomerId })}
 						/>
 					</div>
@@ -878,7 +883,13 @@ export const ReportFilters = memo(function ReportFilters({
 							label="Customer Type"
 							value={value.customerTypeId}
 							customers={customers}
-							onChange={(nextCustomerTypeId) => updateFilters({ ...value, customerTypeId: nextCustomerTypeId })}
+							onChange={(nextCustomerTypeId) => {
+								updateFilters({
+									...value,
+									customerTypeId: nextCustomerTypeId,
+									customerId: "all",
+								});
+							}}
 						/>
 					)}
 					<StaticReportSelect id="report-location" label="Location" />
@@ -887,7 +898,7 @@ export const ReportFilters = memo(function ReportFilters({
 							id="customer"
 							label="Customer"
 							value={customerId}
-							customers={customers}
+							customers={getCustomersWithinType(customers, value.customerTypeId)}
 							onChange={(nextCustomerId) => updateFilters({ ...value, customerId: nextCustomerId })}
 						/>
 					)}

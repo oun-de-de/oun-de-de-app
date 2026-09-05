@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import reportService from "@/core/api/services/report-service";
 import type { ReportDefinition } from "../report-types";
+import { combineQueryStates } from "./report-query-utils";
 
 interface UseAccountingReportQueryParams {
 	definition: ReportDefinition;
@@ -66,19 +67,24 @@ export function useAccountingReportQuery({
 		enabled: isOpenInvoiceReportApi && hasRequiredDateFilters,
 	});
 
+	const queryState = combineQueryStates(
+		dailyReportQuery,
+		inventoryStockReportQuery,
+		monthlyReportQuery,
+		monthlyReportDetailsQuery,
+		cashTransactionQuery,
+		openInvoiceReportQuery,
+	);
+
 	return {
-		dailyReport: dailyReportQuery.data,
-		inventoryStockReport: inventoryStockReportQuery.data,
-		monthlyReport: monthlyReportQuery.data,
-		monthlyReportDetails: monthlyReportDetailsQuery.data,
-		cashTransactionReport: cashTransactionQuery.data,
-		openInvoiceReport: openInvoiceReportQuery.data,
-		isLoading:
-			dailyReportQuery.isLoading ||
-			inventoryStockReportQuery.isLoading ||
-			monthlyReportQuery.isLoading ||
-			monthlyReportDetailsQuery.isLoading ||
-			cashTransactionQuery.isLoading ||
-			openInvoiceReportQuery.isLoading,
+		dailyReport: queryState.isError ? undefined : dailyReportQuery.data,
+		inventoryStockReport: queryState.isError ? undefined : inventoryStockReportQuery.data,
+		monthlyReport: queryState.isError ? undefined : monthlyReportQuery.data,
+		monthlyReportDetails: queryState.isError ? undefined : monthlyReportDetailsQuery.data,
+		cashTransactionReport: queryState.isError ? undefined : cashTransactionQuery.data,
+		openInvoiceReport: queryState.isError ? undefined : openInvoiceReportQuery.data,
+		isLoading: queryState.isLoading,
+		isError: queryState.isError,
+		refetch: queryState.refetch,
 	};
 }

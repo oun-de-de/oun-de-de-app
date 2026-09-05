@@ -103,10 +103,14 @@ export function ReportDetailView({ reportSlug }: ReportDetailViewProps) {
 		rows: ReportTemplateRow[];
 		columns: ReportTemplateColumn[];
 		hiddenColumnKeys: string[];
+		isLoading?: boolean;
+		isError?: boolean;
 	}>({
 		rows: [],
 		columns: [],
 		hiddenColumnKeys: [],
+		isLoading: false,
+		isError: false,
 	});
 	const reportDefinition = useMemo(() => getReportDefinition(reportSlug), [reportSlug]);
 	const defaultFilterState = useMemo(
@@ -204,6 +208,11 @@ export function ReportDetailView({ reportSlug }: ReportDetailViewProps) {
 	]);
 
 	const handleCopy = useCallback(async () => {
+		if (tableData.isLoading || tableData.isError) {
+			toast.error("Cannot copy report data: data is incomplete or failed to load");
+			return;
+		}
+
 		const visibleColumns = tableData.columns.filter((column) => !tableData.hiddenColumnKeys.includes(column.id));
 		if (visibleColumns.length === 0 || tableData.rows.length === 0) {
 			toast.error("No table data available to copy");
@@ -322,6 +331,7 @@ export function ReportDetailView({ reportSlug }: ReportDetailViewProps) {
 					onTextSizeModeChange={setTextSizeMode}
 					onPrint={handlePrint}
 					onCopy={handleCopy}
+					isCopyDisabled={tableData.isLoading || tableData.isError || tableData.rows.length === 0}
 					// onExportExcel={handleExportExcel}
 					// isExportExcelDisabled={!isExcelExportReport || exportInvoiceIds.length === 0 || isExporting}
 					className="rounded-b-none border-b-0 print:hidden"

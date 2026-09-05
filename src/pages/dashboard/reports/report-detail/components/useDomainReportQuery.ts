@@ -1,14 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
-import customerService from "@/core/api/services/customer-service";
 import inventoryService from "@/core/api/services/inventory-service";
-import loanService from "@/core/api/services/loan-service";
 import productService from "@/core/api/services/product-service";
 import { CUSTOMER_QUERY_KEYS } from "@/core/query-keys/customer-query-keys";
 import { PRODUCT_QUERY_KEYS } from "@/core/query-keys/product-query-keys";
 import type { ReportDefinition } from "../report-types";
-import { matchesCustomerType, normalizeCustomerText } from "./report-data-utils";
+import { fetchAllCustomers, fetchAllLoans, matchesCustomerType, normalizeCustomerText } from "./report-data-utils";
 import type { ReportFiltersValue } from "./report-filters";
+import { combineQueryStates } from "./report-query-utils";
 import { normalizeReportFilters } from "./report-table-utils";
 
 interface UseDomainReportQueryParams {
@@ -33,11 +32,10 @@ export function useDomainReportQuery({
 	customerTypeId,
 }: UseDomainReportQueryParams) {
 	const { reportDateFrom, reportDateTo } = normalizeReportFilters(filters);
-	const customerListParams = { limit: 10000 };
 
 	const customerQuery = useQuery({
-		queryKey: CUSTOMER_QUERY_KEYS.list(customerListParams),
-		queryFn: () => customerService.getCustomerList(customerListParams),
+		queryKey: CUSTOMER_QUERY_KEYS.list({ all: true }),
+		queryFn: () => fetchAllCustomers(),
 		enabled:
 			isCustomerList ||
 			(isLoanList && definition.loanBorrowerType === "customer") ||
@@ -66,27 +64,30 @@ export function useDomainReportQuery({
 			reportDateTo ?? "",
 		],
 		queryFn: () =>
-			loanService.getLoans({
+			fetchAllLoans({
 				borrower_type: definition.loanBorrowerType,
 				borrower_id: definition.loanBorrowerType === "customer" ? customerId : undefined,
 				from: reportDateFrom,
 				to: reportDateTo,
-				page: 1,
-				size: 10000,
 				sort: "createAt,desc",
 			}),
 		enabled: isLoanList,
 	});
 
-	const customers = customerQuery.data?.list ?? [];
+	const queryState = combineQueryStates(customerQuery, productQuery, inventoryItemsQuery, loanQuery);
+
+	const customers = queryState.isError ? [] : (customerQuery.data ?? []);
+
+	const isCustomerTypeAll = !customerTypeId || normalizeCustomerText(customerTypeId) === "all";
 
 	const selectedCustomerType = useMemo(
-		() => (customerTypeId ? customers.find((customer) => customer.id === customerTypeId) : undefined),
-		[customerTypeId, customers],
+		() => (!isCustomerTypeAll ? customers.find((customer) => customer.id === customerTypeId) : undefined),
+		[customerTypeId, customers, isCustomerTypeAll],
 	);
 	const customerTypeCustomers = useMemo(
-		() => (customerTypeId ? customers.filter((customer) => matchesCustomerType(customer, selectedCustomerType)) : []),
-		[customerTypeId, customers, selectedCustomerType],
+		() =>
+			!isCustomerTypeAll ? customers.filter((customer) => matchesCustomerType(customer, selectedCustomerType)) : [],
+		[customers, isCustomerTypeAll, selectedCustomerType],
 	);
 	const customerTypeCustomerNames = useMemo(
 		() =>
@@ -100,17 +101,19 @@ export function useDomainReportQuery({
 	// Customer and Customer Type compose with AND: picking both narrows to that one customer,
 	// and only if it actually belongs to the selected type.
 	const filteredCustomers = useMemo(() => {
-		const byType = customerTypeId ? customerTypeCustomers : customers;
+		const byType = !isCustomerTypeAll ? customerTypeCustomers : customers;
 		return customerId ? byType.filter((customer) => customer.id === customerId) : byType;
-	}, [customerId, customerTypeCustomers, customerTypeId, customers]);
+	}, [customerId, customerTypeCustomers, customers, isCustomerTypeAll]);
+
+	const loanContent = queryState.isError ? [] : (loanQuery.data ?? []);
 
 	const installmentsByLoanId = useMemo(
 		() =>
-			(loanQuery.data?.content ?? []).reduce<Record<string, []>>((acc, loan) => {
+			loanContent.reduce<Record<string, []>>((acc, loan) => {
 				acc[loan.id] = [];
 				return acc;
 			}, {}),
-		[loanQuery.data?.content],
+		[loanContent],
 	);
 
 	return {
@@ -118,11 +121,12 @@ export function useDomainReportQuery({
 		filteredCustomers,
 		customerTypeCustomers,
 		customerTypeCustomerNames,
-		products: productQuery.data ?? [],
-		inventoryItems: inventoryItemsQuery.data,
-		loanContent: loanQuery.data?.content ?? [],
-		installmentsByLoanId: loanQuery.data ? installmentsByLoanId : {},
-		isLoading:
-			customerQuery.isLoading || productQuery.isLoading || inventoryItemsQuery.isLoading || loanQuery.isLoading,
+		products: queryState.isError ? [] : (productQuery.data ?? []),
+		inventoryItems: queryState.isError ? undefined : inventoryItemsQuery.data,
+		loanContent,
+		installmentsByLoanId: loanQuery.data && !queryState.isError ? installmentsByLoanId : {},
+		isLoading: queryState.isLoading,
+		isError: queryState.isError,
+		refetch: queryState.refetch,
 	};
 }

@@ -28,6 +28,8 @@ interface ReportTableProps {
 		rows: ReportTemplateRow[];
 		columns: ReportTemplateColumn[];
 		hiddenColumnKeys: string[];
+		isLoading?: boolean;
+		isError?: boolean;
 	}) => void;
 }
 
@@ -53,6 +55,8 @@ export const ReportTable = React.memo(function ReportTable({
 		sourceRows,
 		sortedRows,
 		isLoading,
+		isError,
+		refetch,
 	} = useReportTableData({
 		reportSlug,
 		filters,
@@ -100,8 +104,25 @@ export const ReportTable = React.memo(function ReportTable({
 	}, [invoiceIds, onInvoiceIdsChange]);
 
 	useEffect(() => {
-		onTableDataChange?.({ rows: sortedRows, columns, hiddenColumnKeys });
-	}, [sortedRows, columns, hiddenColumnKeys, onTableDataChange]);
+		onTableDataChange?.({ rows: sortedRows, columns, hiddenColumnKeys, isLoading, isError });
+	}, [sortedRows, columns, hiddenColumnKeys, isLoading, isError, onTableDataChange]);
+
+	const emptyText = isError ? (
+		<div className="flex flex-col items-center justify-center gap-2 py-4 text-red-600">
+			<span>Failed to load report data.</span>
+			<button
+				type="button"
+				onClick={refetch}
+				className="rounded bg-sky-500 px-3 py-1 text-xs font-semibold text-white hover:bg-sky-600 transition-colors"
+			>
+				Retry
+			</button>
+		</div>
+	) : isLoading ? (
+		"Loading..."
+	) : (
+		(presentation.emptyText ?? definition.emptyText)
+	);
 
 	return (
 		<ReportTemplateTable
@@ -113,10 +134,14 @@ export const ReportTable = React.memo(function ReportTable({
 			metaColumns={presentation.metaColumns}
 			showTableHeader={presentation.showTableHeader}
 			columns={columns}
-			rows={isLoading ? EMPTY_ROWS : sortedRows}
+			rows={isLoading || isError ? EMPTY_ROWS : sortedRows}
 			hiddenColumnKeys={hiddenColumnKeys}
-			summaryRows={presentation.summaryRows ?? definition.summaryRows ?? EMPTY_SUMMARY_ROWS}
-			emptyText={isLoading ? "Loading..." : (presentation.emptyText ?? definition.emptyText)}
+			summaryRows={
+				isLoading || isError
+					? EMPTY_SUMMARY_ROWS
+					: (presentation.summaryRows ?? definition.summaryRows ?? EMPTY_SUMMARY_ROWS)
+			}
+			emptyText={emptyText}
 			timestampText={formatReportTimestamp("administrator", new Date())}
 		/>
 	);

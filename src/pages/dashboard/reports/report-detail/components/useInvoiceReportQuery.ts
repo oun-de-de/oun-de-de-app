@@ -3,8 +3,9 @@ import { useMemo } from "react";
 import invoiceService from "@/core/api/services/invoice-service";
 import type { InvoiceExportPreviewRow, PaymentResult } from "@/core/types/invoice";
 import type { ReportDefinition } from "../report-types";
-import { normalizeCustomerText } from "./report-data-utils";
+import { fetchAllInvoices, fetchAllPayments, normalizeCustomerText } from "./report-data-utils";
 import type { ReportFiltersValue } from "./report-filters";
+import { combineQueryStates } from "./report-query-utils";
 import { mapExportLinesToPreviewRows } from "./report-table-builders";
 import { normalizeReportFilters } from "./report-table-utils";
 
@@ -45,9 +46,7 @@ export function useInvoiceReportQuery({
 			reportDateTo ?? "",
 		],
 		queryFn: () =>
-			invoiceService.getPayments({
-				page: 1,
-				size: 10000,
+			fetchAllPayments({
 				customerId,
 				from: reportDateFrom,
 				to: reportDateTo,
@@ -66,9 +65,7 @@ export function useInvoiceReportQuery({
 			reportDateTo ?? "",
 		],
 		queryFn: () =>
-			invoiceService.getInvoices({
-				page: 1,
-				size: 10000,
+			fetchAllInvoices({
 				sort: "date,desc",
 				customerId,
 				from: reportDateFrom,
@@ -77,10 +74,18 @@ export function useInvoiceReportQuery({
 		enabled: !isReceiptReport && isInvoiceExport && hasRequiredDateFilters,
 	});
 
+	const baseQueryState = isReceiptReport
+		? paymentQuery
+		: combineQueryStates(invoiceQuery, needsPayments ? paymentQuery : {});
+
+	const baseIsError = baseQueryState.isError;
+
 	const invoices = useMemo(() => {
+		if (baseIsError) return [];
+
 		if (isReceiptReport) {
 			if (!paymentQuery.data) return [];
-			const list = paymentQuery.data.list.map((payment) => ({
+			const list = paymentQuery.data.map((payment) => ({
 				id: payment.id || payment.code || payment.refNo || "",
 				refNo: payment.refNo || payment.code || payment.id || "-",
 				customerName: payment.customerName || "Unknown Customer",
@@ -101,63 +106,58 @@ export function useInvoiceReportQuery({
 		}
 
 		if (!invoiceQuery.data) return [];
-		return invoiceQuery.data.list.filter((invoice) => {
+		return invoiceQuery.data.filter((invoice) => {
 			if (customerTypeId) {
 				return customerTypeCustomerNames.has(normalizeCustomerText(invoice.customerName));
 			}
 			return true;
 		});
-	}, [customerTypeCustomerNames, customerTypeId, invoiceQuery.data, isReceiptReport, paymentQuery.data]);
+	}, [baseIsError, customerTypeCustomerNames, customerTypeId, invoiceQuery.data, isReceiptReport, paymentQuery.data]);
 
 	const invoiceIds = useMemo(() => {
-		if (!isInvoiceExport || isReceiptReport) return [];
+		if (!isInvoiceExport || isReceiptReport || baseIsError) return [];
 		return invoices.map((invoice) => invoice.id).filter(Boolean);
-	}, [invoices, isInvoiceExport, isReceiptReport]);
-
-	const invoiceIdsFingerprint = useMemo(() => {
-		if (invoiceIds.length === 0) return "empty";
-		return `${invoiceIds.length}:${invoiceIds[0]}:${invoiceIds[invoiceIds.length - 1]}`;
-	}, [invoiceIds]);
+	}, [baseIsError, invoices, isInvoiceExport, isReceiptReport]);
 
 	const exportQuery = useQuery({
-		queryKey: [
-			"report",
-			"invoice-export",
-			invoiceIdsFingerprint,
-			productName ?? "all-products",
-			customerTypeId ?? "all-types",
-		],
+		queryKey: ["report", "invoice-export", invoiceIds, productName ?? "all-products", customerTypeId ?? "all-types"],
 		queryFn: () =>
 			invoiceService.listInvoiceDetails(invoiceIds, {
 				productName,
 				referredBy: customerTypeId,
 			}),
-		enabled: !isReceiptReport && isInvoiceExport && invoiceIds.length > 0,
+		enabled: !isReceiptReport && isInvoiceExport && invoiceIds.length > 0 && !baseIsError,
 	});
 
+	const totalQueryState = isReceiptReport
+		? paymentQuery
+		: combineQueryStates(invoiceQuery, needsPayments ? paymentQuery : {}, invoiceIds.length > 0 ? exportQuery : {});
+
+	const totalIsError = totalQueryState.isError;
+
 	const previewRows = useMemo<InvoiceExportPreviewRow[]>(
-		() => (shouldBuildPreviewRows ? mapExportLinesToPreviewRows(exportQuery.data ?? []) : []),
-		[exportQuery.data, shouldBuildPreviewRows],
+		() => (shouldBuildPreviewRows && !totalIsError ? mapExportLinesToPreviewRows(exportQuery.data ?? []) : []),
+		[exportQuery.data, shouldBuildPreviewRows, totalIsError],
 	);
 
 	const payments = useMemo<PaymentResult[]>(() => {
-		if (isReceiptReport || !paymentQuery.data) return [];
-		return paymentQuery.data.list.filter((payment) => {
+		if (isReceiptReport || !paymentQuery.data || totalIsError) return [];
+		return paymentQuery.data.filter((payment) => {
 			if (customerTypeId) {
 				return customerTypeCustomerNames.has(normalizeCustomerText(payment.customerName));
 			}
 			return true;
 		});
-	}, [customerTypeCustomerNames, customerTypeId, isReceiptReport, paymentQuery.data]);
+	}, [customerTypeCustomerNames, customerTypeId, isReceiptReport, paymentQuery.data, totalIsError]);
 
 	return {
 		invoices,
 		payments,
 		invoiceIds,
-		exportLines: exportQuery.data ?? [],
+		exportLines: totalIsError ? [] : (exportQuery.data ?? []),
 		previewRows,
-		isLoading:
-			(isReceiptReport ? paymentQuery.isLoading : invoiceQuery.isLoading) ||
-			(!isReceiptReport && (exportQuery.isLoading || (needsPayments && paymentQuery.isLoading))),
+		isLoading: totalQueryState.isLoading,
+		isError: totalIsError,
+		refetch: totalQueryState.refetch,
 	};
 }
