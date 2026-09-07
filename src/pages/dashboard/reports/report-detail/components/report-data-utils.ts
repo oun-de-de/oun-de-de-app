@@ -2,11 +2,32 @@ import customerService from "@/core/api/services/customer-service";
 import invoiceService from "@/core/api/services/invoice-service";
 import loanService from "@/core/api/services/loan-service";
 import type { Customer } from "@/core/types/customer";
+import type { Employee } from "@/core/types/employee";
 import type { Invoice, PaymentResult } from "@/core/types/invoice";
 import type { Loan } from "@/core/types/loan";
 import { formatDateToYYYYMMDD } from "@/pages/dashboard/accounting/utils/format-local-date-time";
 import type { ReportDefinition } from "../report-types";
 import type { ReportFiltersValue } from "./report-filters";
+
+export function toCustomerComboboxOptions(customers: Array<{ id: string; code?: string; name: string }>) {
+	return [
+		{ value: "all", label: "All" },
+		...customers.map((c) => ({
+			value: c.id,
+			label: c.code ? `${c.code} : ${c.name}` : c.name,
+		})),
+	];
+}
+
+export function toEmployeeComboboxOptions(employees: Employee[]) {
+	return [
+		{ value: "all", label: "All" },
+		...employees.map((emp) => {
+			const fullName = [emp.firstName, emp.lastName].filter(Boolean).join(" ") || emp.username;
+			return { value: emp.id, label: fullName };
+		}),
+	];
+}
 
 export function normalizeCustomerText(value?: string | null) {
 	return (value ?? "").trim().toLowerCase();

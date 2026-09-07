@@ -184,7 +184,7 @@ describe("ReportFilters", () => {
 		renderOpenInvoiceFilters("open-invoice-detail-by-customer", onSubmit);
 
 		expect(await screen.findByText("Job")).toBeInTheDocument();
-		expect(screen.getByText("Report Period")).toBeInTheDocument();
+		expect(screen.getByText("Report Date")).toBeInTheDocument();
 		expect(screen.getByText("Show Detail")).toBeInTheDocument();
 		await user.click(screen.getByRole("button", { name: "Submit" }));
 
@@ -428,5 +428,80 @@ describe("ReportFilters", () => {
 			"01/08/2026 To 31/08/2026",
 		);
 		expect(formatFilterRange(undefined)).toBe("No date selected");
+	});
+
+	it("allows typing to search and filter options in Open Invoice comboboxes", async () => {
+		const user = userEvent.setup();
+		const onSubmit = vi.fn();
+		renderOpenInvoiceFilters("open-invoice-detail-by-customer", onSubmit);
+
+		// Test Branch combobox typing filter
+		const branchInput = await screen.findByRole("combobox", { name: "Branch" });
+		await user.click(branchInput);
+		const listbox = await screen.findByRole("listbox", { name: "Branch" });
+		expect(within(listbox).getByRole("option", { name: "01 : ភ្នំពេញ" })).toBeInTheDocument();
+		expect(within(listbox).getByRole("option", { name: "All" })).toBeInTheDocument();
+
+		await user.type(branchInput, "01");
+		const updatedListbox = await screen.findByRole("listbox", { name: "Branch" });
+		expect(within(updatedListbox).getByRole("option", { name: "01 : ភ្នំពេញ" })).toBeInTheDocument();
+
+		await user.click(within(updatedListbox).getByRole("option", { name: "01 : ភ្នំពេញ" }));
+
+		// Test Customer combobox search
+		const customerInput = screen.getByRole("combobox", { name: "Customer" });
+		await user.click(customerInput);
+		const customerListbox = screen.getByRole("listbox", { name: "Customer" });
+		expect(within(customerListbox).getByRole("option", { name: "C001 : Referrer Customer" })).toBeInTheDocument();
+		expect(within(customerListbox).getByRole("option", { name: "C002 : Introduced Customer" })).toBeInTheDocument();
+
+		await user.clear(customerInput);
+		await user.type(customerInput, "Introduced");
+		const updatedCustomerListbox = await screen.findByRole("listbox", { name: "Customer" });
+		expect(
+			within(updatedCustomerListbox).queryByRole("option", { name: "C001 : Referrer Customer" }),
+		).not.toBeInTheDocument();
+		expect(
+			within(updatedCustomerListbox).getByRole("option", { name: "C002 : Introduced Customer" }),
+		).toBeInTheDocument();
+
+		await user.click(within(updatedCustomerListbox).getByRole("option", { name: "C002 : Introduced Customer" }));
+
+		// Submit and verify
+		await user.click(screen.getByRole("button", { name: "Submit" }));
+		await waitFor(() => {
+			expect(onSubmit).toHaveBeenCalledWith(
+				expect.objectContaining({
+					branchId: "01",
+					customerId: "customer-child",
+				}),
+			);
+		});
+	});
+
+	it("allows clearing a selected branch using the clear button", async () => {
+		const user = userEvent.setup();
+		const onSubmit = vi.fn();
+		render(
+			<ReportFilters
+				value={{ ...defaultValue, branchId: "01" }}
+				onSubmit={onSubmit}
+				filterConfig={{ customer: true, dateRange: false, singleDate: true }}
+				reportSlug="open-invoice-detail-by-customer"
+			/>,
+			{ wrapper: createWrapper() },
+		);
+
+		const clearBtn = await screen.findByRole("button", { name: "Clear Branch" });
+		await user.click(clearBtn);
+
+		await user.click(screen.getByRole("button", { name: "Submit" }));
+		await waitFor(() => {
+			expect(onSubmit).toHaveBeenCalledWith(
+				expect.objectContaining({
+					branchId: "all",
+				}),
+			);
+		});
 	});
 });

@@ -64,6 +64,7 @@ export interface ReportFilterConfig {
 export const REPORT_FILTERS = {
 	customerAndDateRange: { customer: true, dateRange: true },
 	customerOnly: { customer: true, dateRange: false },
+	customerAndSingleDate: { customer: true, dateRange: false, singleDate: true },
 	dateRangeOnly: { customer: false, dateRange: true },
 	noFilters: { customer: false, dateRange: false },
 	singleDateOnly: { customer: false, dateRange: false, singleDate: true },

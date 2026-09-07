@@ -9,6 +9,11 @@ export type ReportFiltersValue = {
 	toDate: string;
 	useDateRange: boolean;
 	showDetail?: boolean;
+	branchId?: string;
+	geography?: string;
+	category?: string;
+	term?: string;
+	job?: string;
 };
 
 export type ReportFiltersProps = {
