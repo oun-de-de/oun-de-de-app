@@ -1,37 +1,35 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { RefreshCw } from "lucide-react";
 import { useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
 import { z } from "zod";
-
 import { SmartDataTable } from "@/core/components/common";
 import { useDialogSubmitHandler } from "@/core/hooks/use-dialog-submit-handler";
 import { type Cycle, type CyclePayment, getCycleStatusLabel, getCycleStatusVariant } from "@/core/types/cycle";
 import { Badge } from "@/core/ui/badge";
 import { Button } from "@/core/ui/button";
-import { RefreshCw } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/core/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/core/ui/form";
 import { Input } from "@/core/ui/input";
 import { Label } from "@/core/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/core/ui/tabs";
 import { Textarea } from "@/core/ui/textarea";
-import { formatFlexibleDisplayDate } from "@/core/utils/date-display";
 import { cn } from "@/core/utils";
+import { formatFlexibleDisplayDate } from "@/core/utils/date-display";
+import { FormDatePicker } from "@/pages/dashboard/accounting/components/form-date-picker";
 import {
 	formatDateStartLocalApiValueFromInput,
 	formatDateTimeLocalApiValueFromInput,
 	getLocalNowDateTime,
 	getLocalToday,
 } from "@/pages/dashboard/accounting/utils/format-local-date-time";
-import { FormDatePicker } from "@/pages/dashboard/accounting/components/form-date-picker";
-
+import { FormDateTimeLocalPicker } from "../../accounting/components/form-date-time-local-picker";
 import { useCyclePaymentDialogState } from "../hooks/use-cycle-payment-dialog-state";
 import { useCyclePayments } from "../hooks/use-cycle-payments";
 import { formatKHR } from "../utils/formatters";
 import { getPaymentColumns } from "./payment-columns";
-import { FormDateTimeLocalPicker } from "../../accounting/components/form-date-time-local-picker";
 
 function getPaymentSchema(maxAmount: number) {
 	return z.object({
@@ -178,20 +176,17 @@ export function CyclePaymentDialog({
 			return;
 		}
 
-		await submitAndClose(async () => {
-			try {
-				await createPayment({
-					code: values.paymentCode.trim(),
-					amount: Number(values.amount),
-					paymentDate,
-				});
-			} catch (e) {
-				if (import.meta.env.DEV) {
-					console.error("Payment submission failed:", e);
-				}
-				throw e;
-			}
-		});
+		try {
+			await createPayment({
+				code: values.paymentCode.trim(),
+				amount: Number(values.amount),
+				paymentDate,
+			});
+			toast.success("Payment created successfully");
+			onOpenChange(false);
+		} catch {
+			toast.error("Failed to create payment");
+		}
 	};
 
 	const onLoanSubmit = async (values: LoanFormValues) => {

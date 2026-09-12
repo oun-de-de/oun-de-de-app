@@ -9,8 +9,25 @@ export function useCyclePayments(cycleId?: string) {
 
 	const paymentQueryKey = ["cycle-payments", cycleId] as const;
 	const cycleDetailQueryKey = ["cycle-detail", cycleId] as const;
-	const createInvalidateKeys = [paymentQueryKey, cycleDetailQueryKey, ["cycles"], ["invoices"]] as const;
-	const convertInvalidateKeys = [["cycles"], ["invoices"], ["loans"]] as const;
+	const createInvalidateKeys = [
+		paymentQueryKey,
+		cycleDetailQueryKey,
+		["cycles"],
+		["invoices"],
+		["report", "payment-list"],
+		["report", "invoice-list"],
+		["report", "open-invoice-report"],
+		["report", "invoice-export"],
+	] as const;
+	const convertInvalidateKeys = [
+		["cycles"],
+		["invoices"],
+		["loans"],
+		["report", "payment-list"],
+		["report", "invoice-list"],
+		["report", "open-invoice-report"],
+		["report", "invoice-export"],
+	] as const;
 
 	// invalidate many queries
 	const invalidateMany = async (queryKeys: ReadonlyArray<readonly unknown[]>) => {
@@ -62,8 +79,7 @@ export function useCyclePayments(cycleId?: string) {
 				};
 			});
 
-			toast.success("Payment created successfully");
-			await invalidateMany(createInvalidateKeys);
+			await Promise.allSettled(createInvalidateKeys.map((queryKey) => queryClient.invalidateQueries({ queryKey })));
 		},
 		onError: () => {
 			toast.error("Failed to create payment");
