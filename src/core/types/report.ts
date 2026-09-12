@@ -54,6 +54,13 @@ export interface MonthlyReportDetailsResponse {
 	lines?: MonthlyReportLine[] | null;
 }
 
+/**
+ * BE TODO (reported 2026-09-11): /reports/cash-transaction-report only returns DEBIT/CREDIT for
+ * `type`, so the UI cannot show a real document category (Invoice/Revenue/Expense/Loan…) the way
+ * the reference report does. Needs a category/source-document field on each line — refNo alone
+ * ("CT<timestamp>" for manual entries) does not encode it. See mapApiLinesToCashItems in
+ * report-table-builders/accounting-builders.ts for the current (incomplete) fallback.
+ */
 export interface CashTransactionReportLine {
 	no?: number | null;
 	date?: string | null;

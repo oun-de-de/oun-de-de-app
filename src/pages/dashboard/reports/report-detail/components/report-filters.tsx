@@ -16,15 +16,15 @@ import { Label } from "@/core/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/core/ui/select";
 import type { ReportFiltersProps, ReportFiltersValue } from "./report-filter-types";
 
-export type { ReportFiltersValue } from "./report-filter-types";
-export { getSafeAvatarImageUrl, CustomerProfileCard } from "./report-filter-profile";
-export { FilterRow, ReportSearchCombobox, type ReportComboboxOption } from "./report-search-combobox";
 export {
 	MONTH_OPTIONS,
+	RabbitReportPeriodField,
 	ReportDatePickerButton,
 	ReportMonthField,
-	RabbitReportPeriodField,
 } from "./report-date-fields";
+export { CustomerProfileCard, getSafeAvatarImageUrl } from "./report-filter-profile";
+export type { ReportFiltersValue } from "./report-filter-types";
+export { FilterRow, type ReportComboboxOption, ReportSearchCombobox } from "./report-search-combobox";
 
 import {
 	fetchAllCustomers,
@@ -32,9 +32,9 @@ import {
 	toCustomerComboboxOptions,
 	toEmployeeComboboxOptions,
 } from "./report-data-utils";
-import { FilterRow, ReportSearchCombobox, type ReportComboboxOption } from "./report-search-combobox";
-import { ReportDatePickerButton, ReportMonthField, RabbitReportPeriodField } from "./report-date-fields";
+import { RabbitReportPeriodField, ReportDatePickerButton, ReportMonthField } from "./report-date-fields";
 import { CustomerProfileCard } from "./report-filter-profile";
+import { FilterRow, type ReportComboboxOption, ReportSearchCombobox } from "./report-search-combobox";
 
 type StaticReportSelectProps = {
 	id: string;
@@ -456,6 +456,9 @@ type CashTransactionFilterFormProps = {
 function CashTransactionFilterForm({ value, updateFilters, onSubmit }: CashTransactionFilterFormProps) {
 	const { fromDate, toDate } = value;
 
+	// BE TODO (reported 2026-09-11): getCashTransactionReport (report-service.ts) only takes
+	// from/to. Journal type + Chart of account below stay disabled until the endpoint accepts
+	// journalTypeId/chartOfAccountId params (or the response carries fields to filter client-side).
 	return (
 		<form className="flex flex-col gap-3" onSubmit={onSubmit}>
 			<div className="grid grid-cols-1 gap-x-8 gap-y-2 md:grid-cols-2">

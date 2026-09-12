@@ -74,6 +74,10 @@ export function getOpenInvoiceMetrics(
 	rowsByRefNo: Map<string, InvoiceExportPreviewRow[]>,
 ) {
 	// Metrics are derived from normalized preview rows because export lines may be partial or duplicated per invoice.
+	// BE TODO (found 2026-08-31 audit, re-verify against live API before closing): POST /invoices/export
+	// returned paid:null and balance:null on every line across 5 months / 130 invoices, with no link back
+	// to /payments records. If still true, `received` here is always 0 and `balance` always equals the
+	// full amount — the Received column renders but reads empty/looks "missing" on real data.
 	const rows = rowsByRefNo.get(invoice.refNo ?? "") ?? [];
 	const originalAmount = invoice.amount ?? sumOriginalAmount(rows);
 	const received = getMaxInvoicePaidAmount(rows);
