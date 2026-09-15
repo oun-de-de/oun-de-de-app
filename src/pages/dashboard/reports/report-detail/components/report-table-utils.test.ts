@@ -107,7 +107,7 @@ describe("grouped builders mark their structural rows", () => {
 		/header|subtotal|grand-total|^customer-group-[^-]+-[^-]+$|^customer-group-.*-total$|^tx-(inv|rcp)-cust-\d+-|^cycle-\d+-\d+$/;
 
 	it.each([
-		["open invoice", () => buildOpenInvoiceRows(invoices, previews, true)],
+		["open invoice", () => buildOpenInvoiceRows(invoices, previews, [], true)],
 		["receipt detail", () => buildReceiptDetailRows(receipts, [], true)],
 		["sale detail", () => buildSaleDetailRows(invoices, exportLines)],
 		["customer transaction by type", () => buildCustomerTransactionDetailByTypeRows(invoices, previews)],

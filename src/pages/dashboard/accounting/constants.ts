@@ -24,8 +24,17 @@ export const ACCOUNTING_SIDEBAR_TYPE_OPTIONS = [
 	{ value: "expense", label: "Expense" },
 ];
 
+// "invoice"/"receipt"/"expense"/"revenue"/"loan" match row.type — classified from refNo prefix
+// (classifyCashTransactionType, core/utils/cash-transaction-type.ts), never the raw API type field.
+// "debit"/"credit" match row.dr/row.cr (transaction nature) instead — see filterRows in
+// use-accounting-transactions.ts.
 export const ACCOUNTING_TABLE_TYPE_OPTIONS = [
 	{ value: ACCOUNTING_ALL_TYPES_FILTER, label: "All Types" },
+	{ value: "invoice", label: "Invoice" },
+	{ value: "receipt", label: "Receipt" },
+	{ value: "expense", label: "Expense" },
+	{ value: "revenue", label: "Revenue" },
+	{ value: "loan", label: "Loan" },
 	{ value: "debit", label: "Debit" },
 	{ value: "credit", label: "Credit" },
 ];

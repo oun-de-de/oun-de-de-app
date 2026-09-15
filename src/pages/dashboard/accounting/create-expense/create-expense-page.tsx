@@ -46,7 +46,9 @@ function buildExpensePreviewState({
 		employeeOptions.find((option) => option.value === formValues.employeeId)?.label ?? "Administrator";
 	const previewRows = formValues.details.map((line, index) => ({
 		refNo: index === 0 ? refNo : `${refNo}-${index + 1}`,
+		cycleId: null,
 		customerName: employeeName,
+		referredByName: null,
 		date,
 		productName: chartAccountLabels.get(line.accountCode) ?? "Expense Item",
 		unit: null,

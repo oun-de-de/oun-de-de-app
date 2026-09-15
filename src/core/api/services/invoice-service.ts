@@ -8,6 +8,7 @@ import { apiClient } from "../apiClient";
 export enum INVOICE_API {
 	LIST = "/invoices",
 	PAYMENTS = "/payments",
+	QUERY_PAYMENTS = "/query-payments",
 }
 
 export const getInvoices = (params?: {
@@ -148,10 +149,34 @@ export const getPayments = (params?: {
 			return mapPagePaginatedResponseToPagination(res);
 		});
 
+// Payments have no invoiceId — the only real link back to an invoice is cycleId (verified against
+// live OpenAPI spec + curl, 2026-09-15). size defaults large since a report view rarely spans more
+// than a few dozen cycles; still returns Pagination in case that assumption ever breaks.
+export const queryPaymentsByCycle = (cycleIds: string[], size = 10000): Promise<Pagination<PaymentResult>> =>
+	apiClient
+		.post<PagePaginatedResponse<PaymentResult> | PaymentResult[]>({
+			url: INVOICE_API.QUERY_PAYMENTS,
+			params: { page: 0, size },
+			data: { cycleIds },
+		})
+		.then((res) => {
+			if (Array.isArray(res)) {
+				return {
+					list: res,
+					page: 1,
+					pageSize: res.length,
+					pageCount: 1,
+					total: res.length,
+				};
+			}
+			return mapPagePaginatedResponseToPagination(res);
+		});
+
 export default {
 	getInvoices,
 	getAllInvoices,
 	listInvoiceDetails,
 	updateInvoice,
 	getPayments,
+	queryPaymentsByCycle,
 };

@@ -13,8 +13,8 @@ import {
 } from "../report-columns/accounting-report-columns";
 import { type BuildReportRowsParams, REPORT_FILTERS, type ReportDefinitionMap } from "../report-types";
 
-function buildCashTransactionReportApiRows({ cashTransactionReport }: BuildReportRowsParams) {
-	return buildCashTransactionReportRows(cashTransactionReport);
+function buildCashTransactionReportApiRows({ cashTransactionReport, filters }: BuildReportRowsParams) {
+	return buildCashTransactionReportRows(cashTransactionReport, filters?.journalType);
 }
 
 function buildGeneralLedgerApiRows({ monthlyReportDetails }: BuildReportRowsParams) {

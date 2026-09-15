@@ -13,6 +13,8 @@ export const columns = [
 	columnHelper.accessor("refNo", {
 		header: "Ref No.",
 		size: 170,
+		// Not a link: CashTransactionFlattenResult's `id` is the ledger-entry id, not an invoice id,
+		// and there's no document-type field — see BE TODO on that type in core/types/cash-transaction.ts.
 		cell: (info) => <span className="text-sky-600">{info.getValue()}</span>,
 	}),
 	columnHelper.accessor("reason", {

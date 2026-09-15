@@ -533,7 +533,7 @@ export const reportSections = [
 		icon: "mdi:cash",
 		items: [
 			{ slug: "sale-detail-by-customer", label: "Sale Detail By Customer", favorite: false },
-			{ slug: "open-invoice-detail-by-customer", label: "Open Invoice Detail Report", favorite: true },
+			{ slug: "open-invoice-detail-by-customer", label: "Open Invoice Detail By Customer", favorite: true },
 			{ slug: "open-invoice-on-period-by-group", label: "Open Invoice By Period Group", favorite: false },
 		],
 	},

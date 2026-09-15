@@ -2,6 +2,12 @@ import type { SelectOption } from "./common";
 
 export type CashTransactionType = "DEBIT" | "CREDIT";
 
+// BE TODO (found 2026-09-15 ref-no link sweep): `id` here is the cash-transaction/ledger-entry id,
+// not an invoice id — and `type` is only DEBIT/CREDIT, so there is no way to tell whether a given
+// row even originated from an invoice. Linking refNo to /dashboard/invoice/export-preview?ids=<id>
+// would be wrong (id namespace mismatch, or the row isn't an invoice at all). Needs a real
+// `invoiceId`/document-type field before refNo can link out. Same root gap as CashTransactionReportLine
+// and MonthlyReportLine in src/core/types/report.ts.
 export type CashTransactionFlattenResult = {
 	id: string;
 	refNo: string;

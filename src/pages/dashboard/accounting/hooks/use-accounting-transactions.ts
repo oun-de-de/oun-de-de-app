@@ -1,13 +1,10 @@
-import { useMemo } from "react";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { useMemo } from "react";
 import cashTransactionService from "@/core/api/services/cash-transaction-service";
-import type { AccountingRow } from "@/core/types/common";
 import type { CashTransactionFlattenResult } from "@/core/types/cash-transaction";
-import {
-	ACCOUNTING_ALL_TYPES_FILTER,
-	ACCOUNTING_FILTER_PAGE_SIZE,
-	ACCOUNTING_QUERY_KEYS,
-} from "../constants";
+import type { AccountingRow } from "@/core/types/common";
+import { classifyCashTransactionType } from "@/core/utils/cash-transaction-type";
+import { ACCOUNTING_ALL_TYPES_FILTER, ACCOUNTING_FILTER_PAGE_SIZE, ACCOUNTING_QUERY_KEYS } from "../constants";
 
 function formatAccountingDate(value?: string) {
 	if (!value) return "-";
@@ -17,11 +14,13 @@ function formatAccountingDate(value?: string) {
 }
 
 function mapCashTransactionToAccountingRow(item: CashTransactionFlattenResult): AccountingRow {
+	// item.type is only DEBIT/CREDIT, not a real category — classify from refNo prefix instead.
+	const classifiedType = classifyCashTransactionType(item.refNo, item.type === "DEBIT");
 	return {
 		date: formatAccountingDate(item.date),
 		refNo: item.refNo,
-		type: item.type,
-		reason: item.reason?.trim() || item.type,
+		type: classifiedType,
+		reason: item.reason?.trim() || classifiedType,
 		currency: item.currency ?? "-",
 		memo: item.memo ?? "",
 		dr: item.type === "DEBIT" ? String(item.amount ?? 0) : "0",
@@ -40,7 +39,11 @@ type UseAccountingTransactionsParams = {
 function filterRows(rows: AccountingRow[], typeFilter: string, fieldFilter: string, searchValue: string) {
 	let nextRows = rows;
 
-	if (typeFilter !== ACCOUNTING_ALL_TYPES_FILTER) {
+	if (typeFilter === "debit") {
+		nextRows = nextRows.filter((row) => row.dr !== "0");
+	} else if (typeFilter === "credit") {
+		nextRows = nextRows.filter((row) => row.cr !== "0");
+	} else if (typeFilter !== ACCOUNTING_ALL_TYPES_FILTER) {
 		nextRows = nextRows.filter((row) => row.type.toLowerCase() === typeFilter.toLowerCase());
 	}
 
@@ -93,10 +96,7 @@ export function useAccountingTransactions({
 		refetchOnReconnect: false,
 	});
 
-	const mappedRows = useMemo(
-		() => (data?.list ?? []).map(mapCashTransactionToAccountingRow),
-		[data?.list],
-	);
+	const mappedRows = useMemo(() => (data?.list ?? []).map(mapCashTransactionToAccountingRow), [data?.list]);
 
 	const filteredRows = useMemo(() => {
 		if (!shouldFilterClientSide) {

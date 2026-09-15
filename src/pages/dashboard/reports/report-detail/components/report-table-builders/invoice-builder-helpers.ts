@@ -1,7 +1,6 @@
-import type { Invoice, InvoiceExportLineApi, InvoiceExportPreviewRow } from "@/core/types/invoice";
+import type { Invoice, InvoiceExportLineApi, InvoiceExportPreviewRow, PaymentResult } from "@/core/types/invoice";
 import {
 	buildReportRowsFromExportLines,
-	getPreviewRowBalance,
 	getPreviewRowOriginalAmount,
 	toInvoiceExportPreviewRow,
 } from "../../../../invoice/export-preview/utils/export-preview-rows";
@@ -43,48 +42,35 @@ export function sumOriginalAmount(rows: InvoiceExportPreviewRow[]): number {
 	return rows.reduce((sum, row) => sum + (getPreviewRowOriginalAmount(row) ?? 0), 0);
 }
 
-export function sumPreviewRowPaidAmount(rows: InvoiceExportPreviewRow[]): number {
-	return rows.reduce((sum, row) => sum + (row.paid ?? 0), 0);
-}
-
-export function getMaxInvoicePaidAmount(rows: InvoiceExportPreviewRow[]): number {
-	const paidValues = rows.map((row) => row.paid ?? 0).filter((value) => value > 0);
-	if (paidValues.length === 0) return 0;
-	return Math.max(...paidValues);
-}
-
-export function getMinimumInvoiceBalance(
-	rows: InvoiceExportPreviewRow[],
-	originalAmount: number,
-	received: number,
-): number {
-	const balanceValues = rows
-		.map((row) => getPreviewRowBalance(row, getPreviewRowOriginalAmount(row)))
-		.filter((value): value is number => value != null && value >= 0);
-
-	if (balanceValues.length > 0) {
-		return Math.min(...balanceValues);
-	}
-
-	return Math.max(originalAmount - received, 0);
-}
+const EMPTY_RECEIVED_BY_CYCLE: ReadonlyMap<string, number> = new Map();
 
 export function getOpenInvoiceMetrics(
 	invoice: Pick<Invoice, "refNo" | "amount">,
 	rowsByRefNo: Map<string, InvoiceExportPreviewRow[]>,
+	receivedByCycle: ReadonlyMap<string, number> = EMPTY_RECEIVED_BY_CYCLE,
 ) {
-	// Metrics are derived from normalized preview rows because export lines may be partial or duplicated per invoice.
-	// BE TODO (found 2026-08-31 audit, re-verify against live API before closing): POST /invoices/export
-	// returned paid:null and balance:null on every line across 5 months / 130 invoices, with no link back
-	// to /payments records. If still true, `received` here is always 0 and `balance` always equals the
-	// full amount — the Received column renders but reads empty/looks "missing" on real data.
+	// originalAmount still comes from preview rows (export lines) — the invoice-export endpoint is the
+	// only source for per-product amounts. `paid`/`balance` on those lines are always null (BE gap,
+	// 2026-08-31 audit): "received" instead comes from real /payments, matched by cycleId — payments
+	// have no invoiceId (verified against live OpenAPI spec, 2026-09-15), so this is the finest
+	// granularity available. Multiple invoices sharing one cycle will show the same received amount.
 	const rows = rowsByRefNo.get(invoice.refNo ?? "") ?? [];
 	const originalAmount = invoice.amount ?? sumOriginalAmount(rows);
-	const received = getMaxInvoicePaidAmount(rows);
-	const balance =
-		rows.length > 0 ? getMinimumInvoiceBalance(rows, originalAmount, received) : Math.max(originalAmount - received, 0);
+	const cycleId = rows[0]?.cycleId ?? null;
+	const received = cycleId ? (receivedByCycle.get(cycleId) ?? 0) : 0;
+	const balance = Math.max(originalAmount - received, 0);
 
-	return { originalAmount, received, balance };
+	return { originalAmount, received, balance, cycleId };
+}
+
+export function sumPaymentsByCycle(payments: PaymentResult[]): Map<string, number> {
+	const receivedByCycle = new Map<string, number>();
+	for (const payment of payments) {
+		const amount = payment.amount ?? 0;
+		if (amount <= 0 || !payment.cycleId) continue;
+		receivedByCycle.set(payment.cycleId, (receivedByCycle.get(payment.cycleId) ?? 0) + amount);
+	}
+	return receivedByCycle;
 }
 
 function normalizeText(value: string | null | undefined): string {

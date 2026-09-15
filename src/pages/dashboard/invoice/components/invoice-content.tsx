@@ -1,17 +1,16 @@
 import type { OnChangeFn, SortingState } from "@tanstack/react-table";
 import { useCallback, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router";
-import { SmartDataTable, SummaryStatCard } from "@/core/components/common";
-import Icon from "@/core/components/icon/icon";
+import { toast } from "sonner";
 import invoiceService from "@/core/api/services/invoice-service";
+import { BackButton, SmartDataTable, SummaryStatCard } from "@/core/components/common";
+import Icon from "@/core/components/icon/icon";
 import type { SummaryStatCardData } from "@/core/types/common";
-import { getCycleStatusCardColor, type Cycle, type CyclePayment } from "@/core/types/cycle";
+import { type Cycle, type CyclePayment, getCycleStatusCardColor } from "@/core/types/cycle";
 import type { Invoice, InvoiceExportPreviewRow } from "@/core/types/invoice";
-import { BackButton } from "@/core/components/common";
 import { Button } from "@/core/ui/button";
 import { Text } from "@/core/ui/typography";
 import { formatFlexibleDisplayDate } from "@/core/utils/date-display";
-import { toast } from "sonner";
 import { INVOICE_FILTER_FIELD_OPTIONS } from "../constants/constants";
 import { useCyclePayments } from "../hooks/use-cycle-payments";
 import { useInvoiceSelection } from "../hooks/use-invoice-selection";
@@ -56,7 +55,9 @@ const resolveBulkUpdateInitialValues = (invoices: Invoice[]) => {
 const resetInvoiceSelection = (row: Invoice, id: string): InvoiceExportPreviewRow => {
 	const invoiceSelection = {
 		refNo: row?.refNo ?? id,
+		cycleId: null,
 		customerName: row?.customerName ?? "-",
+		referredByName: null,
 		date: row?.date ?? "",
 		productName: null,
 		unit: null,
