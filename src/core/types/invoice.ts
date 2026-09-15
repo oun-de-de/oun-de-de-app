@@ -16,25 +16,25 @@ export interface Invoice {
 	paymentTerm?: string;
 }
 
+// Matches the real GET /api/v1/payments response. As of 2026-09-16 the live response now includes
+// customerName (confirmed via a real response body: {id, cycleId, customerName, code, paymentDate,
+// amount}). refNo/customerId/date/received/originalAmount/balance/createdBy still do not exist on
+// the real API — only customerName was independently verified to have been added; do not assume the
+// others appeared too without re-checking a live response.
 export interface PaymentResult {
 	id?: string;
 	cycleId?: string;
-	code?: string;
-	refNo?: string;
 	customerName?: string;
-	customerId?: string;
-	date?: string;
+	code?: string;
 	paymentDate?: string;
 	amount?: number;
-	received?: number;
-	originalAmount?: number;
-	balance?: number;
-	createdBy?: string;
 }
 
 export interface InvoiceExportLineApi {
 	refNo?: string;
+	cycleId?: string;
 	customerName?: string;
+	referredByName?: string;
 	date?: string;
 	productName?: string | null;
 	unit?: string | null;
@@ -50,7 +50,9 @@ export interface InvoiceExportLineApi {
 
 export interface InvoiceExportPreviewRow {
 	refNo: string;
+	cycleId: string | null;
 	customerName: string;
+	referredByName: string | null;
 	date: string;
 	productName: string | null;
 	unit: string | null;
