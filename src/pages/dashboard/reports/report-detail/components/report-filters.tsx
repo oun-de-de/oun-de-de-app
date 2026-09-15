@@ -16,25 +16,26 @@ import { Label } from "@/core/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/core/ui/select";
 import type { ReportFiltersProps, ReportFiltersValue } from "./report-filter-types";
 
-export type { ReportFiltersValue } from "./report-filter-types";
-export { getSafeAvatarImageUrl, CustomerProfileCard } from "./report-filter-profile";
-export { FilterRow, ReportSearchCombobox, type ReportComboboxOption } from "./report-search-combobox";
 export {
 	MONTH_OPTIONS,
+	RabbitReportPeriodField,
 	ReportDatePickerButton,
 	ReportMonthField,
-	RabbitReportPeriodField,
 } from "./report-date-fields";
+export { CustomerProfileCard, getSafeAvatarImageUrl } from "./report-filter-profile";
+export type { ReportFiltersValue } from "./report-filter-types";
+export { FilterRow, type ReportComboboxOption, ReportSearchCombobox } from "./report-search-combobox";
 
 import {
 	fetchAllCustomers,
 	getCustomersWithinType,
 	toCustomerComboboxOptions,
 	toEmployeeComboboxOptions,
+	toProductComboboxOptions,
 } from "./report-data-utils";
-import { FilterRow, ReportSearchCombobox, type ReportComboboxOption } from "./report-search-combobox";
-import { ReportDatePickerButton, ReportMonthField, RabbitReportPeriodField } from "./report-date-fields";
+import { RabbitReportPeriodField, ReportDatePickerButton, ReportMonthField } from "./report-date-fields";
 import { CustomerProfileCard } from "./report-filter-profile";
+import { FilterRow, type ReportComboboxOption, ReportSearchCombobox } from "./report-search-combobox";
 
 type StaticReportSelectProps = {
 	id: string;
@@ -68,23 +69,8 @@ type CustomerSelectProps = {
 };
 
 function CustomerSelect({ id, label, value, customers, onChange }: CustomerSelectProps) {
-	return (
-		<FilterRow label={label}>
-			<Select value={value} onValueChange={onChange}>
-				<SelectTrigger id={id} className="h-8 text-slate-500" aria-label={label}>
-					<SelectValue placeholder={`Select ${label.toLowerCase()}`} />
-				</SelectTrigger>
-				<SelectContent>
-					<SelectItem value="all">All</SelectItem>
-					{customers.map((customer) => (
-						<SelectItem key={customer.id} value={customer.id}>
-							{customer.code ? `${customer.code} : ${customer.name}` : customer.name}
-						</SelectItem>
-					))}
-				</SelectContent>
-			</Select>
-		</FilterRow>
-	);
+	const options = useMemo(() => toCustomerComboboxOptions(customers), [customers]);
+	return <ReportSearchCombobox id={id} label={label} value={value} options={options} onChange={onChange} />;
 }
 
 type ProductSelectProps = {
@@ -96,22 +82,16 @@ type ProductSelectProps = {
 };
 
 function ProductSelect({ id, value, products, onChange, disabled }: ProductSelectProps) {
+	const options = useMemo(() => toProductComboboxOptions(products), [products]);
 	return (
-		<FilterRow label="Product">
-			<Select value={value} onValueChange={onChange} disabled={disabled}>
-				<SelectTrigger id={id} className="h-8 text-slate-500" aria-label="Product">
-					<SelectValue placeholder="Select product" />
-				</SelectTrigger>
-				<SelectContent>
-					<SelectItem value="all">All</SelectItem>
-					{products.map((product) => (
-						<SelectItem key={product.id} value={product.name}>
-							{product.name}
-						</SelectItem>
-					))}
-				</SelectContent>
-			</Select>
-		</FilterRow>
+		<ReportSearchCombobox
+			id={id}
+			label="Product"
+			value={value}
+			options={options}
+			onChange={onChange}
+			disabled={disabled}
+		/>
 	);
 }
 
@@ -170,6 +150,10 @@ const OPEN_INVOICE_GROUP_OPTIONS: ReportComboboxOption[] = [{ value: "all", labe
 
 const OPEN_INVOICE_GEOGRAPHY_OPTIONS: ReportComboboxOption[] = [{ value: "all", label: "All" }];
 
+// ponytail: All-only placeholder, same as Branch/Category/Term above — OpenInvoiceReportLine has no
+// product/item field yet (BE TODO in src/core/types/report.ts). Wire real options once BE adds one.
+const OPEN_INVOICE_ITEM_OPTIONS: ReportComboboxOption[] = [{ value: "all", label: "All" }];
+
 function OpenInvoiceFilterForm({
 	reportSlug,
 	value,
@@ -191,6 +175,7 @@ function OpenInvoiceFilterForm({
 		category,
 		term,
 		job,
+		productName,
 	} = value;
 	const customersInType = getCustomersWithinType(customers, customerTypeId);
 
@@ -269,6 +254,20 @@ function OpenInvoiceFilterForm({
 						})
 					}
 				/>
+				{isGrouped && (
+					<ReportSearchCombobox
+						id="report-item"
+						label="Item"
+						value={productName || "all"}
+						options={OPEN_INVOICE_ITEM_OPTIONS}
+						onChange={(nextProductName) =>
+							updateFilters({
+								...value,
+								productName: nextProductName,
+							})
+						}
+					/>
+				)}
 			</div>
 
 			<div className="flex flex-col gap-2">
@@ -453,29 +452,35 @@ type CashTransactionFilterFormProps = {
 	onSubmit: (e?: React.BaseSyntheticEvent) => void;
 };
 
+// Matches classifyCashTransactionType's output (core/utils/cash-transaction-type.ts) — a client-side
+// refNo-prefix classification, not the real BE journal-type entity.
+const CASH_TRANSACTION_TYPE_OPTIONS = [
+	{ value: "all", label: "- All -" },
+	{ value: "invoice", label: "Invoice" },
+	{ value: "receipt", label: "Receipt" },
+	{ value: "expense", label: "Expense" },
+	{ value: "revenue", label: "Revenue" },
+	{ value: "loan", label: "Loan" },
+];
+
 function CashTransactionFilterForm({ value, updateFilters, onSubmit }: CashTransactionFilterFormProps) {
-	const { fromDate, toDate } = value;
+	const { fromDate, toDate, journalType } = value;
 
 	return (
 		<form className="flex flex-col gap-3" onSubmit={onSubmit}>
 			<div className="grid grid-cols-1 gap-x-8 gap-y-2 md:grid-cols-2">
 				<div className="flex flex-col gap-2">
-					<FilterRow label="Journal type">
-						{/* ponytail: disabled because no query reads it; drop `disabled` once one does. */}
-						<Select defaultValue="all" disabled>
-							<SelectTrigger id="cash-journal-type" className="h-8 text-slate-500">
-								<SelectValue placeholder="- All -" />
-							</SelectTrigger>
-							<SelectContent>
-								<SelectItem value="all">- All -</SelectItem>
-								<SelectItem value="receipt">Receipt</SelectItem>
-								<SelectItem value="expense">Expense</SelectItem>
-								<SelectItem value="cash-sale">Cash Sale</SelectItem>
-							</SelectContent>
-						</Select>
-					</FilterRow>
+					<ReportSearchCombobox
+						id="cash-journal-type"
+						label="Journal type"
+						value={journalType ?? "all"}
+						options={CASH_TRANSACTION_TYPE_OPTIONS}
+						onChange={(nextJournalType) => updateFilters({ ...value, journalType: nextJournalType })}
+					/>
 
 					<FilterRow label="Chart of account">
+						{/* BE TODO (reported 2026-09-11): getCashTransactionReport (report-service.ts) has no
+						chartOfAccountId param and the response carries no account field to filter client-side. */}
 						{/* ponytail: disabled because no query reads it; drop `disabled` once one does. */}
 						<div className="grid grid-cols-2 gap-2">
 							<Select defaultValue="all" disabled>
@@ -558,6 +563,8 @@ export const ReportFilters = memo(function ReportFilters({
 	const { data: products = [] } = useQuery({
 		queryKey: PRODUCT_QUERY_KEYS.list(),
 		queryFn: productService.getProductList,
+		// ProductSelect is only live (not disabled) on sale-detail-by-customer — see report-filters.tsx:661.
+		enabled: reportSlug === "sale-detail-by-customer",
 	});
 	const { data: employees = [] } = useQuery({
 		queryKey: EMPLOYEE_QUERY_KEYS.list(),

@@ -39,6 +39,9 @@ export interface MonthlyReportResponse {
 	expenses?: MonthlyExpenseLine[] | null;
 }
 
+// BE TODO (found 2026-09-15 ref-no link sweep): no id/invoiceId field at all, and no document-type
+// field — refNo cannot be linked to /dashboard/invoice/export-preview. Same gap as
+// CashTransactionReportLine below and CashTransactionFlattenResult in core/types/cash-transaction.ts.
 export interface MonthlyReportLine {
 	date?: string | null;
 	refNo?: string | null;
@@ -54,6 +57,13 @@ export interface MonthlyReportDetailsResponse {
 	lines?: MonthlyReportLine[] | null;
 }
 
+/**
+ * BE TODO (reported 2026-09-11): /reports/cash-transaction-report only returns DEBIT/CREDIT for
+ * `type`, so the UI cannot show a real document category (Invoice/Revenue/Expense/Loan…) the way
+ * the reference report does. Needs a category/source-document field on each line — refNo alone
+ * ("CT<timestamp>" for manual entries) does not encode it. See mapApiLinesToCashItems in
+ * report-table-builders/accounting-builders.ts for the current (incomplete) fallback.
+ */
 export interface CashTransactionReportLine {
 	no?: number | null;
 	date?: string | null;
@@ -96,6 +106,10 @@ export interface CustomerTransactionDetailGroup {
 	payments?: CustomerPaymentLine[] | null;
 }
 
+// BE TODO (spec item #9, "open-invoice-on-period-by-group": select date and Item for customer's
+// invoice — reported 2026-09-15): this line has no product/item field, so the report cannot filter
+// or display by Item. Needs a productName (or item list) field per invoice line before an Item
+// filter can be added to this report. Date filter already works (filterConfig.dateRange).
 export interface OpenInvoiceReportLine {
 	date?: string | null;
 	refNo?: string | null;

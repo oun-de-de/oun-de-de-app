@@ -10,6 +10,7 @@ vi.mock("@/core/api/services/invoice-service", () => ({
 		getInvoices: vi.fn(),
 		getPayments: vi.fn(),
 		listInvoiceDetails: vi.fn(),
+		queryPaymentsByCycle: vi.fn(),
 	},
 }));
 
@@ -67,6 +68,13 @@ describe("useInvoiceReportQuery customer + customer type filters", () => {
 			pageCount: 1,
 		}));
 		vi.mocked(invoiceService.listInvoiceDetails).mockResolvedValue([]);
+		vi.mocked(invoiceService.queryPaymentsByCycle).mockResolvedValue({
+			list: [],
+			page: 1,
+			pageSize: 10000,
+			total: 0,
+			pageCount: 1,
+		});
 	});
 
 	it("sends customerId to the API when only Customer is picked", async () => {
@@ -115,11 +123,25 @@ describe("useInvoiceReportQuery customer + customer type filters", () => {
 		await waitFor(() => expect(result.current.invoices).toEqual([]));
 	});
 
-	it("fetches payments for customer-transaction-detail-by-type, which shows a receipt section", async () => {
+	it("fetches payments by cycleId for customer-transaction-detail-by-type, which shows a receipt section", async () => {
 		const definition = {
 			slug: "customer-transaction-detail-by-type",
 			dataSource: "invoice-export",
+			needsPreviewRows: true,
 		} as ReportDefinition;
+
+		// previewRows must carry a cycleId (from /invoices/export) before cycleIds can be derived —
+		// same flow open-invoice-detail-by-customer already uses.
+		vi.mocked(invoiceService.listInvoiceDetails).mockResolvedValue([
+			{ refNo: "IN1", cycleId: "cycle-1", customerName: "Alice", amount: 100 },
+		]);
+		vi.mocked(invoiceService.queryPaymentsByCycle).mockResolvedValue({
+			list: [{ id: "pay-1", cycleId: "cycle-1", customerName: "Alice", amount: 100 }],
+			page: 1,
+			pageSize: 10000,
+			total: 1,
+			pageCount: 1,
+		});
 
 		const { result } = renderHook(
 			() =>
@@ -135,9 +157,10 @@ describe("useInvoiceReportQuery customer + customer type filters", () => {
 			{ wrapper: createWrapper() },
 		);
 
-		// Both sections need data: invoices for section 1, real payments for section 2.
+		// Both sections need data: invoices for section 1, cycle-scoped payments for section 2.
 		await waitFor(() => expect(result.current.payments.length).toBeGreaterThan(0));
-		expect(invoiceService.getPayments).toHaveBeenCalled();
+		expect(invoiceService.queryPaymentsByCycle).toHaveBeenCalledWith(["cycle-1"]);
+		expect(invoiceService.getPayments).not.toHaveBeenCalled();
 		expect(invoiceService.getInvoices).toHaveBeenCalled();
 	});
 

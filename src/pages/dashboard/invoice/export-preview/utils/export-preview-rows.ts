@@ -63,7 +63,9 @@ export function toInvoiceExportPreviewRow(line: InvoiceExportLineApi): InvoiceEx
 	// Preview rows are UI-facing: normalize nullable API fields into values the preview table can always render.
 	return {
 		refNo: line.refNo ?? "",
+		cycleId: line.cycleId ?? null,
 		customerName: line.customerName ?? "-",
+		referredByName: line.referredByName ?? null,
 		date: line.date ?? "",
 		productName: line.productName ?? null,
 		unit: line.unit ?? null,

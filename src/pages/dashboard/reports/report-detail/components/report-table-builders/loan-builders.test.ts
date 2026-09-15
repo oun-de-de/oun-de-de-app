@@ -1,6 +1,13 @@
+import type { ReactElement } from "react";
 import type { Customer } from "@/core/types/customer";
 import type { Installment, Loan } from "@/core/types/loan";
 import { buildCustomerLoanRows, buildEmployeeLoanRows } from "./loan-builders";
+
+// employee-loan refNo cells render a <Link to="...">refNo</Link> instead of a plain string.
+function refNoText(cell: unknown): string {
+	if (typeof cell === "string") return cell;
+	return String((cell as ReactElement<{ children: string }>).props.children);
+}
 
 const customerFixture: Customer = {
 	id: "customer-1",
@@ -129,7 +136,7 @@ describe("loan report builders", () => {
 		});
 
 		expect(row.key).toBe(employeeLoanFixture.id);
-		expect(row.cells.refNo).toBe("00001-emp-01");
+		expect(refNoText(row.cells.refNo)).toBe("00001-emp-01");
 		expect(row.cells.type).toBe("General Employee");
 		expect(row.cells.employee).toBe("Vanna");
 		expect(row.cells.credit).toBe("250");

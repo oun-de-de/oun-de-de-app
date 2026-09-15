@@ -30,9 +30,13 @@ export function useInvoiceReportQuery({
 }: UseInvoiceReportQueryParams) {
 	const { productName, reportDateFrom, reportDateTo } = normalizeReportFilters(filters);
 	const isReceiptReport = definition.slug === "receipt-detail-by-customer";
-	// customer-transaction-detail-by-type shows a receipt section alongside its invoices, and needs
-	// the real payment records to fill it.
-	const needsPayments = isReceiptReport || definition.slug === "customer-transaction-detail-by-type";
+	// open-invoice-detail-by-customer and customer-transaction-detail-by-type both fetch payments by
+	// cycleId (POST /query-payments) once previewRows are known (below) — payments have no invoiceId,
+	// only cycleId (verified against live OpenAPI spec + curl, 2026-09-15). Confirmed 2026-09-16:
+	// customer-transaction-detail-by-type now uses the same mechanism instead of a customer/date
+	// /payments fetch, so its Receipt section is scoped to the same cycles as the displayed invoices.
+	const usesCyclePayments =
+		definition.slug === "open-invoice-detail-by-customer" || definition.slug === "customer-transaction-detail-by-type";
 	const shouldBuildPreviewRows = definition.needsPreviewRows === true;
 
 	const paymentQuery = useQuery({
@@ -51,7 +55,7 @@ export function useInvoiceReportQuery({
 				from: reportDateFrom,
 				to: reportDateTo,
 			}),
-		enabled: needsPayments && isInvoiceExport && hasRequiredDateFilters,
+		enabled: isReceiptReport && isInvoiceExport && hasRequiredDateFilters,
 	});
 
 	const invoiceQuery = useQuery({
@@ -74,9 +78,7 @@ export function useInvoiceReportQuery({
 		enabled: !isReceiptReport && isInvoiceExport && hasRequiredDateFilters,
 	});
 
-	const baseQueryState = isReceiptReport
-		? paymentQuery
-		: combineQueryStates(invoiceQuery, needsPayments ? paymentQuery : {});
+	const baseQueryState = isReceiptReport ? paymentQuery : invoiceQuery;
 
 	const baseIsError = baseQueryState.isError;
 
@@ -85,17 +87,19 @@ export function useInvoiceReportQuery({
 
 		if (isReceiptReport) {
 			if (!paymentQuery.data) return [];
+			// PaymentResult carries customerName (confirmed live, 2026-09-16); refNo/received/etc. still
+			// don't exist on the real API, so those keep their placeholder fallbacks below.
 			const list = paymentQuery.data.map((payment) => ({
-				id: payment.id || payment.code || payment.refNo || "",
-				refNo: payment.refNo || payment.code || payment.id || "-",
-				customerName: payment.customerName || "Unknown Customer",
-				date: payment.date || payment.paymentDate || "",
+				id: payment.id || payment.code || "",
+				refNo: payment.code || payment.id || "-",
+				customerName: (payment.customerName ?? "").trim() || "Unknown Customer",
+				date: payment.paymentDate || "",
 				type: "receipt",
-				amount: payment.amount ?? payment.received ?? payment.originalAmount ?? 0,
-				received: payment.received ?? payment.amount ?? 0,
-				originalAmount: payment.originalAmount ?? payment.amount ?? 0,
-				balance: payment.balance ?? 0,
-				createdBy: payment.createdBy || "General Employee",
+				amount: payment.amount ?? 0,
+				received: payment.amount ?? 0,
+				originalAmount: payment.amount ?? 0,
+				balance: 0,
+				createdBy: "General Employee",
 			}));
 			return list.filter((item) => {
 				if (customerTypeId) {
@@ -129,26 +133,44 @@ export function useInvoiceReportQuery({
 		enabled: !isReceiptReport && isInvoiceExport && invoiceIds.length > 0 && !baseIsError,
 	});
 
+	const previewRows = useMemo<InvoiceExportPreviewRow[]>(
+		() => (shouldBuildPreviewRows && !exportQuery.isError ? mapExportLinesToPreviewRows(exportQuery.data ?? []) : []),
+		[exportQuery.data, exportQuery.isError, shouldBuildPreviewRows],
+	);
+
+	const cycleIds = useMemo(() => {
+		if (!usesCyclePayments) return [];
+		const ids = new Set<string>();
+		for (const row of previewRows) {
+			if (row.cycleId) ids.add(row.cycleId);
+		}
+		return [...ids];
+	}, [usesCyclePayments, previewRows]);
+
+	const cyclePaymentQuery = useQuery({
+		queryKey: ["report", "payment-list-by-cycle", definition.slug, cycleIds],
+		queryFn: () => invoiceService.queryPaymentsByCycle(cycleIds).then((res) => res.list),
+		enabled: usesCyclePayments && cycleIds.length > 0,
+	});
+
 	const totalQueryState = isReceiptReport
 		? paymentQuery
-		: combineQueryStates(invoiceQuery, needsPayments ? paymentQuery : {}, invoiceIds.length > 0 ? exportQuery : {});
+		: combineQueryStates(
+				invoiceQuery,
+				invoiceIds.length > 0 ? exportQuery : {},
+				cycleIds.length > 0 ? cyclePaymentQuery : {},
+			);
 
 	const totalIsError = totalQueryState.isError;
 
-	const previewRows = useMemo<InvoiceExportPreviewRow[]>(
-		() => (shouldBuildPreviewRows && !totalIsError ? mapExportLinesToPreviewRows(exportQuery.data ?? []) : []),
-		[exportQuery.data, shouldBuildPreviewRows, totalIsError],
-	);
-
 	const payments = useMemo<PaymentResult[]>(() => {
-		if (isReceiptReport || !paymentQuery.data || totalIsError) return [];
-		return paymentQuery.data.filter((payment) => {
-			if (customerTypeId) {
-				return customerTypeCustomerNames.has(normalizeCustomerText(payment.customerName));
-			}
-			return true;
-		});
-	}, [customerTypeCustomerNames, customerTypeId, isReceiptReport, paymentQuery.data, totalIsError]);
+		if (totalIsError) return [];
+		if (usesCyclePayments) return cyclePaymentQuery.data ?? [];
+		if (isReceiptReport || !paymentQuery.data) return [];
+		// PaymentResult now carries customerName (confirmed live, 2026-09-16), but this branch still
+		// doesn't filter payments by customer type client-side. Deferred task tracks the real fix.
+		return paymentQuery.data;
+	}, [cyclePaymentQuery.data, usesCyclePayments, isReceiptReport, paymentQuery.data, totalIsError]);
 
 	return {
 		invoices,

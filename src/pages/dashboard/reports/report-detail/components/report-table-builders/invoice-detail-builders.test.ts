@@ -1,4 +1,11 @@
+import type { ReactElement } from "react";
 import type { Invoice, InvoiceExportLineApi, InvoiceExportPreviewRow, PaymentResult } from "@/core/types/invoice";
+
+// open-invoice refNo cells render a <Link to="...">refNo</Link> instead of a plain string.
+function refNoText(cell: unknown): string {
+	if (typeof cell === "string") return cell;
+	return String((cell as ReactElement<{ children: string }>).props.children);
+}
 
 // An invoice marked as partly paid: the old builder used this to synthesise a receipt row.
 const previewRowsWithPayment: InvoiceExportPreviewRow[] = [
@@ -68,28 +75,28 @@ describe("invoice detail builders", () => {
 
 		expect(rows).toHaveLength(6);
 		expect(rows[0]?.cells.customer).toBe("Customer A");
-		expect(rows[1]?.cells.refNo).toBe("IN000145530");
+		expect(refNoText(rows[1]?.cells.refNo)).toBe("IN000145530");
 		expect(rows[2]?.cells.item).toBe("TOTAL(1)");
 		expect(rows[2]?.cells.qty).toBe("174");
 		expect(rows[3]?.cells.customer).toBe("Customer B");
-		expect(rows[4]?.cells.refNo).toBe("CS000145494");
+		expect(refNoText(rows[4]?.cells.refNo)).toBe("CS000145494");
 		expect(rows[5]?.cells.item).toBe("TOTAL(1)");
 		expect(rows[5]?.cells.amount).toBe("102,600");
 	});
 
 	it("builds open invoice rows grouped by customer in detail mode", () => {
-		const rows = buildOpenInvoiceRows(invoices, [], true);
+		const rows = buildOpenInvoiceRows(invoices, [], [], true);
 		// Customer A: Header, Detail 1, Detail 2, Subtotal -> 4 rows
 		// Customer B: Header, Detail 1, Subtotal -> 3 rows
 		// Grand Total -> 1 row
 		expect(rows).toHaveLength(8);
 		expect(rows[0]?.cells.customer).toBe("Customer A");
-		expect(rows[1]?.cells.refNo).toBe("IN000145530");
-		expect(rows[2]?.cells.refNo).toBe("IN000145531");
+		expect(refNoText(rows[1]?.cells.refNo)).toBe("IN000145530");
+		expect(refNoText(rows[2]?.cells.refNo)).toBe("IN000145531");
 		expect(rows[3]?.cells.employee).toBe("Total(2)");
 		expect(rows[3]?.cells.originalAmount).toBe("430,600");
 		expect(rows[4]?.cells.customer).toBe("Customer B");
-		expect(rows[5]?.cells.refNo).toBe("CS000145494");
+		expect(refNoText(rows[5]?.cells.refNo)).toBe("CS000145494");
 		expect(rows[6]?.cells.employee).toBe("Total(1)");
 		expect(rows[6]?.cells.originalAmount).toBe("102,600");
 		expect(rows[7]?.cells.customer).toBe("Grand Total (3)");
@@ -119,8 +126,11 @@ describe("invoice detail builders", () => {
 		const rows = buildReceiptDetailRows(receiptInvoices, previewRows, true);
 		expect(rows.length).toBeGreaterThan(0);
 		expect(rows[0]?.cells.customer).toBe("Customer A");
-		expect(rows[1]?.cells.refNo).toBe("REC000001");
-		expect(rows[1]?.cells.received).toBe("100,000");
+		expect(refNoText(rows[1]?.cells.refNo)).toBe("REC000001");
+		// buildReceiptDetailRows doesn't take a payments param — getOpenInvoiceMetrics's cycleId-based
+		// received defaults to 0 here. previewRow.paid was never real data anyway (always null on the
+		// live API); this report's received/balance is deferred (task #6), not fixed by this change.
+		expect(rows[1]?.cells.received).toBe("0");
 	});
 
 	it("builds receipt detail rows directly from payment records when previewRows is empty", () => {
@@ -140,28 +150,84 @@ describe("invoice detail builders", () => {
 		const rows = buildReceiptDetailRows(receiptInvoices, [], true);
 		expect(rows.length).toBeGreaterThan(0);
 		expect(rows[0]?.cells.customer).toBe("Customer A");
-		expect(rows[1]?.cells.refNo).toBe("IN000017939");
+		expect(refNoText(rows[1]?.cells.refNo)).toBe("IN000017939");
 		expect(rows[1]?.cells.received).toBe("50,000");
 		expect(rows[1]?.cells.originalAmount).toBe("50,000");
 		expect(rows[1]?.cells.balance).toBe("0");
 	});
 
 	it("renders nothing when there is no data, instead of demo rows", () => {
-		expect(buildOpenInvoiceRows([], [], true)).toEqual([]);
+		expect(buildOpenInvoiceRows([], [], [], true)).toEqual([]);
 		expect(buildReceiptDetailRows([], [], true)).toEqual([]);
 	});
 
-	it("omits fully-paid invoices from the open invoice report", () => {
-		const paidPreviews: InvoiceExportPreviewRow[] = [
-			{ refNo: "IN000145530", amount: 330600, paid: 330600, balance: 0 } as InvoiceExportPreviewRow,
-			{ refNo: "CS000145494", amount: 102600, paid: 102600, balance: 0 } as InvoiceExportPreviewRow,
-			{ refNo: "IN000145531", amount: 100000, paid: 0, balance: 100000 } as InvoiceExportPreviewRow,
+	it("computes received/balance per invoice via cycleId match against /payments", () => {
+		// PaymentResult has no invoiceId (real schema) — matching goes through cycleId instead.
+		// IN000145530 and IN000145531 (Customer A) sit in different cycles here, each with its own payment.
+		const previewRows: InvoiceExportPreviewRow[] = [
+			{ refNo: "IN000145530", cycleId: "cycle-1", amount: 330600 } as InvoiceExportPreviewRow,
+			{ refNo: "IN000145531", cycleId: "cycle-2", amount: 100000 } as InvoiceExportPreviewRow,
 		];
-		const rows = buildOpenInvoiceRows(invoices, paidPreviews, true);
+		const payments: PaymentResult[] = [
+			{ cycleId: "cycle-1", amount: 100000 },
+			{ cycleId: "cycle-2", amount: 50000 },
+		];
+		const rows = buildOpenInvoiceRows(invoices, previewRows, payments, true);
+
+		const detail1 = rows.find((row) => refNoText(row.cells.refNo) === "IN000145530");
+		expect(detail1?.cells.received).toBe("-100,000");
+		expect(detail1?.cells.balance).toBe("230,600");
+		const detail2 = rows.find((row) => refNoText(row.cells.refNo) === "IN000145531");
+		expect(detail2?.cells.received).toBe("-50,000");
+		expect(detail2?.cells.balance).toBe("50,000");
+
+		const subtotalRow = rows.find((row) => row.cells.employee === "Total(2)");
+		expect(subtotalRow?.cells.received).toBe("-150,000");
+		expect(subtotalRow?.cells.balance).toBe("280,600");
+		const grandTotalRow = rows.find((row) => row.key === "open-inv-grand-total");
+		expect(grandTotalRow?.cells.received).toBe("-150,000");
+	});
+
+	it("dedupes cycle received once when multiple invoices share the same cycle", () => {
+		const previewRows: InvoiceExportPreviewRow[] = [
+			{ refNo: "IN000145530", cycleId: "cycle-shared", amount: 330600 } as InvoiceExportPreviewRow,
+			{ refNo: "IN000145531", cycleId: "cycle-shared", amount: 100000 } as InvoiceExportPreviewRow,
+		];
+		const payments: PaymentResult[] = [{ cycleId: "cycle-shared", amount: 80000 }];
+		const rows = buildOpenInvoiceRows(invoices, previewRows, payments, true);
+
+		// Only the first invoice of the shared cycle shows the payment — showing it on every invoice
+		// in the cycle would look like the payment happened once per invoice instead of once total.
+		const detail1 = rows.find((row) => refNoText(row.cells.refNo) === "IN000145530");
+		expect(detail1?.cells.received).toBe("-80,000");
+		expect(detail1?.cells.balance).toBe("250,600");
+		const detail2 = rows.find((row) => refNoText(row.cells.refNo) === "IN000145531");
+		expect(detail2?.cells.received).toBe("");
+		expect(detail2?.cells.balance).toBe("100,000");
+
+		// Subtotal counts the shared cycle's payment once, not once per invoice (not 160,000).
+		const subtotalRow = rows.find((row) => row.cells.employee === "Total(2)");
+		expect(subtotalRow?.cells.received).toBe("-80,000");
+		expect(subtotalRow?.cells.balance).toBe("350,600");
+	});
+
+	it("omits fully-paid invoices from the open invoice report", () => {
+		// received now comes from /payments matched by cycleId, not from previewRow.paid (always null
+		// on the live API).
+		const paidPreviews: InvoiceExportPreviewRow[] = [
+			{ refNo: "IN000145530", cycleId: "cycle-a", amount: 330600 } as InvoiceExportPreviewRow,
+			{ refNo: "CS000145494", cycleId: "cycle-b", amount: 102600 } as InvoiceExportPreviewRow,
+			{ refNo: "IN000145531", cycleId: "cycle-c", amount: 100000 } as InvoiceExportPreviewRow,
+		];
+		const payments: PaymentResult[] = [
+			{ cycleId: "cycle-a", amount: 330600 },
+			{ cycleId: "cycle-b", amount: 102600 },
+		];
+		const rows = buildOpenInvoiceRows(invoices, paidPreviews, payments, true);
 
 		// Only IN000145531 still carries a balance, so Customer B drops out entirely.
-		expect(rows.map((row) => row.cells.refNo)).toContain("IN000145531");
-		expect(rows.map((row) => row.cells.refNo)).not.toContain("CS000145494");
+		expect(rows.map((row) => refNoText(row.cells.refNo))).toContain("IN000145531");
+		expect(rows.map((row) => refNoText(row.cells.refNo))).not.toContain("CS000145494");
 		expect(rows.some((row) => row.cells.customer === "Customer B")).toBe(false);
 	});
 
@@ -182,8 +248,11 @@ describe("invoice detail builders", () => {
 				balance: 102600,
 			} as InvoiceExportPreviewRow,
 		];
+		// customerName is read from the real payment record; a blank/missing one falls back to
+		// "Unknown Customer".
 		const payments: PaymentResult[] = [
-			{ id: "pay-1", refNo: "REC000009", customerName: "Customer A", date: "2026-06-12", received: 100000 },
+			{ id: "pay-1", code: "REC000009", paymentDate: "2026-06-12", amount: 100000, customerName: "Customer A" },
+			{ id: "pay-2", code: "REC000010", paymentDate: "2026-06-13", amount: 50000, customerName: "  " },
 		];
 		const rows = buildCustomerTransactionDetailByTypeRows(invoices, previewRows, payments);
 
@@ -199,23 +268,46 @@ describe("invoice detail builders", () => {
 
 		// Section 2: Receipt banner exists
 		expect(rows.some((r) => r.cells.date === "Receipt")).toBe(true);
-		// Receipt section includes Customer A, who has a payment record
 		const receiptRows = rows.slice(rows.findIndex((r) => r.cells.date === "Receipt"));
+		// A payment with a real customerName groups its receipt row under that name.
 		expect(receiptRows.some((r) => r.cells.date === "Customer A")).toBe(true);
-		// Customer B has no payment, so no receipt group
-		expect(receiptRows.some((r) => r.cells.date === "Customer B")).toBe(false);
+		// A payment with a blank/missing customerName still falls back to "Unknown Customer".
+		expect(receiptRows.some((r) => r.cells.date === "Unknown Customer")).toBe(true);
 	});
 
 	it("shows the real payment reference, never one derived from the invoice", () => {
-		const payments: PaymentResult[] = [
-			{ id: "pay-1", refNo: "REC000009", customerName: "Customer A", date: "2026-06-12", received: 100000 },
-		];
+		const payments: PaymentResult[] = [{ id: "pay-1", code: "REC000009", paymentDate: "2026-06-12", amount: 100000 }];
 		const rows = buildCustomerTransactionDetailByTypeRows(invoices, [], payments);
 		const receiptRow = rows.find((row) => row.key.startsWith("tx-rcp-row-"));
 
 		expect(receiptRow?.cells.refNo).toBe("REC000009");
 		// "REC-IN000145530" was a string invented from the invoice; no such document exists.
 		expect(rows.every((row) => !String(row.cells.refNo ?? "").startsWith("REC-IN"))).toBe(true);
+	});
+
+	it("links the invoice refNo to invoice export-preview", () => {
+		const rows = buildCustomerTransactionDetailByTypeRows(invoices, previewRowsWithPayment, []);
+		const invoiceRow = rows.find((row) => row.key.startsWith("tx-inv-row-") && row.key.includes("IN000145530"));
+		const cell = invoiceRow?.cells.refNo as ReactElement<{ to: string }>;
+		expect(cell.props.to).toBe("/dashboard/invoice/export-preview?ids=invoice-1");
+	});
+
+	it("links the receipt refNo to receipt-preview for invoices sharing the payment's cycle", () => {
+		const previewRows: InvoiceExportPreviewRow[] = [
+			{ refNo: "IN000145530", cycleId: "cycle-x", amount: 330600 } as InvoiceExportPreviewRow,
+		];
+		const payments: PaymentResult[] = [{ id: "pay-1", code: "REC000009", cycleId: "cycle-x", amount: 100000 }];
+		const rows = buildCustomerTransactionDetailByTypeRows(invoices, previewRows, payments);
+		const receiptRow = rows.find((row) => row.key.startsWith("tx-rcp-row-"));
+		const cell = receiptRow?.cells.refNo as ReactElement<{ to: string }>;
+		expect(cell.props.to).toBe("/dashboard/invoice/receipt-preview?ids=invoice-1&mode=receipt");
+	});
+
+	it("leaves the receipt refNo as plain text when no invoice shares the payment's cycle", () => {
+		const payments: PaymentResult[] = [{ id: "pay-1", code: "REC000009", cycleId: "cycle-unmatched", amount: 100000 }];
+		const rows = buildCustomerTransactionDetailByTypeRows(invoices, previewRowsWithPayment, payments);
+		const receiptRow = rows.find((row) => row.key.startsWith("tx-rcp-row-"));
+		expect(receiptRow?.cells.refNo).toBe("REC000009");
 	});
 
 	it("omits the receipt section entirely when no payments were recorded", () => {
@@ -226,9 +318,7 @@ describe("invoice detail builders", () => {
 	});
 
 	it("shows the receipt section when there are payments even if invoices are empty", () => {
-		const payments: PaymentResult[] = [
-			{ id: "pay-1", refNo: "REC000009", customerName: "Customer A", date: "2026-06-12", received: 100000 },
-		];
+		const payments: PaymentResult[] = [{ id: "pay-1", code: "REC000009", paymentDate: "2026-06-12", amount: 100000 }];
 		const rows = buildCustomerTransactionDetailByTypeRows([], [], payments);
 
 		expect(rows.some((row) => row.cells.date === "Invoice")).toBe(false);

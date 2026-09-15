@@ -1,3 +1,4 @@
+import { Link } from "react-router";
 import type { Customer } from "@/core/types/customer";
 import type { Installment, Loan } from "@/core/types/loan";
 import { formatFlexibleDisplayDate } from "@/core/utils/date-display";
@@ -124,7 +125,13 @@ export function buildEmployeeLoanRows(
 			loan.id,
 			createLedgerCells({
 				date: formatFlexibleDisplayDate(loan.createdAt || loan.startDate),
-				refNo: `${String(index + 1).padStart(5, "0")}-${loan.borrowerId}`,
+				// Not a real document number — synthesized. Links to the loan itself since that's what
+				// the row represents.
+				refNo: (
+					<Link to={`/dashboard/loan/${loan.id}`} className="text-sky-600 hover:underline">
+						{`${String(index + 1).padStart(5, "0")}-${loan.borrowerId}`}
+					</Link>
+				),
 				type: "General Employee",
 				name: "",
 				memo: getEmployeeLoanMemo(loan, installments),

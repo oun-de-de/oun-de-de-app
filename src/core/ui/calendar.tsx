@@ -1,16 +1,16 @@
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import React, { createContext, useCallback, useState } from "react";
 import {
 	DayPicker,
 	type DayPickerDefaultProps,
-	type DayPickerSingleProps,
 	type DayPickerMultipleProps,
 	type DayPickerRangeProps,
+	type DayPickerSingleProps,
 	type DropdownProps,
 } from "react-day-picker";
 import { cn } from "@/core/utils/index";
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "./select";
 import { buttonVariants } from "./button";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "./select";
 
 const ContainerContext = createContext<HTMLDivElement | null>(null);
 
@@ -82,7 +82,18 @@ function Calendar({
 						months: "flex flex-col sm:flex-row gap-2 justify-center",
 						month: "flex flex-col gap-3 items-center",
 						caption: "flex items-center justify-center w-full pb-2 gap-3",
-						caption_label: "hidden",
+						// Not force-hidden: react-day-picker silently falls back captionLayout to "buttons" (plain
+						// month/year text) whenever fromYear/toYear aren't set — hiding this unconditionally left
+						// every <Calendar> that doesn't pass a year range with a blank caption (only nav arrows).
+						// Callers that DO pass fromYear/toYear + a dropdown layout (e.g. date-filter.tsx) are
+						// unaffected: react-day-picker wraps that label in its own `vhidden` a11y class instead.
+						caption_label: "font-medium text-sm text-black",
+						// react-day-picker wraps caption_label in a `vhidden`-classed element when dropdowns are
+						// shown (dropdown/dropdown-buttons layouts) so it stays for a11y but isn't visible —
+						// but that only works if `.rdp-vhidden` (react-day-picker/dist/style.css) is loaded,
+						// which this project never imports. Map it to Tailwind's sr-only instead: same effect,
+						// no extra stylesheet. Without this override the label duplicates the dropdowns' text.
+						vhidden: "sr-only",
 						nav: "flex items-center gap-1",
 						nav_button: cn(
 							buttonVariants({ variant: "outline" }),

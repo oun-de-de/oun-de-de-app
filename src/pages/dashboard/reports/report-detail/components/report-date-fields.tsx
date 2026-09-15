@@ -53,6 +53,7 @@ export function ReportDatePickerButton({ id, value, onChange, className }: Repor
 	const [isOpen, setIsOpen] = useState(false);
 	const selectedDate = parseReportFilterDate(value);
 	const displayValue = selectedDate ? formatFilterDateForDisplay(value) : "Select date";
+	const currentYear = new Date().getFullYear();
 
 	return (
 		<Popover open={isOpen} onOpenChange={setIsOpen}>
@@ -76,6 +77,9 @@ export function ReportDatePickerButton({ id, value, onChange, className }: Repor
 						onChange(formatDateToYYYYMMDD(date));
 						setIsOpen(false);
 					}}
+					captionLayout="dropdown-buttons"
+					fromYear={2000}
+					toYear={currentYear + 10}
 					initialFocus
 				/>
 			</PopoverContent>

@@ -29,6 +29,10 @@ export function toEmployeeComboboxOptions(employees: Employee[]) {
 	];
 }
 
+export function toProductComboboxOptions(products: Array<{ id: string; name: string }>) {
+	return [{ value: "all", label: "All" }, ...products.map((p) => ({ value: p.name, label: p.name }))];
+}
+
 export function normalizeCustomerText(value?: string | null) {
 	return (value ?? "").trim().toLowerCase();
 }

@@ -1,13 +1,13 @@
+import { useCallback, useMemo } from "react";
+import { useLocation, useNavigate, useParams } from "react-router";
 import { BackButton } from "@/core/components/common";
+import type { InvoiceExportPreviewLocationState } from "@/core/types/invoice";
 import { Badge } from "@/core/ui/badge";
 import { Button } from "@/core/ui/button";
 import { Separator } from "@/core/ui/separator";
 import { Text } from "@/core/ui/typography";
-import type { InvoiceExportPreviewLocationState } from "@/core/types/invoice";
 import { formatDisplayDate, formatDisplayDateTime, formatKHR } from "@/core/utils/formatters";
 import { useRouter } from "@/routes/hooks/use-router";
-import { useCallback, useMemo } from "react";
-import { useLocation, useNavigate, useParams } from "react-router";
 import { ReportLayout } from "../../reports/components/layout/report-layout";
 import {
 	type ReportTemplateColumn,
@@ -193,7 +193,9 @@ export default function BorrowDetailPage() {
 			previewRows: [
 				{
 					refNo: payment.code || `PAY-${payment.paymentNo}`,
+					cycleId: null,
 					customerName: loan.borrowerName,
+					referredByName: null,
 					date: payment.paidAt,
 					productName: "Loan Payment",
 					unit: null,

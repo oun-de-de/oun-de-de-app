@@ -1,4 +1,5 @@
 import type { CashTransactionReportResponse, MonthlyReportDetailsResponse } from "@/core/types/report";
+import { classifyCashTransactionType } from "@/core/utils/cash-transaction-type";
 import { formatDisplayDate, formatNumber } from "@/core/utils/formatters";
 import type { ReportTemplateRow } from "../../../components/layout/report-template-table";
 import { createLedgerCells, createReportRow } from "./report-row-helpers";
@@ -44,6 +45,7 @@ function createCashTransactionRow(
 		cells: {
 			no: index + 1,
 			date: item.date ? formatDisplayDate(item.date) : "-",
+			// Not a link: CashTransactionReportLine has no id/document-type — see BE TODO on that type.
 			refNo: item.refNo,
 			type: item.type,
 			name: item.name || "",
@@ -103,7 +105,8 @@ function mapApiLinesToCashItems(lines: NonNullable<CashTransactionReportResponse
 	return lines.map((line) => ({
 		date: line.date ?? "",
 		refNo: line.refNo ?? "-",
-		type: line.type ?? (line.debit ? "Receipt" : "Expense"),
+		// line.type is only DEBIT/CREDIT, not a real category — classify from refNo prefix instead.
+		type: classifyCashTransactionType(line.refNo, line.type === "DEBIT"),
 		name: line.name ?? "",
 		memo: line.memo ?? "",
 		debit: line.debit ?? 0,
@@ -113,8 +116,13 @@ function mapApiLinesToCashItems(lines: NonNullable<CashTransactionReportResponse
 
 export function buildCashTransactionReportRows(
 	cashTransactionReport?: CashTransactionReportResponse,
+	typeFilter?: string,
 ): ReportTemplateRow[] {
-	const items = mapApiLinesToCashItems(cashTransactionReport?.lines ?? []);
+	const allItems = mapApiLinesToCashItems(cashTransactionReport?.lines ?? []);
+	const items =
+		typeFilter && typeFilter !== "all"
+			? allItems.filter((item) => item.type.toLowerCase() === typeFilter.toLowerCase())
+			: allItems;
 	const openingBalance = cashTransactionReport?.initCashOnHand ?? 0;
 
 	let currentBalance = openingBalance;
@@ -147,6 +155,7 @@ export function buildMonthlyReportDetailRows(monthlyReportDetails?: MonthlyRepor
 			createLedgerCells({
 				no: index + 1,
 				date: line.date ? formatDisplayDate(line.date) : "-",
+				// Not a link: MonthlyReportLine has no id at all — see BE TODO on that type.
 				refNo: line.refNo ?? "-",
 				type: line.reason ?? "-",
 				name: line.customerName ?? "-",

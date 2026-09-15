@@ -14,6 +14,9 @@ export type ReportFiltersValue = {
 	category?: string;
 	term?: string;
 	job?: string;
+	// Cash Transaction Report only — matches classifyCashTransactionType's output (invoice/receipt/
+	// expense/revenue/loan), not a real BE journal-type id. "all"/undefined = no filter.
+	journalType?: string;
 };
 
 export type ReportFiltersProps = {

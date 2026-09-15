@@ -65,6 +65,7 @@ export function buildCycleReportRows(groups: OpenInvoiceCustomerGroup[], showDet
 							no: "",
 							customer: "",
 							cycle: formatFlexibleDisplayDate(inv.date),
+							// Not a link: OpenInvoiceReportLine has no id — see BE TODO on that type.
 							refNo: inv.refNo ?? "-",
 							invoiceTotal: formatNumber(inv.originalAmount),
 							paid: "",

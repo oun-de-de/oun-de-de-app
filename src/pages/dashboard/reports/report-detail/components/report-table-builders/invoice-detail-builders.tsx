@@ -1,16 +1,17 @@
+import { Link } from "react-router";
 import type { Invoice, InvoiceExportLineApi, InvoiceExportPreviewRow, PaymentResult } from "@/core/types/invoice";
 import { formatFlexibleDisplayDate } from "@/core/utils/date-display";
 import { formatNumber } from "@/core/utils/formatters";
 import type { ReportTemplateRow } from "../../../components/layout/report-template-table";
 import {
 	buildInvoiceTypeMap,
-	getCustomerSaleType,
 	getOpenInvoiceMetrics,
 	getProductCategory,
 	groupPreviewRowsByRefNo,
 	isReceiptInvoice,
+	sumPaymentsByCycle,
 } from "./invoice-builder-helpers";
-import { createIndexedReportRow, createReportRow } from "./report-row-helpers";
+import { createReportRow } from "./report-row-helpers";
 
 export { buildInvoiceReportRows, mapExportLinesToPreviewRows } from "./invoice-builder-helpers";
 
@@ -35,16 +36,18 @@ export function buildOpenInvoiceSummaryRows(
 export function buildOpenInvoiceRows(
 	invoices: Invoice[],
 	previewRows: InvoiceExportPreviewRow[],
+	payments: PaymentResult[] = [],
 	showDetail = true,
 ): ReportTemplateRow[] {
 	const rowsByRefNo = groupPreviewRowsByRefNo(previewRows);
+	const receivedByCycle = sumPaymentsByCycle(payments);
 
 	// Group invoices by customer
 	const customerGroups = new Map<string, Invoice[]>();
 	const customerOrder: string[] = [];
 
 	for (const invoice of invoices) {
-		const { balance } = getOpenInvoiceMetrics(invoice, rowsByRefNo);
+		const { balance } = getOpenInvoiceMetrics(invoice, rowsByRefNo, receivedByCycle);
 		// Only include invoices with remaining balance / debt
 		if (balance <= 0) continue;
 
@@ -62,33 +65,53 @@ export function buildOpenInvoiceRows(
 	let grandTotalBalance = 0;
 	let grandTotalInvoiceCount = 0;
 
+	// Cycles already counted toward a customer/grand total — a cycle can hold multiple invoices, and
+	// receivedByCycle must be added once per cycle, not once per invoice sharing it.
+	const countedCycleIds = new Set<string>();
+
 	customerOrder.forEach((customerName, customerIndex) => {
 		const customerInvoices = customerGroups.get(customerName) ?? [];
 		let totalOriginal = 0;
 		let totalReceived = 0;
-		let totalBalance = 0;
 
 		const detailRows = customerInvoices.map((inv, invIndex) => {
-			const { originalAmount, received, balance } = getOpenInvoiceMetrics(inv, rowsByRefNo);
+			const { originalAmount, received, cycleId } = getOpenInvoiceMetrics(inv, rowsByRefNo, receivedByCycle);
 			totalOriginal += originalAmount;
-			totalReceived += received;
-			totalBalance += balance;
 			grandTotalOriginal += originalAmount;
-			grandTotalReceived += received;
-			grandTotalBalance += balance;
 			grandTotalInvoiceCount += 1;
+
+			// A cycle's payment is shared by every invoice in it — only the first invoice of the cycle
+			// (in display order) shows it, so the same amount doesn't visually appear on every row.
+			// The customer/grand totals below still add it once per cycle either way.
+			const isFirstOfCycle = !cycleId || !countedCycleIds.has(cycleId);
+			if (cycleId && isFirstOfCycle) {
+				countedCycleIds.add(cycleId);
+			}
+			if (isFirstOfCycle) totalReceived += received;
+			const displayedReceived = isFirstOfCycle ? received : 0;
+			const displayedBalance = isFirstOfCycle ? Math.max(originalAmount - received, 0) : originalAmount;
 
 			return createReportRow(`open-inv-detail-${customerIndex}-${invIndex}-${inv.refNo}`, {
 				no: "",
 				customer: "",
 				date: formatFlexibleDisplayDate(inv.date),
-				refNo: inv.refNo ?? "-",
+				refNo: inv.refNo ? (
+					<Link to={`/dashboard/invoice/export-preview?ids=${inv.id}`} className="text-sky-600 hover:underline">
+						{inv.refNo}
+					</Link>
+				) : (
+					"-"
+				),
 				employee: inv.createdBy || "General Employee",
 				originalAmount: formatNumber(originalAmount),
-				received: received > 0 ? `-${formatNumber(received)}` : "",
-				balance: formatNumber(balance),
+				received: displayedReceived > 0 ? `-${formatNumber(displayedReceived)}` : "",
+				balance: formatNumber(displayedBalance),
 			});
 		});
+
+		const totalBalance = Math.max(totalOriginal - totalReceived, 0);
+		grandTotalReceived += totalReceived;
+		grandTotalBalance += totalBalance;
 
 		// 1. Customer Group Header Row
 		reportRows.push({
@@ -228,7 +251,16 @@ export function buildReceiptDetailRows(
 				no: "",
 				customer: "",
 				date: formatFlexibleDisplayDate(inv.date),
-				refNo: inv.refNo ?? "-",
+				refNo: inv.id ? (
+					<Link
+						to={`/dashboard/invoice/receipt-preview?ids=${inv.id}&mode=receipt`}
+						className="text-sky-600 hover:underline"
+					>
+						{inv.refNo ?? "-"}
+					</Link>
+				) : (
+					(inv.refNo ?? "-")
+				),
 				employee: inv.createdBy || "General Employee",
 				originalAmount: formatNumber(originalAmount),
 				received: formatNumber(received),
@@ -315,21 +347,9 @@ export function buildReceiptDetailRows(
 	return reportRows;
 }
 
-export function buildCustomerTransactionRows(invoices: Invoice[]): ReportTemplateRow[] {
-	return invoices.map((invoice, index) =>
-		createIndexedReportRow(invoice.id, index, {
-			date: formatFlexibleDisplayDate(invoice.date),
-			refNo: invoice.refNo ?? "-",
-			customer: invoice.customerName ?? "-",
-			type: getCustomerSaleType(invoice),
-			amount: formatNumber(invoice.amount ?? 0),
-			memo: "-",
-		}),
-	);
-}
-
 export function buildSaleDetailRows(invoices: Invoice[], exportLines: InvoiceExportLineApi[]): ReportTemplateRow[] {
 	const typeByRefNo = buildInvoiceTypeMap(invoices);
+	const idByRefNo = new Map(invoices.map((invoice) => [invoice.refNo, invoice.id]));
 	const groups = new Map<string, InvoiceExportLineApi[]>();
 	const groupOrder: string[] = [];
 
@@ -373,11 +393,18 @@ export function buildSaleDetailRows(invoices: Invoice[], exportLines: InvoiceExp
 		const detailRows = customerLines.map((line, lineIndex) => {
 			const displayType = typeByRefNo.get(line.refNo ?? "") ?? "cash_sale";
 
+			const invoiceId = idByRefNo.get(line.refNo ?? "");
 			return createReportRow(`sale-${groupIndex}-${lineIndex}-${line.refNo ?? "ref"}-${line.productName ?? "item"}`, {
 				no: "",
 				customer: "",
 				date: formatFlexibleDisplayDate(line.date),
-				refNo: line.refNo ?? "-",
+				refNo: invoiceId ? (
+					<Link to={`/dashboard/invoice/export-preview?ids=${invoiceId}`} className="text-sky-600 hover:underline">
+						{line.refNo ?? "-"}
+					</Link>
+				) : (
+					(line.refNo ?? "-")
+				),
 				type: displayType,
 				category: getProductCategory(line.productName),
 				item: line.productName ?? "-",
@@ -418,6 +445,21 @@ export function buildCustomerTransactionDetailByTypeRows(
 ): ReportTemplateRow[] {
 	if (invoices.length === 0 && payments.length === 0) return [];
 	const rowsByRefNo = groupPreviewRowsByRefNo(previewRows);
+	const receivedByCycle = sumPaymentsByCycle(payments);
+
+	// Reverse of cycleId -> receivedAmount: cycleId -> invoice ids in that cycle, for the Receipt
+	// section's refNo link (same target as the "Export Receipt" button in invoice-content.tsx).
+	// payments are fetched by cycleId (POST /query-payments) using the exact cycles of the invoices
+	// currently displayed (confirmed 2026-09-16), so invoiceIdsByCycle built from those same `invoices`
+	// resolves for every payment by construction — no separate wide fetch needed.
+	const invoiceIdsByCycle = new Map<string, string[]>();
+	for (const inv of invoices) {
+		const cycleId = rowsByRefNo.get(inv.refNo ?? "")?.[0]?.cycleId;
+		if (!cycleId || !inv.id) continue;
+		const ids = invoiceIdsByCycle.get(cycleId) ?? [];
+		ids.push(inv.id);
+		invoiceIdsByCycle.set(cycleId, ids);
+	}
 
 	const reportRows: ReportTemplateRow[] = [];
 
@@ -495,7 +537,7 @@ export function buildCustomerTransactionDetailByTypeRows(
 			});
 
 			custInvoices.forEach((inv, invIdx) => {
-				const { originalAmount, balance } = getOpenInvoiceMetrics(inv, rowsByRefNo);
+				const { originalAmount, balance } = getOpenInvoiceMetrics(inv, rowsByRefNo, receivedByCycle);
 				const pRows = rowsByRefNo.get(inv.refNo ?? "") ?? [];
 				const qty = pRows.reduce((sum, r) => sum + (r.quantity ?? 0), 0) || 1;
 
@@ -512,7 +554,13 @@ export function buildCustomerTransactionDetailByTypeRows(
 					cells: {
 						no: "",
 						date: formatFlexibleDisplayDate(inv.date),
-						refNo: inv.refNo ?? "-",
+						refNo: inv.id ? (
+							<Link to={`/dashboard/invoice/export-preview?ids=${inv.id}`} className="text-sky-600 hover:underline">
+								{inv.refNo ?? "-"}
+							</Link>
+						) : (
+							(inv.refNo ?? "-")
+						),
 						category: getProductCategory(pRows[0]?.productName),
 						term: inv.paymentTerm ?? "",
 						dueDate: "",
@@ -590,14 +638,17 @@ export function buildCustomerTransactionDetailByTypeRows(
 		Array<{
 			date: string;
 			refNo: string;
+			cycleId: string | undefined;
 			openAmount: number;
 			received: number;
 		}>
 	>();
 	const receiptCustomerOrder: string[] = [];
 
+	// customerName is now read directly from the real API response (confirmed live, 2026-09-16).
+	// "Unknown Customer" is kept only as a fallback for a blank/missing name.
 	for (const payment of payments) {
-		const received = payment.received ?? payment.amount ?? 0;
+		const received = payment.amount ?? 0;
 		if (received <= 0) continue;
 
 		const custName = (payment.customerName ?? "").trim() || "Unknown Customer";
@@ -606,9 +657,10 @@ export function buildCustomerTransactionDetailByTypeRows(
 			receiptCustomerOrder.push(custName);
 		}
 		receiptCustomerGroups.get(custName)?.push({
-			date: payment.date || payment.paymentDate || "",
-			refNo: payment.refNo || payment.code || payment.id || "-",
-			openAmount: payment.originalAmount ?? payment.amount ?? received,
+			date: payment.paymentDate || "",
+			refNo: payment.code || payment.id || "-",
+			cycleId: payment.cycleId,
+			openAmount: received,
 			received,
 		});
 	}
@@ -672,12 +724,25 @@ export function buildCustomerTransactionDetailByTypeRows(
 				custReceiptReceived += rcp.received;
 				sectionReceiptTotal += rcp.received;
 
+				// refNo link resolves against invoiceIdsByCycle, built from the same `invoices` this payment
+				// set was fetched for (both scoped to the same cycleIds). Plain text here means a real data
+				// gap — the previewRow for this cycle's invoice is missing a cycleId — not a filter mismatch.
+				const cycleInvoiceIds = rcp.cycleId ? invoiceIdsByCycle.get(rcp.cycleId) : undefined;
 				reportRows.push({
 					key: `tx-rcp-row-${custIndex}-${rcpIdx}-${rcp.refNo}`,
 					cells: {
 						no: "",
 						date: formatFlexibleDisplayDate(rcp.date),
-						refNo: rcp.refNo,
+						refNo: cycleInvoiceIds?.length ? (
+							<Link
+								to={`/dashboard/invoice/receipt-preview?ids=${cycleInvoiceIds.join(",")}&mode=receipt`}
+								className="text-sky-600 hover:underline"
+							>
+								{rcp.refNo}
+							</Link>
+						) : (
+							rcp.refNo
+						),
 						category: "",
 						term: "",
 						dueDate: formatNumber(rcp.openAmount),

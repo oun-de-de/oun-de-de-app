@@ -18,8 +18,8 @@ function buildReceiptDetailReportRows({ invoices, previewRows, showDetail }: Bui
 	return buildReceiptDetailRows(invoices, previewRows, showDetail);
 }
 
-function buildOpenInvoiceDetailRows({ invoices, previewRows, showDetail }: BuildReportRowsParams) {
-	return buildOpenInvoiceRows(invoices, previewRows, showDetail);
+function buildOpenInvoiceDetailRows({ invoices, previewRows, payments, showDetail }: BuildReportRowsParams) {
+	return buildOpenInvoiceRows(invoices, previewRows, payments, showDetail);
 }
 
 function buildSaleDetailReportRows({ invoices, exportLines }: BuildReportRowsParams) {
