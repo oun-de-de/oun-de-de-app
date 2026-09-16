@@ -66,6 +66,22 @@ export function buildSaleDetailColumns(): ReportTemplateColumn[] {
 	]);
 }
 
+export function buildOpenInvoiceGroupColumns(): ReportTemplateColumn[] {
+	return buildSizedColumns([
+		["date", "Date", "w-[8%]", "center"],
+		["refNo", "Ref NO", "w-[10%]"],
+		["memo", "Memo", "w-[8%]"],
+		["item", "Item", "w-[14%]"],
+		["unit", "Unit", "w-[6%]", "center"],
+		["qty", "Qty", "w-[6%]", "right"],
+		["price", "Price", "w-[8%]", "right"],
+		["amount", "Amount", "w-[10%]", "right"],
+		["total", "Total", "w-[10%]", "right"],
+		["paid", "Paid", "w-[10%]", "right"],
+		["balance", "Balance", "w-[10%]", "right"],
+	]);
+}
+
 export function buildReceiptDetailColumns(): ReportTemplateColumn[] {
 	return buildSizedColumns([
 		["no", "No", "w-[5%]", "center"],

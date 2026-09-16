@@ -472,6 +472,28 @@ function buildOpenInvoiceSummary(rows: ReportTemplateRow[]): ReportTemplateSumma
 	]);
 }
 
+function buildOpenInvoiceGroupSummary(rows: ReportTemplateRow[]): ReportTemplateSummaryRow[] {
+	const totalBalance = rows
+		.filter((row) => row.key.includes("-item-total-"))
+		.reduce((sum, row) => sum + parseNumericCell(row.cells.balance), 0);
+
+	return toSummaryRows([
+		{ key: "open-inv-group-total-balance", label: "Total Balance", value: formatNumber(totalBalance) },
+	]);
+}
+
+function buildOpenInvoiceGroupPresentation(params: ReportPresentationBuilderParams): ReportPresentation {
+	const { title, filters, selectedCustomerLabel, selectedCustomer, rows } = params;
+	const dateRange = formatFilterRange(filters);
+
+	return {
+		headerContent: buildOpenInvoiceHeader(title, dateRange),
+		metaColumns: buildOpenInvoiceMetaColumns(filters, selectedCustomerLabel, selectedCustomer),
+		summaryRows: buildOpenInvoiceGroupSummary(rows),
+		showTableHeader: true,
+	};
+}
+
 function buildOpenInvoicePresentation(params: ReportPresentationBuilderParams): ReportPresentation {
 	const { title, filters, selectedCustomerLabel, selectedCustomer, rows } = params;
 	const dateText = formatFilterDateForDisplay(filters?.fromDate);
@@ -680,6 +702,7 @@ const PRESENTATION_BUILDERS: Partial<
 	"receipt-detail-by-customer": buildReceiptDetailPresentation,
 	"customer-transaction-detail-by-type": buildCustomerTransactionDetailByTypePresentation,
 	"open-invoice-detail-by-customer": buildOpenInvoicePresentation,
+	"open-invoice-on-period-by-group": buildOpenInvoiceGroupPresentation,
 	"cycle-summary": buildCyclePresentation,
 };
 

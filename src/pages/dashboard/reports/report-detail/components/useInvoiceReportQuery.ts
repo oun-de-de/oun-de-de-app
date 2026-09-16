@@ -36,7 +36,9 @@ export function useInvoiceReportQuery({
 	// customer-transaction-detail-by-type now uses the same mechanism instead of a customer/date
 	// /payments fetch, so its Receipt section is scoped to the same cycles as the displayed invoices.
 	const usesCyclePayments =
-		definition.slug === "open-invoice-detail-by-customer" || definition.slug === "customer-transaction-detail-by-type";
+		definition.slug === "open-invoice-detail-by-customer" ||
+		definition.slug === "customer-transaction-detail-by-type" ||
+		definition.slug === "open-invoice-on-period-by-group";
 	const shouldBuildPreviewRows = definition.needsPreviewRows === true;
 
 	const paymentQuery = useQuery({

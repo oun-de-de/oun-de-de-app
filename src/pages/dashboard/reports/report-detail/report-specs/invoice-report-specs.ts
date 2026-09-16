@@ -1,6 +1,7 @@
 import { REPORT_TITLES } from "../../report-titles";
 import {
 	buildMonthlyRevenueExpenseApiRows,
+	buildOpenInvoiceGroupRows,
 	buildOpenInvoiceRows,
 	buildReceiptDetailRows,
 	buildSaleDetailRows,
@@ -9,6 +10,7 @@ import { REPORT_DEFAULT_DATE } from "../constants";
 import { buildMonthlySummaryColumns } from "../report-columns/accounting-report-columns";
 import {
 	buildOpenInvoiceDetailColumns,
+	buildOpenInvoiceGroupColumns,
 	buildReceiptDetailColumns,
 	buildSaleDetailColumns,
 } from "../report-columns/invoice-report-columns";
@@ -20,6 +22,11 @@ function buildReceiptDetailReportRows({ invoices, previewRows, showDetail }: Bui
 
 function buildOpenInvoiceDetailRows({ invoices, previewRows, payments, showDetail }: BuildReportRowsParams) {
 	return buildOpenInvoiceRows(invoices, previewRows, payments, showDetail);
+}
+
+function buildOpenInvoiceGroupReportRows({ invoices, previewRows, payments, filters }: BuildReportRowsParams) {
+	const showAllCustomers = !filters?.customerId || filters.customerId === "all";
+	return buildOpenInvoiceGroupRows(invoices, previewRows, payments, showAllCustomers);
 }
 
 function buildSaleDetailReportRows({ invoices, exportLines }: BuildReportRowsParams) {
@@ -44,6 +51,17 @@ export const INVOICE_REPORT_SPECS: ReportDefinitionMap = {
 			...REPORT_FILTERS.customerAndSingleDate,
 			customerType: true,
 		},
+	},
+	"open-invoice-on-period-by-group": {
+		slug: "open-invoice-on-period-by-group",
+		title: REPORT_TITLES["open-invoice-on-period-by-group"],
+		templateId: "open-invoice-on-period-by-group",
+		subtitle: REPORT_DEFAULT_DATE,
+		buildColumns: buildOpenInvoiceGroupColumns,
+		buildRows: buildOpenInvoiceGroupReportRows,
+		dataSource: "invoice-export",
+		needsPreviewRows: true,
+		filterConfig: REPORT_FILTERS.customerAndDateRange,
 	},
 	"sale-detail-by-customer": {
 		slug: "sale-detail-by-customer",

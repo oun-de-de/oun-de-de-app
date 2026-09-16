@@ -191,11 +191,13 @@ describe("ReportFilters", () => {
 		await waitFor(() => expect(onSubmit).toHaveBeenCalledWith(defaultValue));
 	});
 
-	it("uses Group and Report Period date range for Open Invoice by group", async () => {
+	it("uses Item and Report Period date range for Open Invoice by group", async () => {
 		renderOpenInvoiceFilters("open-invoice-on-period-by-group");
 
-		expect(await screen.findByText("Group")).toBeInTheDocument();
+		expect(await screen.findByText("Item")).toBeInTheDocument();
 		expect(screen.queryByText("Job")).not.toBeInTheDocument();
+		expect(screen.queryByText("Term")).not.toBeInTheDocument();
+		expect(screen.queryByText("Show Detail")).not.toBeInTheDocument();
 		expect(screen.getByText("Report Period")).toBeInTheDocument();
 	});
 
