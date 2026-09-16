@@ -2,6 +2,7 @@ import { Link } from "react-router";
 import type { Invoice, InvoiceExportLineApi, InvoiceExportPreviewRow, PaymentResult } from "@/core/types/invoice";
 import { formatFlexibleDisplayDate } from "@/core/utils/date-display";
 import { formatNumber } from "@/core/utils/formatters";
+import { getPreviewRowOriginalAmount } from "../../../../invoice/export-preview/utils/export-preview-rows";
 import type { ReportTemplateRow } from "../../../components/layout/report-template-table";
 import {
 	buildInvoiceTypeMap,
@@ -189,6 +190,156 @@ export function buildOpenInvoiceRows(
 	}
 
 	return reportRows;
+}
+
+// Payments are cycle-level (POST /query-payments by cycleId), not per-line. Display the cycle's
+// received amount on the chronologically-first visible line of that cycle only — matching the
+// existing open-invoice-detail-by-customer allocation (getOpenInvoiceMetrics/buildOpenInvoiceRows
+// above). This is a presentation choice, not a claim that the payment belongs to that one line.
+function buildOpenInvoiceGroupSection(
+	rows: InvoiceExportPreviewRow[],
+	receivedByCycle: ReadonlyMap<string, number>,
+	idByRefNo: ReadonlyMap<string, string>,
+	keyPrefix: string,
+): ReportTemplateRow[] {
+	const sorted = [...rows].sort((a, b) => (a.date ?? "").localeCompare(b.date ?? ""));
+	const seenCycleIds = new Set<string>();
+	const detailRows: ReportTemplateRow[] = [];
+	const totalsByItem = new Map<
+		string,
+		{ qty: number; amount: number; total: number; paid: number; balance: number; count: number }
+	>();
+
+	sorted.forEach((row, index) => {
+		const originalAmount = getPreviewRowOriginalAmount(row) ?? 0;
+		const cycleId = row.cycleId;
+		const isFirstCycleRow = !cycleId || !seenCycleIds.has(cycleId);
+		if (cycleId && isFirstCycleRow) seenCycleIds.add(cycleId);
+
+		const received = cycleId ? (receivedByCycle.get(cycleId) ?? 0) : 0;
+		const paid = isFirstCycleRow ? received : 0;
+		const balance = isFirstCycleRow ? Math.max(originalAmount - received, 0) : originalAmount;
+
+		// Only show lines with remaining balance — same "open" filter as buildOpenInvoiceRows.
+		if (balance <= 0) return;
+
+		const itemKey = row.productName?.trim() || "Unknown Item";
+		const totals = totalsByItem.get(itemKey) ?? { qty: 0, amount: 0, total: 0, paid: 0, balance: 0, count: 0 };
+		totals.qty += row.quantity ?? 0;
+		totals.amount += originalAmount;
+		totals.total += row.total ?? originalAmount;
+		totals.paid += paid;
+		totals.balance += balance;
+		totals.count += 1;
+		totalsByItem.set(itemKey, totals);
+
+		const invoiceId = idByRefNo.get(row.refNo);
+		detailRows.push(
+			createReportRow(`${keyPrefix}-line-${index}-${row.refNo}`, {
+				date: formatFlexibleDisplayDate(row.date),
+				refNo: invoiceId ? (
+					<Link to={`/dashboard/invoice/export-preview?ids=${invoiceId}`} className="text-sky-600 hover:underline">
+						{row.refNo}
+					</Link>
+				) : (
+					row.refNo || "-"
+				),
+				memo: row.memo ?? "",
+				item: itemKey,
+				unit: row.unit ?? "",
+				qty: formatNumber(row.quantity ?? 0),
+				price: formatNumber(row.pricePerProduct ?? 0),
+				amount: formatNumber(originalAmount),
+				total: formatNumber(row.total ?? originalAmount),
+				paid: paid > 0 ? formatNumber(paid) : "",
+				balance: formatNumber(balance),
+			}),
+		);
+	});
+
+	const totalRows = [...totalsByItem.entries()].map(([item, totals], index) => ({
+		key: `${keyPrefix}-item-total-${index}-${item}`,
+		isStructural: true,
+		cells: {
+			date: "",
+			refNo: "",
+			memo: "",
+			item: `Total(${totals.count})`,
+			unit: item,
+			qty: formatNumber(totals.qty),
+			price: "",
+			amount: formatNumber(totals.amount),
+			total: formatNumber(totals.total),
+			paid: formatNumber(totals.paid),
+			balance: formatNumber(totals.balance),
+		},
+		rowClassName: "font-bold bg-slate-50/60",
+		cellClassNames: {
+			item: "font-bold text-slate-800",
+			amount: "font-bold text-slate-900",
+			total: "font-bold text-slate-900",
+			paid: "font-bold text-slate-900",
+			balance: "font-bold text-slate-900",
+		},
+	}));
+
+	return [...detailRows, ...totalRows];
+}
+
+export function buildOpenInvoiceGroupRows(
+	invoices: Array<Pick<Invoice, "refNo" | "id">>,
+	previewRows: InvoiceExportPreviewRow[],
+	payments: PaymentResult[] = [],
+	showAllCustomers = false,
+): ReportTemplateRow[] {
+	const receivedByCycle = sumPaymentsByCycle(payments);
+	// RefNo isn't a unique invoice identifier by itself, but the export-preview route keys off id
+	// (invoiceService.listInvoiceDetails takes ids, not refNos) — so line rows must resolve back to
+	// the real invoice id via this map, same as buildOpenInvoiceRows above does with inv.id directly.
+	const idByRefNo = new Map(invoices.filter((inv) => inv.refNo).map((inv) => [inv.refNo, inv.id]));
+
+	if (!showAllCustomers) {
+		return buildOpenInvoiceGroupSection(previewRows, receivedByCycle, idByRefNo, "open-inv-group");
+	}
+
+	const rowsByCustomer = new Map<string, InvoiceExportPreviewRow[]>();
+	const customerOrder: string[] = [];
+	for (const row of previewRows) {
+		const customerName = (row.customerName ?? "").trim() || "Unknown Customer";
+		if (!rowsByCustomer.has(customerName)) {
+			rowsByCustomer.set(customerName, []);
+			customerOrder.push(customerName);
+		}
+		rowsByCustomer.get(customerName)?.push(row);
+	}
+
+	return customerOrder.flatMap((customerName, index) => [
+		{
+			key: `open-inv-group-customer-header-${index}-${customerName}`,
+			isStructural: true,
+			cells: {
+				date: "",
+				refNo: "",
+				memo: "",
+				item: customerName,
+				unit: "",
+				qty: "",
+				price: "",
+				amount: "",
+				total: "",
+				paid: "",
+				balance: "",
+			},
+			rowClassName: "font-semibold bg-slate-50/40",
+			cellClassNames: { item: "font-semibold text-slate-900" },
+		},
+		...buildOpenInvoiceGroupSection(
+			rowsByCustomer.get(customerName) ?? [],
+			receivedByCycle,
+			idByRefNo,
+			`open-inv-group-${index}`,
+		),
+	]);
 }
 
 export function buildReceiptDetailRows(

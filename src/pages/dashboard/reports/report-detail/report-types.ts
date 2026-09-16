@@ -48,6 +48,7 @@ export type ReportTemplateId =
 	| "sale-detail-by-customer"
 	| "customer-list"
 	| "cycle-summary"
+	| "open-invoice-on-period-by-group"
 	| "receipt-detail-by-customer"
 	| "customer-transaction-detail-by-type"
 	| "unsupported";

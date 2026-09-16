@@ -131,6 +131,7 @@ type OpenInvoiceFilterFormProps = {
 	value: ReportFiltersValue;
 	customers: Customer[];
 	employees: Employee[];
+	products: Product[];
 	updateFilters: (nextValue: ReportFiltersValue) => void;
 	onSubmit: (e?: React.BaseSyntheticEvent) => void;
 };
@@ -146,19 +147,14 @@ const OPEN_INVOICE_TERM_OPTIONS: ReportComboboxOption[] = [{ value: "all", label
 
 const OPEN_INVOICE_JOB_OPTIONS: ReportComboboxOption[] = [{ value: "all", label: "Please Select" }];
 
-const OPEN_INVOICE_GROUP_OPTIONS: ReportComboboxOption[] = [{ value: "all", label: "All" }];
-
 const OPEN_INVOICE_GEOGRAPHY_OPTIONS: ReportComboboxOption[] = [{ value: "all", label: "All" }];
-
-// ponytail: All-only placeholder, same as Branch/Category/Term above — OpenInvoiceReportLine has no
-// product/item field yet (BE TODO in src/core/types/report.ts). Wire real options once BE adds one.
-const OPEN_INVOICE_ITEM_OPTIONS: ReportComboboxOption[] = [{ value: "all", label: "All" }];
 
 function OpenInvoiceFilterForm({
 	reportSlug,
 	value,
 	customers,
 	employees,
+	products,
 	updateFilters,
 	onSubmit,
 }: OpenInvoiceFilterFormProps) {
@@ -180,6 +176,10 @@ function OpenInvoiceFilterForm({
 	const customersInType = getCustomersWithinType(customers, customerTypeId);
 
 	const employeeOptions = useMemo<ReportComboboxOption[]>(() => toEmployeeComboboxOptions(employees), [employees]);
+
+	// Real item names for open-invoice-on-period-by-group — sale-detail-by-customer's ProductSelect
+	// already builds options this same way from the product catalog.
+	const itemOptions = useMemo<ReportComboboxOption[]>(() => toProductComboboxOptions(products), [products]);
 
 	const customerTypeOptions = useMemo<ReportComboboxOption[]>(() => toCustomerComboboxOptions(customers), [customers]);
 
@@ -230,36 +230,40 @@ function OpenInvoiceFilterForm({
 						})
 					}
 				/>
-				<ReportSearchCombobox
-					id="report-term"
-					label="Term"
-					value={term || "all"}
-					options={OPEN_INVOICE_TERM_OPTIONS}
-					onChange={(nextTerm) =>
-						updateFilters({
-							...value,
-							term: nextTerm,
-						})
-					}
-				/>
-				<ReportSearchCombobox
-					id="report-job"
-					label={isGrouped ? "Group" : "Job"}
-					value={job || "all"}
-					options={isGrouped ? OPEN_INVOICE_GROUP_OPTIONS : OPEN_INVOICE_JOB_OPTIONS}
-					onChange={(nextJob) =>
-						updateFilters({
-							...value,
-							job: nextJob,
-						})
-					}
-				/>
+				{!isGrouped && (
+					<ReportSearchCombobox
+						id="report-term"
+						label="Term"
+						value={term || "all"}
+						options={OPEN_INVOICE_TERM_OPTIONS}
+						onChange={(nextTerm) =>
+							updateFilters({
+								...value,
+								term: nextTerm,
+							})
+						}
+					/>
+				)}
+				{!isGrouped && (
+					<ReportSearchCombobox
+						id="report-job"
+						label="Job"
+						value={job || "all"}
+						options={OPEN_INVOICE_JOB_OPTIONS}
+						onChange={(nextJob) =>
+							updateFilters({
+								...value,
+								job: nextJob,
+							})
+						}
+					/>
+				)}
 				{isGrouped && (
 					<ReportSearchCombobox
 						id="report-item"
 						label="Item"
 						value={productName || "all"}
-						options={OPEN_INVOICE_ITEM_OPTIONS}
+						options={itemOptions}
 						onChange={(nextProductName) =>
 							updateFilters({
 								...value,
@@ -343,18 +347,20 @@ function OpenInvoiceFilterForm({
 						}
 					/>
 				)}
-				<FilterRow label="Show Detail">
-					<Checkbox
-						id="report-show-detail"
-						checked={showDetail ?? true}
-						onCheckedChange={(checked) =>
-							updateFilters({
-								...value,
-								showDetail: !!checked,
-							})
-						}
-					/>
-				</FilterRow>
+				{!isGrouped && (
+					<FilterRow label="Show Detail">
+						<Checkbox
+							id="report-show-detail"
+							checked={showDetail ?? true}
+							onCheckedChange={(checked) =>
+								updateFilters({
+									...value,
+									showDetail: !!checked,
+								})
+							}
+						/>
+					</FilterRow>
+				)}
 				<FilterRow label="">
 					<Button type="submit" className="h-8 w-fit bg-sky-500 px-4 hover:bg-sky-600">
 						<Search className="mr-1.5 h-3.5 w-3.5" />
@@ -564,7 +570,8 @@ export const ReportFilters = memo(function ReportFilters({
 		queryKey: PRODUCT_QUERY_KEYS.list(),
 		queryFn: productService.getProductList,
 		// ProductSelect is only live (not disabled) on sale-detail-by-customer — see report-filters.tsx:661.
-		enabled: reportSlug === "sale-detail-by-customer",
+		// Also used to populate the real Item options on open-invoice-on-period-by-group (below).
+		enabled: reportSlug === "sale-detail-by-customer" || reportSlug === "open-invoice-on-period-by-group",
 	});
 	const { data: employees = [] } = useQuery({
 		queryKey: EMPLOYEE_QUERY_KEYS.list(),
@@ -584,6 +591,7 @@ export const ReportFilters = memo(function ReportFilters({
 				value={value}
 				customers={customers}
 				employees={employees}
+				products={products}
 				updateFilters={updateFilters}
 				onSubmit={submit}
 			/>
