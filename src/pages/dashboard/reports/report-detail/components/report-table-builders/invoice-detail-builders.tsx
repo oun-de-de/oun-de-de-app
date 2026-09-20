@@ -202,6 +202,9 @@ function buildOpenInvoiceGroupSection(
 	idByRefNo: ReadonlyMap<string, string>,
 	keyPrefix: string,
 ): ReportTemplateRow[] {
+	// ponytail: "customer" filled per-line from row.customerName rather than a passed-in
+	// group name — works for both the flat (single-customer) and grouped-by-customer callers
+	// below without an extra param, since InvoiceExportPreviewRow already carries it.
 	const sorted = [...rows].sort((a, b) => (a.date ?? "").localeCompare(b.date ?? ""));
 	const seenCycleIds = new Set<string>();
 	const detailRows: ReportTemplateRow[] = [];
@@ -236,6 +239,7 @@ function buildOpenInvoiceGroupSection(
 		const invoiceId = idByRefNo.get(row.refNo);
 		detailRows.push(
 			createReportRow(`${keyPrefix}-line-${index}-${row.refNo}`, {
+				customer: row.customerName?.trim() || "Unknown Customer",
 				date: formatFlexibleDisplayDate(row.date),
 				refNo: invoiceId ? (
 					<Link to={`/dashboard/invoice/export-preview?ids=${invoiceId}`} className="text-sky-600 hover:underline">
@@ -261,6 +265,7 @@ function buildOpenInvoiceGroupSection(
 		key: `${keyPrefix}-item-total-${index}-${item}`,
 		isStructural: true,
 		cells: {
+			customer: "",
 			date: "",
 			refNo: "",
 			memo: "",
@@ -318,10 +323,11 @@ export function buildOpenInvoiceGroupRows(
 			key: `open-inv-group-customer-header-${index}-${customerName}`,
 			isStructural: true,
 			cells: {
+				customer: customerName,
 				date: "",
 				refNo: "",
 				memo: "",
-				item: customerName,
+				item: "",
 				unit: "",
 				qty: "",
 				price: "",
@@ -331,7 +337,7 @@ export function buildOpenInvoiceGroupRows(
 				balance: "",
 			},
 			rowClassName: "font-semibold bg-slate-50/40",
-			cellClassNames: { item: "font-semibold text-slate-900" },
+			cellClassNames: { customer: "font-semibold text-slate-900" },
 		},
 		...buildOpenInvoiceGroupSection(
 			rowsByCustomer.get(customerName) ?? [],

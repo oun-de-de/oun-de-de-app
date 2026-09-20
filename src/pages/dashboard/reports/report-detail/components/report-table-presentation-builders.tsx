@@ -438,6 +438,20 @@ function buildOpenInvoiceMetaColumns(
 			? selectedCustomerLabel
 			: "All";
 
+	// Ref screenshots only show a single "អតិថិជន: [name]" line when one customer is selected —
+	// no Term/Category/Geography/Employee grid in that case. Falls back to the 3-column grid
+	// (existing behavior) when Customer = All, since no reference covers that state.
+	if (selectedCustomer) {
+		return [
+			{
+				key: "open-inv-meta-customer",
+				rows: [`អតិថិជន: [${customerDisplay}]`],
+				align: "left",
+				className: "md:col-span-4",
+			},
+		];
+	}
+
 	return [
 		{
 			key: "open-inv-meta-left",

@@ -1,3 +1,4 @@
+import type { Customer } from "@/core/types/customer";
 import type { Invoice, InvoiceExportLineApi } from "@/core/types/invoice";
 import type { InventoryStockReportLine } from "@/core/types/report";
 import {
@@ -39,6 +40,119 @@ describe("sale detail summary", () => {
 		expect(summary["sale-detail-total-amount"]).toBe("300");
 		expect(summary["sale-detail-cash-invoice"]).toBe("2");
 		expect(summary["sale-detail-total-customer"]).toBe("2");
+	});
+});
+
+describe("open invoice group header", () => {
+	it("shows a single customer meta line when a customer is selected, not the 3-column grid", () => {
+		const customer: Customer = {
+			id: "c004",
+			registerDate: "2026-01-01",
+			code: "C004",
+			name: "សម្រេច (2G-8421)",
+			status: true,
+			defaultPrice: "",
+			warehouseId: "",
+			memo: "",
+			profileUrl: "",
+			shopBannerUrl: "",
+			employeeId: "",
+			telephone: "",
+			email: "",
+			geography: "",
+			address: "",
+			location: "",
+			map: "",
+			billingAddress: "",
+			deliveryAddress: "",
+			vehicles: [],
+		};
+
+		const presentation = buildReportPresentation({
+			templateId: "open-invoice-on-period-by-group",
+			reportSlug: "open-invoice-on-period-by-group",
+			title: "Open Invoice On Period By Group",
+			filters: undefined,
+			selectedCustomerLabel: "C004 : សម្រេច (2G-8421)",
+			selectedCustomer: customer,
+			rows: [],
+			previewRows: [],
+		});
+
+		expect(presentation.metaColumns).toHaveLength(1);
+		expect(presentation.metaColumns?.[0]?.rows).toEqual(["អតិថិជន: [C004 : សម្រេច (2G-8421)]"]);
+	});
+
+	it("falls back to the 3-column grid when Customer = All", () => {
+		const presentation = buildReportPresentation({
+			templateId: "open-invoice-on-period-by-group",
+			reportSlug: "open-invoice-on-period-by-group",
+			title: "Open Invoice On Period By Group",
+			filters: undefined,
+			selectedCustomerLabel: undefined,
+			selectedCustomer: undefined,
+			rows: [],
+			previewRows: [],
+		});
+
+		expect(presentation.metaColumns).toHaveLength(3);
+	});
+
+	it("omits the empty code prefix when the selected customer has no code", () => {
+		const customerWithoutCode: Customer = {
+			id: "c-nocode",
+			registerDate: "2026-01-01",
+			code: "",
+			name: "No Code Customer",
+			status: true,
+			defaultPrice: "",
+			warehouseId: "",
+			memo: "",
+			profileUrl: "",
+			shopBannerUrl: "",
+			employeeId: "",
+			telephone: "",
+			email: "",
+			geography: "",
+			address: "",
+			location: "",
+			map: "",
+			billingAddress: "",
+			deliveryAddress: "",
+			vehicles: [],
+		};
+
+		const presentation = buildReportPresentation({
+			templateId: "open-invoice-on-period-by-group",
+			reportSlug: "open-invoice-on-period-by-group",
+			title: "Open Invoice On Period By Group",
+			filters: undefined,
+			selectedCustomerLabel: "No Code Customer",
+			selectedCustomer: customerWithoutCode,
+			rows: [],
+			previewRows: [],
+		});
+
+		expect(presentation.metaColumns?.[0]?.rows).toEqual(["អតិថិជន: [No Code Customer]"]);
+	});
+
+	it("falls back to the 3-column grid when the selected customer id no longer resolves (deleted customer)", () => {
+		// useReportTableData's selectedCustomerInfo falls back to the raw filter id as the label
+		// when the customer record can't be found in the current customer list — selectedCustomer
+		// stays undefined in that case. Meta columns must not crash or fabricate a customer line.
+		const presentation = buildReportPresentation({
+			templateId: "open-invoice-on-period-by-group",
+			reportSlug: "open-invoice-on-period-by-group",
+			title: "Open Invoice On Period By Group",
+			filters: undefined,
+			selectedCustomerLabel: "deleted-customer-id",
+			selectedCustomer: undefined,
+			rows: [],
+			previewRows: [],
+		});
+
+		expect(presentation.metaColumns).toHaveLength(3);
+		expect(presentation.metaColumns?.[0]?.rows).toEqual(["Branch: ['01 : ភ្នំពេញ']", "Customer: [deleted-customer-id]"]);
 	});
 });
 
