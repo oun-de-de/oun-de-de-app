@@ -218,18 +218,48 @@ function OpenInvoiceFilterForm({
 						})
 					}
 				/>
-				<ReportSearchCombobox
-					id="report-category"
-					label="Category"
-					value={category || "all"}
-					options={OPEN_INVOICE_CATEGORY_OPTIONS}
-					onChange={(nextCategory) =>
-						updateFilters({
-							...value,
-							category: nextCategory,
-						})
-					}
-				/>
+				{isGrouped ? (
+					<>
+						<ReportSearchCombobox
+							id="report-customer-type"
+							label="Customer Type"
+							value={customerTypeId || "all"}
+							options={customerTypeOptions}
+							onChange={(nextCustomerTypeId) => {
+								updateFilters({
+									...value,
+									customerTypeId: nextCustomerTypeId,
+									customerId: "all",
+								});
+							}}
+						/>
+						<ReportSearchCombobox
+							id="customer"
+							label="Customer"
+							value={customerId || "all"}
+							options={customerOptions}
+							onChange={(nextCustomerId) =>
+								updateFilters({
+									...value,
+									customerId: nextCustomerId,
+								})
+							}
+						/>
+					</>
+				) : (
+					<ReportSearchCombobox
+						id="report-category"
+						label="Category"
+						value={category || "all"}
+						options={OPEN_INVOICE_CATEGORY_OPTIONS}
+						onChange={(nextCategory) =>
+							updateFilters({
+								...value,
+								category: nextCategory,
+							})
+						}
+					/>
+				)}
 				{!isGrouped && (
 					<ReportSearchCombobox
 						id="report-term"
@@ -258,60 +288,77 @@ function OpenInvoiceFilterForm({
 						}
 					/>
 				)}
-				{isGrouped && (
-					<ReportSearchCombobox
-						id="report-item"
-						label="Item"
-						value={productName || "all"}
-						options={itemOptions}
-						onChange={(nextProductName) =>
-							updateFilters({
-								...value,
-								productName: nextProductName,
-							})
-						}
-					/>
-				)}
 			</div>
 
 			<div className="flex flex-col gap-2">
-				<ReportSearchCombobox
-					id="report-geography"
-					label="Geography"
-					value={geography || "all"}
-					options={OPEN_INVOICE_GEOGRAPHY_OPTIONS}
-					onChange={(nextGeography) =>
-						updateFilters({
-							...value,
-							geography: nextGeography,
-						})
-					}
-				/>
-				<ReportSearchCombobox
-					id="report-customer-type"
-					label="Customer Type"
-					value={customerTypeId || "all"}
-					options={customerTypeOptions}
-					onChange={(nextCustomerTypeId) => {
-						updateFilters({
-							...value,
-							customerTypeId: nextCustomerTypeId,
-							customerId: "all",
-						});
-					}}
-				/>
-				<ReportSearchCombobox
-					id="customer"
-					label="Customer"
-					value={customerId || "all"}
-					options={customerOptions}
-					onChange={(nextCustomerId) =>
-						updateFilters({
-							...value,
-							customerId: nextCustomerId,
-						})
-					}
-				/>
+				{isGrouped ? (
+					<>
+						<ReportSearchCombobox
+							id="report-category"
+							label="Category"
+							value={category || "all"}
+							options={OPEN_INVOICE_CATEGORY_OPTIONS}
+							onChange={(nextCategory) =>
+								updateFilters({
+									...value,
+									category: nextCategory,
+								})
+							}
+						/>
+						<ReportSearchCombobox
+							id="report-item"
+							label="Item"
+							value={productName || "all"}
+							options={itemOptions}
+							onChange={(nextProductName) =>
+								updateFilters({
+									...value,
+									productName: nextProductName,
+								})
+							}
+						/>
+					</>
+				) : (
+					<>
+						<ReportSearchCombobox
+							id="report-geography"
+							label="Geography"
+							value={geography || "all"}
+							options={OPEN_INVOICE_GEOGRAPHY_OPTIONS}
+							onChange={(nextGeography) =>
+								updateFilters({
+									...value,
+									geography: nextGeography,
+								})
+							}
+						/>
+						<ReportSearchCombobox
+							id="report-customer-type"
+							label="Customer Type"
+							value={customerTypeId || "all"}
+							options={customerTypeOptions}
+							onChange={(nextCustomerTypeId) => {
+								updateFilters({
+									...value,
+									customerTypeId: nextCustomerTypeId,
+									customerId: "all",
+								});
+							}}
+						/>
+						<ReportSearchCombobox
+							id="customer"
+							label="Customer"
+							value={customerId || "all"}
+							options={customerOptions}
+							onChange={(nextCustomerId) =>
+								updateFilters({
+									...value,
+									customerId: nextCustomerId,
+								})
+							}
+						/>
+					</>
+				)}
 				{!isGrouped ? (
 					<FilterRow label="Report Date" required>
 						<ReportDatePickerButton

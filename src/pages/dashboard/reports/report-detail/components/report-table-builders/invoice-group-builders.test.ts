@@ -137,8 +137,16 @@ describe("buildOpenInvoiceGroupRows", () => {
 		const result = buildOpenInvoiceGroupRows(invoicesFor(rows), rows, [], true);
 		const headers = result.filter((r) => String(r.key).includes("customer-header"));
 		expect(headers).toHaveLength(2);
-		expect(headers[0]?.cells.item).toBe("Customer A");
-		expect(headers[1]?.cells.item).toBe("Customer B");
+		expect(headers[0]?.cells.customer).toBe("Customer A");
+		expect(headers[1]?.cells.customer).toBe("Customer B");
+	});
+
+	it("fills the customer cell per detail line, distinct from the item cell", () => {
+		const rows = [row({ cycleId: "C1", customerName: "Customer A", productName: "Ice Cube", amount: 10000 })];
+		const result = buildOpenInvoiceGroupRows(invoicesFor(rows), rows, []);
+		const detail = result.find((r) => !r.isStructural);
+		expect(detail?.cells.customer).toBe("Customer A");
+		expect(detail?.cells.item).toBe("Ice Cube");
 	});
 
 	it("resolves the export-preview link to the invoice id, not the refNo", () => {

@@ -201,6 +201,29 @@ describe("ReportFilters", () => {
 		expect(screen.getByText("Report Period")).toBeInTheDocument();
 	});
 
+	it("matches the Rabbit Open Invoice by group layout: no Geography, Branch/Employee/Customer Type/Customer left, Category/Item/Report Period/Submit right", async () => {
+		renderOpenInvoiceFilters("open-invoice-on-period-by-group");
+
+		await screen.findByText("Item");
+		expect(screen.queryByText("Geography")).not.toBeInTheDocument();
+
+		const branch = screen.getByText("Branch");
+		const employee = screen.getByText("Employee");
+		const customerType = screen.getByText("Customer Type");
+		const customer = screen.getByText("Customer");
+		const category = screen.getByText("Category");
+		const item = screen.getByText("Item");
+		const reportPeriod = screen.getByText("Report Period");
+
+		// Left column order
+		expect(branch.compareDocumentPosition(employee) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+		expect(employee.compareDocumentPosition(customerType) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+		expect(customerType.compareDocumentPosition(customer) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+		// Right column order
+		expect(category.compareDocumentPosition(item) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+		expect(item.compareDocumentPosition(reportPeriod) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+	});
+
 	it("submits the selected Customer Type referrer", async () => {
 		const user = userEvent.setup();
 		const onSubmit = vi.fn();
